@@ -1,0 +1,16 @@
+Light HTTP1.1 Client
+--------------------
+
+This API is a wrapper around the standard java.net.URL capability for
+making HTTP requests. It has the following objectives:
+
+ * Light-weight - not much code and fast performance
+
+ * Simple to use - provides easy programmatic HTTP client calls, handling
+   the necessary headers and body data.
+
+ * (Mostly) complete implementation - all HTTP methods and headers are
+   supported.
+
+It is written in Scala but can be called (less-easily) from Java also.
+ 
