@@ -24,38 +24,46 @@
 
 package uk.co.bigbeeconsultants.lhc
 
-import java.nio.charset.Charset
-import java.nio.ByteBuffer
+import com.pyruby.stubserver.StubMethod
+import com.pyruby.stubserver.StubServer
+import org.junit.{Test, Before, AfterClass, BeforeClass}
+import org.junit.Assert._
+import java.net.URL
 
-/**
- * Represents a HTTP response. Immutable.
- */
-case class Response(statusCode: Int,
-                    statusMessage: String,
-                    charset: String,
-                    contentType: MediaType,
-                    headers: Map[String, Header],
-                    byteData: ByteBuffer) {
 
-  /**
-   * Get the body of the response as a plain string.
-   * @return body
-   */
-  lazy val body: String = getBody
+class HttpTest {
+  import HttpTest._
 
-  private def getBody = {
-    val body =
-      if (charset == null) Charset.forName(Http.defaultCharset).decode(byteData).toString
-      else Charset.forName(charset).decode(byteData).toString
-    byteData.rewind
-    body
+  private var http: Http = null
+
+  @Before def setUp() {
+    http = new Http()
   }
 
-  /**
-   * Get the body of the response as an array of bytes.
-   * @return body bytes
-   */
-  def bodyAsBytes = byteData.array()
+  @Test def get_shouldReturnOK() {
+    val url = "/some/url"
+    val stubbedMethod = StubMethod.get(url)
+    val json = """{"astring" : "the message" }"""
+    server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, json)
+    val response = http.get(new URL(baseUrl + url))
+    assertEquals(MediaType.APPLICATION_JSON, response.contentType)
+    assertEquals(json, response.body)
+  }
+
 }
 
+object HttpTest {
+  private val port = (java.lang.Math.random * 16000 + 10000).asInstanceOf[Int]
+  private var baseUrl: String = null
+  private var server: StubServer = null
 
+  @BeforeClass def configure() {
+    baseUrl = "http://localhost:" + port
+    server = new StubServer(port)
+    server.start()
+  }
+
+  @AfterClass def after() {
+    server.stop()
+  }
+}

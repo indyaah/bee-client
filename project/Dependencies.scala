@@ -74,10 +74,10 @@ object Dependencies {
 
   val jcsp             = "org.codehaus.jcsp"  % "jcsp"           % "1.1-rc5"
 
-//  val jettyCore        = "org.mortbay.jetty" % "jetty"          % jettyVersion withSources()
-//  val jettyEmbedded    = "org.mortbay.jetty" % "jetty-embedded" % jettyVersion withSources()
-//  val jettyUtil        = "org.mortbay.jetty" % "jetty-util"     % jettyVersion withSources()
-//  val servlet          = "javax.servlet"     % "servlet-api"    % "2.5" withSources()
+  val jettyCore        = "org.mortbay.jetty" % "jetty"          % jettyVersion withSources()
+  val jettyEmbedded    = "org.mortbay.jetty" % "jetty-embedded" % jettyVersion withSources()
+  val jettyUtil        = "org.mortbay.jetty" % "jetty-util"     % jettyVersion withSources()
+  val servlet          = "javax.servlet"     % "servlet-api"    % "2.5" withSources()
 
   val xmlResolver      = "xml-resolver"     % "xml-resolver"      % "1.1" withSources()
   val jsoup            = "org.jsoup"        % "jsoup"             % "1.6.+" withSources() withJavadoc()
@@ -89,5 +89,9 @@ object Dependencies {
   val scalatest	       = "org.scalatest"           % "scalatest_2.9.1"          % "1.6.+" % "test" withSources()
   val junit            = "junit"                   % "junit"                    % "4.8.+" % "test" withSources()
   val junitInterface   = "com.novocode"            % "junit-interface"          % "0.7"   % "test"
+
+  // see lib folder
+  //val stubserver       = "tarttelin"               % "stubserver"               % "0.2"   % "test"
+
 //  val mockito          = "org.mockito"             % "mockito-all"              % "1.8.+" % "test"
 }

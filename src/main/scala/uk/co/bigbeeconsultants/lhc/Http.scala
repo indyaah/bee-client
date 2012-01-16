@@ -118,7 +118,7 @@ class Http {
     val wStream = if (contEnc.isDefined && contEnc.get.value.toLowerCase == Http.gzip) new GZIPInputStream(stream) else stream
     val body = readToByteBuffer(wStream)
     new Response(connWrapper.getResponseCode, connWrapper.getResponseMessage, connWrapper.getContentEncoding,
-      connWrapper.getContentType, responseHeaders, body)
+      MediaType(connWrapper.getContentType), responseHeaders, body)
   }
 
   private def readToByteBuffer(inStream: InputStream): ByteBuffer = {

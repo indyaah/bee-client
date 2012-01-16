@@ -41,11 +41,13 @@ object LightHttpClient extends Build {
       resolvers := Resolvers.resolvers,
 
       libraryDependencies ++= Seq(
-        apacheIo,
+        apacheIo, servlet,
         slf4jApi, slf4jJcl, slf4jLog4j, logbackCore, logbackClassic,
+        jettyEmbedded, jettyCore,
         junit, junitInterface,
         jsoup
       )
+    // plus all the jars in the lib folder
     )
   )
 }
