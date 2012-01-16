@@ -44,8 +44,7 @@ object LightHttpClient extends Build {
         apacheIo, servlet,
         slf4jApi, slf4jJcl, slf4jLog4j, logbackCore, logbackClassic,
         jettyEmbedded, jettyCore,
-        junit, junitInterface,
-        jsoup
+        junit, junitInterface
       )
     // plus all the jars in the lib folder
     )

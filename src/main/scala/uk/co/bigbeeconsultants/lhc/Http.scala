@@ -59,6 +59,9 @@ class Http(autoClose: Boolean = true) {
   def get(url: URL, requestHeaders: List[Header] = Nil) =
     execute(Request(Request.GET, url), requestHeaders)
 
+  def delete(url: URL, requestHeaders: List[Header] = Nil) =
+    execute(Request(Request.DELETE, url), requestHeaders)
+
   def post(url: URL, body: Body, requestHeaders: List[Header] = Nil) =
     execute(Request(Request.POST, url, Some(body)), requestHeaders)
 
@@ -76,6 +79,9 @@ class Http(autoClose: Boolean = true) {
     var result: Response = null
     try {
       setRequestHeaders(request, requestHeaders, connWrapper)
+
+      if (request.method == Request.POST || request.method == Request.PUT) connWrapper.setDoOutput(true)
+
       connWrapper.connect()
 
       if (request.method == Request.POST) writePostData(request.body.get.data, connWrapper.getOutputStream, Http.defaultCharset)
@@ -168,7 +174,7 @@ class Http(autoClose: Boolean = true) {
 }
 
 object Http {
-//  val charsetPattern = Pattern.compile("(?i)\\bcharset=\\s*\"?([^\\s;\"]*)")
+  //  val charsetPattern = Pattern.compile("(?i)\\bcharset=\\s*\"?([^\\s;\"]*)")
   val defaultCharset = "UTF-8"
   val gzip = "gzip"
 }

@@ -44,6 +44,8 @@ class HttpTest {
     val response = http.get(new URL(baseUrl + url))
     assertEquals(MediaType.APPLICATION_JSON, response.contentType)
     assertEquals(json, response.body)
+    val accEnc = stubbedMethod.headers.get("Accept-Encoding")
+    assertEquals("gzip", accEnc)
   }
 
   @Test def get_severalUrls_shouldCloseOK() {
@@ -67,6 +69,39 @@ class HttpTest {
     http.closeConnections()
   }
 
+  @Test def put_shouldReturnOK() {
+    val http = new Http()
+    val url = "/some/url"
+    val stubbedMethod = StubMethod.put(url)
+    val jsonReq = """{"astring" : "the request" }"""
+    val jsonRes = """{"astring" : "the response" }"""
+    server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, jsonRes)
+    val response = http.put(new URL(baseUrl + url), Body(MediaType.APPLICATION_JSON, jsonReq))
+    assertEquals(MediaType.APPLICATION_JSON, response.contentType)
+    assertEquals(jsonReq, stubbedMethod.body)
+    assertEquals(jsonRes, response.body)
+  }
+
+  @Test def post_shouldReturnOK() {
+    val http = new Http()
+    val url = "/some/url"
+    val stubbedMethod = StubMethod.post(url)
+    val jsonRes = """{"astring" : "the response" }"""
+    server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, jsonRes)
+    val response = http.post(new URL(baseUrl + url), Body(MediaType.APPLICATION_JSON, List(KeyVal("a", "b"))))
+    assertEquals(MediaType.APPLICATION_JSON, response.contentType)
+    assertEquals(jsonRes, response.body)
+  }
+
+  @Test def delete_shouldReturnOK() {
+    val http = new Http()
+    val url = "/some/url"
+    val stubbedMethod = StubMethod.delete(url)
+    server.expect(stubbedMethod).thenReturn(204, MediaType.APPLICATION_JSON.toString, "")
+    val response = http.delete(new URL(baseUrl + url))
+    assertEquals(MediaType.APPLICATION_JSON, response.contentType)
+    assertEquals("", response.body)
+  }
 }
 
 object HttpTest {
