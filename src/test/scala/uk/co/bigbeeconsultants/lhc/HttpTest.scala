@@ -26,21 +26,17 @@ package uk.co.bigbeeconsultants.lhc
 
 import com.pyruby.stubserver.StubMethod
 import com.pyruby.stubserver.StubServer
-import org.junit.{Test, Before, AfterClass, BeforeClass}
+import org.junit.{Test, AfterClass, BeforeClass}
 import org.junit.Assert._
 import java.net.URL
 
 
 class HttpTest {
+
   import HttpTest._
 
-  private var http: Http = null
-
-  @Before def setUp() {
-    http = new Http()
-  }
-
   @Test def get_shouldReturnOK() {
+    val http = new Http()
     val url = "/some/url"
     val stubbedMethod = StubMethod.get(url)
     val json = """{"astring" : "the message" }"""
@@ -48,6 +44,27 @@ class HttpTest {
     val response = http.get(new URL(baseUrl + url))
     assertEquals(MediaType.APPLICATION_JSON, response.contentType)
     assertEquals(json, response.body)
+  }
+
+  @Test def get_severalUrls_shouldCloseOK() {
+    val http = new Http(false)
+    val url = "/some/url"
+    val json = """{"astring" : "the message" }"""
+    val n = 100
+    for (i <- 1 to n) {
+      val stubbedMethod = StubMethod.get(url + i)
+      server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, json)
+    }
+
+    val before = System.currentTimeMillis()
+    for (i <- 1 to n) {
+      val response = http.get(new URL(baseUrl + url + i))
+      assertEquals(MediaType.APPLICATION_JSON, response.contentType)
+      assertEquals(json, response.body)
+    }
+    val after = System.currentTimeMillis()
+    println((after - before) + "ms")
+    http.closeConnections()
   }
 
 }

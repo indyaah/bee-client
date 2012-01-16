@@ -1,0 +1,23 @@
+<!-- see http://logback.qos.ch/manual/configuration.html -->
+<configuration>
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>target/logs/logback.log</file>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.sun" level="WARN"/>
+
+    <!-- HttpClient -->
+    <logger name="org.apache.http" level="WARN"/>
+    <logger name="org.apache.http.wire" level="ERROR"/>
+
+    <!-- Apache, Jetty, Dozer etc -->
+    <logger name="org" level="WARN"/>
+
+    <!-- NB the root uber-level further restricts the logger and appender levels listed above -->
+    <root level="INFO">
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>

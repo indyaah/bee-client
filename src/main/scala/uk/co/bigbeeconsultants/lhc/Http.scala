@@ -30,18 +30,28 @@ import org.apache.commons.io.IOUtils
 import java.nio.ByteBuffer
 import java.io._
 import java.util.zip.GZIPInputStream
-import collection.mutable.LinkedHashMap
+import collection.mutable.{ListBuffer, LinkedHashMap}
 
 case class RequestConfig(connectTimeout: Int,
                          readTimeout: Int,
                          followRedirects: Boolean,
                          commonRequestHeaders: List[Header] = Nil)
 
-class Http {
+class Http(autoClose: Boolean = true) {
+  URLConnection.setDefaultAllowUserInteraction(false)
+
+  /**
+   * The default request configuration has two-second timeouts, follows redirects and allows gzip compression.
+   */
   val defaultRequestConfig = RequestConfig(2000, 2000, true, List(Header(Header.ACCEPT_ENCODING, Http.gzip)))
+
+  /**
+   * Set the request configuration as needed.
+   */
   var requestConfig = defaultRequestConfig
 
-  URLConnection.setDefaultAllowUserInteraction(false)
+  // TODO thread-safe data structure is needed here
+  private val unclosedConnections = new ListBuffer[HttpURLConnection]
 
   def head(url: URL, requestHeaders: List[Header] = Nil) =
     execute(Request(Request.HEAD, url), requestHeaders)
@@ -80,9 +90,24 @@ class Http {
         throw new RequestException(request, connWrapper.getResponseCode, connWrapper.getResponseMessage, result, ioe)
     }
     finally {
-      //      connWrapper.disconnect()
+      if (autoClose) connWrapper.disconnect()
+      else addUnclosedConnection(connWrapper)
     }
     result
+  }
+
+  private def addUnclosedConnection(connWrapper: HttpURLConnection) {
+    // keep a lid on memory footprint
+    unclosedConnections += connWrapper
+    if (unclosedConnections.size > 1000) closeConnections()
+  }
+
+  def closeConnections() {
+    // TODO thread-safe iteration needed
+    for (conn <- unclosedConnections) {
+      conn.disconnect()
+    }
+    unclosedConnections.clear()
   }
 
   private def setRequestHeaders(request: Request, requestHeaders: List[Header], connWrapper: HttpURLConnection) {
