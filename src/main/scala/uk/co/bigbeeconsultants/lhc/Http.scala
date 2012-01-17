@@ -25,33 +25,36 @@
 package uk.co.bigbeeconsultants.lhc
 
 import java.lang.String
-import java.net.{URLEncoder, URLConnection, URL, HttpURLConnection}
+import java.net.{URLEncoder, URL, HttpURLConnection}
 import org.apache.commons.io.IOUtils
 import java.nio.ByteBuffer
 import java.io._
 import java.util.zip.GZIPInputStream
 import collection.mutable.{ListBuffer, LinkedHashMap}
+import org.jcsp.lang.{Any2OneChannel, Channel}
 
-case class RequestConfig(connectTimeout: Int,
-                         readTimeout: Int,
-                         followRedirects: Boolean,
-                         commonRequestHeaders: List[Header] = Nil)
+class RequestConfig(val connectTimeout: Int = 2000,
+                    val readTimeout: Int = 2000,
+                    val followRedirects: Boolean = true,
+                    val useCaches: Boolean = true) {
+  def setConnectTimeout(newTimeout: Int) = new RequestConfig(newTimeout, readTimeout, followRedirects, useCaches)
 
-class Http(autoClose: Boolean = true) {
-  URLConnection.setDefaultAllowUserInteraction(false)
+  def setReadTimeout(newTimeout: Int) = new RequestConfig(connectTimeout, newTimeout, followRedirects, useCaches)
+}
 
-  /**
-   * The default request configuration has two-second timeouts, follows redirects and allows gzip compression.
-   */
-  val defaultRequestConfig = RequestConfig(2000, 2000, true, List(Header(Header.ACCEPT_ENCODING, Http.gzip)))
 
-  /**
-   * Set the request configuration as needed.
-   */
-  var requestConfig = defaultRequestConfig
-
-  // TODO thread-safe data structure is needed here
-  private val unclosedConnections = new ListBuffer[HttpURLConnection]
+/**
+ * Constructs an instance for handling any number of HTTP requests.
+ * <p>
+ * By default, HTTP cookies are ignored. If you require support for cookies, use the standard
+ * java.net.CookieHandler classes, e.g.
+ * <code>java.net.CookieHandler.setDefault( new java.net.CookieManager() )</code>.
+ *
+ * @param keepAlive true for connections to be used once then closed; false for keep-alive connections
+ */
+final class Http(keepAlive: Boolean = true,
+                 requestConfig: RequestConfig = Http.defaultRequestConfig,
+                 commonRequestHeaders: List[Header] = Http.defaultHeaders) {
 
   def head(url: URL, requestHeaders: List[Header] = Nil) =
     execute(Request(Request.HEAD, url), requestHeaders)
@@ -70,17 +73,21 @@ class Http(autoClose: Boolean = true) {
 
   def execute(request: Request, requestHeaders: List[Header] = Nil): Response = {
     val connWrapper = request.url.openConnection.asInstanceOf[HttpURLConnection]
+    connWrapper.setAllowUserInteraction(false)
     connWrapper.setConnectTimeout(requestConfig.connectTimeout)
     connWrapper.setReadTimeout(requestConfig.readTimeout);
     connWrapper.setInstanceFollowRedirects(requestConfig.followRedirects)
-    //    if (req.cookies().size() > 0)
-    //      connWrapper.addRequestProperty(Header.COOKIE, getRequestCookieString(req));
+    connWrapper.setUseCaches(requestConfig.useCaches)
+
+    //useCaches
+    //ifModifiedSince
 
     var result: Response = null
     try {
       setRequestHeaders(request, requestHeaders, connWrapper)
 
-      if (request.method == Request.POST || request.method == Request.PUT) connWrapper.setDoOutput(true)
+      connWrapper.setDoInput(request.method != Request.HEAD)
+      connWrapper.setDoOutput(request.method == Request.POST || request.method == Request.PUT)
 
       connWrapper.connect()
 
@@ -96,34 +103,36 @@ class Http(autoClose: Boolean = true) {
         throw new RequestException(request, connWrapper.getResponseCode, connWrapper.getResponseMessage, result, ioe)
     }
     finally {
-      if (autoClose) connWrapper.disconnect()
-      else addUnclosedConnection(connWrapper)
+      markConnectionForClosure(connWrapper)
     }
     result
   }
 
-  private def addUnclosedConnection(connWrapper: HttpURLConnection) {
-    // keep a lid on memory footprint
-    unclosedConnections += connWrapper
-    if (unclosedConnections.size > 1000) closeConnections()
+  private def markConnectionForClosure(connWrapper: HttpURLConnection) {
+    if (!keepAlive) connWrapper.disconnect()
+    else {
+      val cleanupThread = Http.cleanupThread
+      cleanupThread.styx.write(Some(connWrapper))
+    }
   }
 
   def closeConnections() {
-    // TODO thread-safe iteration needed
-    for (conn <- unclosedConnections) {
-      conn.disconnect()
-    }
-    unclosedConnections.clear()
+    if (keepAlive) Http.cleanupThread.styx.write(None)
   }
 
   private def setRequestHeaders(request: Request, requestHeaders: List[Header], connWrapper: HttpURLConnection) {
     val method = if (request.method == null) Request.GET else request.method.toUpperCase
     connWrapper.setRequestMethod(method)
-    connWrapper.setRequestProperty(Header.HOST, request.url.getHost)
-    if (request.body.isDefined) connWrapper.setRequestProperty(Header.CONTENT_ENCODING, request.body.get.mediaType.charsetOrElse(Http.defaultCharset))
-    for (hdr <- requestConfig.commonRequestHeaders) {
-      connWrapper.setRequestProperty(hdr.name, hdr.value)
+
+    val host = request.url.getHost
+
+    if (request.body.isDefined)
+      connWrapper.setRequestProperty(Header.CONTENT_TYPE, request.body.get.mediaType.charsetOrElse(Http.defaultCharset))
+
+    for (hdr <- commonRequestHeaders) {
+      connWrapper.setRequestProperty(hdr.name, hdr.value.replace(Http.hostPlaceholder, host))
     }
+
     for (hdr <- requestHeaders) {
       connWrapper.setRequestProperty(hdr.name, hdr.value)
     }
@@ -148,7 +157,7 @@ class Http(autoClose: Boolean = true) {
     val stream = if (connWrapper.getResponseCode >= 400) connWrapper.getErrorStream else connWrapper.getInputStream
     val wStream = if (contEnc.isDefined && contEnc.get.value.toLowerCase == Http.gzip) new GZIPInputStream(stream) else stream
     val body = readToByteBuffer(wStream)
-    new Response(connWrapper.getResponseCode, connWrapper.getResponseMessage, connWrapper.getContentEncoding,
+    new Response(connWrapper.getResponseCode, connWrapper.getResponseMessage,
       MediaType(connWrapper.getContentType), responseHeaders, body)
   }
 
@@ -177,6 +186,51 @@ object Http {
   //  val charsetPattern = Pattern.compile("(?i)\\bcharset=\\s*\"?([^\\s;\"]*)")
   val defaultCharset = "UTF-8"
   val gzip = "gzip"
+
+  /**
+   * Use this in any header wherever the hostname part of the URL is required.
+   */
+  val hostPlaceholder = "{HOST}"
+
+  /**
+   * The default request configuration has two-second timeouts, follows redirects and allows gzip compression.
+   */
+  val defaultRequestConfig = new RequestConfig
+
+  val defaultHeaders = List(
+    Header(Header.HOST, hostPlaceholder))
+//    Header(Header.ACCEPT_ENCODING, Http.gzip))
+
+  private lazy val cleanupThread = new CleanupThread
+}
+
+private class CleanupThread extends Thread {
+  private val channel: Any2OneChannel[Option[HttpURLConnection]] = Channel.any2one()
+  val styx = channel.out
+
+  setName("httpCleanup")
+  setDaemon(true)
+  start()
+
+  val limit = 1000
+  private val zombies = new ListBuffer[HttpURLConnection]
+
+  override def run() {
+    while (true) {
+      channel.in.read match {
+        case Some(connWrapper) =>
+          zombies += connWrapper
+          if (zombies.size > limit) cleanup()
+        case None =>
+          cleanup()
+      }
+    }
+  }
+
+  private def cleanup() {
+    for (conn <- zombies) conn.disconnect()
+    zombies.clear()
+  }
 }
 
 class RequestException(val request: Request, val status: Int, val message: String, val response: Response, cause: Exception)

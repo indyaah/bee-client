@@ -1,3 +1,5 @@
+package uk.co.bigbeeconsultants.lhc
+
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -22,32 +24,23 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-import sbt._
-import Keys._
-import Dependencies._
+import org.junit.Assert._
+import java.net.URL
 
-object LightHttpClient extends Build {
+object HttpIntegration {
 
-  def standardSettings = Seq(
-    exportJars := true
-  ) ++ Defaults.defaultSettings
+  def bigbee() {
+    val http = new Http(false, Http.defaultRequestConfig.setConnectTimeout(5000), Http.defaultHeaders)
+    val url = "http://bigbeeconsultants.co.uk/"
+    val response = http.get(new URL(url))
+    assertEquals(200, response.statusCode)
+    assertEquals(MediaType.TEXT_HTML, response.contentType)
+    val body = response.body
+    assertTrue(body.startsWith("<!DOCTYPE"))
+    http.closeConnections()
+  }
 
-  lazy val root = Project(
-    id = "root",
-    base = file("."),
-
-    settings  = Defaults.defaultSettings ++ Seq(
-
-      resolvers := Resolvers.resolvers,
-
-      libraryDependencies ++= Seq(
-        apacheIo, servlet,
-        slf4jApi, slf4jJcl, slf4jLog4j, logbackCore, logbackClassic,
-        jcsp, jettyEmbedded, jettyCore,
-        junit, junitInterface
-      )
-    // plus all the jars in the lib folder
-    )
-  )
+  def main(args: Array[String]) {
+    bigbee()
+  }
 }
-

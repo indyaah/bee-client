@@ -32,7 +32,6 @@ import java.nio.ByteBuffer
  */
 case class Response(statusCode: Int,
                     statusMessage: String,
-                    charset: String,
                     contentType: MediaType,
                     headers: Map[String, Header],
                     byteData: ByteBuffer) {
@@ -45,8 +44,8 @@ case class Response(statusCode: Int,
 
   private def getBody = {
     val body =
-      if (charset == null) Charset.forName(Http.defaultCharset).decode(byteData).toString
-      else Charset.forName(charset).decode(byteData).toString
+      if (contentType.charset.isEmpty) Charset.forName(Http.defaultCharset).decode(byteData).toString
+      else Charset.forName(contentType.charset.get).decode(byteData).toString
     byteData.rewind
     body
   }

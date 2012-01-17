@@ -28,7 +28,7 @@ import com.pyruby.stubserver.StubMethod
 import com.pyruby.stubserver.StubServer
 import org.junit.{Test, AfterClass, BeforeClass}
 import org.junit.Assert._
-import java.net.URL
+import java.net.{CookieHandler, URL}
 
 
 class HttpTest {
@@ -51,8 +51,8 @@ class HttpTest {
   @Test def get_severalUrls_shouldCloseOK() {
     val http = new Http(false)
     val url = "/some/url"
-    val json = """{"astring" : "the message" }"""
-    val n = 100
+    val json = """{"a" : "b" }"""
+    val n = 1000
     for (i <- 1 to n) {
       val stubbedMethod = StubMethod.get(url + i)
       server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, json)
@@ -110,6 +110,7 @@ object HttpTest {
   private var server: StubServer = null
 
   @BeforeClass def configure() {
+    val ch = CookieHandler.getDefault()
     baseUrl = "http://localhost:" + port
     server = new StubServer(port)
     server.start()
