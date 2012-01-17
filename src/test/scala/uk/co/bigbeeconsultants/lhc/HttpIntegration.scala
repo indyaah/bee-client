@@ -1,5 +1,3 @@
-package uk.co.bigbeeconsultants.lhc
-
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -23,6 +21,8 @@ package uk.co.bigbeeconsultants.lhc
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
+
+package uk.co.bigbeeconsultants.lhc
 
 import org.junit.Assert._
 import java.net.URL

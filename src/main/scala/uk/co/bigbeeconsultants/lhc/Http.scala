@@ -1,4 +1,4 @@
-//-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
 // The MIT License
 //
 // Copyright (c) 2012 Rick Beton <rick@bigbeeconsultants.co.uk>
@@ -57,19 +57,25 @@ final class Http(keepAlive: Boolean = true,
                  commonRequestHeaders: List[Header] = Http.defaultHeaders) {
 
   def head(url: URL, requestHeaders: List[Header] = Nil) =
-    execute(Request(Request.HEAD, url), requestHeaders)
+    execute(Request.head(url), requestHeaders)
+
+  def trace(url: URL, requestHeaders: List[Header] = Nil) =
+    execute(Request.trace(url), requestHeaders)
 
   def get(url: URL, requestHeaders: List[Header] = Nil) =
-    execute(Request(Request.GET, url), requestHeaders)
+    execute(Request.get(url), requestHeaders)
 
   def delete(url: URL, requestHeaders: List[Header] = Nil) =
-    execute(Request(Request.DELETE, url), requestHeaders)
+    execute(Request.delete(url), requestHeaders)
+
+  def options(url: URL, body: Option[Body], requestHeaders: List[Header] = Nil) =
+    execute(Request.options(url, body), requestHeaders)
 
   def post(url: URL, body: Body, requestHeaders: List[Header] = Nil) =
-    execute(Request(Request.POST, url, Some(body)), requestHeaders)
+    execute(Request.post(url, body), requestHeaders)
 
   def put(url: URL, body: Body, requestHeaders: List[Header] = Nil) =
-    execute(Request(Request.PUT, url, Some(body)), requestHeaders)
+    execute(Request.put(url, body), requestHeaders)
 
   def execute(request: Request, requestHeaders: List[Header] = Nil): Response = {
     val connWrapper = request.url.openConnection.asInstanceOf[HttpURLConnection]

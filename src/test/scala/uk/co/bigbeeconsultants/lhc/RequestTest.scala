@@ -50,9 +50,9 @@ class RequestTest {
   def RequestWithBody() {
     val mt = MediaType.APPLICATION_JSON
     val b = Body(mt, "[1, 2, 3]")
-    val r = Request.get(url1, Some(b))
+    val r = Request.put(url1, b)
     assertEquals(url1, r.url)
-    assertEquals("GET", r.method)
+    assertEquals("PUT", r.method)
     assertEquals(b, r.body.get)
     assertEquals("UTF-8", r.body.get.mediaType.charsetOrElse("UTF-8"))
   }

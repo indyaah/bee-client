@@ -26,9 +26,9 @@ package uk.co.bigbeeconsultants.lhc
 
 import java.net.URL
 
-case class KeyVal(key: String, value: String)
+final case class KeyVal(key: String, value: String)
 
-case class Body(mediaType: MediaType, bytes: Array[Byte], data: List[KeyVal] = Nil)
+final case class Body(mediaType: MediaType, bytes: Array[Byte], data: List[KeyVal] = Nil)
 
 object Body {
   def apply(mediaType: MediaType, string: String): Body = new Body(mediaType, string.getBytes(mediaType.charsetOrElse(Http.defaultCharset)), Nil)
@@ -37,21 +37,37 @@ object Body {
 
 /**
  * Represents the requirements for an HTTP request. Immutable.
+ * Normally, this class will not be instantiated directly but via the Request object methods.
  */
-case class Request(method: String, url: URL, body: Option[Body] = None)
+final case class Request(method: String, url: URL, body: Option[Body] = None)
 
+/**
+ * Provides factory methods for creating request objects of various types. These include
+ * <ul>
+ *   <li>methods without an entity body: get, head, delete, trace</li>
+ *   <li>method with an optional entity body: options</li>
+ *   <li>methods requiring an entity body: post, put</li>
+ * </ul>
+ */
 object Request {
   val DELETE = "DELETE"
   val GET = "GET"
   val HEAD = "HEAD"
+  val OPTIONS = "OPTIONS"
   val POST = "POST"
   val PUT = "PUT"
   val TRACE = "TRACE"
 
-  def delete(url: URL, body: Option[Body] = None): Request = Request(DELETE, url, body)
-  def get(url: URL, body: Option[Body] = None): Request = Request(GET, url, body)
-  def head(url: URL, body: Option[Body] = None): Request = Request(HEAD, url, body)
-  def post(url: URL, body: Option[Body] = None): Request = Request(POST, url, body)
-  def put(url: URL, body: Option[Body] = None): Request = Request(PUT, url, body)
-  def trace(url: URL, body: Option[Body] = None): Request = Request(TRACE, url, body)
+  // methods without an entity body
+  def get(url: URL): Request = Request(GET, url, None)
+  def head(url: URL): Request = Request(HEAD, url, None)
+  def delete(url: URL): Request = Request(DELETE, url, None)
+  def trace(url: URL): Request = Request(TRACE, url, None)
+
+  // method with an optional entity body
+  def options(url: URL, body: Option[Body] = None): Request = Request(OPTIONS, url, body)
+
+  // methods requiring an entity body
+  def post(url: URL, body: Body): Request = Request(POST, url, Some(body))
+  def put(url: URL, body: Body): Request = Request(PUT, url, Some(body))
 }
