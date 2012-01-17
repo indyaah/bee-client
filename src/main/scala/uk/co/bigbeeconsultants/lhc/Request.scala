@@ -32,7 +32,7 @@ final case class Body(mediaType: MediaType, data: Either[Array[Byte], List[KeyVa
 
 object Body {
   def apply(mediaType: MediaType, string: String): Body =
-    new Body(mediaType, Left(string.getBytes(mediaType.charsetOrElse(Http.defaultCharset))))
+    new Body(mediaType, Left(string.getBytes(mediaType.charsetOrElse(HttpClient.defaultCharset))))
 
   def apply(mediaType: MediaType, data: List[KeyVal]): Body =
     new Body(mediaType, Right(data))

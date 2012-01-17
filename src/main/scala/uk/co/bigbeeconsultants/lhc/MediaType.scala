@@ -25,6 +25,7 @@
 package uk.co.bigbeeconsultants.lhc
 
 case class MediaType(`type`: String, subtype: String, charset: Option[String] = None) extends Valuable {
+
   def value = `type` + '/' + subtype
 
   /** Gets the charset as a list of zero or one {@link Qualifier}. */

@@ -42,9 +42,10 @@ import org.jcsp.lang.{Any2OneChannel, Channel}
  *
  * @param keepAlive true for connections to be used once then closed; false for keep-alive connections
  */
-final class Http(keepAlive: Boolean = true,
-                 requestConfig: RequestConfig = Http.defaultRequestConfig,
-                 commonRequestHeaders: List[Header] = Http.defaultHeaders) {
+final class HttpClient(keepAlive: Boolean = true,
+                       requestConfig: RequestConfig = HttpClient.defaultRequestConfig,
+                       commonRequestHeaders: List[Header] = HttpClient.defaultHeaders) {
+  private val emptyBuffer = ByteBuffer.allocateDirect(0)
 
   def head(url: URL, requestHeaders: List[Header] = Nil) =
     execute(Request.head(url), requestHeaders)
@@ -89,7 +90,7 @@ final class Http(keepAlive: Boolean = true,
 
       copyRequestBodyToOutputStream(request, connWrapper)
 
-      val result = getContent(connWrapper)
+      val result = getContent(request, connWrapper)
       if (connWrapper.getResponseCode >= 400) {
         throw new RequestException(request, connWrapper.getResponseCode, connWrapper.getResponseMessage, result, null)
       }
@@ -108,7 +109,7 @@ final class Http(keepAlive: Boolean = true,
     if (request.method == Request.POST) {
       require(request.body.isDefined, "An entity body is required when making a POST request.")
       require(request.body.get.data.isRight, "The POST body must be a list of KeyVals.")
-      writePostData(request.body.get.data.right.get, connWrapper.getOutputStream, Http.defaultCharset)
+      writePostData(request.body.get.data.right.get, connWrapper.getOutputStream, HttpClient.defaultCharset)
     }
     if (request.method == Request.PUT) {
       require(request.body.isDefined, "An entity body is required when making a PUT request.")
@@ -120,13 +121,13 @@ final class Http(keepAlive: Boolean = true,
   private def markConnectionForClosure(connWrapper: HttpURLConnection) {
     if (!keepAlive) connWrapper.disconnect()
     else {
-      val cleanupThread = Http.cleanupThread
+      val cleanupThread = HttpClient.cleanupThread
       cleanupThread.styx.write(Some(connWrapper))
     }
   }
 
   def closeConnections() {
-    if (keepAlive) Http.cleanupThread.styx.write(None)
+    if (keepAlive) HttpClient.cleanupThread.styx.write(None)
   }
 
   private def setRequestHeaders(request: Request, requestHeaders: List[Header], connWrapper: HttpURLConnection) {
@@ -136,10 +137,11 @@ final class Http(keepAlive: Boolean = true,
     val host = request.url.getHost
 
     if (request.body.isDefined)
-      connWrapper.setRequestProperty(Header.CONTENT_TYPE, request.body.get.mediaType.charsetOrElse(Http.defaultCharset))
+      connWrapper.setRequestProperty(Header.CONTENT_TYPE, request.body.get.mediaType.toString)
+        //.charsetOrElse(HttpClient.defaultCharset.toLowerCase))
 
     for (hdr <- commonRequestHeaders) {
-      connWrapper.setRequestProperty(hdr.name, hdr.value.replace(Http.hostPlaceholder, host))
+      connWrapper.setRequestProperty(hdr.name, hdr.value.replace(HttpClient.hostPlaceholder, host))
     }
 
     for (hdr <- requestHeaders) {
@@ -160,14 +162,20 @@ final class Http(keepAlive: Boolean = true,
     w.close()
   }
 
-  private def getContent(connWrapper: HttpURLConnection): Response = {
+  private def getContent(request: Request, connWrapper: HttpURLConnection): Response = {
     val responseHeaders = processResponseHeaders(connWrapper)
-    val contEnc = responseHeaders.get(Header.CONTENT_ENCODING.toUpperCase)
-    val stream = if (connWrapper.getResponseCode >= 400) connWrapper.getErrorStream else connWrapper.getInputStream
-    val wStream = if (contEnc.isDefined && contEnc.get.value.toLowerCase == Http.gzip) new GZIPInputStream(stream) else stream
-    val body = readToByteBuffer(wStream)
-    Response(Status(connWrapper.getResponseCode, connWrapper.getResponseMessage),
-      MediaType(connWrapper.getContentType), responseHeaders, body)
+    if (request.method == Request.HEAD) {
+      Response(Status(connWrapper.getResponseCode, connWrapper.getResponseMessage),
+        MediaType(connWrapper.getContentType), responseHeaders, emptyBuffer)
+
+    } else {
+      val contEnc = responseHeaders.get(Header.CONTENT_ENCODING.toUpperCase)
+      val stream = if (connWrapper.getResponseCode >= 400) connWrapper.getErrorStream else connWrapper.getInputStream
+      val wStream = if (contEnc.isDefined && contEnc.get.value.toLowerCase == HttpClient.gzip) new GZIPInputStream(stream) else stream
+      val body = readToByteBuffer(wStream)
+      Response(Status(connWrapper.getResponseCode, connWrapper.getResponseMessage),
+        MediaType(connWrapper.getContentType), responseHeaders, body)
+    }
   }
 
   private def readToByteBuffer(inStream: InputStream): ByteBuffer = {
@@ -181,9 +189,14 @@ final class Http(keepAlive: Boolean = true,
     val result = new LinkedHashMap[String, Header]
     var i = 0
     var key = connWrapper.getHeaderFieldKey(i)
+    if (key == null) {
+      // some implementations start counting from 1
+      i += 1
+      key = connWrapper.getHeaderFieldKey(i)
+    }
     while (key != null) {
       val value = connWrapper.getHeaderField(i)
-      result(key.toUpperCase) = Header(key, value)
+      result(key) = Header(key, value)
       i += 1
       key = connWrapper.getHeaderFieldKey(i)
     }
@@ -191,8 +204,7 @@ final class Http(keepAlive: Boolean = true,
   }
 }
 
-object Http {
-  //  val charsetPattern = Pattern.compile("(?i)\\bcharset=\\s*\"?([^\\s;\"]*)")
+object HttpClient {
   val defaultCharset = "UTF-8"
   val gzip = "gzip"
 
@@ -208,7 +220,7 @@ object Http {
 
   val defaultHeaders = List(
     Header(Header.HOST, hostPlaceholder))
-//    Header(Header.ACCEPT_ENCODING, Http.gzip))
+  //    Header(Header.ACCEPT_ENCODING, HttpClient.gzip))
 
   private lazy val cleanupThread = new CleanupThread
 }

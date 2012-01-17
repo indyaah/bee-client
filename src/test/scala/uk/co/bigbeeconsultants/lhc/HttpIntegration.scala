@@ -29,18 +29,40 @@ import java.net.URL
 
 object HttpIntegration {
 
-  def bigbee() {
-    val http = new Http(false, Http.defaultRequestConfig.setConnectTimeout(5000), Http.defaultHeaders)
-    val url = "http://bigbeeconsultants.co.uk/"
-    val response = http.get(new URL(url))
+  private val testScriptUrl = "http://localhost/test-lighthttpclient.php"
+
+  def htmlHeadOK(http: HttpClient) {
+    val response = http.head(new URL(testScriptUrl))
     assertEquals(200, response.status.code)
     assertEquals(MediaType.TEXT_HTML, response.contentType)
     val body = response.body
-    assertTrue(body.startsWith("<!DOCTYPE"))
-    http.closeConnections()
+    assertTrue(body.startsWith(""))
   }
 
+  def htmlGetOK(http: HttpClient) {
+    val response = http.get(new URL(testScriptUrl))
+    assertEquals(200, response.status.code)
+    assertEquals(MediaType.TEXT_HTML, response.contentType)
+    val body = response.body
+    assertTrue(body.startsWith("<html>"))
+  }
+
+  def plainGetOK(http: HttpClient) {
+    val response = http.get(new URL(testScriptUrl + "?CT=text/plain"))
+    assertEquals(200, response.status.code)
+    assertEquals(MediaType.TEXT_PLAIN, response.contentType)
+    val body = response.body
+    println( response.headers )
+    println( body )
+    assertTrue(body.startsWith("CONTENT_"))
+  }
+
+
   def main(args: Array[String]) {
-    bigbee()
+    val http = new HttpClient(false)
+//    htmlGetOK(http)
+    plainGetOK(http)
+//    htmlHeadOK(http)
+    http.closeConnections()
   }
 }

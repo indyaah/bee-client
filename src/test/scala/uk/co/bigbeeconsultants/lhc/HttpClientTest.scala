@@ -31,12 +31,12 @@ import org.junit.Assert._
 import java.net.{CookieHandler, URL}
 
 
-class HttpTest {
+class HttpClientTest {
 
-  import HttpTest._
+  import HttpClientTest._
 
   @Test def get_shouldReturnOK() {
-    val http = new Http()
+    val http = new HttpClient()
     val url = "/some/url"
     val stubbedMethod = StubMethod.get(url)
     val json = """{"astring" : "the message" }"""
@@ -49,7 +49,7 @@ class HttpTest {
   }
 
   @Test def get_severalUrls_shouldCloseOK() {
-    val http = new Http(false)
+    val http = new HttpClient(false)
     val url = "/some/url"
     val json = """{"a" : "b" }"""
     val n = 1000
@@ -70,7 +70,7 @@ class HttpTest {
   }
 
   @Test def put_shouldReturnOK() {
-    val http = new Http()
+    val http = new HttpClient()
     val url = "/some/url"
     val stubbedMethod = StubMethod.put(url)
     val jsonReq = """{"astring" : "the request" }"""
@@ -83,7 +83,7 @@ class HttpTest {
   }
 
   @Test def post_shouldReturnOK() {
-    val http = new Http()
+    val http = new HttpClient()
     val url = "/some/url"
     val stubbedMethod = StubMethod.post(url)
     val jsonRes = """{"astring" : "the response" }"""
@@ -94,7 +94,7 @@ class HttpTest {
   }
 
   @Test def delete_shouldReturnOK() {
-    val http = new Http()
+    val http = new HttpClient()
     val url = "/some/url"
     val stubbedMethod = StubMethod.delete(url)
     server.expect(stubbedMethod).thenReturn(204, MediaType.APPLICATION_JSON.toString, "")
@@ -104,7 +104,7 @@ class HttpTest {
   }
 }
 
-object HttpTest {
+object HttpClientTest {
   private val port = (java.lang.Math.random * 16000 + 10000).asInstanceOf[Int]
   private var baseUrl: String = null
   private var server: StubServer = null

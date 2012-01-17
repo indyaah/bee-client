@@ -44,9 +44,8 @@ case class Response(status: Status,
   lazy val body: String = getBody
 
   private def getBody = {
-    val body =
-      if (contentType.charset.isEmpty) Charset.forName(Http.defaultCharset).decode(byteData).toString
-      else Charset.forName(contentType.charset.get).decode(byteData).toString
+    val charset = contentType.charset.getOrElse(HttpClient.defaultCharset)
+    val body = Charset.forName(charset).decode(byteData).toString
     byteData.rewind
     body
   }
