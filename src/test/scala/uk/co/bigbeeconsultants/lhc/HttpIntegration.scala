@@ -33,7 +33,7 @@ object HttpIntegration {
     val http = new Http(false, Http.defaultRequestConfig.setConnectTimeout(5000), Http.defaultHeaders)
     val url = "http://bigbeeconsultants.co.uk/"
     val response = http.get(new URL(url))
-    assertEquals(200, response.statusCode)
+    assertEquals(200, response.status.code)
     assertEquals(MediaType.TEXT_HTML, response.contentType)
     val body = response.body
     assertTrue(body.startsWith("<!DOCTYPE"))

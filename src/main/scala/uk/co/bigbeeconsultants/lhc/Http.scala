@@ -1,4 +1,4 @@
-  //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // The MIT License
 //
 // Copyright (c) 2012 Rick Beton <rick@bigbeeconsultants.co.uk>
@@ -32,16 +32,6 @@ import java.io._
 import java.util.zip.GZIPInputStream
 import collection.mutable.{ListBuffer, LinkedHashMap}
 import org.jcsp.lang.{Any2OneChannel, Channel}
-
-class RequestConfig(val connectTimeout: Int = 2000,
-                    val readTimeout: Int = 2000,
-                    val followRedirects: Boolean = true,
-                    val useCaches: Boolean = true) {
-  def setConnectTimeout(newTimeout: Int) = new RequestConfig(newTimeout, readTimeout, followRedirects, useCaches)
-
-  def setReadTimeout(newTimeout: Int) = new RequestConfig(connectTimeout, newTimeout, followRedirects, useCaches)
-}
-
 
 /**
  * Constructs an instance for handling any number of HTTP requests.
@@ -97,21 +87,34 @@ final class Http(keepAlive: Boolean = true,
 
       connWrapper.connect()
 
-      if (request.method == Request.POST) writePostData(request.body.get.data, connWrapper.getOutputStream, Http.defaultCharset)
-      if (request.method == Request.PUT) IOUtils.write(request.body.get.bytes, connWrapper.getOutputStream)
+      copyRequestBodyToOutputStream(request, connWrapper)
 
-      result = getContent(connWrapper)
+      val result = getContent(connWrapper)
       if (connWrapper.getResponseCode >= 400) {
         throw new RequestException(request, connWrapper.getResponseCode, connWrapper.getResponseMessage, result, null)
       }
+      result
+
     } catch {
       case ioe: IOException =>
-        throw new RequestException(request, connWrapper.getResponseCode, connWrapper.getResponseMessage, result, ioe)
-    }
-    finally {
+        throw new RequestException(request, connWrapper.getResponseCode, connWrapper.getResponseMessage, null, ioe)
+
+    } finally {
       markConnectionForClosure(connWrapper)
     }
-    result
+  }
+
+  private def copyRequestBodyToOutputStream(request: Request, connWrapper: HttpURLConnection) {
+    if (request.method == Request.POST) {
+      require(request.body.isDefined, "An entity body is required when making a POST request.")
+      require(request.body.get.data.isRight, "The POST body must be a list of KeyVals.")
+      writePostData(request.body.get.data.right.get, connWrapper.getOutputStream, Http.defaultCharset)
+    }
+    if (request.method == Request.PUT) {
+      require(request.body.isDefined, "An entity body is required when making a PUT request.")
+      require(request.body.get.data.isLeft, "The POST body must be a string / byte array.")
+      IOUtils.write(request.body.get.data.left.get, connWrapper.getOutputStream)
+    }
   }
 
   private def markConnectionForClosure(connWrapper: HttpURLConnection) {
@@ -163,7 +166,7 @@ final class Http(keepAlive: Boolean = true,
     val stream = if (connWrapper.getResponseCode >= 400) connWrapper.getErrorStream else connWrapper.getInputStream
     val wStream = if (contEnc.isDefined && contEnc.get.value.toLowerCase == Http.gzip) new GZIPInputStream(stream) else stream
     val body = readToByteBuffer(wStream)
-    new Response(connWrapper.getResponseCode, connWrapper.getResponseMessage,
+    Response(Status(connWrapper.getResponseCode, connWrapper.getResponseMessage),
       MediaType(connWrapper.getContentType), responseHeaders, body)
   }
 
@@ -237,12 +240,4 @@ private class CleanupThread extends Thread {
     for (conn <- zombies) conn.disconnect()
     zombies.clear()
   }
-}
-
-class RequestException(val request: Request, val status: Int, val message: String, val response: Response, cause: Exception)
-  extends RuntimeException(cause) {
-
-  //  override def getMessage: String = {
-  //    "RequestException\n%s to %s\nStatus %s %s\nBody: %s".format(method, url, status, message, response.body)
-  //  }
 }

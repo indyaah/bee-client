@@ -24,38 +24,21 @@
 
 package uk.co.bigbeeconsultants.lhc
 
-import java.nio.charset.Charset
-import java.nio.ByteBuffer
+class RequestConfig(val connectTimeout: Int = 2000,
+                    val readTimeout: Int = 2000,
+                    val followRedirects: Boolean = true,
+                    val useCaches: Boolean = true) {
 
-case class Status(code: Int, message: String)
+  def setConnectTimeout(newTimeout: Int) = new RequestConfig(newTimeout, readTimeout, followRedirects, useCaches)
 
-/**
- * Represents a HTTP response. Immutable.
- */
-case class Response(status: Status,
-                    contentType: MediaType,
-                    headers: Map[String, Header],
-                    byteData: ByteBuffer) {
-
-  /**
-   * Get the body of the response as a plain string.
-   * @return body
-   */
-  lazy val body: String = getBody
-
-  private def getBody = {
-    val body =
-      if (contentType.charset.isEmpty) Charset.forName(Http.defaultCharset).decode(byteData).toString
-      else Charset.forName(contentType.charset.get).decode(byteData).toString
-    byteData.rewind
-    body
-  }
-
-  /**
-   * Get the body of the response as an array of bytes.
-   * @return body bytes
-   */
-  def bodyAsBytes = byteData.array()
+  def setReadTimeout(newTimeout: Int) = new RequestConfig(connectTimeout, newTimeout, followRedirects, useCaches)
 }
 
 
+class RequestException(val request: Request, val status: Int, val message: String, val response: Response, cause: Exception)
+  extends RuntimeException(cause) {
+
+  //  override def getMessage: String = {
+  //    "RequestException\n%s to %s\nStatus %s %s\nBody: %s".format(method, url, status, message, response.body)
+  //  }
+}

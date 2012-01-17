@@ -28,11 +28,14 @@ import java.net.URL
 
 final case class KeyVal(key: String, value: String)
 
-final case class Body(mediaType: MediaType, bytes: Array[Byte], data: List[KeyVal] = Nil)
+final case class Body(mediaType: MediaType, data: Either[Array[Byte], List[KeyVal]])
 
 object Body {
-  def apply(mediaType: MediaType, string: String): Body = new Body(mediaType, string.getBytes(mediaType.charsetOrElse(Http.defaultCharset)), Nil)
-  def apply(mediaType: MediaType, data: List[KeyVal]): Body = new Body(mediaType, Array(), data)
+  def apply(mediaType: MediaType, string: String): Body =
+    new Body(mediaType, Left(string.getBytes(mediaType.charsetOrElse(Http.defaultCharset))))
+
+  def apply(mediaType: MediaType, data: List[KeyVal]): Body =
+    new Body(mediaType, Right(data))
 }
 
 /**
