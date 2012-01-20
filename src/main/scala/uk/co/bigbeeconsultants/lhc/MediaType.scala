@@ -99,6 +99,8 @@ object MediaType {
   val TEXT_PLAIN = MediaType("text", "plain")
   val TEXT_XML = MediaType("text", "xml")
   val TEXT_HTML = MediaType("text", "html")
+  val IMAGE_PNG = MediaType("image", "png")
+  val IMAGE_JPG = MediaType("image", "jpg")
 
   def apply(str: String) = {
     val t1 = Util.divide(str, ';')

@@ -48,6 +48,7 @@ object Qualifier {
  */
 trait Valuable {
   def value: String
+
   def qualifier: List[Qualifier]
 }
 
@@ -96,28 +97,28 @@ case class Header(name: String, values: List[Valuable]) {
 }
 
 object Header {
+  // General headers
+  val CACHE_CONTROL = "Cache-Control"
+  val CONNECTION = "Connection"
+  val DATE = "Date"
+  val PRAGMA = "Pragma"
+  val TRAILER = "Trailer"
+  val TRANSFER_ENCODING = "Transfer-Encoding"
+  val UPGRADE = "Upgrade"
+  val VIA = "Via"
+  val WARNING = "Warning"
+
+  // Request & response headers
+  val ACCEPT_RANGES = "Accept-Ranges"
+
+  // Request headers
   val ACCEPT = "Accept"
   val ACCEPT_CHARSET = "Accept-Charset"
   val ACCEPT_ENCODING = "Accept-Encoding"
   val ACCEPT_LANGUAGE = "Accept-Language"
-  val ACCEPT_RANGES = "Accept-Ranges"
-  val AGE = "Age"
-  val ALLOW = "Allow"
   val AUTHORIZATION = "Authorization"
-  val CACHE_CONTROL = "Cache-Control"
-  val CONNECTION = "Connection"
-  val CONTENT_ENCODING = "Content-Encoding"
-  val CONTENT_LANGUAGE = "Content-Language"
-  val CONTENT_LENGTH = "Content-Length"
-  val CONTENT_LOCATION = "Content-Location"
-  val CONTENT_MD5 = "Content-MD5"
-  val CONTENT_RANGE = "Content-Range"
-  val CONTENT_TYPE = "Content-Type"
   val COOKIE = "Cookie"
-  val DATE = "Date"
-  val ETAG = "ETag"
   val EXPECT = "Expect"
-  val EXPIRES = "Expires"
   val FROM = "From"
   val HOST = "Host"
   val IF_MATCH = "If-Match"
@@ -125,25 +126,36 @@ object Header {
   val IF_NONE_MATCH = "If-None-Match"
   val IF_RANGE = "If-Range"
   val IF_UNMODIFIED_SINCE = "If-Unmodified-Since"
-  val LAST_MODIFIED = "Last-Modified"
-  val LOCATION = "Location"
   val MAX_FORWARDS = "Max-Forwards"
-  val PRAGMA = "Pragma"
-  val PROXY_AUTHENTICATE = "Proxy-Authenticate"
   val PROXY_AUTHORIZATION = "Proxy-Authorization"
   val RANGE = "Range"
   val REFERER = "Referer"
-  val RETRY_AFTER = "Retry-After"
-  val SERVER = "Server"
   val TE = "TE"
-  val TRAILER = "Trailer"
-  val TRANSFER_ENCODING = "Transfer-Encoding"
-  val UPGRADE = "Upgrade"
   val USER_AGENT = "User-Agent"
+
+  // Response headers
+  val AGE = "Age"
+  val ETAG = "ETag"
+  val LOCATION = "Location"
+  val PROXY_AUTHENTICATE = "Proxy-Authenticate"
+  val RETRY_AFTER = "Retry-After"
+  val SET_COOKIE = "Set-Cookie"
+  val SET_COOKIE2 = "Set-Cookie2"
+  val SERVER = "Server"
   val VARY = "Vary"
-  val VIA = "Via"
-  val WARNING = "Warning"
   val WWW_AUTHENTICATE = "WWW-Authenticate"
+
+  // Entity headers
+  val ALLOW = "Allow"
+  val CONTENT_ENCODING = "Content-Encoding"
+  val CONTENT_LANGUAGE = "Content-Language"
+  val CONTENT_LENGTH = "Content-Length"
+  val CONTENT_LOCATION = "Content-Location"
+  val CONTENT_MD5 = "Content-MD5"
+  val CONTENT_RANGE = "Content-Range"
+  val CONTENT_TYPE = "Content-Type"
+  val EXPIRES = "Expires"
+  val LAST_MODIFIED = "Last-Modified"
 
 
   def apply(raw: String): Header = {

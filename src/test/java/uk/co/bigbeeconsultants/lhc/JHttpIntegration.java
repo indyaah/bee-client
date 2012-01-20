@@ -22,39 +22,14 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.lhc
+package uk.co.bigbeeconsultants.lhc;
 
-import org.junit.Test
-import org.junit.Assert._
-import java.net.URL
-import java.nio.ByteBuffer
-
-class RequestTest {
-
-  val url1 = new URL("http://localhost/")
-
-  @Test
-  def bodyWithString() {
-    val mt = MediaType.APPLICATION_JSON
-    val b = Body(mt, "[1, 2, 3]")
-  }
-
-  @Test
-  def requestNoBody() {
-    val r = Request.get(url1)
-    assertEquals(url1, r.url)
-    assertEquals("GET", r.method)
-    assertTrue(r.body.isEmpty)
-  }
-
-  @Test
-  def RequestWithBody() {
-    val mt = MediaType.APPLICATION_JSON
-    val b = Body(mt, "[1, 2, 3]")
-    val r = Request.put(url1, b)
-    assertEquals(url1, r.url)
-    assertEquals("PUT", r.method)
-    assertEquals(b, r.body.get)
-    assertEquals("UTF-8", r.body.get.mediaType.charsetOrElse("UTF-8"))
-  }
+public class JHttpIntegration {
+    public static void main (String[] args) {
+//        final HttpClient http = new HttpClient(false, HttpClient$.defaultRequestConfig);
+    //    htmlGetOK(http)
+    //    plainGetOK(http)
+//        htmlHeadOK(http)
+//        http.closeConnections();
+    }
 }

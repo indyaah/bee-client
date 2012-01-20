@@ -29,6 +29,7 @@ import com.pyruby.stubserver.StubServer
 import org.junit.{Test, AfterClass, BeforeClass}
 import org.junit.Assert._
 import java.net.{CookieHandler, URL}
+import java.nio.{BufferUnderflowException, BufferOverflowException, ByteBuffer}
 
 
 class HttpClientTest {
@@ -45,14 +46,14 @@ class HttpClientTest {
     assertEquals(MediaType.APPLICATION_JSON, response.contentType)
     assertEquals(json, response.body)
     val accEnc = stubbedMethod.headers.get("Accept-Encoding")
-//    assertEquals("gzip", accEnc)
+    //    assertEquals("gzip", accEnc)
   }
 
   @Test def get_severalUrls_shouldCloseOK() {
     val http = new HttpClient(false)
     val url = "/some/url"
     val json = """{"a" : "b" }"""
-    val n = 1000
+    val n = 100
     for (i <- 1 to n) {
       val stubbedMethod = StubMethod.get(url + i)
       server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, json)
@@ -101,6 +102,26 @@ class HttpClientTest {
     val response = http.delete(new URL(baseUrl + url))
     assertEquals(MediaType.APPLICATION_JSON, response.contentType)
     assertEquals("", response.body)
+  }
+
+  @Test
+  def confirmEmptyBufferIsImmutable() {
+    val emptyBuffer = ByteBuffer.allocateDirect(0)
+    assertEquals(0, emptyBuffer.capacity())
+    try {
+      emptyBuffer.get()
+      fail()
+    }
+    catch {
+      case be: BufferUnderflowException =>
+    }
+    try {
+      emptyBuffer.putInt(0);
+      fail()
+    }
+    catch {
+      case be: BufferOverflowException =>
+    }
   }
 }
 

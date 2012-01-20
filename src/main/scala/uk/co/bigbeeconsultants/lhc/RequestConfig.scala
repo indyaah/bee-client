@@ -27,12 +27,7 @@ package uk.co.bigbeeconsultants.lhc
 class RequestConfig(val connectTimeout: Int = 2000,
                     val readTimeout: Int = 2000,
                     val followRedirects: Boolean = true,
-                    val useCaches: Boolean = true) {
-
-  def setConnectTimeout(newTimeout: Int) = new RequestConfig(newTimeout, readTimeout, followRedirects, useCaches)
-
-  def setReadTimeout(newTimeout: Int) = new RequestConfig(connectTimeout, newTimeout, followRedirects, useCaches)
-}
+                    val useCaches: Boolean = true)
 
 
 class RequestException(val request: Request, val status: Int, val message: String, val response: Response, cause: Exception)

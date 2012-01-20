@@ -29,9 +29,12 @@ import java.net.URL
 
 object HttpIntegration {
 
-  private val testScriptUrl = "http://localhost/test-lighthttpclient.php"
+  private val serverUrl = "http://localhost/"
+  private val testScriptUrl = serverUrl + "test-lighthttpclient.php"
+  private val testImageUrl = serverUrl + "B.png"
 
   def htmlHeadOK(http: HttpClient) {
+    println("htmlHeadOK")
     val response = http.head(new URL(testScriptUrl))
     assertEquals(200, response.status.code)
     assertEquals(MediaType.TEXT_HTML, response.contentType)
@@ -40,6 +43,7 @@ object HttpIntegration {
   }
 
   def htmlGetOK(http: HttpClient) {
+    println("htmlGetOK")
     val response = http.get(new URL(testScriptUrl))
     assertEquals(200, response.status.code)
     assertEquals(MediaType.TEXT_HTML, response.contentType)
@@ -47,7 +51,20 @@ object HttpIntegration {
     assertTrue(body.startsWith("<html>"))
   }
 
+  def pngGetOK(http: HttpClient) {
+    println("pngGetOK")
+    val response = http.get(new URL(testImageUrl))
+    assertEquals(200, response.status.code)
+    assertEquals(MediaType.IMAGE_PNG, response.contentType)
+    val bytes = response.bodyAsBytes
+    assertEquals(497, bytes.length)
+    assertEquals('P', bytes(1))
+    assertEquals('N', bytes(2))
+    assertEquals('G', bytes(3))
+  }
+
   def plainGetOK(http: HttpClient) {
+    println("plainGetOK")
     val response = http.get(new URL(testScriptUrl + "?CT=text/plain"))
     assertEquals(200, response.status.code)
     assertEquals(MediaType.TEXT_PLAIN, response.contentType)
@@ -60,9 +77,10 @@ object HttpIntegration {
 
   def main(args: Array[String]) {
     val http = new HttpClient(false)
-//    htmlGetOK(http)
+    htmlGetOK(http)
+    pngGetOK(http)
     plainGetOK(http)
-//    htmlHeadOK(http)
+    htmlHeadOK(http)
     http.closeConnections()
   }
 }

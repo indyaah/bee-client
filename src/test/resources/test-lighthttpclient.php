@@ -27,7 +27,7 @@ function dumpInterestingServerVars($assign, $separator) {
 }
 
 $method = strip_tags($_SERVER['REQUEST_METHOD']);
-if ($method == 'GET') {
+if ($method == 'GET' || $method == 'HEAD') {
     $ct = strip_tags($_REQUEST['CT']);
     if (isset($ct) && $ct == 'text/plain') {
         header("Content-Type: text/plain");
@@ -37,6 +37,7 @@ if ($method == 'GET') {
 <title>Test Script for LightHttpClient</title>
 </head>
 <body>
+<img src="B.png" width="16" height="16" alt="B symbol"/>
 <pre>
 <?php echo dumpInterestingServerVars(': ', "\n") ?>
 <?php print_r($_SERVER); ?>

@@ -83,7 +83,7 @@ final class HttpClient(keepAlive: Boolean = true,
     try {
       setRequestHeaders(request, requestHeaders, connWrapper)
 
-      connWrapper.setDoInput(request.method != Request.HEAD)
+//      connWrapper.setDoInput(request.method != Request.HEAD)
       connWrapper.setDoOutput(request.method == Request.POST || request.method == Request.PUT)
 
       connWrapper.connect()
@@ -165,8 +165,9 @@ final class HttpClient(keepAlive: Boolean = true,
   private def getContent(request: Request, connWrapper: HttpURLConnection): Response = {
     val responseHeaders = processResponseHeaders(connWrapper)
     if (request.method == Request.HEAD) {
-      Response(Status(connWrapper.getResponseCode, connWrapper.getResponseMessage),
-        MediaType(connWrapper.getContentType), responseHeaders, emptyBuffer)
+      val status = Status(connWrapper.getResponseCode, connWrapper.getResponseMessage)
+      val mediaType = MediaType(connWrapper.getContentType)
+      Response(status, mediaType, responseHeaders, emptyBuffer)
 
     } else {
       val contEnc = responseHeaders.get(Header.CONTENT_ENCODING.toUpperCase)
@@ -196,7 +197,7 @@ final class HttpClient(keepAlive: Boolean = true,
     }
     while (key != null) {
       val value = connWrapper.getHeaderField(i)
-      result(key) = Header(key, value)
+      result(key.toUpperCase) = Header(key, value)
       i += 1
       key = connWrapper.getHeaderFieldKey(i)
     }
