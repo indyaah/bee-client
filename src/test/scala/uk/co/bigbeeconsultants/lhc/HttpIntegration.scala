@@ -25,62 +25,89 @@
 package uk.co.bigbeeconsultants.lhc
 
 import org.junit.Assert._
-import java.net.URL
+import org.junit.{AfterClass, Test}
+import java.net.{ConnectException, SocketTimeoutException, URL}
 
-object HttpIntegration {
+class HttpIntegration {
 
   private val serverUrl = "http://localhost/"
   private val testScriptUrl = serverUrl + "test-lighthttpclient.php"
   private val testImageUrl = serverUrl + "B.png"
 
-  def htmlHeadOK(http: HttpClient) {
-    println("htmlHeadOK")
-    val response = http.head(new URL(testScriptUrl))
-    assertEquals(200, response.status.code)
-    assertEquals(MediaType.TEXT_HTML, response.contentType)
-    val body = response.body
-    assertTrue(body.startsWith(""))
+  import HttpIntegration._
+
+  @Test
+  def htmlHeadOK() {
+    try {
+      val response = http.head(new URL(testScriptUrl))
+      assertEquals(200, response.status.code)
+      assertEquals(MediaType.TEXT_HTML, response.contentType)
+      val body = response.body
+      assertTrue(body.startsWith(""))
+    } catch {
+      case e: ConnectException =>
+        skipTestWarning("HEAD", testScriptUrl, e)
+    }
   }
 
-  def htmlGetOK(http: HttpClient) {
-    println("htmlGetOK")
-    val response = http.get(new URL(testScriptUrl))
-    assertEquals(200, response.status.code)
-    assertEquals(MediaType.TEXT_HTML, response.contentType)
-    val body = response.body
-    assertTrue(body.startsWith("<html>"))
+  @Test
+  def htmlGetOK() {
+    try {
+      val response = http.get(new URL(testScriptUrl))
+      assertEquals(200, response.status.code)
+      assertEquals(MediaType.TEXT_HTML, response.contentType)
+      val body = response.body
+      assertTrue(body.startsWith("<html>"))
+    } catch {
+      case e: ConnectException =>
+        skipTestWarning("GET", testScriptUrl, e)
+    }
   }
 
-  def pngGetOK(http: HttpClient) {
-    println("pngGetOK")
-    val response = http.get(new URL(testImageUrl))
-    assertEquals(200, response.status.code)
-    assertEquals(MediaType.IMAGE_PNG, response.contentType)
-    val bytes = response.bodyAsBytes
-    assertEquals(497, bytes.length)
-    assertEquals('P', bytes(1))
-    assertEquals('N', bytes(2))
-    assertEquals('G', bytes(3))
+  @Test
+  def pngGetOK() {
+    try {
+      val response = http.get(new URL(testImageUrl))
+      assertEquals(200, response.status.code)
+      assertEquals(MediaType.IMAGE_PNG, response.contentType)
+      val bytes = response.bodyAsBytes
+      assertEquals(497, bytes.length)
+      assertEquals('P', bytes(1))
+      assertEquals('N', bytes(2))
+      assertEquals('G', bytes(3))
+    } catch {
+      case e: ConnectException =>
+        skipTestWarning("GET", testImageUrl, e)
+    }
   }
 
-  def plainGetOK(http: HttpClient) {
-    println("plainGetOK")
-    val response = http.get(new URL(testScriptUrl + "?CT=text/plain"))
-    assertEquals(200, response.status.code)
-    assertEquals(MediaType.TEXT_PLAIN, response.contentType)
-    val body = response.body
-    println( response.headers )
-    println( body )
-    assertTrue(body.startsWith("CONTENT_"))
+  @Test
+  def plainGetOK() {
+    val url = testScriptUrl + "?CT=text/plain"
+    try {
+      val response = http.get(new URL(url))
+      assertEquals(200, response.status.code)
+      assertEquals(MediaType.TEXT_PLAIN, response.contentType)
+      val body = response.body
+      println(response.headers)
+      println(body)
+      assertTrue(body.startsWith("CONTENT_"))
+    } catch {
+      case e: ConnectException =>
+        skipTestWarning("GET", url, e)
+    }
   }
 
+  private def skipTestWarning(method: String, url: String, e: ConnectException) {
+    System.err.println("***** Test skipped: " + method + " " + url + " : " + e.getMessage)
+  }
+}
 
-  def main(args: Array[String]) {
-    val http = new HttpClient(false)
-    htmlGetOK(http)
-    pngGetOK(http)
-    plainGetOK(http)
-    htmlHeadOK(http)
+object HttpIntegration {
+  val http = new HttpClient(false)
+
+  @AfterClass
+  def close() {
     http.closeConnections()
   }
 }

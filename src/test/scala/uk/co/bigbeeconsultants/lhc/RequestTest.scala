@@ -27,7 +27,6 @@ package uk.co.bigbeeconsultants.lhc
 import org.junit.Test
 import org.junit.Assert._
 import java.net.URL
-import java.nio.ByteBuffer
 
 class RequestTest {
 

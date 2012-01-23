@@ -225,6 +225,14 @@ object HttpClient {
   private lazy val cleanupThread = new CleanupThread
 }
 
+/**
+ * The cleanup thread exists so that connections do not need to be closed immediately, which improves
+ * HTTP1.1 keep-alive performance. The thread receives unclosed connection wrappers and closes them
+ * in batches whenever a size limit is reached.
+ * <p>
+ * The interface to the cleanup thread is via an unbuffered channel (JCSP) that provides all inter-thread
+ * synchronisation and thereby keeps the design simple and efficient.
+ */
 private class CleanupThread extends Thread {
   private val channel: Any2OneChannel[Option[HttpURLConnection]] = Channel.any2one()
   val styx = channel.out
