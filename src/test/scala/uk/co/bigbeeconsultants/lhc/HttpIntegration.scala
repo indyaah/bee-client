@@ -26,7 +26,7 @@ package uk.co.bigbeeconsultants.lhc
 
 import org.junit.Assert._
 import org.junit.{AfterClass, Test}
-import java.net.{ConnectException, SocketTimeoutException, URL}
+import java.net.{ConnectException, URL}
 
 class HttpIntegration {
 

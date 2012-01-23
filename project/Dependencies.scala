@@ -32,15 +32,15 @@ object Resolvers {
 
 object Dependencies {
 //  val slf4jVersion     = "1.6.+"
-//  val logbackVersion   = "0.9.+"
+  val logbackVersion   = "0.9.+"
   val jettyVersion     = "6.1.26"
 
 //  val slf4jApi         = "org.slf4j"          % "slf4j-api"         % slf4jVersion withSources()
 //  val slf4jJcl         = "org.slf4j"          % "jcl-over-slf4j"    % slf4jVersion withSources()
 //  val slf4jLog4j       = "org.slf4j"          % "log4j-over-slf4j"  % slf4jVersion withSources()
 
-//  val logbackCore      = "ch.qos.logback"     % "logback-core"      % logbackVersion
-//  val logbackClassic   = "ch.qos.logback"     % "logback-classic"   % logbackVersion
+  val logbackCore      = "ch.qos.logback"     % "logback-core"      % logbackVersion % "test"
+  val logbackClassic   = "ch.qos.logback"     % "logback-classic"   % logbackVersion % "test"
 
 //  val jodaTime         = "joda-time"          % "joda-time"         % "2.+" withJavadoc()
 //  val jodaConvert      = "joda-time"          % "joda-convert"      % "1.+" withJavadoc()
