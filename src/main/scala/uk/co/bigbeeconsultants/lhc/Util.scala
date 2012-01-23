@@ -24,9 +24,11 @@
 
 package uk.co.bigbeeconsultants.lhc
 
-import java.lang.AssertionError
+import java.io.{OutputStream, InputStream}
 
 private object Util {
+  val DEFAULT_BUFFER_SIZE = 1024 * 16
+
   def divide(str: String, sep: Char) = {
     val s = str.indexOf(sep)
     if (s >= 0 && s < str.length) {
@@ -36,4 +38,17 @@ private object Util {
     }
     else (str, "")
   }
+
+  def copyBytes(input: InputStream, output: OutputStream): Long = {
+    val buffer: Array[Byte] = new Array[Byte](DEFAULT_BUFFER_SIZE)
+    var count: Long = 0
+    var n = input.read(buffer)
+    while (n >= 0) {
+      output.write(buffer, 0, n)
+      count += n
+      n = input.read(buffer)
+    }
+    count
+  }
+
 }

@@ -26,7 +26,6 @@ package uk.co.bigbeeconsultants.lhc
 
 import java.lang.String
 import java.net.{URLEncoder, URL, HttpURLConnection}
-import org.apache.commons.io.IOUtils
 import java.nio.ByteBuffer
 import java.io._
 import java.util.zip.GZIPInputStream
@@ -83,7 +82,7 @@ final class HttpClient(keepAlive: Boolean = true,
     try {
       setRequestHeaders(request, requestHeaders, connWrapper)
 
-//      connWrapper.setDoInput(request.method != Request.HEAD)
+      //      connWrapper.setDoInput(request.method != Request.HEAD)
       connWrapper.setDoOutput(request.method == Request.POST || request.method == Request.PUT)
 
       connWrapper.connect()
@@ -114,7 +113,7 @@ final class HttpClient(keepAlive: Boolean = true,
     if (request.method == Request.PUT) {
       require(request.body.isDefined, "An entity body is required when making a PUT request.")
       require(request.body.get.data.isLeft, "The POST body must be a string / byte array.")
-      IOUtils.write(request.body.get.data.left.get, connWrapper.getOutputStream)
+      connWrapper.getOutputStream.write(request.body.get.data.left.get)
     }
   }
 
@@ -138,7 +137,7 @@ final class HttpClient(keepAlive: Boolean = true,
 
     if (request.body.isDefined)
       connWrapper.setRequestProperty(Header.CONTENT_TYPE, request.body.get.mediaType.toString)
-        //.charsetOrElse(HttpClient.defaultCharset.toLowerCase))
+    //.charsetOrElse(HttpClient.defaultCharset.toLowerCase))
 
     for (hdr <- commonRequestHeaders) {
       connWrapper.setRequestProperty(hdr.name, hdr.value.replace(HttpClient.hostPlaceholder, host))
@@ -182,7 +181,7 @@ final class HttpClient(keepAlive: Boolean = true,
   private def readToByteBuffer(inStream: InputStream): ByteBuffer = {
     val bufferSize = 0x20000 // 128K
     val outStream = new ByteArrayOutputStream(bufferSize)
-    IOUtils.copy(inStream, outStream)
+    Util.copyBytes(inStream, outStream)
     ByteBuffer.wrap(outStream.toByteArray)
   }
 
