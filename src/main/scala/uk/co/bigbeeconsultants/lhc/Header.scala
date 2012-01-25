@@ -66,34 +66,27 @@ case class Header(name: String, values: List[Valuable]) {
 
   def value = values.mkString(", ")
 
+  def value0 = {
+    assume(values.size == 1)
+    values(0).value
+  }
+
   def toInt: Int = {
     assume(values.size == 1)
-    value.toInt
+    value0.toInt
   }
 
   def toLong: Long = {
     assume(values.size == 1)
-    value.toLong
+    value0.toLong
   }
 
-  def getHeaderFieldDate(name: String, defaultValue: Long = 0): Long = {
+  def toDate(defaultValue: Date = Util.defaultDate): Date = {
     assume(values.size == 1)
-    val dateString = value
-    try {
-      if (dateString.indexOf("GMT") == -1) {
-        Date.parse(dateString + " GMT")
-      } else {
-        Date.parse(dateString)
-      }
-    }
-    catch {
-      case e: Exception => {
-      }
-    }
-    defaultValue
+    Util.parseHttpDate(value0)
   }
 
-  override def toString = name + ": " + values.mkString(", ")
+  override def toString = name + ": " + value
 }
 
 object Header {
@@ -158,19 +151,27 @@ object Header {
   val LAST_MODIFIED = "Last-Modified"
 
 
+  val headersWithListValues = Set(ACCEPT, ACCEPT_CHARSET, ACCEPT_ENCODING, ACCEPT_LANGUAGE,
+    CACHE_CONTROL, CONTENT_LANGUAGE, CONTENT_TYPE, EXPECT, PRAGMA, RANGE, TE, UPGRADE, VIA)
+
   def apply(raw: String): Header = {
     val t = Util.divide(raw, ':')
     apply(t._1.trim, t._2.trim)
   }
 
   def apply(name: String, rawValue: String): Header = {
-    val values = for (v <- rawValue.split(',')) yield {
-      val t = v.trim.split(';')
-      val qualifiers = for (q <- t.tail) yield {
-        Qualifier(q.trim)
-      }
-      Value(t.head, qualifiers.toList)
+    if (!headersWithListValues.contains(name)) {
+      Header(name, List(Value(rawValue)))
     }
-    Header(name, values.toList)
+    else {
+      val values = for (v <- rawValue.split(',')) yield {
+        val t = v.trim.split(';')
+        val qualifiers = for (q <- t.tail) yield {
+          Qualifier(q.trim)
+        }
+        Value(t.head, qualifiers.toList)
+      }
+      Header(name, values.toList)
+    }
   }
 }

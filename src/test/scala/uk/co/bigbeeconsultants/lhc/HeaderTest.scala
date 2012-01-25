@@ -26,6 +26,8 @@ package uk.co.bigbeeconsultants.lhc
 
 import org.junit.Test
 import org.junit.Assert._
+import java.text.SimpleDateFormat
+import javax.xml.bind.DatatypeConverter
 
 class HeaderTest {
 
@@ -79,4 +81,11 @@ class HeaderTest {
     assertEquals("Accept: text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5", h.toString)
   }
 
+  @Test
+  def date() {
+    val time = DatatypeConverter.parseDateTime("1994-11-06T08:49:37Z").getTime
+    val h = Header("Date: Sun, 06 Nov 1994 08:49:37 GMT")
+    assertEquals("Date", h.name)
+    assertEquals(time, h.toDate())
+  }
 }

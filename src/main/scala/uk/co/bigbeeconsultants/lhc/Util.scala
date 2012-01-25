@@ -25,6 +25,8 @@
 package uk.co.bigbeeconsultants.lhc
 
 import java.io.{OutputStream, InputStream}
+import java.util.Date
+import java.text.SimpleDateFormat
 
 private object Util {
   val DEFAULT_BUFFER_SIZE = 1024 * 16
@@ -49,6 +51,42 @@ private object Util {
       n = input.read(buffer)
     }
     count
+  }
+
+  // Dates are always in GMT. The canonical representation is rfc1123DateTimeFormat.
+  // leading "EEE, " assumed to have been stripped; trailing "GMT" ignored
+  val rfc1123DateTimeFormat = "dd MMM yyyy HH:mm:ss"
+  // leading "EEEE, " assumed to have been stripped; trailing "GMT" ignored
+  val rfc850DateTimeFormat = "dd-MMM-yy HH:mm:ss"
+  // leading "EEE " assumed to have been stripped; trailing "GMT" ignored
+  val asciiDateTimeFormat = "MMM d HH:mm:ss yyyy"
+
+  val defaultDate = new Date(0)
+
+  def parseHttpDate(dateString: String, defaultValue: Date = defaultDate): Date = {
+    var result = defaultValue
+    try {
+      val discriminant = dateString.charAt(3)
+      if (discriminant == ',') {
+        val str = dateString.substring(5)
+        result = new SimpleDateFormat(rfc1123DateTimeFormat).parse(str)
+      }
+      else if (discriminant == ' ') {
+        val str = dateString.substring(4)
+        result = new SimpleDateFormat(asciiDateTimeFormat).parse(str)
+      }
+      else {
+        val p = dateString.indexOf(' ')
+        val str = dateString.substring(p + 1)
+        result = new SimpleDateFormat(rfc850DateTimeFormat).parse(str)
+      }
+    }
+    catch {
+      case e: Exception => {
+        e.printStackTrace()
+      }
+    }
+    result
   }
 
 }
