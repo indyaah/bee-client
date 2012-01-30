@@ -24,17 +24,30 @@
 
 package uk.co.bigbeeconsultants.lhc
 
-import org.junit.Assert._
-import org.junit.{AfterClass, Test}
 import java.net.{ConnectException, URL}
+import java.lang.AssertionError
+import org.junit.Assert._
+import org.junit.{After, Before, AfterClass, Test}
 
 class HttpIntegration {
 
   private val serverUrl = "http://localhost/"
   private val testScriptUrl = serverUrl + "test-lighthttpclient.php"
   private val testImageUrl = serverUrl + "B.png"
+  private val jsonBody = Body(MediaType.APPLICATION_JSON, """{ "x": 1, "y": true }""")
 
-  import HttpIntegration._
+  var http: HttpClient = _
+
+  @Before
+  def before() {
+    http = new HttpClient(keepAlive = false,
+      requestConfig = HttpClient.defaultRequestConfig.copy(followRedirects = false))
+  }
+
+  @After
+  def close() {
+    http.closeConnections()
+  }
 
   @Test
   def htmlHeadOK() {
@@ -43,7 +56,7 @@ class HttpIntegration {
       assertEquals(200, response.status.code)
       assertEquals(MediaType.TEXT_HTML, response.contentType)
       val body = response.body
-      assertTrue(body.startsWith(""))
+      assertTrue(body == "")
     } catch {
       case e: ConnectException =>
         skipTestWarning("HEAD", testScriptUrl, e)
@@ -58,6 +71,8 @@ class HttpIntegration {
       assertEquals(MediaType.TEXT_HTML, response.contentType)
       val body = response.body
       assertTrue(body.startsWith("<html>"))
+      val bodyLines = body.split("\n")
+      assertEquals("GET", extractLineFromResponse("REQUEST_METHOD", bodyLines))
     } catch {
       case e: ConnectException =>
         skipTestWarning("GET", testScriptUrl, e)
@@ -91,23 +106,58 @@ class HttpIntegration {
       val body = response.body
       println(response.headers)
       println(body)
-      assertTrue(body.startsWith("CONTENT_"))
+      assertTrue(body.startsWith("CONTENT_LENGTH"))
+      val bodyLines = body.split("\n")
+      assertEquals("GET", extractLineFromResponse("REQUEST_METHOD", bodyLines))
     } catch {
       case e: ConnectException =>
         skipTestWarning("GET", url, e)
     }
   }
 
+  @Test
+  def htmlPostWithJsonBodyOK() {
+    val url = testScriptUrl + "?CT=text/plain"
+    try {
+      val response = http.post(new URL(url), jsonBody)
+      assertEquals(302, response.status.code)
+      assertEquals(MediaType.TEXT_HTML, response.contentType)
+      val body = response.body
+      assertEquals(0, body.length)
+      assertTrue(response.headers("LOCATION").value.startsWith(serverUrl))
+    } catch {
+      case e: ConnectException =>
+        skipTestWarning("GET", testScriptUrl, e)
+    }
+  }
+
+  @Test
+  def htmlPostWithShortBodyOK() {
+    val url = testScriptUrl + "?CT=text/plain"
+    try {
+      val response = http.post(new URL(url), jsonBody)
+      assertEquals(302, response.status.code)
+      assertEquals(MediaType.TEXT_HTML, response.contentType)
+      val body = response.body
+      assertEquals(0, body.length)
+      assertTrue(response.headers("LOCATION").value.startsWith(serverUrl))
+    } catch {
+      case e: ConnectException =>
+        skipTestWarning("GET", testScriptUrl, e)
+    }
+  }
+
+  private def extractLineFromResponse(expectedHeader: String, bodyLines: Seq[String]): String = {
+    val expectedHeaderColon = expectedHeader + ':'
+    for (line <- bodyLines) {
+      if (line.startsWith(expectedHeaderColon)) {
+        return line.substring(line.indexOf(':') + 1).trim()
+      }
+    }
+    throw new AssertionError("Expect response to contain\n" + expectedHeader)
+  }
+
   private def skipTestWarning(method: String, url: String, e: ConnectException) {
     System.err.println("***** Test skipped: " + method + " " + url + " : " + e.getMessage)
-  }
-}
-
-object HttpIntegration {
-  val http = new HttpClient(false)
-
-  @AfterClass
-  def close() {
-    http.closeConnections()
   }
 }

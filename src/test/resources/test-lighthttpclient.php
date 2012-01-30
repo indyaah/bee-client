@@ -27,12 +27,16 @@ function dumpInterestingServerVars($assign, $separator) {
 }
 
 $method = strip_tags($_SERVER['REQUEST_METHOD']);
-if ($method == 'GET' || $method == 'HEAD') {
+if ($method == 'GET' || $method == 'HEAD')
+{
     $ct = strip_tags($_REQUEST['CT']);
-    if (isset($ct) && $ct == 'text/plain') {
+    if (isset($ct) && $ct == 'text/plain')
+    {
         header("Content-Type: text/plain");
         echo dumpInterestingServerVars(': ', "\n");
-    } else {
+    }
+    else
+    {
 ?><html><head>
 <title>Test Script for LightHttpClient</title>
 </head>
@@ -47,8 +51,18 @@ if ($method == 'GET' || $method == 'HEAD') {
 </ul>
 </body>
 </html>
-<?php }
-} else {
-    header('Location: http://' . $_SERVER['SERVER_ADDR'] . '/' . $_SERVER['PHP_SELF']);
+<?php
+    }
+}
+else
+{
+    if (isset($_SERVER['HTTP_HOST']))
+    {
+        header('Location: http://' . $_SERVER['HTTP_HOST'] . '/' . $_SERVER['PHP_SELF']);
+    }
+    else
+    {
+        header('Location: http://' . $_SERVER['SERVER_ADDR'] . '/' . $_SERVER['PHP_SELF']);
+    }
 }
 ?>

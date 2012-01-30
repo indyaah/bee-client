@@ -24,10 +24,10 @@
 
 package uk.co.bigbeeconsultants.lhc
 
-class RequestConfig(val connectTimeout: Int = 2000,
-                    val readTimeout: Int = 2000,
-                    val followRedirects: Boolean = true,
-                    val useCaches: Boolean = true)
+case class RequestConfig(connectTimeout: Int = 2000,
+                         readTimeout: Int = 2000,
+                         followRedirects: Boolean = true,
+                         useCaches: Boolean = true)
 
 
 class RequestException(val request: Request, val status: Int, val message: String, val response: Response, cause: Exception)

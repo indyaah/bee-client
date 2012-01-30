@@ -78,7 +78,6 @@ final class HttpClient(keepAlive: Boolean = true,
     //useCaches
     //ifModifiedSince
 
-    var result: Response = null
     try {
       setRequestHeaders(request, requestHeaders, connWrapper)
 
@@ -105,15 +104,16 @@ final class HttpClient(keepAlive: Boolean = true,
   }
 
   private def copyRequestBodyToOutputStream(request: Request, connWrapper: HttpURLConnection) {
-    if (request.method == Request.POST) {
+    if (request.method == Request.POST || request.method == Request.PUT) {
       require(request.body.isDefined, "An entity body is required when making a POST request.")
-      require(request.body.get.data.isRight, "The POST body must be a list of KeyVals.")
-      writePostData(request.body.get.data.right.get, connWrapper.getOutputStream, HttpClient.defaultCharset)
-    }
-    if (request.method == Request.PUT) {
-      require(request.body.isDefined, "An entity body is required when making a PUT request.")
-      require(request.body.get.data.isLeft, "The POST body must be a string / byte array.")
-      connWrapper.getOutputStream.write(request.body.get.data.left.get)
+      if (request.method == Request.POST) {
+        if (request.body.get.data.isRight) {
+          writePostData(request.body.get.data.right.get, connWrapper.getOutputStream, HttpClient.defaultCharset)
+        }
+        else {
+          connWrapper.getOutputStream.write(request.body.get.data.left.get)
+        }
+      }
     }
   }
 

@@ -31,6 +31,7 @@ case class Status(code: Int, message: String)
 
 /**
  * Represents a HTTP response. Immutable.
+ * All the header keys are uppercase; this is because they are required to be case-insensitive.
  */
 case class Response(status: Status,
                     contentType: MediaType,
