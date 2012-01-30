@@ -161,7 +161,7 @@ object Header {
 
   def apply(name: String, rawValue: String): Header = {
     if (!headersWithListValues.contains(name)) {
-      Header(name, List(Value(rawValue)))
+      new Header(name, List(Value(rawValue)))
     }
     else {
       val values = for (v <- rawValue.split(',')) yield {
@@ -171,7 +171,7 @@ object Header {
         }
         Value(t.head, qualifiers.toList)
       }
-      Header(name, values.toList)
+      new Header(name, values.toList)
     }
   }
 }
