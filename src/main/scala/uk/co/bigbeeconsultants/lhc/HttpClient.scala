@@ -83,9 +83,6 @@ final class HttpClient(keepAlive: Boolean = true,
     connWrapper.setInstanceFollowRedirects(requestConfig.followRedirects)
     connWrapper.setUseCaches(requestConfig.useCaches)
 
-    //useCaches
-    //ifModifiedSince
-
     try {
       setRequestHeaders(request, requestHeaders, connWrapper)
 
@@ -138,13 +135,15 @@ final class HttpClient(keepAlive: Boolean = true,
     val method = if (request.method == null) Request.GET else request.method.toUpperCase
     connWrapper.setRequestMethod(method)
 
-    val host = request.url.getHost
+    if (requestConfig.sendHostHeader) {
+      connWrapper.setRequestProperty(Header.HOST, request.url.getHost)
+    }
 
     if (request.body.isDefined)
       connWrapper.setRequestProperty(Header.CONTENT_TYPE, request.body.get.mediaType.toString)
 
     for (hdr <- commonRequestHeaders) {
-      connWrapper.setRequestProperty(hdr.name, hdr.value.replace(HttpClient.hostPlaceholder, host))
+      connWrapper.setRequestProperty(hdr.name, hdr.value)
     }
 
     for (hdr <- requestHeaders) {
@@ -167,7 +166,7 @@ final class HttpClient(keepAlive: Boolean = true,
 
   private def copyBody(contEnc: Option[Header], iStream: InputStream) = {
     if (contEnc.isDefined && contEnc.get.values.contains(Value(HttpClient.gzip))) {
-        Util.copyToByteBufferAndClose(new GZIPInputStream(iStream))
+      Util.copyToByteBufferAndClose(new GZIPInputStream(iStream))
     } else {
       Util.copyToByteBufferAndClose(iStream)
     }
@@ -197,19 +196,12 @@ object HttpClient {
   val gzip = "gzip"
 
   /**
-   * Use this in any header wherever the hostname part of the URL is required.
-   */
-  val hostPlaceholder = "{HOST}"
-
-  /**
    * The default request configuration has two-second timeouts, follows redirects and allows gzip compression.
    */
   val defaultRequestConfig = new RequestConfig
 
-  val defaultHeaders = List(
-    Header(Header.HOST, hostPlaceholder))
-//      Header(Header.HOST, hostPlaceholder),
-//      Header(Header.ACCEPT_ENCODING, HttpClient.gzip))
+  val defaultHeaders = List()
+//    val defaultHeaders = List(Header(Header.ACCEPT_ENCODING, HttpClient.gzip))
 
   private lazy val cleanupThread = new CleanupThread
 }

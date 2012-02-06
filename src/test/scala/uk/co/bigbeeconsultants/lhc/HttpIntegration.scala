@@ -165,7 +165,7 @@ class HttpIntegration {
   }
 
   @Test
-  def soakTestOK() {
+  def soakTestJpgOK() {
     try {
       val size = 1605218
       val loops = 500
@@ -176,6 +176,37 @@ class HttpIntegration {
         assertEquals(MediaType.IMAGE_JPG, response.contentType)
         val bytes = response.bodyAsBytes
         assertEquals(size, bytes.length)
+      }
+      val duration = System.currentTimeMillis() - before
+      val bytes = BigDecimal(size * loops)
+      val rate = (bytes / duration)
+      println(bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
+    } catch {
+      case e: ConnectException =>
+        skipTestWarning("GET", testPhotoUrl, e)
+    }
+  }
+
+  @Test
+  def soakTestTextOK() {
+    try {
+      var size = -1
+      val loops = 200
+      val before = System.currentTimeMillis()
+      for (i <- 1 to loops) {
+        val response = http.get(new URL(testScriptUrl))
+        assertEquals(200, response.status.code)
+        assertEquals(MediaType.TEXT_HTML, response.contentType)
+        val bytes = response.bodyAsBytes
+        if (size < 0) {
+          size = bytes.length
+        } else {
+          assertEquals(size, bytes.length)
+        }
+        val body = response.body
+        assertTrue(body.startsWith("<html>"))
+        val bodyLines = body.split("\n")
+        assertEquals("GET", extractLineFromResponse("REQUEST_METHOD", bodyLines))
       }
       val duration = System.currentTimeMillis() - before
       val bytes = BigDecimal(size * loops)

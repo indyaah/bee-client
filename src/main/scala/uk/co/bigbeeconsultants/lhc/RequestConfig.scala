@@ -24,10 +24,14 @@
 
 package uk.co.bigbeeconsultants.lhc
 
+/**
+ * Specifies configuration options that will be used across many requests.
+ */
 case class RequestConfig(connectTimeout: Int = 2000,
                          readTimeout: Int = 2000,
                          followRedirects: Boolean = true,
-                         useCaches: Boolean = true)
+                         useCaches: Boolean = true,
+                         sendHostHeader: Boolean = true)
 
 
 class RequestException(val request: Request, val status: Status, val response: Option[Response], cause: Option[Exception])
