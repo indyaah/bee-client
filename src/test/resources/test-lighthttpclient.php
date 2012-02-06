@@ -56,13 +56,19 @@ if ($method == 'GET' || $method == 'HEAD')
 }
 else
 {
+    $qs = '?';
+    foreach ($_REQUEST as $key=>$val)
+    {
+        $qs .= urlencode($key) . '=' . urlencode($val) . '&';
+    }
     if (isset($_SERVER['HTTP_HOST']))
     {
-        header('Location: http://' . $_SERVER['HTTP_HOST'] . '/' . $_SERVER['PHP_SELF']);
+        $host = $_SERVER['HTTP_HOST'];
     }
     else
     {
-        header('Location: http://' . $_SERVER['SERVER_ADDR'] . '/' . $_SERVER['PHP_SELF']);
+        $host = $_SERVER['SERVER_ADDR'];
     }
+    header('Location: http://' . $host . '/' . $_SERVER['PHP_SELF'] . $qs);
 }
 ?>
