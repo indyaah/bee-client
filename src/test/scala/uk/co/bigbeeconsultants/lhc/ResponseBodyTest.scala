@@ -1,3 +1,5 @@
+package uk.co.bigbeeconsultants.lhc
+
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -22,18 +24,22 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.lhc
+import org.junit.Test
+import org.junit.Assert._
+import java.net.URL
+import java.io.ByteArrayInputStream
 
-case class RequestConfig(connectTimeout: Int = 2000,
-                         readTimeout: Int = 2000,
-                         followRedirects: Boolean = true,
-                         useCaches: Boolean = true)
+class ResponseBodyTest {
 
+  val url1 = new URL("http://localhost/")
 
-class RequestException(val request: Request, val status: Status, val response: Option[Response], cause: Option[Exception])
-  extends RuntimeException(cause orNull) {
-
-  override def getMessage: String = {
-    "%s %s\n  %d %s".format(request.method, request.url, status.code, status.message)
+  @Test
+  def bodyWithString() {
+    val s = """[ "Some json message text" ]"""
+    val bais = new ByteArrayInputStream(s.getBytes("UTF-8"))
+    val r = new BufferedResponseBody
+    r.receiveData(MediaType.APPLICATION_JSON, bais)
+    assertEquals(s, r.body)
+    assertEquals(MediaType.APPLICATION_JSON, r.contentType)
   }
 }

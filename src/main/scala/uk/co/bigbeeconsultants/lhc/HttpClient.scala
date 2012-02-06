@@ -96,15 +96,17 @@ final class HttpClient(keepAlive: Boolean = true,
 
       copyRequestBodyToOutputStream(request, connWrapper)
 
-      val result = getContent(request, connWrapper)
+      val status = Status(connWrapper.getResponseCode, connWrapper.getResponseMessage)
+      val result = getContent(status, request, connWrapper)
       if (connWrapper.getResponseCode >= 400) {
-        throw new RequestException(request, connWrapper.getResponseCode, connWrapper.getResponseMessage, result, null)
+        throw new RequestException(request, status, Some(result), None)
       }
       result
 
     } catch {
       case ioe: IOException =>
-        throw new RequestException(request, connWrapper.getResponseCode, connWrapper.getResponseMessage, null, ioe)
+        val status = Status(connWrapper.getResponseCode, connWrapper.getResponseMessage)
+        throw new RequestException(request, status, None, Some(ioe))
 
     } finally {
       markConnectionForClosure(connWrapper)
@@ -150,19 +152,16 @@ final class HttpClient(keepAlive: Boolean = true,
     }
   }
 
-  private def getContent(request: Request, connWrapper: HttpURLConnection): Response = {
+  private def getContent(status: Status, request: Request, connWrapper: HttpURLConnection): Response = {
     val responseHeaders = processResponseHeaders(connWrapper)
     if (request.method == Request.HEAD) {
-      val status = Status(connWrapper.getResponseCode, connWrapper.getResponseMessage)
-      val mediaType = MediaType(connWrapper.getContentType)
-      Response(status, mediaType, responseHeaders, emptyBuffer)
+      Response(status, MediaType(connWrapper.getContentType), responseHeaders, emptyBuffer)
 
     } else {
       val contEnc = responseHeaders.get(Header.CONTENT_ENCODING.toUpperCase)
       val iStream = if (connWrapper.getResponseCode >= 400) connWrapper.getErrorStream else connWrapper.getInputStream
       val body = copyBody(contEnc, iStream)
-      Response(Status(connWrapper.getResponseCode, connWrapper.getResponseMessage),
-        MediaType(connWrapper.getContentType), responseHeaders, body)
+      Response(status, MediaType(connWrapper.getContentType), responseHeaders, body)
     }
   }
 

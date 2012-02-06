@@ -1,3 +1,5 @@
+package uk.co.bigbeeconsultants.lhc
+
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -22,18 +24,21 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.lhc
+import org.junit.Test
+import org.junit.Assert._
+import java.net.URL
 
-case class RequestConfig(connectTimeout: Int = 2000,
-                         readTimeout: Int = 2000,
-                         followRedirects: Boolean = true,
-                         useCaches: Boolean = true)
+class RequestExceptionTest {
 
+  val url1 = new URL("http://localhost/")
 
-class RequestException(val request: Request, val status: Status, val response: Option[Response], cause: Option[Exception])
-  extends RuntimeException(cause orNull) {
-
-  override def getMessage: String = {
-    "%s %s\n  %d %s".format(request.method, request.url, status.code, status.message)
+  @Test
+  def requestExceptionGetMessage() {
+    val mt = MediaType.APPLICATION_JSON
+    val b = RequestBody(mt, "[1, 2, 3]")
+    val r = Request.put(url1, b)
+    val s = Status(400, "Bad request")
+    val re = new RequestException(r, s, None, None)
+    assertEquals("PUT http://localhost/\n  400 Bad request", re.getMessage)
   }
 }
