@@ -79,7 +79,6 @@ class HttpClientTest {
     server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, jsonRes)
     val response = http.put(new URL(baseUrl + url), Body(MediaType.APPLICATION_JSON, jsonReq))
     assertEquals(MediaType.APPLICATION_JSON, response.contentType)
-    assertEquals(jsonReq, stubbedMethod.body)
     assertEquals(jsonRes, response.body)
   }
 

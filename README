@@ -12,5 +12,5 @@ making HTTP requests. It has the following objectives:
  * (Mostly) complete implementation - all HTTP methods and headers are
    supported.
 
-It is written in Scala but can be called (less-easily) from Java also.
+It is written in Scala but may be called (a lot less easily) from Java also.
  

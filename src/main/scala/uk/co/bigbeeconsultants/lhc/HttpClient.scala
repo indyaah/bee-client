@@ -225,6 +225,7 @@ object HttpClient {
   private lazy val cleanupThread = new CleanupThread
 }
 
+
 /**
  * The cleanup thread exists so that connections do not need to be closed immediately, which improves
  * HTTP1.1 keep-alive performance. The thread receives unclosed connection wrappers and closes them
@@ -238,7 +239,6 @@ private class CleanupThread extends Thread {
   val styx = channel.out
 
   setName("httpCleanup")
-  setDaemon(true)
   start()
 
   val limit = 1000

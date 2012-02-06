@@ -31,7 +31,7 @@ import org.junit.{After, Before, Test}
 
 class HttpIntegration {
 
-  private val serverUrl = "http://localhost/"
+  private val serverUrl = "http://localhost/lighthttpclient/"
   private val testScriptUrl = serverUrl + "test-lighthttpclient.php"
   private val testImageUrl = serverUrl + "B.png"
   private val jsonBody = Body(MediaType.APPLICATION_JSON, """{ "x": 1, "y": true }""")
@@ -104,8 +104,8 @@ class HttpIntegration {
       assertEquals(200, response.status.code)
       assertEquals(MediaType.TEXT_PLAIN, response.contentType)
       val body = response.body
-      println(response.headers)
-      println(body)
+      //println(response.headers)
+      //println(body)
       assertTrue(body.startsWith("CONTENT_LENGTH"))
       val bodyLines = body.split("\n")
       assertEquals("GET", extractLineFromResponse("REQUEST_METHOD", bodyLines))
@@ -124,7 +124,8 @@ class HttpIntegration {
       assertEquals(MediaType.TEXT_HTML, response.contentType)
       val body = response.body
       assertEquals(0, body.length)
-      assertTrue(response.headers("LOCATION").value.startsWith(serverUrl))
+      val location = response.headers("LOCATION").value
+      assertTrue(location, location.startsWith(serverUrl))
     } catch {
       case e: ConnectException =>
         skipTestWarning("GET", testScriptUrl, e)
@@ -140,7 +141,8 @@ class HttpIntegration {
       assertEquals(MediaType.TEXT_HTML, response.contentType)
       val body = response.body
       assertEquals(0, body.length)
-      assertTrue(response.headers("LOCATION").value.startsWith(serverUrl))
+      val location = response.headers("LOCATION").value
+      assertTrue(location, location.startsWith(serverUrl))
     } catch {
       case e: ConnectException =>
         skipTestWarning("GET", testScriptUrl, e)
