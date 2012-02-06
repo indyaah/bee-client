@@ -25,7 +25,7 @@
 package uk.co.bigbeeconsultants.lhc
 
 import java.lang.String
-import java.net.{URLEncoder, URL, HttpURLConnection}
+import java.net.{URL, HttpURLConnection}
 import java.nio.ByteBuffer
 import java.io._
 import java.util.zip.GZIPInputStream
@@ -46,27 +46,35 @@ final class HttpClient(keepAlive: Boolean = true,
                        commonRequestHeaders: List[Header] = HttpClient.defaultHeaders) {
   private val emptyBuffer = ByteBuffer.allocateDirect(0)
 
+  /**Make a HEAD request. */
   def head(url: URL, requestHeaders: List[Header] = Nil) =
     execute(Request.head(url), requestHeaders)
 
+  /**Make a TRACE request. */
   def trace(url: URL, requestHeaders: List[Header] = Nil) =
     execute(Request.trace(url), requestHeaders)
 
+  /**Make a GET request. */
   def get(url: URL, requestHeaders: List[Header] = Nil) =
     execute(Request.get(url), requestHeaders)
 
+  /**Make a DELETE request. */
   def delete(url: URL, requestHeaders: List[Header] = Nil) =
     execute(Request.delete(url), requestHeaders)
 
+  /**Make an OPTIONS request. */
   def options(url: URL, body: Option[RequestBody], requestHeaders: List[Header] = Nil) =
     execute(Request.options(url, body), requestHeaders)
 
+  /**Make a POST request. */
   def post(url: URL, body: RequestBody, requestHeaders: List[Header] = Nil) =
     execute(Request.post(url, body), requestHeaders)
 
+  /**Make a PUT request. */
   def put(url: URL, body: RequestBody, requestHeaders: List[Header] = Nil) =
     execute(Request.put(url, body), requestHeaders)
 
+  /**Make an arbitrary request. */
   def execute(request: Request, requestHeaders: List[Header] = Nil): Response = {
     val connWrapper = request.url.openConnection.asInstanceOf[HttpURLConnection]
     connWrapper.setAllowUserInteraction(false)
@@ -132,7 +140,6 @@ final class HttpClient(keepAlive: Boolean = true,
 
     if (request.body.isDefined)
       connWrapper.setRequestProperty(Header.CONTENT_TYPE, request.body.get.mediaType.toString)
-    //.charsetOrElse(HttpClient.defaultCharset.toLowerCase))
 
     for (hdr <- commonRequestHeaders) {
       connWrapper.setRequestProperty(hdr.name, hdr.value.replace(HttpClient.hostPlaceholder, host))
@@ -152,11 +159,18 @@ final class HttpClient(keepAlive: Boolean = true,
 
     } else {
       val contEnc = responseHeaders.get(Header.CONTENT_ENCODING.toUpperCase)
-      val stream = if (connWrapper.getResponseCode >= 400) connWrapper.getErrorStream else connWrapper.getInputStream
-      val wStream = if (contEnc.isDefined && contEnc.get.value.toLowerCase == HttpClient.gzip) new GZIPInputStream(stream) else stream
-      val body = Util.copyToByteBuffer(wStream)
+      val iStream = if (connWrapper.getResponseCode >= 400) connWrapper.getErrorStream else connWrapper.getInputStream
+      val body = copyBody(contEnc, iStream)
       Response(Status(connWrapper.getResponseCode, connWrapper.getResponseMessage),
         MediaType(connWrapper.getContentType), responseHeaders, body)
+    }
+  }
+
+  private def copyBody(contEnc: Option[Header], iStream: InputStream) = {
+    if (contEnc.isDefined && contEnc.get.values.contains(Value(HttpClient.gzip))) {
+        Util.copyToByteBufferAndClose(new GZIPInputStream(iStream))
+    } else {
+      Util.copyToByteBufferAndClose(iStream)
     }
   }
 
@@ -195,7 +209,8 @@ object HttpClient {
 
   val defaultHeaders = List(
     Header(Header.HOST, hostPlaceholder))
-  //    Header(Header.ACCEPT_ENCODING, HttpClient.gzip))
+//      Header(Header.HOST, hostPlaceholder),
+//      Header(Header.ACCEPT_ENCODING, HttpClient.gzip))
 
   private lazy val cleanupThread = new CleanupThread
 }

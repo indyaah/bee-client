@@ -54,10 +54,11 @@ private object Util {
     count
   }
 
-  def copyToByteBuffer(inputStream: InputStream): ByteBuffer = {
+  def copyToByteBufferAndClose(inputStream: InputStream): ByteBuffer = {
     val initialSize = 0x10000 // 64K
     val outStream = new ByteArrayOutputStream(initialSize)
     copyBytes(inputStream, outStream)
+    inputStream.close()
     ByteBuffer.wrap(outStream.toByteArray)
   }
 

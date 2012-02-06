@@ -96,11 +96,12 @@ object MediaType {
   val APPLICATION_OCTET_STREAM = MediaType("application", "octet-stream")
   val APPLICATION_FORM_URLENCODED = MediaType("application", "x-www-form-urlencoded")
   val MULTIPART_FORM_DATA = MediaType("multipart", "form-data")
+
   val TEXT_PLAIN = MediaType("text", "plain")
   val TEXT_XML = MediaType("text", "xml")
   val TEXT_HTML = MediaType("text", "html")
   val IMAGE_PNG = MediaType("image", "png")
-  val IMAGE_JPG = MediaType("image", "jpg")
+  val IMAGE_JPG = MediaType("image", "jpeg")
 
   def apply(str: String) = {
     val t1 = Util.divide(str, ';')

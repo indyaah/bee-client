@@ -26,7 +26,6 @@ package uk.co.bigbeeconsultants.lhc
 
 import org.junit.Test
 import org.junit.Assert._
-import java.text.SimpleDateFormat
 import javax.xml.bind.DatatypeConverter
 
 class HeaderTest {
@@ -49,6 +48,7 @@ class HeaderTest {
     val h = Header("Accept-Ranges: bytes")
     assertEquals("Accept-Ranges", h.name)
     assertEquals("bytes", h.value)
+    assertEquals("bytes", h.value0)
     assertEquals("Accept-Ranges: bytes", h.toString)
     //Allow: GET, HEAD, PUT
   }

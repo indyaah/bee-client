@@ -50,7 +50,7 @@ function dumpInterestingServerVars($assign, $separator) {
 }
 
 $method = strip_tags($_SERVER['REQUEST_METHOD']);
-if ($method == 'GET' || $method == 'HEAD')
+if ($method == 'GET' || $method == 'HEAD' || isset($_REQUEST['D']))
 {
     $ct = strip_tags($_REQUEST['CT']);
     if (isset($ct) && $ct == 'text/plain')
@@ -65,10 +65,10 @@ if ($method == 'GET' || $method == 'HEAD')
 </head>
 <body>
 <img src="B.png" width="16" height="16" alt="B symbol"/>
-<pre>
+<pre><![CDATA[
 <?php echo dumpInterestingServerVars(': ', "\n") ?>
-<?php print_r($_SERVER); ?>
-</pre>
+<?php //print_r($_SERVER); ?>
+]]></pre>
 <ul>
 <li><a href="?CT=text/plain">text/plain</a></li>
 </ul>

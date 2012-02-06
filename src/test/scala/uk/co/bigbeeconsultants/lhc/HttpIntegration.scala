@@ -34,6 +34,7 @@ class HttpIntegration {
   private val serverUrl = "http://localhost/lighthttpclient/"
   private val testScriptUrl = serverUrl + "test-lighthttpclient.php"
   private val testImageUrl = serverUrl + "B.png"
+  private val testPhotoUrl = serverUrl + "plataria-sunset.jpg"
   private val jsonBody = RequestBody(MediaType.APPLICATION_JSON, """{ "x": 1, "y": true }""")
 
   var http: HttpClient = _
@@ -104,8 +105,6 @@ class HttpIntegration {
       assertEquals(200, response.status.code)
       assertEquals(MediaType.TEXT_PLAIN, response.contentType)
       val body = response.body
-      //println(response.headers)
-      //println(body)
       assertTrue(body.startsWith("CONTENT_LENGTH"))
       val bodyLines = body.split("\n")
       assertEquals("GET", extractLineFromResponse("REQUEST_METHOD", bodyLines))
@@ -146,6 +145,45 @@ class HttpIntegration {
     } catch {
       case e: ConnectException =>
         skipTestWarning("GET", testScriptUrl, e)
+    }
+  }
+
+  @Test
+  def htmlDeleteOK() {
+    try {
+      val response = http.delete(new URL(testScriptUrl + "?D=1"))
+      assertEquals(200, response.status.code)
+      assertEquals(MediaType.TEXT_HTML, response.contentType)
+      val body = response.body
+      assertTrue(body.startsWith("<html>"))
+      val bodyLines = body.split("\n")
+      assertEquals("DELETE", extractLineFromResponse("REQUEST_METHOD", bodyLines))
+    } catch {
+      case e: ConnectException =>
+        skipTestWarning("DELETE", testScriptUrl, e)
+    }
+  }
+
+  @Test
+  def soakTestOK() {
+    try {
+      val size = 1605218
+      val loops = 500
+      val before = System.currentTimeMillis()
+      for (i <- 1 to loops) {
+        val response = http.get(new URL(testPhotoUrl))
+        assertEquals(200, response.status.code)
+        assertEquals(MediaType.IMAGE_JPG, response.contentType)
+        val bytes = response.bodyAsBytes
+        assertEquals(size, bytes.length)
+      }
+      val duration = System.currentTimeMillis() - before
+      val bytes = BigDecimal(size * loops)
+      val rate = (bytes / duration)
+      println(bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
+    } catch {
+      case e: ConnectException =>
+        skipTestWarning("GET", testPhotoUrl, e)
     }
   }
 
