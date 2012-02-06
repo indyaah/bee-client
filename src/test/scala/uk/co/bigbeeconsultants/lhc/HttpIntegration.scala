@@ -34,7 +34,7 @@ class HttpIntegration {
   private val serverUrl = "http://localhost/lighthttpclient/"
   private val testScriptUrl = serverUrl + "test-lighthttpclient.php"
   private val testImageUrl = serverUrl + "B.png"
-  private val jsonBody = Body(MediaType.APPLICATION_JSON, """{ "x": 1, "y": true }""")
+  private val jsonBody = RequestBody(MediaType.APPLICATION_JSON, """{ "x": 1, "y": true }""")
 
   var http: HttpClient = _
 

@@ -24,9 +24,10 @@
 
 package uk.co.bigbeeconsultants.lhc
 
-import java.io.{OutputStream, InputStream}
 import java.util.Date
 import java.text.SimpleDateFormat
+import java.io.{ByteArrayOutputStream, OutputStream, InputStream}
+import java.nio.ByteBuffer
 
 private object Util {
   val DEFAULT_BUFFER_SIZE = 1024 * 16
@@ -51,6 +52,13 @@ private object Util {
       n = input.read(buffer)
     }
     count
+  }
+
+  def copyToByteBuffer(inputStream: InputStream): ByteBuffer = {
+    val initialSize = 0x10000 // 64K
+    val outStream = new ByteArrayOutputStream(initialSize)
+    copyBytes(inputStream, outStream)
+    ByteBuffer.wrap(outStream.toByteArray)
   }
 
   // Dates are always in GMT. The canonical representation is rfc1123DateTimeFormat.

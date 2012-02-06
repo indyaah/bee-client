@@ -26,23 +26,11 @@ package uk.co.bigbeeconsultants.lhc
 
 import java.net.URL
 
-final case class KeyVal(key: String, value: String)
-
-final case class Body(mediaType: MediaType, data: Either[Array[Byte], List[KeyVal]])
-
-object Body {
-  def apply(mediaType: MediaType, string: String): Body =
-    new Body(mediaType, Left(string.getBytes(mediaType.charsetOrElse(HttpClient.defaultCharset))))
-
-  def apply(mediaType: MediaType, data: List[KeyVal]): Body =
-    new Body(mediaType, Right(data))
-}
-
 /**
  * Represents the requirements for an HTTP request. Immutable.
  * Normally, this class will not be instantiated directly but via the Request object methods.
  */
-final case class Request(method: String, url: URL, body: Option[Body] = None)
+final case class Request(method: String, url: URL, body: Option[RequestBody] = None)
 
 /**
  * Provides factory methods for creating request objects of various types. These include
@@ -63,14 +51,18 @@ object Request {
 
   // methods without an entity body
   def get(url: URL): Request = Request(GET, url, None)
+
   def head(url: URL): Request = Request(HEAD, url, None)
+
   def delete(url: URL): Request = Request(DELETE, url, None)
+
   def trace(url: URL): Request = Request(TRACE, url, None)
 
   // method with an optional entity body
-  def options(url: URL, body: Option[Body] = None): Request = Request(OPTIONS, url, body)
+  def options(url: URL, body: Option[RequestBody] = None): Request = Request(OPTIONS, url, body)
 
   // methods requiring an entity body
-  def post(url: URL, body: Body): Request = Request(POST, url, Some(body))
-  def put(url: URL, body: Body): Request = Request(PUT, url, Some(body))
+  def post(url: URL, body: RequestBody): Request = Request(POST, url, Some(body))
+
+  def put(url: URL, body: RequestBody): Request = Request(PUT, url, Some(body))
 }

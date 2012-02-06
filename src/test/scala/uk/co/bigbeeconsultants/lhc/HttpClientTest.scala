@@ -77,7 +77,7 @@ class HttpClientTest {
     val jsonReq = """{"astring" : "the request" }"""
     val jsonRes = """{"astring" : "the response" }"""
     server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, jsonRes)
-    val response = http.put(new URL(baseUrl + url), Body(MediaType.APPLICATION_JSON, jsonReq))
+    val response = http.put(new URL(baseUrl + url), RequestBody(MediaType.APPLICATION_JSON, jsonReq))
     assertEquals(MediaType.APPLICATION_JSON, response.contentType)
     assertEquals(jsonRes, response.body)
   }
@@ -88,7 +88,7 @@ class HttpClientTest {
     val stubbedMethod = StubMethod.post(url)
     val jsonRes = """{"astring" : "the response" }"""
     server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, jsonRes)
-    val response = http.post(new URL(baseUrl + url), Body(MediaType.APPLICATION_JSON, List(KeyVal("a", "b"))))
+    val response = http.post(new URL(baseUrl + url), RequestBody(MediaType.APPLICATION_JSON, Map("a" -> "b")))
     assertEquals(MediaType.APPLICATION_JSON, response.contentType)
     assertEquals(jsonRes, response.body)
   }

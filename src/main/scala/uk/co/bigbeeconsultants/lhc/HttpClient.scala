@@ -58,13 +58,13 @@ final class HttpClient(keepAlive: Boolean = true,
   def delete(url: URL, requestHeaders: List[Header] = Nil) =
     execute(Request.delete(url), requestHeaders)
 
-  def options(url: URL, body: Option[Body], requestHeaders: List[Header] = Nil) =
+  def options(url: URL, body: Option[RequestBody], requestHeaders: List[Header] = Nil) =
     execute(Request.options(url, body), requestHeaders)
 
-  def post(url: URL, body: Body, requestHeaders: List[Header] = Nil) =
+  def post(url: URL, body: RequestBody, requestHeaders: List[Header] = Nil) =
     execute(Request.post(url, body), requestHeaders)
 
-  def put(url: URL, body: Body, requestHeaders: List[Header] = Nil) =
+  def put(url: URL, body: RequestBody, requestHeaders: List[Header] = Nil) =
     execute(Request.put(url, body), requestHeaders)
 
   def execute(request: Request, requestHeaders: List[Header] = Nil): Response = {
@@ -107,12 +107,7 @@ final class HttpClient(keepAlive: Boolean = true,
     if (request.method == Request.POST || request.method == Request.PUT) {
       require(request.body.isDefined, "An entity body is required when making a POST request.")
       if (request.method == Request.POST) {
-        if (request.body.get.data.isRight) {
-          writePostData(request.body.get.data.right.get, connWrapper.getOutputStream, HttpClient.defaultCharset)
-        }
-        else {
-          connWrapper.getOutputStream.write(request.body.get.data.left.get)
-        }
+        request.body.get.copyTo(connWrapper.getOutputStream)
       }
     }
   }
@@ -148,19 +143,6 @@ final class HttpClient(keepAlive: Boolean = true,
     }
   }
 
-  private def writePostData(data: List[KeyVal], outputStream: OutputStream, encoding: String) {
-    val w = new OutputStreamWriter(outputStream, encoding)
-    var first = true
-    for (keyVal <- data) {
-      if (!first) w.append('&')
-      else first = false
-      w.write(URLEncoder.encode(keyVal.key, encoding))
-      w.write('=')
-      w.write(URLEncoder.encode(keyVal.value, encoding))
-    }
-    w.close()
-  }
-
   private def getContent(request: Request, connWrapper: HttpURLConnection): Response = {
     val responseHeaders = processResponseHeaders(connWrapper)
     if (request.method == Request.HEAD) {
@@ -172,17 +154,10 @@ final class HttpClient(keepAlive: Boolean = true,
       val contEnc = responseHeaders.get(Header.CONTENT_ENCODING.toUpperCase)
       val stream = if (connWrapper.getResponseCode >= 400) connWrapper.getErrorStream else connWrapper.getInputStream
       val wStream = if (contEnc.isDefined && contEnc.get.value.toLowerCase == HttpClient.gzip) new GZIPInputStream(stream) else stream
-      val body = readToByteBuffer(wStream)
+      val body = Util.copyToByteBuffer(wStream)
       Response(Status(connWrapper.getResponseCode, connWrapper.getResponseMessage),
         MediaType(connWrapper.getContentType), responseHeaders, body)
     }
-  }
-
-  private def readToByteBuffer(inStream: InputStream): ByteBuffer = {
-    val bufferSize = 0x20000 // 128K
-    val outStream = new ByteArrayOutputStream(bufferSize)
-    Util.copyBytes(inStream, outStream)
-    ByteBuffer.wrap(outStream.toByteArray)
   }
 
   private def processResponseHeaders(connWrapper: HttpURLConnection) = {

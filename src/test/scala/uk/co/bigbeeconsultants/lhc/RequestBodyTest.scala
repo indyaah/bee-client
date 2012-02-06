@@ -1,3 +1,5 @@
+package uk.co.bigbeeconsultants.lhc
+
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -22,32 +24,35 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.lhc
-
 import org.junit.Test
 import org.junit.Assert._
 import java.net.URL
+import java.io.ByteArrayOutputStream
+import collection.immutable.ListMap
 
-class RequestTest {
+class RequestBodyTest {
 
   val url1 = new URL("http://localhost/")
 
   @Test
-  def requestNoBody() {
-    val r = Request.get(url1)
-    assertEquals(url1, r.url)
-    assertEquals("GET", r.method)
-    assertTrue(r.body.isEmpty)
+  def bodyWithString() {
+    val mt = MediaType.APPLICATION_JSON
+    val b = RequestBody(mt, "[1, 2, 3]")
+    assertSame(mt, b.mediaType)
+    val baos = new ByteArrayOutputStream
+    b.copyTo(baos)
+    val result = baos.toString(HttpClient.defaultCharset)
+    assertEquals("[1, 2, 3]", result)
   }
 
   @Test
-  def RequestWithBody() {
+  def bodyWithKeyValPairs() {
     val mt = MediaType.APPLICATION_JSON
-    val b = RequestBody(mt, "[1, 2, 3]")
-    val r = Request.put(url1, b)
-    assertEquals(url1, r.url)
-    assertEquals("PUT", r.method)
-    assertEquals(b, r.body.get)
-    assertEquals("UTF-8", r.body.get.mediaType.charsetOrElse("UTF-8"))
+    val b = RequestBody(mt, ListMap("a" -> "1", "b" -> "2", "c" -> "3"))
+    assertSame(mt, b.mediaType)
+    val baos = new ByteArrayOutputStream
+    b.copyTo(baos)
+    val result = baos.toString(HttpClient.defaultCharset)
+    assertEquals("a=1&b=2&c=3", result)
   }
 }
