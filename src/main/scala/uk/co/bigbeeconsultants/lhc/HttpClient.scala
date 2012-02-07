@@ -43,7 +43,9 @@ import org.jcsp.lang.{Any2OneChannel, Channel}
  */
 final class HttpClient(keepAlive: Boolean = true,
                        requestConfig: RequestConfig = HttpClient.defaultRequestConfig,
-                       commonRequestHeaders: List[Header] = HttpClient.defaultHeaders) {
+                       commonRequestHeaders: List[Header] = HttpClient.defaultHeaders,
+                       responseBodyFactory: ResponseBodyFactory = HttpClient.defaultResponseBodyFactory) {
+
   private val emptyBuffer = ByteBuffer.allocateDirect(0)
 
   /**Make a HEAD request. */
@@ -160,7 +162,7 @@ final class HttpClient(keepAlive: Boolean = true,
     } else {
       val contEnc = responseHeaders.get(Header.CONTENT_ENCODING.toUpperCase)
       val mediaType = MediaType(connWrapper.getContentType)
-      val body = new BufferedResponseBody
+      val body = responseBodyFactory.newResponseBody(mediaType)
       body.receiveData(mediaType, getBodyStream(contEnc, connWrapper))
       Response(status, body, responseHeaders)
     }
@@ -205,6 +207,8 @@ object HttpClient {
 
   val defaultHeaders = List()
 //    val defaultHeaders = List(Header(Header.ACCEPT_ENCODING, HttpClient.gzip))
+
+  val defaultResponseBodyFactory = new BufferedResponseBodyFactory
 
   private lazy val cleanupThread = new CleanupThread
 }

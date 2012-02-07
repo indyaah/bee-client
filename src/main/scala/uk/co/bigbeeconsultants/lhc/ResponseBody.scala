@@ -112,3 +112,21 @@ class BufferedResponseBody extends CachedResponseBody {
    */
   def asBytes: Array[Byte] = if (cache != null) cache.asBytes else null
 }
+
+
+/**
+ * Defines the factory method used for pluggable creation of response bodies. The content type is
+ * available when the decision is made about what instance is required.
+ */
+trait ResponseBodyFactory {
+  def newResponseBody(contentType: MediaType): ResponseBody
+}
+
+
+/**
+ * Provides a simple imeplementation of ResponseBodyFactory that creates new BufferedResponseBody
+ * instances for all media types.
+ */
+final class BufferedResponseBodyFactory extends ResponseBodyFactory {
+  def newResponseBody(contentType: MediaType) = new BufferedResponseBody
+}
