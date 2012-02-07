@@ -24,38 +24,14 @@
 
 package uk.co.bigbeeconsultants.lhc
 
-import java.nio.charset.Charset
-import java.nio.ByteBuffer
-
+/** Expresses an HTTP status line. */
 case class Status(code: Int, message: String)
 
 /**
- * Represents a HTTP response. Immutable.
+ * Represents a HTTP response. This is broadly immutable, although the implementation of
+ * the response body may vary.
+ * <p>
  * All the header keys are uppercase; this is because they are required to be case-insensitive.
  */
-case class Response(status: Status,
-                    contentType: MediaType,
-                    headers: Map[String, Header],
-                    byteData: ByteBuffer) {
-
-  /**
-   * Get the body of the response as a plain string.
-   * @return body
-   */
-  lazy val body: String = getBody
-
-  private def getBody = {
-    val charset = contentType.charset.getOrElse(HttpClient.defaultCharset)
-    val body = Charset.forName(charset).decode(byteData).toString
-    byteData.rewind
-    body
-  }
-
-  /**
-   * Get the body of the response as an array of bytes.
-   * @return body bytes
-   */
-  def bodyAsBytes = byteData.array()
-}
-
+case class Response(status: Status, body: ResponseBody, headers: Map[String, Header])
 

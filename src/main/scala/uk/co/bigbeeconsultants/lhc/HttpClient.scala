@@ -154,21 +154,24 @@ final class HttpClient(keepAlive: Boolean = true,
   private def getContent(status: Status, request: Request, connWrapper: HttpURLConnection): Response = {
     val responseHeaders = processResponseHeaders(connWrapper)
     if (request.method == Request.HEAD) {
-      Response(status, MediaType(connWrapper.getContentType), responseHeaders, emptyBuffer)
+      val mediaType = MediaType(connWrapper.getContentType)
+      Response(status, new CachedResponseBodyImpl(mediaType, emptyBuffer), responseHeaders)
 
     } else {
       val contEnc = responseHeaders.get(Header.CONTENT_ENCODING.toUpperCase)
-      val iStream = if (connWrapper.getResponseCode >= 400) connWrapper.getErrorStream else connWrapper.getInputStream
-      val body = copyBody(contEnc, iStream)
-      Response(status, MediaType(connWrapper.getContentType), responseHeaders, body)
+      val mediaType = MediaType(connWrapper.getContentType)
+      val body = new BufferedResponseBody
+      body.receiveData(mediaType, getBodyStream(contEnc, connWrapper))
+      Response(status, body, responseHeaders)
     }
   }
 
-  private def copyBody(contEnc: Option[Header], iStream: InputStream) = {
+  private def getBodyStream(contEnc: Option[Header], connWrapper: HttpURLConnection) = {
+    val iStream = if (connWrapper.getResponseCode >= 400) connWrapper.getErrorStream else connWrapper.getInputStream
     if (contEnc.isDefined && contEnc.get.values.contains(Value(HttpClient.gzip))) {
-      Util.copyToByteBufferAndClose(new GZIPInputStream(iStream))
+      new GZIPInputStream(iStream)
     } else {
-      Util.copyToByteBufferAndClose(iStream)
+      iStream
     }
   }
 

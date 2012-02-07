@@ -43,8 +43,8 @@ class HttpClientTest {
     val json = """{"astring" : "the message" }"""
     server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, json)
     val response = http.get(new URL(baseUrl + url))
-    assertEquals(MediaType.APPLICATION_JSON, response.contentType)
-    assertEquals(json, response.body)
+    assertEquals(MediaType.APPLICATION_JSON, response.body.contentType)
+    assertEquals(json, response.body.asString)
     val accEnc = stubbedMethod.headers.get("Accept-Encoding")
     //    assertEquals("gzip", accEnc)
   }
@@ -62,8 +62,8 @@ class HttpClientTest {
     val before = System.currentTimeMillis()
     for (i <- 1 to n) {
       val response = http.get(new URL(baseUrl + url + i))
-      assertEquals(MediaType.APPLICATION_JSON, response.contentType)
-      assertEquals(json, response.body)
+      assertEquals(MediaType.APPLICATION_JSON, response.body.contentType)
+      assertEquals(json, response.body.asString)
     }
     val after = System.currentTimeMillis()
     println((after - before) + "ms")
@@ -78,8 +78,8 @@ class HttpClientTest {
     val jsonRes = """{"astring" : "the response" }"""
     server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, jsonRes)
     val response = http.put(new URL(baseUrl + url), RequestBody(MediaType.APPLICATION_JSON, jsonReq))
-    assertEquals(MediaType.APPLICATION_JSON, response.contentType)
-    assertEquals(jsonRes, response.body)
+    assertEquals(MediaType.APPLICATION_JSON, response.body.contentType)
+    assertEquals(jsonRes, response.body.asString)
   }
 
   @Test def post_shouldReturnOK() {
@@ -89,8 +89,8 @@ class HttpClientTest {
     val jsonRes = """{"astring" : "the response" }"""
     server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, jsonRes)
     val response = http.post(new URL(baseUrl + url), RequestBody(MediaType.APPLICATION_JSON, Map("a" -> "b")))
-    assertEquals(MediaType.APPLICATION_JSON, response.contentType)
-    assertEquals(jsonRes, response.body)
+    assertEquals(MediaType.APPLICATION_JSON, response.body.contentType)
+    assertEquals(jsonRes, response.body.asString)
   }
 
   @Test def delete_shouldReturnOK() {
@@ -99,8 +99,8 @@ class HttpClientTest {
     val stubbedMethod = StubMethod.delete(url)
     server.expect(stubbedMethod).thenReturn(204, MediaType.APPLICATION_JSON.toString, "")
     val response = http.delete(new URL(baseUrl + url))
-    assertEquals(MediaType.APPLICATION_JSON, response.contentType)
-    assertEquals("", response.body)
+    assertEquals(MediaType.APPLICATION_JSON, response.body.contentType)
+    assertEquals("", response.body.asString)
   }
 
   @Test

@@ -39,7 +39,7 @@ class ResponseBodyTest {
     val bais = new ByteArrayInputStream(s.getBytes("UTF-8"))
     val r = new BufferedResponseBody
     r.receiveData(MediaType.APPLICATION_JSON, bais)
-    assertEquals(s, r.body)
+    assertEquals(s, r.asString)
     assertEquals(MediaType.APPLICATION_JSON, r.contentType)
   }
 }

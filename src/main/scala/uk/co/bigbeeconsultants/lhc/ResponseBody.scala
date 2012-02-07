@@ -34,7 +34,7 @@ import java.nio.charset.Charset
  */
 trait ResponseBody {
   /**Implementors will provide the means via this method for the response data to be consumed. */
-  def receiveData (contentType: MediaType, inputStream: InputStream)
+  def receiveData (contentType: MediaType, inputStream: InputStream) {}
 
   /** Gets the content type and encoding of the response. */
   def contentType: MediaType
@@ -43,42 +43,72 @@ trait ResponseBody {
    * Gets the body as a string if available. By default, this merely returns toString(), which may not be
    * much use.
    */
-  def body: String = toString
+  def asString: String = toString
 }
 
 
 /**
- * Provides a ResponseBody implementation that copies the whole response into a ByteBuffer. This is available
+ * Provides a ResponseBody implementation that caches a response in a ByteBuffer. This is also available
  * as a string without much performance penalty. However, take care because the memory footprint will be large
  * when dealing with large volumes of response data.
  */
-class BufferedResponseBody extends ResponseBody {
-  private var _contentType: MediaType = null
-  private var byteData: ByteBuffer = null
+trait CachedResponseBody extends ResponseBody {
+  def asBytes: Array[Byte]
+}
 
-  def receiveData(contentType: MediaType, inputStream: InputStream) {
-    _contentType = contentType
-    byteData = Util.copyToByteBufferAndClose(inputStream)
-  }
 
-  private def getBody = {
-    val charset = _contentType.charset.getOrElse(HttpClient.defaultCharset)
-    val body = Charset.forName(charset).decode(byteData).toString
+/**
+ * Provides a ResponseBody implementation that caches a response in a ByteBuffer. This is also available
+ * as a string without much performance penalty. However, take care because the memory footprint will be large
+ * when dealing with large volumes of response data.
+ */
+class CachedResponseBodyImpl(val contentType: MediaType, byteData: ByteBuffer) extends CachedResponseBody {
+
+  private var converted: String = null
+
+  private def convertToString = {
+    val charset = contentType.charset.getOrElse(HttpClient.defaultCharset)
+    val string = Charset.forName(charset).decode(byteData).toString
     byteData.rewind
-    body
+    string
   }
-
-  def contentType: MediaType = _contentType
 
   /**
-   * Get the body of the response as a plain string.
-   * @return body
+   * Get the body of the response as a string.
    */
-  override lazy val body: String = getBody
+  override def asString: String = {
+    if (converted == null) { converted = convertToString }
+    converted
+  }
 
   /**
    * Get the body of the response as an array of bytes.
-   * @return body bytes
    */
-  def bodyAsBytes: Array[Byte] = byteData.array()
+  def asBytes: Array[Byte] = byteData.array()
+}
+
+
+/**
+ * Provides a ResponseBody implementation that copies the whole response into a ByteBuffer. This is also available
+ * as a string without much performance penalty. However, take care because the memory footprint will be large
+ * when dealing with large volumes of response data.
+ */
+class BufferedResponseBody extends CachedResponseBody {
+  private var cache: CachedResponseBody = null
+
+  override def receiveData(contentType: MediaType, inputStream: InputStream) {
+    cache = new CachedResponseBodyImpl(contentType, Util.copyToByteBufferAndClose(inputStream))
+  }
+
+  def contentType: MediaType = if (cache != null) cache.contentType else null
+
+  /**
+   * Get the body of the response as a string.
+   */
+  override def asString: String = if (cache != null) cache.asString else null
+
+  /**
+   * Get the body of the response as an array of bytes.
+   */
+  def asBytes: Array[Byte] = if (cache != null) cache.asBytes else null
 }

@@ -55,9 +55,9 @@ class HttpIntegration {
     try {
       val response = http.head(new URL(testScriptUrl))
       assertEquals(200, response.status.code)
-      assertEquals(MediaType.TEXT_HTML, response.contentType)
       val body = response.body
-      assertTrue(body == "")
+      assertEquals(MediaType.TEXT_HTML, body.contentType)
+      assertTrue(body.asString == "")
     } catch {
       case e: ConnectException =>
         skipTestWarning("HEAD", testScriptUrl, e)
@@ -69,10 +69,10 @@ class HttpIntegration {
     try {
       val response = http.get(new URL(testScriptUrl))
       assertEquals(200, response.status.code)
-      assertEquals(MediaType.TEXT_HTML, response.contentType)
       val body = response.body
-      assertTrue(body.startsWith("<html>"))
-      val bodyLines = body.split("\n")
+      assertEquals(MediaType.TEXT_HTML, body.contentType)
+      assertTrue(body.asString.startsWith("<html>"))
+      val bodyLines = body.asString.split("\n")
       assertEquals("GET", extractLineFromResponse("REQUEST_METHOD", bodyLines))
     } catch {
       case e: ConnectException =>
@@ -85,8 +85,8 @@ class HttpIntegration {
     try {
       val response = http.get(new URL(testImageUrl))
       assertEquals(200, response.status.code)
-      assertEquals(MediaType.IMAGE_PNG, response.contentType)
-      val bytes = response.bodyAsBytes
+      assertEquals(MediaType.IMAGE_PNG, response.body.contentType)
+      val bytes = response.body.asInstanceOf[CachedResponseBody].asBytes
       assertEquals(497, bytes.length)
       assertEquals('P', bytes(1))
       assertEquals('N', bytes(2))
@@ -103,10 +103,10 @@ class HttpIntegration {
     try {
       val response = http.get(new URL(url))
       assertEquals(200, response.status.code)
-      assertEquals(MediaType.TEXT_PLAIN, response.contentType)
       val body = response.body
-      assertTrue(body.startsWith("CONTENT_LENGTH"))
-      val bodyLines = body.split("\n")
+      assertEquals(MediaType.TEXT_PLAIN, body.contentType)
+      assertTrue(body.asString.startsWith("CONTENT_LENGTH"))
+      val bodyLines = body.asString.split("\n")
       assertEquals("GET", extractLineFromResponse("REQUEST_METHOD", bodyLines))
     } catch {
       case e: ConnectException =>
@@ -120,9 +120,9 @@ class HttpIntegration {
     try {
       val response = http.post(new URL(url), jsonBody)
       assertEquals(302, response.status.code)
-      assertEquals(MediaType.TEXT_HTML, response.contentType)
       val body = response.body
-      assertEquals(0, body.length)
+      assertEquals(MediaType.TEXT_HTML, body.contentType)
+      assertEquals(0, body.asString.length)
       val location = response.headers("LOCATION").value
       assertTrue(location, location.startsWith(serverUrl))
     } catch {
@@ -137,9 +137,9 @@ class HttpIntegration {
     try {
       val response = http.post(new URL(url), jsonBody)
       assertEquals(302, response.status.code)
-      assertEquals(MediaType.TEXT_HTML, response.contentType)
       val body = response.body
-      assertEquals(0, body.length)
+      assertEquals(MediaType.TEXT_HTML, body.contentType)
+      assertEquals(0, body.asString.length)
       val location = response.headers("LOCATION").value
       assertTrue(location, location.startsWith(serverUrl))
     } catch {
@@ -153,10 +153,10 @@ class HttpIntegration {
     try {
       val response = http.delete(new URL(testScriptUrl + "?D=1"))
       assertEquals(200, response.status.code)
-      assertEquals(MediaType.TEXT_HTML, response.contentType)
       val body = response.body
-      assertTrue(body.startsWith("<html>"))
-      val bodyLines = body.split("\n")
+      assertEquals(MediaType.TEXT_HTML, body.contentType)
+      assertTrue(body.asString.startsWith("<html>"))
+      val bodyLines = body.asString.split("\n")
       assertEquals("DELETE", extractLineFromResponse("REQUEST_METHOD", bodyLines))
     } catch {
       case e: ConnectException =>
@@ -173,8 +173,8 @@ class HttpIntegration {
       for (i <- 1 to loops) {
         val response = http.get(new URL(testPhotoUrl))
         assertEquals(200, response.status.code)
-        assertEquals(MediaType.IMAGE_JPG, response.contentType)
-        val bytes = response.bodyAsBytes
+        assertEquals(MediaType.IMAGE_JPG, response.body.contentType)
+        val bytes = response.body.asInstanceOf[CachedResponseBody].asBytes
         assertEquals(size, bytes.length)
       }
       val duration = System.currentTimeMillis() - before
@@ -196,16 +196,16 @@ class HttpIntegration {
       for (i <- 1 to loops) {
         val response = http.get(new URL(testScriptUrl))
         assertEquals(200, response.status.code)
-        assertEquals(MediaType.TEXT_HTML, response.contentType)
-        val bytes = response.bodyAsBytes
+        assertEquals(MediaType.TEXT_HTML, response.body.contentType)
+        val bytes = response.body.asInstanceOf[CachedResponseBody].asBytes
         if (size < 0) {
           size = bytes.length
         } else {
           assertEquals(size, bytes.length)
         }
         val body = response.body
-        assertTrue(body.startsWith("<html>"))
-        val bodyLines = body.split("\n")
+        assertTrue(body.asString.startsWith("<html>"))
+        val bodyLines = body.asString.split("\n")
         assertEquals("GET", extractLineFromResponse("REQUEST_METHOD", bodyLines))
       }
       val duration = System.currentTimeMillis() - before
