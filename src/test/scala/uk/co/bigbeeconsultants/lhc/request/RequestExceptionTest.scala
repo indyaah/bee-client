@@ -1,4 +1,4 @@
-package uk.co.bigbeeconsultants.lhc
+package uk.co.bigbeeconsultants.lhc.request
 
 //-----------------------------------------------------------------------------
 // The MIT License
@@ -27,19 +27,20 @@ package uk.co.bigbeeconsultants.lhc
 import org.junit.Test
 import org.junit.Assert._
 import java.net.URL
-import java.io.ByteArrayInputStream
+import uk.co.bigbeeconsultants.lhc.header.MediaType
+import uk.co.bigbeeconsultants.lhc.response.Status
 
-class ResponseBodyTest {
+class RequestExceptionTest {
 
   val url1 = new URL("http://localhost/")
 
   @Test
-  def bodyWithString() {
-    val s = """[ "Some json message text" ]"""
-    val bais = new ByteArrayInputStream(s.getBytes("UTF-8"))
-    val r = new BufferedResponseBody
-    r.receiveData(MediaType.APPLICATION_JSON, bais)
-    assertEquals(s, r.asString)
-    assertEquals(MediaType.APPLICATION_JSON, r.contentType)
+  def requestExceptionGetMessage() {
+    val mt = MediaType.APPLICATION_JSON
+    val b = Body(mt, "[1, 2, 3]")
+    val r = Request.put(url1, b)
+    val s = Status(400, "Bad request")
+    val re = new RequestException(r, s, None, None)
+    assertEquals("PUT http://localhost/\n  400 Bad request", re.getMessage)
   }
 }

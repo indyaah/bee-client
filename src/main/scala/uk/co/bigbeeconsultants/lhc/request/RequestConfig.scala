@@ -22,10 +22,25 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-// sbt-idea
-// see https://github.com/mpeltonen/sbt-idea
+package uk.co.bigbeeconsultants.lhc.request
 
-resolvers += "sbt-idea-repo" at "http://mpeltonen.github.com/maven/"
+import uk.co.bigbeeconsultants.lhc.response.{Response, Status}
 
-addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.0.0")
 
+/**
+ * Specifies configuration options that will be used across many requests.
+ */
+case class RequestConfig(connectTimeout: Int = 2000,
+                         readTimeout: Int = 2000,
+                         followRedirects: Boolean = true,
+                         useCaches: Boolean = true,
+                         sendHostHeader: Boolean = true)
+
+
+class RequestException(val request: Request, val status: Status, val response: Option[Response], cause: Option[Exception])
+  extends RuntimeException(cause orNull) {
+
+  override def getMessage: String = {
+    "%s %s\n  %d %s".format(request.method, request.url, status.code, status.message)
+  }
+}

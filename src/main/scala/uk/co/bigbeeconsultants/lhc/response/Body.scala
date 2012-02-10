@@ -1,3 +1,5 @@
+package uk.co.bigbeeconsultants.lhc.response
+
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -22,21 +24,22 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.lhc
-
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
+import uk.co.bigbeeconsultants.lhc.header.MediaType
+import uk.co.bigbeeconsultants.lhc.HttpClient
+import uk.co.bigbeeconsultants.lhc.Util
 
 /**
  * Defines the outline of a response body. This may or may not be buffered in memory or streamed directly
  * to where it is needed, depending on the implementation.
  */
-trait ResponseBody {
+trait Body {
   /**Implementors will provide the means via this method for the response data to be consumed. */
-  def receiveData (contentType: MediaType, inputStream: InputStream) {}
+  def receiveData(contentType: MediaType, inputStream: InputStream) {}
 
-  /** Gets the content type and encoding of the response. */
+  /**Gets the content type and encoding of the response. */
   def contentType: MediaType
 
   /**
@@ -48,21 +51,21 @@ trait ResponseBody {
 
 
 /**
- * Provides a ResponseBody implementation that caches a response in a ByteBuffer. This is also available
+ * Provides a Body implementation that caches a response in a ByteBuffer. This is also available
  * as a string without much performance penalty. However, take care because the memory footprint will be large
  * when dealing with large volumes of response data.
  */
-trait CachedResponseBody extends ResponseBody {
+trait CachedBody extends Body {
   def asBytes: Array[Byte]
 }
 
 
 /**
- * Provides a ResponseBody implementation that caches a response in a ByteBuffer. This is also available
+ * Provides a Body implementation that caches a response in a ByteBuffer. This is also available
  * as a string without much performance penalty. However, take care because the memory footprint will be large
  * when dealing with large volumes of response data.
  */
-class CachedResponseBodyImpl(val contentType: MediaType, byteData: ByteBuffer) extends CachedResponseBody {
+class CachedBodyImpl(val contentType: MediaType, byteData: ByteBuffer) extends CachedBody {
 
   private var converted: String = null
 
@@ -77,7 +80,9 @@ class CachedResponseBodyImpl(val contentType: MediaType, byteData: ByteBuffer) e
    * Get the body of the response as a string.
    */
   override def asString: String = {
-    if (converted == null) { converted = convertToString }
+    if (converted == null) {
+      converted = convertToString
+    }
     converted
   }
 
@@ -89,15 +94,15 @@ class CachedResponseBodyImpl(val contentType: MediaType, byteData: ByteBuffer) e
 
 
 /**
- * Provides a ResponseBody implementation that copies the whole response into a ByteBuffer. This is also available
+ * Provides a Body implementation that copies the whole response into a ByteBuffer. This is also available
  * as a string without much performance penalty. However, take care because the memory footprint will be large
  * when dealing with large volumes of response data.
  */
-class BufferedResponseBody extends CachedResponseBody {
-  private var cache: CachedResponseBody = null
+class BufferedBody extends CachedBody {
+  private var cache: CachedBody = null
 
   override def receiveData(contentType: MediaType, inputStream: InputStream) {
-    cache = new CachedResponseBodyImpl(contentType, Util.copyToByteBufferAndClose(inputStream))
+    cache = new CachedBodyImpl(contentType, Util.copyToByteBufferAndClose(inputStream))
   }
 
   def contentType: MediaType = if (cache != null) cache.contentType else null
@@ -119,14 +124,14 @@ class BufferedResponseBody extends CachedResponseBody {
  * available when the decision is made about what instance is required.
  */
 trait ResponseBodyFactory {
-  def newResponseBody(contentType: MediaType): ResponseBody
+  def newResponseBody(contentType: MediaType): Body
 }
 
 
 /**
- * Provides a simple imeplementation of ResponseBodyFactory that creates new BufferedResponseBody
+ * Provides a simple imeplementation of ResponseBodyFactory that creates new BufferedBody
  * instances for all media types.
  */
 final class BufferedResponseBodyFactory extends ResponseBodyFactory {
-  def newResponseBody(contentType: MediaType) = new BufferedResponseBody
+  def newResponseBody(contentType: MediaType) = new BufferedBody
 }

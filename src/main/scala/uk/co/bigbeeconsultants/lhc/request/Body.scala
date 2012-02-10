@@ -1,3 +1,5 @@
+package uk.co.bigbeeconsultants.lhc.request
+
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -22,10 +24,10 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.lhc
-
 import java.io.{OutputStreamWriter, OutputStream}
 import java.net.URLEncoder
+import uk.co.bigbeeconsultants.lhc._
+import header.MediaType
 
 /**
  * Carries body data on a request. The body data is supplied by a closure using the
@@ -34,23 +36,23 @@ import java.net.URLEncoder
  * <p>
  * The companion object provides apply methods for common sources of body data.
  */
-class RequestBody(val mediaType: MediaType, val copyTo: OutputStream => Unit)
+class Body(val mediaType: MediaType, val copyTo: OutputStream => Unit)
 
 
-/** Factory for request bodies. */
-object RequestBody {
+/**Factory for request bodies. */
+object Body {
 
-  /** Factory for request bodies sourced from strings. */
-  def apply(mediaType: MediaType, string: String): RequestBody = {
-    new RequestBody(mediaType, (outputStream) => {
+  /**Factory for request bodies sourced from strings. */
+  def apply(mediaType: MediaType, string: String): Body = {
+    new Body(mediaType, (outputStream) => {
       val encoding = mediaType.charsetOrElse(HttpClient.defaultCharset)
       outputStream.write(string.getBytes(encoding))
     })
   }
 
-  /** Factory for request bodies sourced from key-value pairs, typical for POST requests. */
-  def apply(mediaType: MediaType, data: Map[String, String]): RequestBody = {
-    new RequestBody(mediaType, (outputStream) => {
+  /**Factory for request bodies sourced from key-value pairs, typical for POST requests. */
+  def apply(mediaType: MediaType, data: Map[String, String]): Body = {
+    new Body(mediaType, (outputStream) => {
       val encoding = mediaType.charsetOrElse(HttpClient.defaultCharset)
       val w = new OutputStreamWriter(outputStream, encoding)
       var first = true

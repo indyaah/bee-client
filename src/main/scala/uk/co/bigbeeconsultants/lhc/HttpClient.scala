@@ -24,6 +24,8 @@
 
 package uk.co.bigbeeconsultants.lhc
 
+import response._
+import uk.co.bigbeeconsultants.lhc.header.{Header, MediaType}
 import java.lang.String
 import java.net.{URL, HttpURLConnection}
 import java.nio.ByteBuffer
@@ -31,6 +33,7 @@ import java.io._
 import java.util.zip.GZIPInputStream
 import collection.mutable.{ListBuffer, LinkedHashMap}
 import org.jcsp.lang.{Any2OneChannel, Channel}
+import request.{RequestConfig, RequestException, Body, Request}
 
 /**
  * Constructs an instance for handling any number of HTTP requests.
@@ -65,15 +68,15 @@ final class HttpClient(keepAlive: Boolean = true,
     execute(Request.delete(url), requestHeaders)
 
   /**Make an OPTIONS request. */
-  def options(url: URL, body: Option[RequestBody], requestHeaders: List[Header] = Nil) =
+  def options(url: URL, body: Option[Body], requestHeaders: List[Header] = Nil) =
     execute(Request.options(url, body), requestHeaders)
 
   /**Make a POST request. */
-  def post(url: URL, body: RequestBody, requestHeaders: List[Header] = Nil) =
+  def post(url: URL, body: Body, requestHeaders: List[Header] = Nil) =
     execute(Request.post(url, body), requestHeaders)
 
   /**Make a PUT request. */
-  def put(url: URL, body: RequestBody, requestHeaders: List[Header] = Nil) =
+  def put(url: URL, body: Body, requestHeaders: List[Header] = Nil) =
     execute(Request.put(url, body), requestHeaders)
 
   /**Make an arbitrary request. */
@@ -157,7 +160,7 @@ final class HttpClient(keepAlive: Boolean = true,
     val responseHeaders = processResponseHeaders(connWrapper)
     if (request.method == Request.HEAD) {
       val mediaType = MediaType(connWrapper.getContentType)
-      Response(status, new CachedResponseBodyImpl(mediaType, emptyBuffer), responseHeaders)
+      Response(status, new CachedBodyImpl(mediaType, emptyBuffer), responseHeaders)
 
     } else {
       val contEnc = responseHeaders.get(Header.CONTENT_ENCODING.toUpperCase)
@@ -170,7 +173,7 @@ final class HttpClient(keepAlive: Boolean = true,
 
   private def getBodyStream(contEnc: Option[Header], connWrapper: HttpURLConnection) = {
     val iStream = if (connWrapper.getResponseCode >= 400) connWrapper.getErrorStream else connWrapper.getInputStream
-    if (contEnc.isDefined && contEnc.get.values.contains(Value(HttpClient.gzip))) {
+    if (contEnc.isDefined && contEnc.get.value.contains(HttpClient.gzip)) {
       new GZIPInputStream(iStream)
     } else {
       iStream

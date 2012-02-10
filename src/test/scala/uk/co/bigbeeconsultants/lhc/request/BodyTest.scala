@@ -1,3 +1,5 @@
+package uk.co.bigbeeconsultants.lhc.request
+
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -22,16 +24,37 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.lhc
+import org.junit.Test
+import org.junit.Assert._
+import java.net.URL
+import java.io.ByteArrayOutputStream
+import collection.immutable.ListMap
+import uk.co.bigbeeconsultants.lhc.header.MediaType
+import uk.co.bigbeeconsultants.lhc.HttpClient
 
-/** Expresses an HTTP status line. */
-case class Status(code: Int, message: String)
+class BodyTest {
 
-/**
- * Represents a HTTP response. This is broadly immutable, although the implementation of
- * the response body may vary.
- * <p>
- * All the header keys are uppercase; this is because they are required to be case-insensitive.
- */
-case class Response(status: Status, body: ResponseBody, headers: Map[String, Header])
+  val url1 = new URL("http://localhost/")
 
+  @Test
+  def bodyWithString() {
+    val mt = MediaType.APPLICATION_JSON
+    val b = Body(mt, "[1, 2, 3]")
+    assertSame(mt, b.mediaType)
+    val baos = new ByteArrayOutputStream
+    b.copyTo(baos)
+    val result = baos.toString(HttpClient.defaultCharset)
+    assertEquals("[1, 2, 3]", result)
+  }
+
+  @Test
+  def bodyWithKeyValPairs() {
+    val mt = MediaType.APPLICATION_JSON
+    val b = Body(mt, ListMap("a" -> "1", "b" -> "2", "c" -> "3"))
+    assertSame(mt, b.mediaType)
+    val baos = new ByteArrayOutputStream
+    b.copyTo(baos)
+    val result = baos.toString(HttpClient.defaultCharset)
+    assertEquals("a=1&b=2&c=3", result)
+  }
+}

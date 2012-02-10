@@ -52,8 +52,6 @@ object Dependencies {
 //  val jettyUtil        = "org.mortbay.jetty"  % "jetty-util"        % jettyVersion withSources()
 //  val servlet          = "javax.servlet"      % "servlet-api"       % "2.5" withSources()
 
-//  val jsoup            = "org.jsoup"          % "jsoup"             % "1.6.+" withSources() withJavadoc()
-
   // ========== Test ==========
 
 //  val scalatest	       = "org.scalatest"           % "scalatest_2.9.1"          % "1.6.+" % "test" withSources()
@@ -61,7 +59,8 @@ object Dependencies {
   val junitInterface   = "com.novocode"            % "junit-interface"          % "0.7"   % "test"
 
   // see lib folder
-  //val stubserver       = "tarttelin"               % "stubserver"               % "0.2"   % "test"
+  //val stubserver       = "tarttelin"               % "stubserver"               % "0.3"   % "test"
+  // Currently directly from source https://github.com/rickb777/JavaStubServer
 
 //  val mockito          = "org.mockito"             % "mockito-all"              % "1.8.+" % "test"
 }

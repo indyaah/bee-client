@@ -22,13 +22,15 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.lhc
+package uk.co.bigbeeconsultants.lhc.header
 
-case class MediaType(`type`: String, subtype: String, charset: Option[String] = None) extends Valuable {
+import uk.co.bigbeeconsultants.lhc.{HttpClient, Util}
+
+case class MediaType(`type`: String, subtype: String, charset: Option[String] = None) {
 
   def value = `type` + '/' + subtype
 
-  /** Gets the charset as a list of zero or one {@link Qualifier}. */
+  /**Gets the charset as a list of zero or one Qualifier. */
   def qualifier = if (charset.isEmpty) Nil else List(Qualifier("charset", charset.get))
 
   override def toString = {
@@ -44,6 +46,11 @@ case class MediaType(`type`: String, subtype: String, charset: Option[String] = 
    * Gets the character set, or returns a default value.
    */
   def charsetOrElse(defaultCharset: String) = if (charset.isEmpty) defaultCharset else charset.get
+
+  /**
+   * Gets the character set, or returns a default value.
+   */
+  def charsetOrUTF8 = if (charset.isEmpty) HttpClient.defaultCharset else charset.get
 
   /**
    * Checks if the primary type is a wildcard.

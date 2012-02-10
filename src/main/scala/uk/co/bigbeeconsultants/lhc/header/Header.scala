@@ -22,72 +22,31 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.lhc
+package uk.co.bigbeeconsultants.lhc.header
 
 import java.util.Date
+import uk.co.bigbeeconsultants.lhc.Util
 
 /**
- * Specifies a key/value pair used as one of (potentially many) parameters attached to a header value.
+ * Provides an HTTP header.
  */
-case class Qualifier(label: String, value: String) {
-  override def toString =
-    if (value.length() > 0) label + "=" + value
-    else label
-}
+case class Header(name: String, value: String) {
 
-object Qualifier {
-  def apply(str: String) = {
-    val t = Util.divide(str, '=')
-    new Qualifier(t._1, t._2)
-  }
-}
+  def toInt: Int = value.toInt
 
+  def toLong: Long = value.toLong
 
-/**
- * Provides an interface for values within headers.
- */
-trait Valuable {
-  def value: String
+  def toDate(defaultValue: Date = Util.defaultDate): Date = Util.parseHttpDate(value)
 
-  def qualifier: List[Qualifier]
-}
-
-case class Value(value: String, qualifier: List[Qualifier] = Nil) extends Valuable {
-  override def toString =
-    if (qualifier.isEmpty) value
-    else value + ";" + qualifier.mkString(";")
-}
-
-
-/**
- * Provides the HTTP header itself.
- */
-case class Header(name: String, values: List[Valuable]) {
-
-  def value = values.mkString(", ")
-
-  def value0 = {
-    assume(values.size == 1)
-    values(0).value
-  }
-
-  def toInt: Int = {
-    assume(values.size == 1)
-    value0.toInt
-  }
-
-  def toLong: Long = {
-    assume(values.size == 1)
-    value0.toLong
-  }
-
-  def toDate(defaultValue: Date = Util.defaultDate): Date = {
-    assume(values.size == 1)
-    Util.parseHttpDate(value0)
-  }
+  def toQualifiedValue = QualifiedValue(value)
+  def toMediaType = MediaType(value)
+  def toCookie = Cookie(value)
 
   override def toString = name + ": " + value
+
+  lazy val hasListValue = Header.headersWithListValues.contains(name)
 }
+
 
 object Header {
   // General headers
@@ -157,21 +116,5 @@ object Header {
   def apply(raw: String): Header = {
     val t = Util.divide(raw, ':')
     apply(t._1.trim, t._2.trim)
-  }
-
-  def apply(name: String, rawValue: String): Header = {
-    if (!headersWithListValues.contains(name)) {
-      new Header(name, List(Value(rawValue)))
-    }
-    else {
-      val values = for (v <- rawValue.split(',')) yield {
-        val t = v.trim.split(';')
-        val qualifiers = for (q <- t.tail) yield {
-          Qualifier(q.trim)
-        }
-        Value(t.head, qualifiers.toList)
-      }
-      new Header(name, values.toList)
-    }
   }
 }

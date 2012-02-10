@@ -29,7 +29,7 @@ import java.text.SimpleDateFormat
 import java.io.{ByteArrayOutputStream, OutputStream, InputStream}
 import java.nio.ByteBuffer
 
-private object Util {
+object Util {
   val DEFAULT_BUFFER_SIZE = 1024 * 16
 
   def divide(str: String, sep: Char) = {

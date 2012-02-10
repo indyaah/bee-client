@@ -61,9 +61,9 @@
         <dependency>
             <groupId>com.pyruby</groupId>
             <artifactId>stubserver</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>0.4-SNAPSHOT</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/lib/stubserver-0.2.jar</systemPath>
+            <systemPath>${project.basedir}/lib/JavaStubServer-0.4.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

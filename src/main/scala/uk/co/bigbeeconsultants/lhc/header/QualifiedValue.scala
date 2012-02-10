@@ -1,3 +1,7 @@
+package uk.co.bigbeeconsultants.lhc.header
+
+import uk.co.bigbeeconsultants.lhc.Util
+
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -22,10 +26,46 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-// sbt-idea
-// see https://github.com/mpeltonen/sbt-idea
+/**
+ * Specifies a key/value pair used as one of (potentially many) parameters attached to a compound header value.
+ */
+case class Qualifier(label: String, value: String) {
+  override def toString =
+    if (value.length() > 0) label + "=" + value
+    else label
+}
 
-resolvers += "sbt-idea-repo" at "http://mpeltonen.github.com/maven/"
+object Qualifier {
+  def apply(str: String) = {
+    val t = Util.divide(str, '=')
+    new Qualifier(t._1, t._2)
+  }
+}
 
-addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.0.0")
 
+case class Part(value: String, qualifier: List[Qualifier] = Nil) {
+  override def toString =
+    if (qualifier.isEmpty) value
+    else value + ";" + qualifier.mkString(";")
+}
+
+
+/**
+ * Defines an HTTP header with a list of qualifiers. Typically, such values are
+ * used for the 'accept' category of headers.
+ */
+case class QualifiedValue(value: String) {
+
+  val parts = {
+    val parts = for (v <- value.split(',')) yield {
+      val t = v.trim.split(';')
+      val qualifiers = for (q <- t.tail) yield {
+        Qualifier(q.trim)
+      }
+      Part(t.head, qualifiers.toList)
+    }
+    parts.toList
+  }
+
+  override def toString = parts.mkString(", ")
+}

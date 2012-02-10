@@ -1,3 +1,5 @@
+package uk.co.bigbeeconsultants.lhc.header
+
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -22,32 +24,48 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.lhc
-
 import org.junit.Test
 import org.junit.Assert._
-import java.net.URL
 
-class RequestTest {
-
-  val url1 = new URL("http://localhost/")
+class MediaTypeTest {
 
   @Test
-  def requestNoBody() {
-    val r = Request.get(url1)
-    assertEquals(url1, r.url)
-    assertEquals("GET", r.method)
-    assertTrue(r.body.isEmpty)
+  def mediaType_constructionVariants() {
+    assertEquals("application/json", MediaType.APPLICATION_JSON.toString)
+    assertEquals("text/plain", MediaType("text/plain").toString)
+    assertTrue(MediaType.STAR_STAR.isWildcardType)
+    assertTrue(MediaType.STAR_STAR.isWildcardSubtype)
+    assertFalse(MediaType.TEXT_PLAIN.isWildcardType)
+    assertFalse(MediaType.TEXT_PLAIN.isWildcardSubtype)
   }
 
   @Test
-  def RequestWithBody() {
-    val mt = MediaType.APPLICATION_JSON
-    val b = RequestBody(mt, "[1, 2, 3]")
-    val r = Request.put(url1, b)
-    assertEquals(url1, r.url)
-    assertEquals("PUT", r.method)
-    assertEquals(b, r.body.get)
-    assertEquals("UTF-8", r.body.get.mediaType.charsetOrElse("UTF-8"))
+  def parser() {
+    val mt = MediaType("text/html; charset=ISO-8859-1")
+    assertEquals("text/html; charset=ISO-8859-1", mt.toString)
+    assertEquals("text", mt.`type`)
+    assertEquals("html", mt.subtype)
+    assertEquals("ISO-8859-1", mt.charset.get)
+  }
+
+  @Test
+  def edgeCases() {
+    assertEquals("text/*", MediaType("text/").toString)
+    assertEquals("*/x", MediaType("/x").toString)
+    assertEquals("*/*", MediaType("/").toString)
+    assertEquals("*/*", MediaType("").toString)
+  }
+
+  @Test
+  def withCharset() {
+    val mt1 = MediaType.TEXT_HTML
+    assertTrue(mt1.charset.isEmpty)
+    val mt2 = mt1.withCharset("UTF-8")
+    assertEquals("UTF-8", mt2.charset.get)
+  }
+
+  @Test(expected = classOf[IllegalArgumentException])
+  def withNullCharset() {
+    MediaType.TEXT_HTML.withCharset(null)
   }
 }

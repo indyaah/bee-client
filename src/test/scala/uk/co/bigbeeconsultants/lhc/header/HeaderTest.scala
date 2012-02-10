@@ -1,3 +1,5 @@
+package uk.co.bigbeeconsultants.lhc.header
+
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -22,8 +24,6 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.lhc
-
 import org.junit.Test
 import org.junit.Assert._
 import javax.xml.bind.DatatypeConverter
@@ -38,8 +38,8 @@ class HeaderTest {
 
   @Test
   def value_toString() {
-    assertEquals("v", Value("v").toString)
-    val v1 = Value("v", List(Qualifier("a", "b")))
+    assertEquals("v", Part("v").toString)
+    val v1 = Part("v", List(Qualifier("a", "b")))
     assertEquals("v;a=b", v1.toString)
   }
 
@@ -48,37 +48,40 @@ class HeaderTest {
     val h = Header("Accept-Ranges: bytes")
     assertEquals("Accept-Ranges", h.name)
     assertEquals("bytes", h.value)
-    assertEquals("bytes", h.value0)
     assertEquals("Accept-Ranges: bytes", h.toString)
     //Allow: GET, HEAD, PUT
   }
 
   @Test
   def oneQ() {
-    val h = Header("Accept: audio/*; q=0.2, audio/basic")
+    val h = Header("Accept: audio/*;q=0.2, audio/basic")
+    val v = h.toQualifiedValue
     assertEquals("Accept", h.name)
-    assertEquals(2, h.values.size)
-    assertEquals("audio/*", h.values(0).value)
-    assertEquals("q", h.values(0).qualifier(0).label)
-    assertEquals("0.2", h.values(0).qualifier(0).value)
-    assertEquals("audio/basic", h.values(1).value)
+    assertEquals(2, v.parts.size)
+    assertEquals("audio/*", v.parts(0).value)
+    assertEquals("q", v.parts(0).qualifier(0).label)
+    assertEquals("0.2", v.parts(0).qualifier(0).value)
+    assertEquals("audio/basic", v.parts(1).value)
     assertEquals("Accept: audio/*;q=0.2, audio/basic", h.toString)
+    assertEquals("audio/*;q=0.2, audio/basic", v.toString)
   }
 
   @Test
   def complexQ() {
     val h = Header("Accept: text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5")
+    val v = h.toQualifiedValue
     assertEquals("Accept", h.name)
-    assertEquals(5, h.values.size)
-    assertEquals("text/*", h.values(0).value)
-    assertEquals("q", h.values(0).qualifier(0).label)
-    assertEquals("0.3", h.values(0).qualifier(0).value)
-    assertEquals("text/html", h.values(3).value)
-    assertEquals("level", h.values(3).qualifier(0).label)
-    assertEquals("2", h.values(3).qualifier(0).value)
-    assertEquals("q", h.values(3).qualifier(1).label)
-    assertEquals("0.4", h.values(3).qualifier(1).value)
+    assertEquals(5, v.parts.size)
+    assertEquals("text/*", v.parts(0).value)
+    assertEquals("q", v.parts(0).qualifier(0).label)
+    assertEquals("0.3", v.parts(0).qualifier(0).value)
+    assertEquals("text/html", v.parts(3).value)
+    assertEquals("level", v.parts(3).qualifier(0).label)
+    assertEquals("2", v.parts(3).qualifier(0).value)
+    assertEquals("q", v.parts(3).qualifier(1).label)
+    assertEquals("0.4", v.parts(3).qualifier(1).value)
     assertEquals("Accept: text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5", h.toString)
+    assertEquals("text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5", v.toString)
   }
 
   @Test
@@ -87,5 +90,21 @@ class HeaderTest {
     val h = Header("Date: Sun, 06 Nov 1994 08:49:37 GMT")
     assertEquals("Date", h.name)
     assertEquals(time, h.toDate())
+  }
+
+  @Test
+  def cookie() {
+    val time = DatatypeConverter.parseDateTime("1994-11-06T08:49:37Z").getTime
+    val h = Header("Cookie:JSESSIONID=43CB070C8E4166DA94A5028822B04863; screenResolution=1366x768")
+    assertEquals("Cookie", h.name)
+    //    assertEquals(time, h.toDate())
+  }
+
+  @Test
+  def setCookie() {
+    val time = DatatypeConverter.parseDateTime("1994-11-06T08:49:37Z").getTime
+    val h = Header("Set-Cookie: JSESSIONID=0000UJcxEKVy4TFX3CLy8Gn08Rm:-1; Path=/")
+    assertEquals("Set-Cookie", h.name)
+    //    assertEquals(time, h.toDate())
   }
 }

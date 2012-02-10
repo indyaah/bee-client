@@ -1,4 +1,4 @@
-package uk.co.bigbeeconsultants.lhc
+package uk.co.bigbeeconsultants.lhc.header
 
 //-----------------------------------------------------------------------------
 // The MIT License
@@ -24,21 +24,23 @@ package uk.co.bigbeeconsultants.lhc
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-import org.junit.Test
-import org.junit.Assert._
-import java.net.URL
+import java.util.Date
 
-class RequestExceptionTest {
+case class Cookie(name: String,
+                  value: String,
+                  expires: Option[Date],
+                  domain: Option[String],
+                  path: Option[String],
+                  creation: Date,
+                  lastAccessed: Date,
+                  persistent: Boolean,
+                  hostOnly: Boolean,
+                  secure: Boolean,
+                  httpOnly: Boolean)
 
-  val url1 = new URL("http://localhost/")
 
-  @Test
-  def requestExceptionGetMessage() {
-    val mt = MediaType.APPLICATION_JSON
-    val b = RequestBody(mt, "[1, 2, 3]")
-    val r = Request.put(url1, b)
-    val s = Status(400, "Bad request")
-    val re = new RequestException(r, s, None, None)
-    assertEquals("PUT http://localhost/\n  400 Bad request", re.getMessage)
+object Cookie {
+  def apply(value: String): Cookie = {
+    Cookie(value, "", None, None, None, null, null, false, false, false, false)
   }
 }

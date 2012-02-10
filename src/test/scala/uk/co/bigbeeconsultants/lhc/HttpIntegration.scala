@@ -24,10 +24,13 @@
 
 package uk.co.bigbeeconsultants.lhc
 
+import header.MediaType
 import java.net.{ConnectException, URL}
 import java.lang.AssertionError
 import org.junit.Assert._
 import org.junit.{After, Before, Test}
+import request.Body
+import response.CachedBody
 
 class HttpIntegration {
 
@@ -35,7 +38,7 @@ class HttpIntegration {
   private val testScriptUrl = serverUrl + "test-lighthttpclient.php"
   private val testImageUrl = serverUrl + "B.png"
   private val testPhotoUrl = serverUrl + "plataria-sunset.jpg"
-  private val jsonBody = RequestBody(MediaType.APPLICATION_JSON, """{ "x": 1, "y": true }""")
+  private val jsonBody = Body(MediaType.APPLICATION_JSON, """{ "x": 1, "y": true }""")
 
   var http: HttpClient = _
 
@@ -86,7 +89,7 @@ class HttpIntegration {
       val response = http.get(new URL(testImageUrl))
       assertEquals(200, response.status.code)
       assertEquals(MediaType.IMAGE_PNG, response.body.contentType)
-      val bytes = response.body.asInstanceOf[CachedResponseBody].asBytes
+      val bytes = response.body.asInstanceOf[CachedBody].asBytes
       assertEquals(497, bytes.length)
       assertEquals('P', bytes(1))
       assertEquals('N', bytes(2))
@@ -174,7 +177,7 @@ class HttpIntegration {
         val response = http.get(new URL(testPhotoUrl))
         assertEquals(200, response.status.code)
         assertEquals(MediaType.IMAGE_JPG, response.body.contentType)
-        val bytes = response.body.asInstanceOf[CachedResponseBody].asBytes
+        val bytes = response.body.asInstanceOf[CachedBody].asBytes
         assertEquals(size, bytes.length)
       }
       val duration = System.currentTimeMillis() - before
@@ -197,7 +200,7 @@ class HttpIntegration {
         val response = http.get(new URL(testScriptUrl))
         assertEquals(200, response.status.code)
         assertEquals(MediaType.TEXT_HTML, response.body.contentType)
-        val bytes = response.body.asInstanceOf[CachedResponseBody].asBytes
+        val bytes = response.body.asInstanceOf[CachedBody].asBytes
         if (size < 0) {
           size = bytes.length
         } else {

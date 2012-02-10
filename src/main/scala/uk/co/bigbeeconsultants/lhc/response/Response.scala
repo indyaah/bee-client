@@ -1,5 +1,3 @@
-package uk.co.bigbeeconsultants.lhc
-
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -24,35 +22,14 @@ package uk.co.bigbeeconsultants.lhc
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-import org.junit.Test
-import org.junit.Assert._
-import java.net.URL
-import java.io.ByteArrayOutputStream
-import collection.immutable.ListMap
+package uk.co.bigbeeconsultants.lhc.response
 
-class RequestBodyTest {
+import uk.co.bigbeeconsultants.lhc.header.Header
 
-  val url1 = new URL("http://localhost/")
-
-  @Test
-  def bodyWithString() {
-    val mt = MediaType.APPLICATION_JSON
-    val b = RequestBody(mt, "[1, 2, 3]")
-    assertSame(mt, b.mediaType)
-    val baos = new ByteArrayOutputStream
-    b.copyTo(baos)
-    val result = baos.toString(HttpClient.defaultCharset)
-    assertEquals("[1, 2, 3]", result)
-  }
-
-  @Test
-  def bodyWithKeyValPairs() {
-    val mt = MediaType.APPLICATION_JSON
-    val b = RequestBody(mt, ListMap("a" -> "1", "b" -> "2", "c" -> "3"))
-    assertSame(mt, b.mediaType)
-    val baos = new ByteArrayOutputStream
-    b.copyTo(baos)
-    val result = baos.toString(HttpClient.defaultCharset)
-    assertEquals("a=1&b=2&c=3", result)
-  }
-}
+/**
+ * Represents a HTTP response. This is broadly immutable, although the implementation of
+ * the response body may vary.
+ * <p>
+ * All the header keys are uppercase; this is because they are required to be case-insensitive.
+ */
+case class Response(status: Status, body: Body, headers: Map[String, Header])
