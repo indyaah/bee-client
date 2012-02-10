@@ -65,7 +65,7 @@ trait CachedBody extends Body {
  * as a string without much performance penalty. However, take care because the memory footprint will be large
  * when dealing with large volumes of response data.
  */
-class CachedBodyImpl(val contentType: MediaType, byteData: ByteBuffer) extends CachedBody {
+final class BodyCache(val contentType: MediaType, byteData: ByteBuffer) extends CachedBody {
 
   private var converted: String = null
 
@@ -98,11 +98,11 @@ class CachedBodyImpl(val contentType: MediaType, byteData: ByteBuffer) extends C
  * as a string without much performance penalty. However, take care because the memory footprint will be large
  * when dealing with large volumes of response data.
  */
-class BufferedBody extends CachedBody {
-  private var cache: CachedBody = null
+final class BufferedBody extends CachedBody {
+  private var cache: BodyCache = null
 
   override def receiveData(contentType: MediaType, inputStream: InputStream) {
-    cache = new CachedBodyImpl(contentType, Util.copyToByteBufferAndClose(inputStream))
+    cache = new BodyCache(contentType, Util.copyToByteBufferAndClose(inputStream))
   }
 
   def contentType: MediaType = if (cache != null) cache.contentType else null
@@ -116,22 +116,4 @@ class BufferedBody extends CachedBody {
    * Get the body of the response as an array of bytes.
    */
   def asBytes: Array[Byte] = if (cache != null) cache.asBytes else null
-}
-
-
-/**
- * Defines the factory method used for pluggable creation of response bodies. The content type is
- * available when the decision is made about what instance is required.
- */
-trait ResponseBodyFactory {
-  def newResponseBody(contentType: MediaType): Body
-}
-
-
-/**
- * Provides a simple imeplementation of ResponseBodyFactory that creates new BufferedBody
- * instances for all media types.
- */
-final class BufferedResponseBodyFactory extends ResponseBodyFactory {
-  def newResponseBody(contentType: MediaType) = new BufferedBody
 }

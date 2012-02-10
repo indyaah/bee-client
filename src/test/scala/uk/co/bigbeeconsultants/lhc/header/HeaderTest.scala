@@ -53,6 +53,20 @@ class HeaderTest {
   }
 
   @Test
+  def value_toInt() {
+    val h = Header("Content-Length: 123")
+    assertEquals("Content-Length", h.name)
+    assertEquals(123, h.toInt)
+  }
+
+  @Test
+  def value_toLong() {
+    val h = Header("Content-Length: 123")
+    assertEquals("Content-Length", h.name)
+    assertEquals(123, h.toLong)
+  }
+
+  @Test
   def oneQ() {
     val h = Header("Accept: audio/*;q=0.2, audio/basic")
     val v = h.toQualifiedValue

@@ -36,7 +36,7 @@ import header.MediaType
  * <p>
  * The companion object provides apply methods for common sources of body data.
  */
-class Body(val mediaType: MediaType, val copyTo: OutputStream => Unit)
+final class Body(val mediaType: MediaType, val copyTo: OutputStream => Unit)
 
 
 /**Factory for request bodies. */

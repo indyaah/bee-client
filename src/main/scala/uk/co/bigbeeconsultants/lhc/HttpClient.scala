@@ -33,7 +33,7 @@ import java.io._
 import java.util.zip.GZIPInputStream
 import collection.mutable.{ListBuffer, LinkedHashMap}
 import org.jcsp.lang.{Any2OneChannel, Channel}
-import request.{RequestConfig, RequestException, Body, Request}
+import request.{Config, RequestException, Body, Request}
 
 /**
  * Constructs an instance for handling any number of HTTP requests.
@@ -45,9 +45,9 @@ import request.{RequestConfig, RequestException, Body, Request}
  * @param keepAlive true for connections to be used once then closed; false for keep-alive connections
  */
 final class HttpClient(keepAlive: Boolean = true,
-                       requestConfig: RequestConfig = HttpClient.defaultRequestConfig,
+                       requestConfig: Config = HttpClient.defaultRequestConfig,
                        commonRequestHeaders: List[Header] = HttpClient.defaultHeaders,
-                       responseBodyFactory: ResponseBodyFactory = HttpClient.defaultResponseBodyFactory) {
+                       responseBodyFactory: BodyFactory = HttpClient.defaultResponseBodyFactory) {
 
   private val emptyBuffer = ByteBuffer.allocateDirect(0)
 
@@ -160,12 +160,12 @@ final class HttpClient(keepAlive: Boolean = true,
     val responseHeaders = processResponseHeaders(connWrapper)
     if (request.method == Request.HEAD) {
       val mediaType = MediaType(connWrapper.getContentType)
-      Response(status, new CachedBodyImpl(mediaType, emptyBuffer), responseHeaders)
+      Response(status, new BodyCache(mediaType, emptyBuffer), responseHeaders)
 
     } else {
       val contEnc = responseHeaders.get(Header.CONTENT_ENCODING.toUpperCase)
       val mediaType = MediaType(connWrapper.getContentType)
-      val body = responseBodyFactory.newResponseBody(mediaType)
+      val body = responseBodyFactory.newBody(mediaType)
       body.receiveData(mediaType, getBodyStream(contEnc, connWrapper))
       Response(status, body, responseHeaders)
     }
@@ -206,12 +206,12 @@ object HttpClient {
   /**
    * The default request configuration has two-second timeouts, follows redirects and allows gzip compression.
    */
-  val defaultRequestConfig = new RequestConfig
+  val defaultRequestConfig = new Config
 
   val defaultHeaders = List()
 //    val defaultHeaders = List(Header(Header.ACCEPT_ENCODING, HttpClient.gzip))
 
-  val defaultResponseBodyFactory = new BufferedResponseBodyFactory
+  val defaultResponseBodyFactory = new BufferedBodyFactory
 
   private lazy val cleanupThread = new CleanupThread
 }
