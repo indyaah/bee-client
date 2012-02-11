@@ -24,7 +24,8 @@
 
 package uk.co.bigbeeconsultants.lhc.response
 
-import uk.co.bigbeeconsultants.lhc.header.Header
+import uk.co.bigbeeconsultants.lhc.header.Headers
+
 
 /**
  * Represents a HTTP response. This is broadly immutable, although the implementation of
@@ -32,4 +33,4 @@ import uk.co.bigbeeconsultants.lhc.header.Header
  * <p>
  * All the header keys are uppercase; this is because they are required to be case-insensitive.
  */
-case class Response(status: Status, body: Body, headers: Map[String, Header])
+case class Response(status: Status, body: Body, headers: Headers)

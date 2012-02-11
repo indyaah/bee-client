@@ -26,7 +26,7 @@ package uk.co.bigbeeconsultants.lhc
 
 import com.pyruby.stubserver.StubMethod
 import com.pyruby.stubserver.StubServer
-import header.{Header, MediaType}
+import header.{Headers, Header, MediaType}
 import org.junit.Assert._
 import java.nio.{BufferUnderflowException, BufferOverflowException, ByteBuffer}
 import org.junit.{After, Test, AfterClass, BeforeClass}
@@ -50,7 +50,7 @@ class HttpClientTest {
     val response = http.get(new URL(baseUrl + url))
     server.verify()
     assertEquals(MediaType.APPLICATION_JSON, response.body.contentType)
-    assertEquals(MediaType.APPLICATION_JSON.toString, response.headers("CONTENT-TYPE").value)
+    assertEquals(MediaType.APPLICATION_JSON.toString, response.headers.get(Header.CONTENT_TYPE).value)
     assertEquals(json, response.body.asString)
   }
 
@@ -60,7 +60,7 @@ class HttpClientTest {
     val json = """{"astring" : "the message" }"""
     server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, json)
 
-    val response = http.get(new URL(baseUrl + url), List(Header("Accept-Encoding", "gzip")))
+    val response = http.get(new URL(baseUrl + url), Headers(List(Header.ACCEPT_ENCODING.set("gzip"))))
     server.verify()
     assertEquals(MediaType.APPLICATION_JSON, response.body.contentType)
     assertEquals(json, response.body.asString)

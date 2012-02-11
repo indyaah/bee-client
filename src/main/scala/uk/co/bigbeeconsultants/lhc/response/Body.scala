@@ -1,5 +1,3 @@
-package uk.co.bigbeeconsultants.lhc.response
-
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -23,6 +21,8 @@ package uk.co.bigbeeconsultants.lhc.response
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
+
+package uk.co.bigbeeconsultants.lhc.response
 
 import java.io.InputStream
 import java.nio.ByteBuffer

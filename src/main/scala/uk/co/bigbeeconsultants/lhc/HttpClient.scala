@@ -24,14 +24,13 @@
 
 package uk.co.bigbeeconsultants.lhc
 
+import header.{Headers, Header, MediaType}
 import response._
-import uk.co.bigbeeconsultants.lhc.header.{Header, MediaType}
-import java.lang.String
 import java.net.{URL, HttpURLConnection}
 import java.nio.ByteBuffer
 import java.io._
 import java.util.zip.GZIPInputStream
-import collection.mutable.{ListBuffer, LinkedHashMap}
+import collection.mutable.ListBuffer
 import org.jcsp.lang.{Any2OneChannel, Channel}
 import request.{Config, RequestException, Body, Request}
 
@@ -45,42 +44,42 @@ import request.{Config, RequestException, Body, Request}
  * @param keepAlive true for connections to be used once then closed; false for keep-alive connections
  */
 final class HttpClient(keepAlive: Boolean = true,
-                       requestConfig: Config = HttpClient.defaultRequestConfig,
-                       commonRequestHeaders: List[Header] = HttpClient.defaultHeaders,
+                       requestConfig: Config = Config.default,
+                       commonRequestHeaders: Headers = HttpClient.defaultHeaders,
                        responseBodyFactory: BodyFactory = HttpClient.defaultResponseBodyFactory) {
 
   private val emptyBuffer = ByteBuffer.allocateDirect(0)
 
   /**Make a HEAD request. */
-  def head(url: URL, requestHeaders: List[Header] = Nil) =
+  def head(url: URL, requestHeaders: Headers = Headers.none) =
     execute(Request.head(url), requestHeaders)
 
   /**Make a TRACE request. */
-  def trace(url: URL, requestHeaders: List[Header] = Nil) =
+  def trace(url: URL, requestHeaders: Headers = Headers.none) =
     execute(Request.trace(url), requestHeaders)
 
   /**Make a GET request. */
-  def get(url: URL, requestHeaders: List[Header] = Nil) =
+  def get(url: URL, requestHeaders: Headers = Headers.none) =
     execute(Request.get(url), requestHeaders)
 
   /**Make a DELETE request. */
-  def delete(url: URL, requestHeaders: List[Header] = Nil) =
+  def delete(url: URL, requestHeaders: Headers = Headers.none) =
     execute(Request.delete(url), requestHeaders)
 
   /**Make an OPTIONS request. */
-  def options(url: URL, body: Option[Body], requestHeaders: List[Header] = Nil) =
+  def options(url: URL, body: Option[Body], requestHeaders: Headers = Headers.none) =
     execute(Request.options(url, body), requestHeaders)
 
   /**Make a POST request. */
-  def post(url: URL, body: Body, requestHeaders: List[Header] = Nil) =
+  def post(url: URL, body: Body, requestHeaders: Headers = Headers.none) =
     execute(Request.post(url, body), requestHeaders)
 
   /**Make a PUT request. */
-  def put(url: URL, body: Body, requestHeaders: List[Header] = Nil) =
+  def put(url: URL, body: Body, requestHeaders: Headers = Headers.none) =
     execute(Request.put(url, body), requestHeaders)
 
   /**Make an arbitrary request. */
-  def execute(request: Request, requestHeaders: List[Header] = Nil): Response = {
+  def execute(request: Request, requestHeaders: Headers = Headers.none): Response = {
     val connWrapper = request.url.openConnection.asInstanceOf[HttpURLConnection]
     connWrapper.setAllowUserInteraction(false)
     connWrapper.setConnectTimeout(requestConfig.connectTimeout)
@@ -136,7 +135,7 @@ final class HttpClient(keepAlive: Boolean = true,
     if (keepAlive) HttpClient.cleanupThread.styx.write(None)
   }
 
-  private def setRequestHeaders(request: Request, requestHeaders: List[Header], connWrapper: HttpURLConnection) {
+  private def setRequestHeaders(request: Request, requestHeaders: Headers, connWrapper: HttpURLConnection) {
     val method = if (request.method == null) Request.GET else request.method.toUpperCase
     connWrapper.setRequestMethod(method)
 
@@ -147,11 +146,11 @@ final class HttpClient(keepAlive: Boolean = true,
     if (request.body.isDefined)
       connWrapper.setRequestProperty(Header.CONTENT_TYPE, request.body.get.mediaType.toString)
 
-    for (hdr <- commonRequestHeaders) {
+    for (hdr <- commonRequestHeaders.list) {
       connWrapper.setRequestProperty(hdr.name, hdr.value)
     }
 
-    for (hdr <- requestHeaders) {
+    for (hdr <- requestHeaders.list) {
       connWrapper.setRequestProperty(hdr.name, hdr.value)
     }
   }
@@ -163,7 +162,7 @@ final class HttpClient(keepAlive: Boolean = true,
       Response(status, new BodyCache(mediaType, emptyBuffer), responseHeaders)
 
     } else {
-      val contEnc = responseHeaders.get(Header.CONTENT_ENCODING.toUpperCase)
+      val contEnc = responseHeaders.find(Header.CONTENT_ENCODING)
       val mediaType = MediaType(connWrapper.getContentType)
       val body = responseBodyFactory.newBody(mediaType)
       body.receiveData(mediaType, getBodyStream(contEnc, connWrapper))
@@ -171,9 +170,9 @@ final class HttpClient(keepAlive: Boolean = true,
     }
   }
 
-  private def getBodyStream(contEnc: Option[Header], connWrapper: HttpURLConnection) = {
+  private def getBodyStream(contEnc: List[Header], connWrapper: HttpURLConnection) = {
     val iStream = if (connWrapper.getResponseCode >= 400) connWrapper.getErrorStream else connWrapper.getInputStream
-    if (contEnc.isDefined && contEnc.get.value.contains(HttpClient.gzip)) {
+    if (!contEnc.isEmpty && contEnc(0).value.contains(HttpClient.gzip)) {
       new GZIPInputStream(iStream)
     } else {
       iStream
@@ -181,7 +180,7 @@ final class HttpClient(keepAlive: Boolean = true,
   }
 
   private def processResponseHeaders(connWrapper: HttpURLConnection) = {
-    val result = new LinkedHashMap[String, Header]
+    val result = new ListBuffer[Header]
     var i = 0
     var key = connWrapper.getHeaderFieldKey(i)
     if (key == null) {
@@ -191,11 +190,11 @@ final class HttpClient(keepAlive: Boolean = true,
     }
     while (key != null) {
       val value = connWrapper.getHeaderField(i)
-      result(key.toUpperCase) = Header(key, value)
+      result += Header(key, value)
       i += 1
       key = connWrapper.getHeaderFieldKey(i)
     }
-    result.toMap
+    Headers(result.toList)
   }
 }
 
@@ -203,17 +202,16 @@ object HttpClient {
   val defaultCharset = "UTF-8"
   val gzip = "gzip"
 
-  /**
-   * The default request configuration has two-second timeouts, follows redirects and allows gzip compression.
-   */
-  val defaultRequestConfig = new Config
-
-  val defaultHeaders = List()
+  val defaultHeaders = Headers(List())
 //    val defaultHeaders = List(Header(Header.ACCEPT_ENCODING, HttpClient.gzip))
 
   val defaultResponseBodyFactory = new BufferedBodyFactory
 
   private lazy val cleanupThread = new CleanupThread
+
+  def stop() {
+    cleanupThread.styx.poison(1)
+  }
 }
 
 

@@ -24,8 +24,6 @@
 
 package uk.co.bigbeeconsultants.lhc.response
 
-import uk.co.bigbeeconsultants.lhc.header.Header
-
 /**Expresses an HTTP status line. */
 case class Status(code: Int, message: String)
 

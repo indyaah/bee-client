@@ -36,6 +36,13 @@ case class Config(connectTimeout: Int = 2000,
                   useCaches: Boolean = true,
                   sendHostHeader: Boolean = true)
 
+object Config {
+  /**
+   * The default request configuration has two-second timeouts, follows redirects, and
+   * sends the host header.
+   */
+  val default = new Config
+}
 
 class RequestException(val request: Request, val status: Status, val response: Option[Response], cause: Option[Exception])
   extends RuntimeException(cause orNull) {

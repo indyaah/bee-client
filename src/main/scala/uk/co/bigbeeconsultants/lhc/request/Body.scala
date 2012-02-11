@@ -1,5 +1,3 @@
-package uk.co.bigbeeconsultants.lhc.request
-
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -23,6 +21,8 @@ package uk.co.bigbeeconsultants.lhc.request
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
+
+package uk.co.bigbeeconsultants.lhc.request
 
 import java.io.{OutputStreamWriter, OutputStream}
 import java.net.URLEncoder

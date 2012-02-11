@@ -27,6 +27,14 @@ package uk.co.bigbeeconsultants.lhc.header
 import java.util.Date
 import uk.co.bigbeeconsultants.lhc.Util
 
+case class HeaderName(name: String) {
+  def set(newValue: String) = new Header(name, newValue)
+}
+
+object HeaderName {
+  implicit def headerNameToString(hn: HeaderName) = hn.name
+}
+
 /**
  * Provides an HTTP header.
  */
@@ -39,7 +47,9 @@ case class Header(name: String, value: String) {
   def toDate(defaultValue: Date = Util.defaultDate): Date = Util.parseHttpDate(value)
 
   def toQualifiedValue = QualifiedValue(value)
+
   def toMediaType = MediaType(value)
+
   def toCookie = Cookie(value)
 
   override def toString = name + ": " + value
@@ -50,68 +60,79 @@ case class Header(name: String, value: String) {
 
 object Header {
   // General headers
-  val CACHE_CONTROL = "Cache-Control"
-  val CONNECTION = "Connection"
-  val DATE = "Date"
-  val PRAGMA = "Pragma"
-  val TRAILER = "Trailer"
-  val TRANSFER_ENCODING = "Transfer-Encoding"
-  val UPGRADE = "Upgrade"
-  val VIA = "Via"
-  val WARNING = "Warning"
+  val CACHE_CONTROL = HeaderName("Cache-Control")
+  val CONNECTION = HeaderName("Connection")
+  val DATE = HeaderName("Date")
+  val PRAGMA = HeaderName("Pragma")
+  val TRAILER = HeaderName("Trailer")
+  val TRANSFER_ENCODING = HeaderName("Transfer-Encoding")
+  val UPGRADE = HeaderName("Upgrade")
+  val VIA = HeaderName("Via")
+  val WARNING = HeaderName("Warning")
 
   // Request & response headers
-  val ACCEPT_RANGES = "Accept-Ranges"
+  val ACCEPT_RANGES = HeaderName("Accept-Ranges")
 
   // Request headers
-  val ACCEPT = "Accept"
-  val ACCEPT_CHARSET = "Accept-Charset"
-  val ACCEPT_ENCODING = "Accept-Encoding"
-  val ACCEPT_LANGUAGE = "Accept-Language"
-  val AUTHORIZATION = "Authorization"
-  val COOKIE = "Cookie"
-  val EXPECT = "Expect"
-  val FROM = "From"
-  val HOST = "Host"
-  val IF_MATCH = "If-Match"
-  val IF_MODIFIED_SINCE = "If-Modified-Since"
-  val IF_NONE_MATCH = "If-None-Match"
-  val IF_RANGE = "If-Range"
-  val IF_UNMODIFIED_SINCE = "If-Unmodified-Since"
-  val MAX_FORWARDS = "Max-Forwards"
-  val PROXY_AUTHORIZATION = "Proxy-Authorization"
-  val RANGE = "Range"
-  val REFERER = "Referer"
-  val TE = "TE"
-  val USER_AGENT = "User-Agent"
+  val ACCEPT = HeaderName("Accept")
+  val ACCEPT_CHARSET = HeaderName("Accept-Charset")
+  val ACCEPT_ENCODING = HeaderName("Accept-Encoding")
+  val ACCEPT_LANGUAGE = HeaderName("Accept-Language")
+  val AUTHORIZATION = HeaderName("Authorization")
+  val COOKIE = HeaderName("Cookie")
+  val EXPECT = HeaderName("Expect")
+  val FROM = HeaderName("From")
+  val HOST = HeaderName("Host")
+  val IF_MATCH = HeaderName("If-Match")
+  val IF_MODIFIED_SINCE = HeaderName("If-Modified-Since")
+  val IF_NONE_MATCH = HeaderName("If-None-Match")
+  val IF_RANGE = HeaderName("If-Range")
+  val IF_UNMODIFIED_SINCE = HeaderName("If-Unmodified-Since")
+  val MAX_FORWARDS = HeaderName("Max-Forwards")
+  val PROXY_AUTHORIZATION = HeaderName("Proxy-Authorization")
+  val RANGE = HeaderName("Range")
+  val REFERER = HeaderName("Referer")
+  val TE = HeaderName("TE")
+  val USER_AGENT = HeaderName("User-Agent")
 
   // Response headers
-  val AGE = "Age"
-  val ETAG = "ETag"
-  val LOCATION = "Location"
-  val PROXY_AUTHENTICATE = "Proxy-Authenticate"
-  val RETRY_AFTER = "Retry-After"
-  val SET_COOKIE = "Set-Cookie"
-  val SET_COOKIE2 = "Set-Cookie2"
-  val SERVER = "Server"
-  val VARY = "Vary"
-  val WWW_AUTHENTICATE = "WWW-Authenticate"
+  val AGE = HeaderName("Age")
+  val ETAG = HeaderName("ETag")
+  val LOCATION = HeaderName("Location")
+  val PROXY_AUTHENTICATE = HeaderName("Proxy-Authenticate")
+  val RETRY_AFTER = HeaderName("Retry-After")
+  val SET_COOKIE = HeaderName("Set-Cookie")
+  val SET_COOKIE2 = HeaderName("Set-Cookie2")
+  val SERVER = HeaderName("Server")
+  val VARY = HeaderName("Vary")
+  val WWW_AUTHENTICATE = HeaderName("WWW-Authenticate")
 
   // Entity headers
-  val ALLOW = "Allow"
-  val CONTENT_ENCODING = "Content-Encoding"
-  val CONTENT_LANGUAGE = "Content-Language"
-  val CONTENT_LENGTH = "Content-Length"
-  val CONTENT_LOCATION = "Content-Location"
-  val CONTENT_MD5 = "Content-MD5"
-  val CONTENT_RANGE = "Content-Range"
-  val CONTENT_TYPE = "Content-Type"
-  val EXPIRES = "Expires"
-  val LAST_MODIFIED = "Last-Modified"
+  val ALLOW = HeaderName("Allow")
+  val CONTENT_ENCODING = HeaderName("Content-Encoding")
+  val CONTENT_LANGUAGE = HeaderName("Content-Language")
+  val CONTENT_LENGTH = HeaderName("Content-Length")
+  val CONTENT_LOCATION = HeaderName("Content-Location")
+  val CONTENT_MD5 = HeaderName("Content-MD5")
+  val CONTENT_RANGE = HeaderName("Content-Range")
+  val CONTENT_TYPE = HeaderName("Content-Type")
+  val EXPIRES = HeaderName("Expires")
+  val LAST_MODIFIED = HeaderName("Last-Modified")
 
 
-  val headersWithListValues = Set(ACCEPT, ACCEPT_CHARSET, ACCEPT_ENCODING, ACCEPT_LANGUAGE,
-    CACHE_CONTROL, CONTENT_LANGUAGE, CONTENT_TYPE, EXPECT, PRAGMA, RANGE, TE, UPGRADE, VIA)
+  val headersWithListValues: Set[String] = Set(ACCEPT.name,
+    ACCEPT_CHARSET.name,
+    ACCEPT_ENCODING.name,
+    ACCEPT_LANGUAGE.name,
+    CACHE_CONTROL.name,
+    CONTENT_LANGUAGE.name,
+    CONTENT_TYPE.name,
+    EXPECT.name,
+    PRAGMA.name,
+    RANGE.name,
+    TE.name,
+    UPGRADE.name,
+    VIA.name)
 
   def apply(raw: String): Header = {
     val t = Util.divide(raw, ':')

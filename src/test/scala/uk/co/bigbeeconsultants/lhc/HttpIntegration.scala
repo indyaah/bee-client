@@ -24,12 +24,12 @@
 
 package uk.co.bigbeeconsultants.lhc
 
-import header.MediaType
+import header.{Header, MediaType}
 import java.net.{ConnectException, URL}
 import java.lang.AssertionError
 import org.junit.Assert._
 import org.junit.{After, Before, Test}
-import request.Body
+import request.{Config, Body}
 import response.CachedBody
 
 class HttpIntegration {
@@ -45,7 +45,7 @@ class HttpIntegration {
   @Before
   def before() {
     http = new HttpClient(keepAlive = false,
-      requestConfig = HttpClient.defaultRequestConfig.copy(followRedirects = false))
+      requestConfig = Config.default.copy(followRedirects = false))
   }
 
   @After
@@ -126,7 +126,7 @@ class HttpIntegration {
       val body = response.body
       assertEquals(MediaType.TEXT_HTML, body.contentType)
       assertEquals(0, body.asString.length)
-      val location = response.headers("LOCATION").value
+      val location = response.headers.get(Header.LOCATION).value
       assertTrue(location, location.startsWith(serverUrl))
     } catch {
       case e: ConnectException =>
@@ -143,7 +143,7 @@ class HttpIntegration {
       val body = response.body
       assertEquals(MediaType.TEXT_HTML, body.contentType)
       assertEquals(0, body.asString.length)
-      val location = response.headers("LOCATION").value
+      val location = response.headers.get(Header.LOCATION).value
       assertTrue(location, location.startsWith(serverUrl))
     } catch {
       case e: ConnectException =>
