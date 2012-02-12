@@ -28,10 +28,12 @@ import header.{Header, MediaType}
 import java.net.{ConnectException, URL}
 import java.lang.AssertionError
 import org.junit.Assert._
-import org.junit.{After, Before, Test}
 import request.{Config, Body}
 import response.CachedBody
+import org.junit.{AfterClass, After, Before, Test}
+import org.jcsp.lang.Skip
 
+@Skip
 class HttpIntegration {
 
   private val serverUrl = "http://localhost/lighthttpclient/"
@@ -233,5 +235,14 @@ class HttpIntegration {
 
   private def skipTestWarning(method: String, url: String, e: ConnectException) {
     System.err.println("***** Test skipped: " + method + " " + url + " : " + e.getMessage)
+  }
+}
+
+object HttpIntegration {
+  @AfterClass
+  def finish() {
+    assertTrue(CleanupThread.isRunning)
+    HttpClient.terminate()
+    assertFalse(CleanupThread.isRunning)
   }
 }

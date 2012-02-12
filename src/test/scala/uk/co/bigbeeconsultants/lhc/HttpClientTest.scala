@@ -192,13 +192,18 @@ object HttpClientTest {
   private var baseUrl: String = null
   private var server: StubServer = null
 
-  @BeforeClass def configure() {
+  @BeforeClass
+  def configure() {
     baseUrl = "http://localhost:" + port
     server = new StubServer(port)
     server.start()
   }
 
-  @AfterClass def after() {
+  @AfterClass
+  def finish() {
+    assertTrue(CleanupThread.isRunning)
+    HttpClient.terminate()
+    assertFalse(CleanupThread.isRunning)
     server.stop()
   }
 }

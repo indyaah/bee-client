@@ -31,8 +31,8 @@ import java.nio.ByteBuffer
 import java.io._
 import java.util.zip.GZIPInputStream
 import collection.mutable.ListBuffer
-import org.jcsp.lang.{Any2OneChannel, Channel}
 import request.{Config, RequestException, Body, Request}
+import org.jcsp.lang.{PoisonException, Any2OneChannel, Channel}
 
 /**
  * Constructs an instance for handling any number of HTTP requests.
@@ -125,14 +125,11 @@ final class HttpClient(keepAlive: Boolean = true,
 
   private def markConnectionForClosure(connWrapper: HttpURLConnection) {
     if (!keepAlive) connWrapper.disconnect()
-    else {
-      val cleanupThread = HttpClient.cleanupThread
-      cleanupThread.styx.write(Some(connWrapper))
-    }
+    else CleanupThread.futureClose(connWrapper)
   }
 
   def closeConnections() {
-    if (keepAlive) HttpClient.cleanupThread.styx.write(None)
+    if (keepAlive) CleanupThread.closeConnections()
   }
 
   private def setRequestHeaders(request: Request, requestHeaders: Headers, connWrapper: HttpURLConnection) {
@@ -203,14 +200,12 @@ object HttpClient {
   val gzip = "gzip"
 
   val defaultHeaders = Headers(List())
-//    val defaultHeaders = List(Header(Header.ACCEPT_ENCODING, HttpClient.gzip))
+  //    val defaultHeaders = List(Header(Header.ACCEPT_ENCODING, HttpClient.gzip))
 
   val defaultResponseBodyFactory = new BufferedBodyFactory
 
-  private lazy val cleanupThread = new CleanupThread
-
-  def stop() {
-    cleanupThread.styx.poison(1)
+  def terminate() {
+    CleanupThread.terminate()
   }
 }
 
@@ -223,27 +218,64 @@ object HttpClient {
  * The interface to the cleanup thread is via an unbuffered channel (JCSP) that provides all inter-thread
  * synchronisation and thereby keeps the design simple and efficient.
  */
-private class CleanupThread extends Thread {
-  private val channel: Any2OneChannel[Option[HttpURLConnection]] = Channel.any2one()
-  val styx = channel.out
+private object CleanupThread extends Thread {
+  val limit = 1000
+
+  private val channel: Any2OneChannel[Either[HttpURLConnection, Boolean]] = Channel.any2one(0)
+  private val zombies = new ListBuffer[HttpURLConnection]
+  private var running = true
 
   setName("httpCleanup")
   start()
 
-  val limit = 1000
-  private val zombies = new ListBuffer[HttpURLConnection]
-
-  override def run() {
-    while (true) {
-      channel.in.read match {
-        case Some(connWrapper) =>
-          zombies += connWrapper
-          if (zombies.size > limit) cleanup()
-        case None =>
-          cleanup()
-      }
+  /**
+   * Adds a keep-alive connection to the list of those that will be cleaned up later.
+   */
+  def futureClose(connWrapper: HttpURLConnection) {
+    require (running)
+    try {
+      channel.out.write(Left(connWrapper))
+    }
+    catch {
+      case pe: PoisonException =>
+        throw new IllegalStateException("CleanupThread has already been shut down", pe)
     }
   }
+
+  /**
+   * Closes all the keep-alive connections still pending.
+   */
+  def closeConnections() {
+    require (running)
+    channel.out.write(Right(true))
+  }
+
+  /**
+   * Terminates the cleanup thread.
+   */
+  def terminate() {
+    require (running)
+    channel.out.write(Right(false))
+  }
+
+  /** DO NOT CALL THIS */
+  override def run() {
+    while (running) {
+      channel.in.read match {
+        case Left(connWrapper) =>
+          zombies += connWrapper
+          if (zombies.size > limit) cleanup()
+        case Right(flag) =>
+          cleanup()
+          running = flag
+      }
+    }
+    channel.in.poison(1)
+    println(getName + " terminated")
+  }
+
+  /** Tests the state of the thread. */
+  def isRunning = running
 
   private def cleanup() {
     for (conn <- zombies) conn.disconnect()
