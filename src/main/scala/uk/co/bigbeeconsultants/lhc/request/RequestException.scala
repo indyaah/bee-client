@@ -24,12 +24,13 @@
 
 package uk.co.bigbeeconsultants.lhc.request
 
-/**
- * Specifies configuration options that will be used across many requests.
- */
-case class Config(connectTimeout: Int = 2000,
-                  readTimeout: Int = 2000,
-                  keepAlive: Boolean = true,
-                  followRedirects: Boolean = true,
-                  useCaches: Boolean = true,
-                  sendHostHeader: Boolean = true)
+import uk.co.bigbeeconsultants.lhc.response.{Response, Status}
+
+
+class RequestException(val request: Request, val status: Status, val response: Option[Response], cause: Option[Exception])
+  extends RuntimeException(cause orNull) {
+
+  override def getMessage: String = {
+    "%s %s\n  %d %s".format(request.method, request.url, status.code, status.message)
+  }
+}

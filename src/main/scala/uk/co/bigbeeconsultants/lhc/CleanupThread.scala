@@ -74,8 +74,10 @@ private[lhc] object CleanupThread extends Thread {
   def terminate() {
     require (running)
     channel.out.write(Right(false))
-    while (running)
+    // spin until completed - avoids some other race conditions and yet is very simple
+    while (running) {
       Thread.sleep(1)
+    }
   }
 
   /** DO NOT CALL THIS */

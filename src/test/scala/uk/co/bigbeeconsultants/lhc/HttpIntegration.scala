@@ -239,13 +239,3 @@ class HttpIntegration {
     System.err.println("***** Test skipped: " + method + " " + url + " : " + e.getMessage)
   }
 }
-
-object HttpIntegration {
-  @AfterClass
-  def finish() {
-    if (CleanupThread.isRunning) {
-      HttpClient.terminate()
-      assertFalse("Expect that cleanup thread has been successully shut down", CleanupThread.isRunning)
-    }
-  }
-}

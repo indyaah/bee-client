@@ -41,7 +41,7 @@ import org.jcsp.lang.{PoisonException, Any2OneChannel, Channel}
  * java.net.CookieHandler classes, e.g.
  * <code>java.net.CookieHandler.setDefault( new java.net.CookieManager() )</code>.
  */
-final class HttpClient(val config: Config = Config.default,
+final class HttpClient(val config: Config = Config(),
                        val commonRequestHeaders: Headers = HttpClient.defaultHeaders,
                        val responseBodyFactory: BodyFactory = HttpClient.defaultResponseBodyFactory) {
 
@@ -121,9 +121,8 @@ final class HttpClient(val config: Config = Config.default,
   }
 
   private def markConnectionForClosure(connWrapper: HttpURLConnection) {
-//    if (!config.keepAlive)
-      connWrapper.disconnect()
-//    else CleanupThread.futureClose(connWrapper)
+    if (!config.keepAlive) connWrapper.disconnect()
+    else CleanupThread.futureClose(connWrapper)
   }
 
   def closeConnections() {
