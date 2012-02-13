@@ -31,7 +31,7 @@ import org.junit.Assert._
 import java.nio.{BufferUnderflowException, BufferOverflowException, ByteBuffer}
 import org.junit.{After, Test, AfterClass, BeforeClass}
 import java.net.URL
-import request.Body
+import request.{Config, Body}
 import response.CachedBody
 
 
@@ -80,7 +80,7 @@ class HttpClientTest {
   }
 
   @Test def get_severalUrls_shouldCloseOK() {
-    val http = new HttpClient(false)
+    val http = new HttpClient(Config(keepAlive = false))
     val json = """{"a" : "b" }"""
     val n = 100
     for (i <- 1 to n) {
@@ -201,9 +201,10 @@ object HttpClientTest {
 
   @AfterClass
   def finish() {
-    assertTrue(CleanupThread.isRunning)
-    HttpClient.terminate()
-    assertFalse(CleanupThread.isRunning)
+    if (CleanupThread.isRunning) {
+      HttpClient.terminate()
+      assertFalse("Expect that cleanup thread has been successully shut down", CleanupThread.isRunning)
+    }
     server.stop()
   }
 }

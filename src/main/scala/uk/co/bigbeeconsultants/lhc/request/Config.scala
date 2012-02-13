@@ -32,6 +32,7 @@ import uk.co.bigbeeconsultants.lhc.response.{Response, Status}
  */
 case class Config(connectTimeout: Int = 2000,
                   readTimeout: Int = 2000,
+                  keepAlive: Boolean = true,
                   followRedirects: Boolean = true,
                   useCaches: Boolean = true,
                   sendHostHeader: Boolean = true)

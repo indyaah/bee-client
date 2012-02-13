@@ -31,9 +31,7 @@ import org.junit.Assert._
 import request.{Config, Body}
 import response.CachedBody
 import org.junit.{AfterClass, After, Before, Test}
-import org.jcsp.lang.Skip
 
-@Skip
 class HttpIntegration {
 
   private val serverUrl = "http://localhost/lighthttpclient/"
@@ -46,13 +44,17 @@ class HttpIntegration {
 
   @Before
   def before() {
-    http = new HttpClient(keepAlive = false,
-      requestConfig = Config.default.copy(followRedirects = false))
+    http = new HttpClient(config = Config(keepAlive = false, followRedirects = false))
   }
 
   @After
   def close() {
     http.closeConnections()
+  }
+
+  @Test
+  def setupOK() {
+    assertFalse(http.config.keepAlive)
   }
 
   @Test
@@ -241,8 +243,9 @@ class HttpIntegration {
 object HttpIntegration {
   @AfterClass
   def finish() {
-    assertTrue(CleanupThread.isRunning)
-    HttpClient.terminate()
-    assertFalse(CleanupThread.isRunning)
+    if (CleanupThread.isRunning) {
+      HttpClient.terminate()
+      assertFalse("Expect that cleanup thread has been successully shut down", CleanupThread.isRunning)
+    }
   }
 }
