@@ -70,7 +70,7 @@ final class BodyCache(val contentType: MediaType, byteData: ByteBuffer) extends 
   private var converted: String = null
 
   private def convertToString = {
-    val charset = contentType.charset.getOrElse(HttpClient.defaultCharset)
+    val charset = contentType.charset.getOrElse(HttpClient.UTF8)
     val string = Charset.forName(charset).decode(byteData).toString
     byteData.rewind
     string

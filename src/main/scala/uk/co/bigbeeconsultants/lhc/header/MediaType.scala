@@ -50,7 +50,7 @@ case class MediaType(`type`: String, subtype: String, charset: Option[String] = 
   /**
    * Gets the character set, or returns a default value.
    */
-  def charsetOrUTF8 = if (charset.isEmpty) HttpClient.defaultCharset else charset.get
+  def charsetOrUTF8 = if (charset.isEmpty) HttpClient.UTF8 else charset.get
 
   /**
    * Checks if the primary type is a wildcard.
@@ -124,4 +124,6 @@ object MediaType {
     val subtype = if (t2._2.length > 0) t2._2 else WILDCARD
     new MediaType(`type`, subtype, qualifier)
   }
+
+  implicit def convertToString(mt: MediaType) = mt.toString
 }

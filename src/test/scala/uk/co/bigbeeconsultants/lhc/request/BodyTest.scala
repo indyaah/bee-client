@@ -43,7 +43,7 @@ class BodyTest {
     assertSame(mt, b.mediaType)
     val baos = new ByteArrayOutputStream
     b.copyTo(baos)
-    val result = baos.toString(HttpClient.defaultCharset)
+    val result = baos.toString(HttpClient.UTF8)
     assertEquals("[1, 2, 3]", result)
   }
 
@@ -54,7 +54,7 @@ class BodyTest {
     assertSame(mt, b.mediaType)
     val baos = new ByteArrayOutputStream
     b.copyTo(baos)
-    val result = baos.toString(HttpClient.defaultCharset)
+    val result = baos.toString(HttpClient.UTF8)
     assertEquals("a=1&b=2&c=3", result)
   }
 }

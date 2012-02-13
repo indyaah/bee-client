@@ -26,13 +26,14 @@ package uk.co.bigbeeconsultants.lhc
 
 import header.{Headers, Header, MediaType}
 import response._
-import java.net.{URL, HttpURLConnection}
+import request.{Config, RequestException, Body, Request}
 import java.nio.ByteBuffer
 import java.io._
 import java.util.zip.GZIPInputStream
+import java.net.{URLConnection, URL, HttpURLConnection}
 import collection.mutable.ListBuffer
-import request.{Config, RequestException, Body, Request}
-import org.jcsp.lang.{PoisonException, Any2OneChannel, Channel}
+import Header._
+import Status._
 
 /**
  * Constructs an instance for handling any number of HTTP requests.
@@ -42,7 +43,7 @@ import org.jcsp.lang.{PoisonException, Any2OneChannel, Channel}
  * <code>java.net.CookieHandler.setDefault( new java.net.CookieManager() )</code>.
  */
 final class HttpClient(val config: Config = Config(),
-                       val commonRequestHeaders: Headers = HttpClient.defaultHeaders,
+                       val commonRequestHeaders: Headers = HttpClient.defaultRequestHeaders,
                        val responseBodyFactory: BodyFactory = HttpClient.defaultResponseBodyFactory) {
 
   private val emptyBuffer = ByteBuffer.allocateDirect(0)
@@ -87,9 +88,6 @@ final class HttpClient(val config: Config = Config(),
     try {
       setRequestHeaders(request, requestHeaders, connWrapper)
 
-      //      connWrapper.setDoInput(request.method != Request.HEAD)
-      connWrapper.setDoOutput(request.method == Request.POST || request.method == Request.PUT)
-
       connWrapper.connect()
 
       copyRequestBodyToOutputStream(request, connWrapper)
@@ -103,7 +101,7 @@ final class HttpClient(val config: Config = Config(),
 
     } catch {
       case ioe: IOException =>
-        val status = Status(connWrapper.getResponseCode, connWrapper.getResponseMessage)
+        val status = Status(S5_INTERNAL_ERROR, ioe.getMessage)
         throw new RequestException(request, status, None, Some(ioe))
 
     } finally {
@@ -134,11 +132,12 @@ final class HttpClient(val config: Config = Config(),
     connWrapper.setRequestMethod(method)
 
     if (config.sendHostHeader) {
-      connWrapper.setRequestProperty(Header.HOST, request.url.getHost)
+      connWrapper.setRequestProperty(HOST, request.url.getHost)
     }
 
-    if (request.body.isDefined)
-      connWrapper.setRequestProperty(Header.CONTENT_TYPE, request.body.get.mediaType.toString)
+    if (request.body.isDefined) {
+      connWrapper.setRequestProperty(CONTENT_TYPE, request.body.get.mediaType)
+    }
 
     for (hdr <- commonRequestHeaders.list) {
       connWrapper.setRequestProperty(hdr.name, hdr.value)
@@ -147,17 +146,25 @@ final class HttpClient(val config: Config = Config(),
     for (hdr <- requestHeaders.list) {
       connWrapper.setRequestProperty(hdr.name, hdr.value)
     }
+
+    if (request.method == Request.POST || request.method == Request.PUT) {
+      connWrapper.setDoOutput(true)
+      if (config.chunkSizeInKB >= 0) {
+        connWrapper.setFixedLengthStreamingMode(config.chunkSizeInKB * 1024)
+      }
+    }
   }
 
   private def getContent(status: Status, request: Request, connWrapper: HttpURLConnection): Response = {
     val responseHeaders = processResponseHeaders(connWrapper)
+    val contEnc = responseHeaders.find(CONTENT_ENCODING)
+    val mediaType = MediaType(connWrapper.getContentType)
+
     if (request.method == Request.HEAD) {
-      val mediaType = MediaType(connWrapper.getContentType)
+      selectStream(connWrapper).close()
       Response(status, new BodyCache(mediaType, emptyBuffer), responseHeaders)
 
     } else {
-      val contEnc = responseHeaders.find(Header.CONTENT_ENCODING)
-      val mediaType = MediaType(connWrapper.getContentType)
       val body = responseBodyFactory.newBody(mediaType)
       body.receiveData(mediaType, getBodyStream(contEnc, connWrapper))
       Response(status, body, responseHeaders)
@@ -165,15 +172,19 @@ final class HttpClient(val config: Config = Config(),
   }
 
   private def getBodyStream(contEnc: List[Header], connWrapper: HttpURLConnection) = {
-    val iStream = if (connWrapper.getResponseCode >= 400) connWrapper.getErrorStream else connWrapper.getInputStream
-    if (!contEnc.isEmpty && contEnc(0).value.contains(HttpClient.gzip)) {
+    val iStream = selectStream(connWrapper)
+    if (!contEnc.isEmpty && contEnc(0).value.contains(HttpClient.GZIP)) {
       new GZIPInputStream(iStream)
     } else {
       iStream
     }
   }
 
-  private def processResponseHeaders(connWrapper: HttpURLConnection) = {
+  private def selectStream(connWrapper: HttpURLConnection) = {
+    if (connWrapper.getResponseCode >= 400) connWrapper.getErrorStream else connWrapper.getInputStream
+  }
+
+  private def processResponseHeaders(connWrapper: URLConnection) = {
     val result = new ListBuffer[Header]
     var i = 0
     var key = connWrapper.getHeaderFieldKey(i)
@@ -193,12 +204,18 @@ final class HttpClient(val config: Config = Config(),
 }
 
 object HttpClient {
-  val defaultCharset = "UTF-8"
-  val gzip = "gzip"
+  val UTF8 = "UTF-8"
+  val GZIP = "gzip"
 
-  val defaultHeaders = Headers(List())
-  //    val defaultHeaders = List(Header(Header.ACCEPT_ENCODING, HttpClient.gzip))
+  val defaultRequestHeaders = Headers(List(
+//    Header(ACCEPT_ENCODING, GZIP),
+    Header(ACCEPT_CHARSET, UTF8)
+  ))
 
+  /**
+   * Provides the 'standard' way to capture response bodies in buffers that
+   * are easily converted to strings.
+   */
   val defaultResponseBodyFactory = new BufferedBodyFactory
 
   def terminate() {

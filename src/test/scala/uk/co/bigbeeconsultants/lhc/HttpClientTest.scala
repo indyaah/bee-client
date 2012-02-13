@@ -29,10 +29,10 @@ import com.pyruby.stubserver.StubServer
 import header.{Headers, Header, MediaType}
 import org.junit.Assert._
 import java.nio.{BufferUnderflowException, BufferOverflowException, ByteBuffer}
-import org.junit.{After, Test, AfterClass, BeforeClass}
 import java.net.URL
 import request.{Config, Body}
 import response.CachedBody
+import org.junit._
 
 
 class HttpClientTest {
@@ -123,6 +123,17 @@ class HttpClientTest {
     server.verify()
     assertEquals(MediaType.APPLICATION_JSON, response.body.contentType)
     assertEquals(jsonRes, response.body.asString)
+  }
+
+  @Ignore
+  @Test def post_withChunkSize_shouldSetChunkHeader() {
+    val http = new HttpClient(Config(chunkSizeInKB = 4))
+    val stubbedMethod = StubMethod.post(url)
+    server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, "")
+    http.post(new URL(baseUrl + url), Body(MediaType.APPLICATION_JSON, Map("a" -> "b")))
+    server.verify()
+    val transferEncoding = stubbedMethod.headers.get(Header.TRANSFER_ENCODING)
+    assertEquals("", transferEncoding)
   }
 
   @Test def delete_shouldReturnOK() {

@@ -88,6 +88,11 @@ class HttpIntegration {
   }
 
   @Test
+  def htmlGetOK2() {
+    htmlGetOK()
+  }
+
+  @Test
   def pngGetOK() {
     try {
       val response = http.get(new URL(testImageUrl))

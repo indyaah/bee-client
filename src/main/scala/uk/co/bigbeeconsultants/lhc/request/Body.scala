@@ -45,7 +45,7 @@ object Body {
   /**Factory for request bodies sourced from strings. */
   def apply(mediaType: MediaType, string: String): Body = {
     new Body(mediaType, (outputStream) => {
-      val encoding = mediaType.charsetOrElse(HttpClient.defaultCharset)
+      val encoding = mediaType.charsetOrElse(HttpClient.UTF8)
       outputStream.write(string.getBytes(encoding))
     })
   }
@@ -53,7 +53,7 @@ object Body {
   /**Factory for request bodies sourced from key-value pairs, typical for POST requests. */
   def apply(mediaType: MediaType, data: Map[String, String]): Body = {
     new Body(mediaType, (outputStream) => {
-      val encoding = mediaType.charsetOrElse(HttpClient.defaultCharset)
+      val encoding = mediaType.charsetOrElse(HttpClient.UTF8)
       val w = new OutputStreamWriter(outputStream, encoding)
       var first = true
       for ((key, value) <- data) {

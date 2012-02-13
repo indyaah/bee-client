@@ -32,4 +32,5 @@ case class Config(connectTimeout: Int = 2000,
                   keepAlive: Boolean = true,
                   followRedirects: Boolean = true,
                   useCaches: Boolean = true,
-                  sendHostHeader: Boolean = true)
+                  sendHostHeader: Boolean = true,
+                  chunkSizeInKB: Int = -1)
