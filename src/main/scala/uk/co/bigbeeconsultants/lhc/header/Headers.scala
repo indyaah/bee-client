@@ -26,13 +26,11 @@ package uk.co.bigbeeconsultants.lhc.header
 
 case class Headers(list: List[Header]) {
 
-//  def find (name: HeaderName) = find(name.name)
   def find (name: String): List[Header] = list.filter(_.name equalsIgnoreCase name)
 
-//  def get (name: HeaderName) = get(name.name)
   def get (name: String): Header = find(name)(0)
 }
 
 object Headers {
-  val none = new Headers(Nil)
+  implicit def createHeaders(list: List[Header]): Headers = new Headers(list)
 }

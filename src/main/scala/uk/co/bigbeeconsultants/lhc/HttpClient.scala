@@ -48,35 +48,35 @@ final class HttpClient(val config: Config = Config(),
   private val emptyBuffer = ByteBuffer.allocateDirect(0)
 
   /**Make a HEAD request. */
-  def head(url: URL, requestHeaders: Headers = Headers.none) =
+  def head(url: URL, requestHeaders: Headers = Nil) =
     execute(Request.head(url), requestHeaders)
 
   /**Make a TRACE request. */
-  def trace(url: URL, requestHeaders: Headers = Headers.none) =
+  def trace(url: URL, requestHeaders: Headers = Nil) =
     execute(Request.trace(url), requestHeaders)
 
   /**Make a GET request. */
-  def get(url: URL, requestHeaders: Headers = Headers.none) =
+  def get(url: URL, requestHeaders: Headers = Nil) =
     execute(Request.get(url), requestHeaders)
 
   /**Make a DELETE request. */
-  def delete(url: URL, requestHeaders: Headers = Headers.none) =
+  def delete(url: URL, requestHeaders: Headers = Nil) =
     execute(Request.delete(url), requestHeaders)
 
   /**Make an OPTIONS request. */
-  def options(url: URL, body: Option[Body], requestHeaders: Headers = Headers.none) =
+  def options(url: URL, body: Option[Body], requestHeaders: Headers = Nil) =
     execute(Request.options(url, body), requestHeaders)
 
   /**Make a POST request. */
-  def post(url: URL, body: Body, requestHeaders: Headers = Headers.none) =
+  def post(url: URL, body: Body, requestHeaders: Headers = Nil) =
     execute(Request.post(url, body), requestHeaders)
 
   /**Make a PUT request. */
-  def put(url: URL, body: Body, requestHeaders: Headers = Headers.none) =
+  def put(url: URL, body: Body, requestHeaders: Headers = Nil) =
     execute(Request.put(url, body), requestHeaders)
 
   /**Make an arbitrary request. */
-  def execute(request: Request, requestHeaders: Headers = Headers.none): Response = {
+  def execute(request: Request, requestHeaders: Headers = Nil): Response = {
     val connWrapper = request.url.openConnection.asInstanceOf[HttpURLConnection]
     connWrapper.setAllowUserInteraction(false)
     connWrapper.setConnectTimeout(config.connectTimeout)
