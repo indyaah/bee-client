@@ -52,8 +52,7 @@ function dumpInterestingServerVars($assign, $separator) {
 $method = strip_tags($_SERVER['REQUEST_METHOD']);
 if ($method == 'GET' || $method == 'HEAD' || isset($_REQUEST['D']))
 {
-    $ct = strip_tags($_REQUEST['CT']);
-    if (isset($ct) && $ct == 'text/plain')
+    if (isset($_REQUEST['CT']) && strip_tags($_REQUEST['CT']) == 'text/plain')
     {
         header("Content-Type: text/plain");
         echo dumpInterestingServerVars(': ', "\n");
@@ -65,13 +64,27 @@ if ($method == 'GET' || $method == 'HEAD' || isset($_REQUEST['D']))
 </head>
 <body>
 <img src="B.png" width="16" height="16" alt="B symbol"/>
-<pre><![CDATA[
-<?php echo dumpInterestingServerVars(': ', "\n") ?>
-<?php //print_r($_SERVER); ?>
-]]></pre>
+<pre>
+<?php if (!isset($_REQUEST['STUM'])) { echo dumpInterestingServerVars(': ', "\n"); } ?>
+</pre>
 <ul>
 <li><a href="?CT=text/plain">text/plain</a></li>
 </ul>
+<?php if (isset($_REQUEST['LOREM'])) {
+      for ($i = 1; $i <= 1000; $i++) { ?>
+<p><?php echo $i ?>
+ Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore
+magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis
+nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie
+consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit
+praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Nam liber tempor cum soluta nobis eleifend
+option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Typi non habent claritatem insitam;
+est usus legentis in iis qui facit eorum claritatem. Investigationes demonstraverunt lectores legere me lius quod ii
+legunt saepius. Claritas est etiam processus dynamicus, qui sequitur mutationem consuetudium lectorum. Mirum est notare
+quam littera gothica, quam nunc putamus parum claram, anteposuerit litterarum formas humanitatis per seacula quarta
+decima et quinta decima. Eodem modo typi, qui nunc nobis videntur parum clari, fiant sollemnes in futurum.
+</p>
+<?php } } ?>
 </body>
 </html>
 <?php

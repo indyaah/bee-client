@@ -25,12 +25,10 @@
 package uk.co.bigbeeconsultants.lhc.response
 
 import uk.co.bigbeeconsultants.lhc.header.Headers
-
+import uk.co.bigbeeconsultants.lhc.request.Request
 
 /**
- * Represents a HTTP response. This is broadly immutable, although the implementation of
+ * Represents a HTTP response. This is essentially immutable, although the implementation of
  * the response body may vary.
- * <p>
- * All the header keys are uppercase; this is because they are required to be case-insensitive.
  */
-case class Response(status: Status, body: Body, headers: Headers)
+case class Response(request: Request, status: Status, body: Body, headers: Headers)

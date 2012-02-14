@@ -117,3 +117,7 @@ final class BufferedBody extends CachedBody {
    */
   def asBytes: Array[Byte] = if (cache != null) cache.asBytes else null
 }
+
+object BufferedBody {
+  implicit def asString(body: BufferedBody) = body.asString
+}

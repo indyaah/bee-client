@@ -27,10 +27,10 @@ package uk.co.bigbeeconsultants.lhc
 import header.{Header, MediaType}
 import java.net.{ConnectException, URL}
 import java.lang.AssertionError
-import org.junit.Assert._
 import request.{Config, Body}
 import response.CachedBody
-import org.junit.{AfterClass, After, Before, Test}
+import org.junit.{Ignore, After, Before, Test}
+import org.junit.Assert._
 
 class HttpIntegration {
 
@@ -44,7 +44,7 @@ class HttpIntegration {
 
   @Before
   def before() {
-    http = new HttpClient(config = Config(keepAlive = false, followRedirects = false))
+    http = new HttpClient(config = Config(followRedirects = false))
   }
 
   @After
@@ -54,7 +54,7 @@ class HttpIntegration {
 
   @Test
   def setupOK() {
-    assertFalse(http.config.keepAlive)
+    //    assertFalse(http.config.keepAlive)
   }
 
   @Test
@@ -71,15 +71,15 @@ class HttpIntegration {
     }
   }
 
-  @Test
-  def htmlGetOK() {
+  def htmlGet(url: String) {
     try {
-      val response = http.get(new URL(testScriptUrl))
+      val response = http.get(new URL(url))
       assertEquals(200, response.status.code)
       val body = response.body
       assertEquals(MediaType.TEXT_HTML, body.contentType)
-      assertTrue(body.asString.startsWith("<html>"))
-      val bodyLines = body.asString.split("\n")
+      val string = body.asString
+      assertTrue(string.startsWith("<html>"))
+      val bodyLines = string.split("\n")
       assertEquals("GET", extractLineFromResponse("REQUEST_METHOD", bodyLines))
     } catch {
       case e: ConnectException =>
@@ -88,8 +88,13 @@ class HttpIntegration {
   }
 
   @Test
+  def htmlGetOK() {
+    htmlGet(testScriptUrl)
+  }
+
+  @Test
   def htmlGetOK2() {
-    htmlGetOK()
+    htmlGet(testScriptUrl + "?LOREM=1")
   }
 
   @Test
@@ -183,7 +188,7 @@ class HttpIntegration {
       val loops = 500
       val before = System.currentTimeMillis()
       for (i <- 1 to loops) {
-        val response = http.get(new URL(testPhotoUrl))
+        val response = http.get(new URL(testPhotoUrl + "?n=" + i))
         assertEquals(200, response.status.code)
         assertEquals(MediaType.IMAGE_JPG, response.body.contentType)
         val bytes = response.body.asInstanceOf[CachedBody].asBytes
@@ -203,22 +208,31 @@ class HttpIntegration {
   def soakTestTextOK() {
     try {
       var size = -1
+      var first = "NOT SET"
       val loops = 200
       val before = System.currentTimeMillis()
       for (i <- 1 to loops) {
-        val response = http.get(new URL(testScriptUrl))
-        assertEquals(200, response.status.code)
-        assertEquals(MediaType.TEXT_HTML, response.body.contentType)
-        val bytes = response.body.asInstanceOf[CachedBody].asBytes
-        if (size < 0) {
-          size = bytes.length
-        } else {
-          assertEquals(size, bytes.length)
+
+        try {
+          val is = i.toString
+          val response = http.get(new URL(testScriptUrl + "?STUM=1"))
+          assertEquals(is, 200, response.status.code)
+          val body = response.body
+          assertEquals(is, MediaType.TEXT_HTML, body.contentType)
+          val string = body.asString
+          assertTrue(is, string.startsWith("<html>"))
+          if (size < 0) {
+            first = string
+            size = first.length
+          } else {
+            assertEquals(is, first, string)
+            assertEquals(is, size, string.length)
+          }
+        } catch {
+          case e: Exception =>
+            throw new RuntimeException("soakTestTextOK " + i, e)
         }
-        val body = response.body
-        assertTrue(body.asString.startsWith("<html>"))
-        val bodyLines = body.asString.split("\n")
-        assertEquals("GET", extractLineFromResponse("REQUEST_METHOD", bodyLines))
+
       }
       val duration = System.currentTimeMillis() - before
       val bytes = BigDecimal(size * loops)

@@ -27,6 +27,7 @@ package uk.co.bigbeeconsultants.lhc.header
 import uk.co.bigbeeconsultants.lhc.{HttpClient, Util}
 
 case class MediaType(`type`: String, subtype: String, charset: Option[String] = None) {
+  import MediaType._
 
   def value = `type` + '/' + subtype
 
@@ -56,13 +57,13 @@ case class MediaType(`type`: String, subtype: String, charset: Option[String] = 
    * Checks if the primary type is a wildcard.
    * @return true if the primary type is a wildcard
    */
-  def isWildcardType = `type` == MediaType.WILDCARD;
+  def isWildcardType = `type` == WILDCARD;
 
   /**
    * Checks if the subtype is a wildcard.
    * @return true if the subtype is a wildcard
    */
-  def isWildcardSubtype = subtype == MediaType.WILDCARD
+  def isWildcardSubtype = subtype == WILDCARD
 
   /**
    * Check if this media type is compatible with another media type. E.g.
@@ -73,9 +74,9 @@ case class MediaType(`type`: String, subtype: String, charset: Option[String] = 
   def isCompatible(other: MediaType) = {
     if (other == null)
       false
-    else if (`type` == MediaType.WILDCARD || other.`type` == MediaType.WILDCARD)
+    else if (`type` == WILDCARD || other.`type` == WILDCARD)
       true
-    else if (`type`.equalsIgnoreCase(other.`type`) && (subtype == MediaType.WILDCARD || other.subtype == MediaType.WILDCARD))
+    else if (`type`.equalsIgnoreCase(other.`type`) && (subtype == WILDCARD || other.subtype == WILDCARD))
       true
     else
       `type`.equalsIgnoreCase(other.`type`) && subtype.equalsIgnoreCase(other.subtype)

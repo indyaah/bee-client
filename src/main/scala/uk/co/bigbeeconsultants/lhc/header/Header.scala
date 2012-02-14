@@ -28,7 +28,7 @@ import java.util.Date
 import uk.co.bigbeeconsultants.lhc.Util
 
 case class HeaderName(name: String) {
-  def set(newValue: String) = new Header(name, newValue)
+  def -> (newValue: String) = new Header(name, newValue)
 }
 
 object HeaderName {

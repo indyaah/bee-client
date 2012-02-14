@@ -43,7 +43,7 @@ private[lhc] object CleanupThread extends Thread {
   private val zombies = new ListBuffer[HttpURLConnection]
   private var running = true
 
-  setName("httpCleanup")
+  setName("Http-Client-Cleanup")
   start()
 
   /**
@@ -69,12 +69,12 @@ private[lhc] object CleanupThread extends Thread {
   }
 
   /**
-   * Terminates the cleanup thread.
+   * Terminates the cleanup thread. Do not call this more than once.
    */
   def terminate() {
     require (running)
     channel.out.write(Right(false))
-    // spin until completed - avoids some other race conditions and yet is very simple
+    // spin until completed - a simple way to avoid some race conditions here
     while (running) {
       Thread.sleep(1)
     }
@@ -93,7 +93,7 @@ private[lhc] object CleanupThread extends Thread {
       }
     }
     channel.in.poison(1)
-    println(getName + " terminated")
+    //println(getName + " terminated")
   }
 
   /** Tests the state of the thread. */

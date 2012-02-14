@@ -30,9 +30,14 @@ import header.{Headers, Header, MediaType}
 import org.junit.Assert._
 import java.nio.{BufferUnderflowException, BufferOverflowException, ByteBuffer}
 import java.net.URL
-import request.{Config, Body}
+import request.Body
 import response.CachedBody
 import org.junit._
+import Header._
+import MediaType._
+import scala.collection.JavaConversions._
+import java.io._
+import java.util.zip.GZIPOutputStream
 
 
 class HttpClientTest {
@@ -45,53 +50,56 @@ class HttpClientTest {
     val http = new HttpClient()
     val stubbedMethod = StubMethod.get(url)
     val json = """{"astring" : "the message" }"""
-    server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, json)
+    server.expect(stubbedMethod).thenReturn(200, APPLICATION_JSON, json)
 
     val response = http.get(new URL(baseUrl + url))
     server.verify()
-    assertEquals(MediaType.APPLICATION_JSON, response.body.contentType)
-    assertEquals(MediaType.APPLICATION_JSON.toString, response.headers.get(Header.CONTENT_TYPE).value)
+    assertEquals(APPLICATION_JSON, response.body.contentType)
+    assertEquals(APPLICATION_JSON.toString, response.headers.get(CONTENT_TYPE).value)
     assertEquals(json, response.body.asString)
   }
 
-  @Test def get_withRequestParams_shouldReturnOK() {
+
+  @Test def get_withGzip_shouldReturnText() {
     val http = new HttpClient()
     val stubbedMethod = StubMethod.get(url)
-    val json = """{"astring" : "the message" }"""
-    server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, json)
+    server.expect(stubbedMethod).thenReturn(200, TEXT_PLAIN.toString, toGzip(HttpClientTest.loadsOfText), Map(Header.CONTENT_ENCODING.name -> "gzip"))
 
-    val response = http.get(new URL(baseUrl + url), Headers(List(Header.ACCEPT_ENCODING.set("gzip"))))
+    val response = http.get(new URL(baseUrl + url), Headers(List(ACCEPT_ENCODING -> "gzip")))
     server.verify()
-    assertEquals(MediaType.APPLICATION_JSON, response.body.contentType)
-    assertEquals(json, response.body.asString)
+    val body = response.body
+    assertEquals(TEXT_PLAIN, body.contentType)
+    assertEquals(HttpClientTest.loadsOfText, body.asString)
     val accEnc = stubbedMethod.headers.get("Accept-Encoding")
     assertEquals("gzip", accEnc)
   }
 
+
   @Test def head_shouldReturnOK() {
     val http = new HttpClient()
     val stubbedMethod = StubMethod.head(url)
-    server.expect(stubbedMethod).thenReturn(200, MediaType.TEXT_HTML.toString, "")
+    server.expect(stubbedMethod).thenReturn(200, TEXT_HTML, "")
 
     val response = http.head(new URL(baseUrl + url))
     server.verify()
-    assertEquals(MediaType.TEXT_HTML, response.body.contentType)
+    assertEquals(TEXT_HTML, response.body.contentType)
     assertEquals("", response.body.asString)
   }
 
+
   @Test def get_severalUrls_shouldCloseOK() {
-    val http = new HttpClient(Config(keepAlive = false))
+    val http = new HttpClient()
     val json = """{"a" : "b" }"""
     val n = 100
     for (i <- 1 to n) {
       val stubbedMethod = StubMethod.get(url + i)
-      server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, json)
+      server.expect(stubbedMethod).thenReturn(200, APPLICATION_JSON, json)
     }
 
     val before = System.currentTimeMillis()
     for (i <- 1 to n) {
       val response = http.get(new URL(baseUrl + url + i))
-      assertEquals(MediaType.APPLICATION_JSON, response.body.contentType)
+      assertEquals(APPLICATION_JSON, response.body.contentType)
       assertEquals(json, response.body.asString)
     }
     val after = System.currentTimeMillis()
@@ -100,52 +108,57 @@ class HttpClientTest {
     http.closeConnections()
   }
 
+
   @Test def put_shouldReturnOK() {
     val http = new HttpClient()
     val stubbedMethod = StubMethod.put(url)
     val jsonReq = """{"astring" : "the request" }"""
     val jsonRes = """{"astring" : "the response" }"""
-    server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, jsonRes)
+    server.expect(stubbedMethod).thenReturn(200, APPLICATION_JSON.toString, jsonRes)
 
-    val response = http.put(new URL(baseUrl + url), Body(MediaType.APPLICATION_JSON, jsonReq))
+    val response = http.put(new URL(baseUrl + url), Body(APPLICATION_JSON, jsonReq))
     server.verify()
-    assertEquals(MediaType.APPLICATION_JSON, response.body.contentType)
+    assertEquals(APPLICATION_JSON, response.body.contentType)
     assertEquals(jsonRes, response.body.asString)
   }
+
 
   @Test def post_shouldReturnOK() {
     val http = new HttpClient()
     val stubbedMethod = StubMethod.post(url)
     val jsonRes = """{"astring" : "the response" }"""
-    server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, jsonRes)
+    server.expect(stubbedMethod).thenReturn(200, APPLICATION_JSON, jsonRes)
 
-    val response = http.post(new URL(baseUrl + url), Body(MediaType.APPLICATION_JSON, Map("a" -> "b")))
+    val response = http.post(new URL(baseUrl + url), Body(APPLICATION_JSON, Map("a" -> "b")))
     server.verify()
-    assertEquals(MediaType.APPLICATION_JSON, response.body.contentType)
+    assertEquals(APPLICATION_JSON, response.body.contentType)
     assertEquals(jsonRes, response.body.asString)
   }
 
-  @Ignore
+
+  @Ignore // chnked data not yet implemented and HttpURLConnection may be too buggy anyway
   @Test def post_withChunkSize_shouldSetChunkHeader() {
-    val http = new HttpClient(Config(chunkSizeInKB = 4))
+    val http = new HttpClient()
     val stubbedMethod = StubMethod.post(url)
-    server.expect(stubbedMethod).thenReturn(200, MediaType.APPLICATION_JSON.toString, "")
-    http.post(new URL(baseUrl + url), Body(MediaType.APPLICATION_JSON, Map("a" -> "b")))
+    server.expect(stubbedMethod).thenReturn(200, APPLICATION_JSON, "")
+    http.post(new URL(baseUrl + url), Body(APPLICATION_JSON, Map("a" -> "b")))
     server.verify()
-    val transferEncoding = stubbedMethod.headers.get(Header.TRANSFER_ENCODING)
+    val transferEncoding = stubbedMethod.headers.get(TRANSFER_ENCODING)
     assertEquals("", transferEncoding)
   }
+
 
   @Test def delete_shouldReturnOK() {
     val http = new HttpClient()
     val stubbedMethod = StubMethod.delete(url)
-    server.expect(stubbedMethod).thenReturn(204, MediaType.APPLICATION_JSON.toString, "")
+    server.expect(stubbedMethod).thenReturn(204, APPLICATION_JSON, "")
 
     val response = http.delete(new URL(baseUrl + url))
     server.verify()
-    assertEquals(MediaType.APPLICATION_JSON, response.body.contentType)
+    assertEquals(APPLICATION_JSON, response.body.contentType)
     assertEquals("", response.body.asString)
   }
+
 
   @Test
   def confirmEmptyBufferIsImmutable() {
@@ -167,7 +180,9 @@ class HttpClientTest {
     }
   }
 
+
   @Test
+  @Ignore
   def soakTestJpgOK() {
     val http = new HttpClient()
     val is = getClass.getClassLoader.getResourceAsStream("plataria-sunset.jpg")
@@ -177,10 +192,10 @@ class HttpClientTest {
     val before = System.currentTimeMillis()
     for (i <- 1 to loops) {
       val stubbedMethod = StubMethod.get(url)
-      server.expect(stubbedMethod).thenReturn(200, MediaType.IMAGE_JPG.toString, jpgBytes)
+      server.expect(stubbedMethod).thenReturn(200, IMAGE_JPG, jpgBytes)
       val response = http.get(new URL(baseUrl + url))
       assertEquals(200, response.status.code)
-      assertEquals(MediaType.IMAGE_JPG, response.body.contentType)
+      assertEquals(IMAGE_JPG, response.body.contentType)
       val bytes = response.body.asInstanceOf[CachedBody].asBytes
       assertEquals(size, bytes.length)
       server.verify()
@@ -217,5 +232,27 @@ object HttpClientTest {
       assertFalse("Expect that cleanup thread has been successully shut down", CleanupThread.isRunning)
     }
     server.stop()
+  }
+
+
+  lazy val loadsOfText: String = {
+    val is = getClass.getClassLoader.getResourceAsStream("test-lighthttpclient.php")
+    val br = new BufferedReader(new InputStreamReader(new BufferedInputStream(is), "UTF-8"))
+    val sb = new StringBuilder
+    var line = br.readLine()
+    while (line != null) {
+      sb.append(line)
+      line = br.readLine()
+    }
+    sb.toString()
+  }
+
+  def toGzip(s: String): Array[Byte] = {
+    val is = new ByteArrayInputStream(s.getBytes("UTF-8"))
+    val baos = new ByteArrayOutputStream
+    val gs = new GZIPOutputStream(baos)
+    Util.copyBytes(is, gs)
+    gs.close()
+    baos.toByteArray
   }
 }

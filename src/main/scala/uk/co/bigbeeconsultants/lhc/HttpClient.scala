@@ -119,12 +119,14 @@ final class HttpClient(val config: Config = Config(),
   }
 
   private def markConnectionForClosure(connWrapper: HttpURLConnection) {
-    if (!config.keepAlive) connWrapper.disconnect()
-    else CleanupThread.futureClose(connWrapper)
+    //    if (!config.keepAlive) {
+    connWrapper.disconnect()
+    //    }
+    //    else CleanupThread.futureClose(connWrapper)
   }
 
   def closeConnections() {
-    if (config.keepAlive) CleanupThread.closeConnections()
+    //    if (config.keepAlive) CleanupThread.closeConnections()
   }
 
   private def setRequestHeaders(request: Request, requestHeaders: Headers, connWrapper: HttpURLConnection) {
@@ -149,9 +151,9 @@ final class HttpClient(val config: Config = Config(),
 
     if (request.method == Request.POST || request.method == Request.PUT) {
       connWrapper.setDoOutput(true)
-      if (config.chunkSizeInKB >= 0) {
-        connWrapper.setFixedLengthStreamingMode(config.chunkSizeInKB * 1024)
-      }
+      //      if (config.chunkSizeInKB >= 0) {
+      //        connWrapper.setFixedLengthStreamingMode(config.chunkSizeInKB * 1024)
+      //      }
     }
   }
 
@@ -162,12 +164,13 @@ final class HttpClient(val config: Config = Config(),
 
     if (request.method == Request.HEAD) {
       selectStream(connWrapper).close()
-      Response(status, new BodyCache(mediaType, emptyBuffer), responseHeaders)
+      Response(request, status, new BodyCache(mediaType, emptyBuffer), responseHeaders)
 
     } else {
       val body = responseBodyFactory.newBody(mediaType)
-      body.receiveData(mediaType, getBodyStream(contEnc, connWrapper))
-      Response(status, body, responseHeaders)
+      val stream = getBodyStream(contEnc, connWrapper)
+      body.receiveData(mediaType, stream)
+      Response(request, status, body, responseHeaders)
     }
   }
 
@@ -218,6 +221,7 @@ object HttpClient {
    */
   val defaultResponseBodyFactory = new BufferedBodyFactory
 
+  // Shuts down the background cleanup thread. Do not call this more than once.
   def terminate() {
     CleanupThread.terminate()
   }
