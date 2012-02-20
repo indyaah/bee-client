@@ -35,9 +35,7 @@ package uk.co.bigbeeconsultants.lhc.header
 import java.util.Date
 import java.util.regex.Pattern
 import java.net.URL
-import uk.co.bigbeeconsultants.lhc.{HttpDate, Util}
-import uk.co.bigbeeconsultants.lhc.response.Response
-import collection.mutable.{LinkedHashMap, ListBuffer}
+import uk.co.bigbeeconsultants.lhc.Util
 
 case class Domain(domain: String) {
   require(domain.length > 0)
@@ -60,10 +58,16 @@ case class Domain(domain: String) {
   }
 }
 
-case class CookieKey(name: String, domain: Domain, path: String = "/") {
+
+case class CookieKey(name: String, domain: Domain, path: String) {
   require(name.length > 0)
   require(path.endsWith("/"), path)
 }
+
+object CookieKey {
+  def apply (name: String, domain: String, path: String = "/") = new CookieKey(name, Domain(domain), path)
+}
+
 
 case class CookieValue(value: String,
                        expires: Date = new Date(),

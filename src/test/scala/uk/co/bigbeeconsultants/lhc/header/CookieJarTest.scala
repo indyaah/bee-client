@@ -28,23 +28,159 @@ import org.junit.Test
 import java.net.URL
 import org.junit.Assert._
 import uk.co.bigbeeconsultants.lhc.request.Request
-import uk.co.bigbeeconsultants.lhc.response.{Status, Response, Body, StringBodyCache}
+import uk.co.bigbeeconsultants.lhc.response.{Status, Response, StringBodyCache}
+import java.util.Date
+import uk.co.bigbeeconsultants.lhc.HttpDate
 
 class CookieJarTest {
 
   val ftpUrl1 = new URL("ftp://www.w3.org/standards/webdesign/htmlcss")
   val httpUrl1 = new URL("http://www.w3.org/standards/webdesign/htmlcss")
+  val httpUrl2 = new URL("http://www.bbc.co.uk/radio/stations/radio1")
   val httpsUrl1 = new URL("https://www.w3.org/login/")
   val body = new StringBodyCache(MediaType.TEXT_PLAIN, "")
+  val ok = Status(200, "OK")
 
   @Test
-  def parse() {
-    val h1 = HeaderName.SET_COOKIE -> "lang=en-US; Expires=Wed, 09 Jun 2021 10:18:14 GMT"
-    val h2 = HeaderName.SET_COOKIE -> "lang=; Expires=Sun, 06 Nov 1994 08:49:37 GMT"
+  def noCookies() {
     val request = Request.get(httpUrl1)
-    val response = Response(request, Status(200, "OK"), body, Headers(List(h1)))
-    val jar = new CookieJar
-    val newJar = jar.updateCookies(response)
+    val response = Response(request, ok, body, Headers(List()))
+    val newJar = CookieJar.updateCookies(response)
+    assertEquals(0, newJar.cookies.size)
+  }
+
+  @Test
+  def parsePlainCookie() {
+    val h1 = HeaderName.SET_COOKIE -> ("lang=en")
+    val request = Request.get(httpUrl1)
+    val response = Response(request, ok, body, Headers(List(h1)))
+    val newJar = CookieJar.updateCookies(response)
+    assertEquals(1, newJar.cookies.size)
+    val key1 = newJar.cookies.keys.iterator.next()
+    assertEquals(CookieKey("lang", "www.w3.org", "/standards/webdesign/"), key1)
+    val value1 = newJar.cookies(key1)
+    assertEquals("en", value1.value)
+    assertFalse(value1.persistent)
+  }
+
+  @Test
+  def parseCookieWithPath() {
+    val h1 = HeaderName.SET_COOKIE -> ("lang=en; Path=/standards")
+    val request = Request.get(httpUrl1)
+    val response = Response(request, ok, body, Headers(List(h1)))
+    val newJar = CookieJar.updateCookies(response)
+    assertEquals(1, newJar.cookies.size)
+    val key1 = newJar.cookies.keys.iterator.next()
+    assertEquals(CookieKey("lang", "www.w3.org", "/standards/"), key1)
+    val value1 = newJar.cookies(key1)
+    assertEquals("en", value1.value)
+  }
+
+  @Test
+  def parseCookieWithDomain() {
+    val h1 = HeaderName.SET_COOKIE -> ("lang=en; Domain=w3.org")
+    val request = Request.get(httpUrl1)
+    val response = Response(request, ok, body, Headers(List(h1)))
+    val newJar = CookieJar.updateCookies(response)
+    assertEquals(1, newJar.cookies.size)
+    val key1 = newJar.cookies.keys.iterator.next()
+    assertEquals(CookieKey("lang", "w3.org", "/standards/webdesign/"), key1)
+    val value1 = newJar.cookies(key1)
+    assertEquals("en", value1.value)
+  }
+
+  @Test
+  def parseCookieWithExpiry() {
+    val tomorrow = new Date(System.currentTimeMillis() + (24 * 60 * 60 * 1000))
+    val dateString = HttpDate.format(tomorrow)
+    val h1 = HeaderName.SET_COOKIE -> ("lang=en; Expires=" + dateString)
+    val request = Request.get(httpUrl1)
+    val response = Response(request, ok, body, Headers(List(h1)))
+    val newJar = CookieJar.updateCookies(response)
+    assertEquals(1, newJar.cookies.size)
+    val key1 = newJar.cookies.keys.iterator.next()
+    assertEquals(CookieKey("lang", "www.w3.org", "/standards/webdesign/"), key1)
+    val value1 = newJar.cookies(key1)
+    assertEquals("en", value1.value)
+    assertEquals(tomorrow.getTime / 1000, value1.expires.getTime / 1000)
+  }
+
+  @Test
+  def parseCookieWithMaxAge() {
+    val day = 24 * 60 * 60
+    val tomorrow = new Date(System.currentTimeMillis() + (day * 1000))
+    val h1 = HeaderName.SET_COOKIE -> ("lang=en; Max-Age=" + day)
+    val request = Request.get(httpUrl1)
+    val response = Response(request, ok, body, Headers(List(h1)))
+    val newJar = CookieJar.updateCookies(response)
+    assertEquals(1, newJar.cookies.size)
+    val key1 = newJar.cookies.keys.iterator.next()
+    assertEquals(CookieKey("lang", "www.w3.org", "/standards/webdesign/"), key1)
+    val value1 = newJar.cookies(key1)
+    assertEquals("en", value1.value)
+    assertEquals(tomorrow.getTime / 1000, value1.expires.getTime / 1000)
+  }
+
+  @Test
+  def parseCookieMaxAgeTrumpsExpires() {
+    val day = 24 * 60 * 60
+    val day7 = day * 10
+    val tomorrow = new Date(System.currentTimeMillis() + (day * 1000))
+    val nextWeek = new Date(System.currentTimeMillis() + (day7 * 1000))
+    val dateString = HttpDate.format(tomorrow)
+    val h1 = HeaderName.SET_COOKIE -> ("lang=en; Max-Age=" + day7 + "; Expires=" + dateString)
+    val request = Request.get(httpUrl1)
+    val response = Response(request, ok, body, Headers(List(h1)))
+    val newJar = CookieJar.updateCookies(response)
+    assertEquals(1, newJar.cookies.size)
+    val key1 = newJar.cookies.keys.iterator.next()
+    assertEquals(CookieKey("lang", "www.w3.org", "/standards/webdesign/"), key1)
+    val value1 = newJar.cookies(key1)
+    assertEquals("en", value1.value)
+    assertEquals(nextWeek.getTime / 1000, value1.expires.getTime / 1000)
+  }
+
+  @Test
+  def parseCookieWithHttpOnly() {
+    val h1 = HeaderName.SET_COOKIE -> ("lang=en; HttpOnly")
+    val request = Request.get(ftpUrl1)
+    val response = Response(request, ok, body, Headers(List(h1)))
+    val newJar = CookieJar.updateCookies(response)
+    assertEquals(0, newJar.cookies.size)
+  }
+
+  @Test
+  def parseCookieWithSecure() {
+    val h1 = HeaderName.SET_COOKIE -> ("lang=en; Secure")
+    val request = Request.get(httpUrl1)
+    val response = Response(request, ok, body, Headers(List(h1)))
+    val newJar = CookieJar.updateCookies(response)
+    assertEquals(1, newJar.cookies.size)
+    val key1 = newJar.cookies.keys.iterator.next()
+    assertEquals(CookieKey("lang", "www.w3.org", "/standards/webdesign/"), key1)
+    val value1 = newJar.cookies(key1)
+    assertEquals("en", value1.value)
+    assertTrue(value1.secure)
+  }
+
+  @Test
+  def parseRealisticCookie() {
+    val tenYears = new Date(System.currentTimeMillis() + (10 * 365 * 24 * 60 * 60 * 1000L))
+    val dateString = HttpDate.format(tenYears)
+    val h1 = HeaderName.SET_COOKIE -> ("BBC-UID=646f4472; expires=" + dateString + "; path=/; domain=bbc.co.uk")
+    val request = Request.get(httpUrl2)
+    val response = Response(request, ok, body, Headers(List(h1)))
+    val newJar = CookieJar.updateCookies(response)
+    assertEquals(1, newJar.cookies.size)
+    val key1 = newJar.cookies.keys.iterator.next()
+    assertEquals(CookieKey("BBC-UID", "bbc.co.uk", "/"), key1)
+    val value1 = newJar.cookies(key1)
+    assertEquals("646f4472", value1.value)
+    assertFalse(value1.secure)
+    assertFalse(value1.httpOnly)
+    assertFalse(value1.hostOnly)
+    assertTrue(value1.persistent)
+    assertEquals(tenYears.getTime / 1000, value1.expires.getTime / 1000)
   }
 
   @Test

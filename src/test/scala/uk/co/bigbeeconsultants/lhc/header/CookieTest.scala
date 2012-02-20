@@ -39,7 +39,7 @@ class CookieTest {
 
   @Test
   def cookie_matches_path() {
-    val w3root = CookieKey("n1", Domain("www.w3.org"))
+    val w3root = CookieKey("n1", "www.w3.org")
     val w3standards = CookieKey("n1", Domain("www.w3.org"), "/standards/")
     val c1 = Cookie(w3root, new CookieValue(value = "v1"))
     val c2 = Cookie(w3standards, new CookieValue(value = "v2"))
@@ -51,7 +51,7 @@ class CookieTest {
 
   @Test
   def cookie_matches_secure() {
-    val w3 = CookieKey("n1", Domain("www.w3.org"))
+    val w3 = CookieKey("n1", "www.w3.org")
     val c1 = Cookie(w3, new CookieValue(value = "v1", secure = false))
     val c2 = Cookie(w3, new CookieValue(value = "v2", secure = true))
     assertTrue(c1.willBeSentTo(httpUrl1))
@@ -62,7 +62,7 @@ class CookieTest {
 
   @Test
   def cookie_matches_httpOnly() {
-    val w3 = CookieKey("n1", Domain("www.w3.org"))
+    val w3 = CookieKey("n1", "www.w3.org")
     val c1 = Cookie(w3, new CookieValue(value = "v1", httpOnly = false))
     val c2 = Cookie(w3, new CookieValue(value = "v2", httpOnly = true))
     assertTrue(c1.willBeSentTo(ftpUrl1))
@@ -75,8 +75,8 @@ class CookieTest {
 
   @Test
   def cookie_matches_domain() {
-    val w3 = CookieKey("n1", Domain("www.w3.org"))
-    val xorg = CookieKey("n1", Domain("x.org"))
+    val w3 = CookieKey("n1", "www.w3.org")
+    val xorg = CookieKey("n1", "x.org")
     val c1 = Cookie(w3, new CookieValue(value = "v1"))
     val c2 = Cookie(xorg, new CookieValue(value = "v2"))
     assertTrue(c1.willBeSentTo(httpUrl1))

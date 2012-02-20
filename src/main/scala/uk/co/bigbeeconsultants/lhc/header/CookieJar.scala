@@ -54,6 +54,7 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
     var persistent = false
     var secure = false
     var httpOnly = false
+    var hasMaxAge = false
 
     for (attr <- Util.split(line, ';')) {
 
@@ -75,15 +76,17 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
       }
       else if (a.equalsIgnoreCase("HttpOnly") && v == "") {
         httpOnly = true
-        if (!scheme.startsWith("http")) return (SKIP, null)
+        if (!scheme.startsWith("http"))
+          return (SKIP, null)
       }
       else if (a.equalsIgnoreCase("Max-Age")) {
         persistent = true
+        hasMaxAge = true
         val seconds = v.toLong
         val millisecDelta = if (seconds > 0) seconds * 1000 else 0
         expires = new Date(System.currentTimeMillis() + millisecDelta)
       }
-      else if (a.equalsIgnoreCase("Expires")) {
+      else if (a.equalsIgnoreCase("Expires") && !hasMaxAge) {
         persistent = true
         expires = HttpDate.parse(v)
       }
@@ -92,38 +95,54 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
       }
     }
 
+    if (!path.endsWith("/")) {
+      path += "/"
+    }
+
     val k = CookieKey(name, domain, path)
     val v = CookieValue(value, expires, now, now, persistent, hostOnly, secure, httpOnly, scheme)
     (ADD, Cookie(k, v))
   }
 
+  private def filterCookieHeaders(response: Response): List[Header] = {
+    response.headers.list.filter(
+      header => header.name == HeaderName.SET_COOKIE.name ||
+        header.name == HeaderName.SET_COOKIE2.name)
+  }
 
+  /**Gets a new CookieJar derived from this one as augmented by the headers in a response. */
   def updateCookies(response: Response): CookieJar = {
-    val from = response.request.url
-    val host = Util.divide(from.getAuthority, ':')._1
-    val fPath = from.getPath
-    val fullPath = if (fPath == "") "/" else Util.divide(fPath, '?')._1
-    val lastSlash = fullPath.lastIndexOf('/')
-    val path = if (fullPath == "/") "/" else fullPath.substring(0, lastSlash)
+    val setcookies = filterCookieHeaders(response)
+    if (setcookies.isEmpty) {
+      this
+    }
+    else {
+      val from = response.request.url
+      val host = Util.divide(from.getAuthority, ':')._1
+      val fPath = from.getPath
+      val fullPath = if (fPath == "") "/" else Util.divide(fPath, '?')._1
+      val lastSlash = fullPath.lastIndexOf('/')
+      val path = if (fullPath == "/") "/" else fullPath.substring(0, lastSlash)
 
-    val jar = new LinkedHashMap[CookieKey, CookieValue]
-    jar ++= cookies
+      val jar = new LinkedHashMap[CookieKey, CookieValue]
+      jar ++= cookies
 
-    for (header <- response.headers.list) {
-      if (header.name == HeaderName.SET_COOKIE ||
-        header.name == HeaderName.SET_COOKIE2) {
-        for (line <- Util.split(header.value, '\n')) {
-          val (mode, cookie) = parseOneCookie(line, from.getProtocol, host, path)
-          mode match {
-            case ADD => jar.put(cookie.key, cookie.value)
-            case DEL => jar.remove(cookie.key)
-            case _ =>
+      for (header <- setcookies) {
+        if (header.name == HeaderName.SET_COOKIE.name ||
+          header.name == HeaderName.SET_COOKIE2.name) {
+          for (line <- Util.split(header.value, '\n')) {
+            val (mode, cookie) = parseOneCookie(line, from.getProtocol, host, path)
+            mode match {
+              case ADD => jar.put(cookie.key, cookie.value)
+              case DEL => jar.remove(cookie.key)
+              case _ =>
+            }
           }
         }
       }
-    }
 
-    CookieJar(jar.toMap)
+      CookieJar(jar.toMap)
+    }
   }
 
 
