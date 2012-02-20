@@ -24,7 +24,7 @@
 
 package uk.co.bigbeeconsultants.lhc
 
-import header.{Header, MediaType}
+import header.{HeaderName, MediaType}
 import java.net.{ConnectException, URL}
 import java.lang.AssertionError
 import request.{Config, Body}
@@ -140,7 +140,7 @@ class HttpIntegration {
       val body = response.body
       assertEquals(MediaType.TEXT_HTML, body.contentType)
       assertEquals(0, body.asString.length)
-      val location = response.headers.get(Header.LOCATION).value
+      val location = response.headers.get(HeaderName.LOCATION).value
       assertTrue(location, location.startsWith(serverUrl))
     } catch {
       case e: ConnectException =>
@@ -157,7 +157,7 @@ class HttpIntegration {
       val body = response.body
       assertEquals(MediaType.TEXT_HTML, body.contentType)
       assertEquals(0, body.asString.length)
-      val location = response.headers.get(Header.LOCATION).value
+      val location = response.headers.get(HeaderName.LOCATION).value
       assertTrue(location, location.startsWith(serverUrl))
     } catch {
       case e: ConnectException =>

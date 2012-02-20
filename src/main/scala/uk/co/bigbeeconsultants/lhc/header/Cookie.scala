@@ -24,23 +24,69 @@
 
 package uk.co.bigbeeconsultants.lhc.header
 
+// See
+// - HTTP State Management Mechanism - http://tools.ietf.org/html/rfc6265
+// - Internationalized Domain Names - http://tools.ietf.org/html/rfc5890
+// - Hypertext Transfer Protocol 1.1 - http://tools.ietf.org/html/rfc2616
+// - Hypertext Transfer Protocol 1.1 - http://tools.ietf.org/html/rfc2732
+// - Uniform Resource Identifiers - http://tools.ietf.org/html/rfc2396
+// - IPv6 addresses - http://tools.ietf.org/html/rfc2732
+
 import java.util.Date
+import java.util.regex.Pattern
+import java.net.URL
+import uk.co.bigbeeconsultants.lhc.{HttpDate, Util}
+import uk.co.bigbeeconsultants.lhc.response.Response
+import collection.mutable.{LinkedHashMap, ListBuffer}
 
-case class Cookie(name: String,
-                  value: String,
-                  expires: Option[Date],
-                  domain: Option[String],
-                  path: Option[String],
-                  creation: Date,
-                  lastAccessed: Date,
-                  persistent: Boolean,
-                  hostOnly: Boolean,
-                  secure: Boolean,
-                  httpOnly: Boolean)
+case class Domain(domain: String) {
+  require(domain.length > 0)
+  private val ipV4 = Pattern.compile("[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+")
 
+  def isIpAddress: Boolean = ipV4.matcher(domain).matches()
 
-object Cookie {
-  def apply(value: String): Cookie = {
-    Cookie(value, "", None, None, None, null, null, false, false, false, false)
+  /**Tests whether this domain matches some URL. */
+  def matches(url: URL) = {
+    val host = Util.divide(url.getAuthority, ':')._1
+    if (host == domain) {
+      true
+    } else if (host.length > domain.length) {
+      host.endsWith(domain) &&
+        host.charAt(host.length - domain.length - 1) == '.' &&
+        !isIpAddress
+    } else {
+      false
+    }
+  }
+}
+
+case class CookieKey(name: String, domain: Domain, path: String = "/") {
+  require(name.length > 0)
+  require(path.endsWith("/"), path)
+}
+
+case class CookieValue(value: String,
+                       expires: Date = new Date(),
+                       creation: Date = new Date(),
+                       lastAccessed: Date = new Date(),
+                       persistent: Boolean = false,
+                       hostOnly: Boolean = false,
+                       secure: Boolean = false,
+                       httpOnly: Boolean = false,
+                       serverProtocol: String = "http")
+
+case class Cookie(key: CookieKey, value: CookieValue) {
+
+  /**Gets the cookie as a request header value. */
+  def asHeader = key.name + "=" + value
+
+  /**Tests whether this cookie will be sent in the headers of a request to a specified URL. */
+  def willBeSentTo(url: URL) = {
+    val p = url.getProtocol
+    val qSecure = !value.secure || p == "https"
+    val qHttpOnly = !value.httpOnly || p.startsWith("http")
+    val qDomain = key.domain.matches(url)
+    val qPath = key.path.isEmpty || url.getPath.startsWith(key.path)
+    qSecure && qHttpOnly && qDomain && qPath
   }
 }

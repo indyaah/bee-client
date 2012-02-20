@@ -26,63 +26,51 @@ package uk.co.bigbeeconsultants.lhc
 
 import java.util.Date
 import java.text.SimpleDateFormat
-import java.io.{ByteArrayOutputStream, OutputStream, InputStream}
-import java.nio.ByteBuffer
-import collection.mutable.ListBuffer
+import com.weiglewilczek.slf4s.Logging
 
-object Util {
+object HttpDate extends Logging {
+
   // Dates are always in GMT. The canonical representation is rfc1123DateTimeFormat.
   // leading "EEE, " assumed to have been stripped; trailing "GMT" ignored
   val rfc1123DateTimeFormat = "dd MMM yyyy HH:mm:ss"
+
+  val fullRfc1123DateTimeFormat = "EEE, " + rfc1123DateTimeFormat
+
   // leading "EEEE, " assumed to have been stripped; trailing "GMT" ignored
   val rfc850DateTimeFormat = "dd-MMM-yy HH:mm:ss"
+
   // leading "EEE " assumed to have been stripped; trailing "GMT" ignored
   val asciiDateTimeFormat = "MMM d HH:mm:ss yyyy"
 
-  val DEFAULT_BUFFER_SIZE = 1024 * 16
+  val default = new Date(0)
 
-  def split(str: String, sep: Char): List[String] = {
-    val list = new ListBuffer[String]
-    val part = new StringBuilder
-    for (c <- str.toCharArray) {
-      if (c == sep) {
-        list += part.toString()
-        part.setLength(0)
-      } else {
-        part += c
+  def parse(dateString: String, defaultValue: Date = default): Date = {
+    var result = defaultValue
+    try {
+      val discriminant = dateString.charAt(3)
+      if (discriminant == ',') {
+        val str = dateString.substring(5)
+        result = new SimpleDateFormat(rfc1123DateTimeFormat).parse(str)
+      }
+      else if (discriminant == ' ') {
+        val str = dateString.substring(4)
+        result = new SimpleDateFormat(asciiDateTimeFormat).parse(str)
+      }
+      else {
+        val p = dateString.indexOf(' ')
+        val str = dateString.substring(p + 1)
+        result = new SimpleDateFormat(rfc850DateTimeFormat).parse(str)
       }
     }
-    list += part.toString()
-    list.toList
-  }
-
-  def divide(str: String, sep: Char) = {
-    val s = str.indexOf(sep)
-    if (s >= 0 && s < str.length) {
-      val a = str.substring(0, s)
-      val b = str.substring(s + 1)
-      (a, b)
+    catch {
+      case e: Exception => {
+        logger.error(dateString + ": failed to parse date. " + e.getMessage)
+      }
     }
-    else (str, "")
+    result
   }
 
-  def copyBytes(input: InputStream, output: OutputStream): Long = {
-    val buffer: Array[Byte] = new Array[Byte](DEFAULT_BUFFER_SIZE)
-    var count: Long = 0
-    var n = input.read(buffer)
-    while (n >= 0) {
-      output.write(buffer, 0, n)
-      count += n
-      n = input.read(buffer)
-    }
-    count
-  }
-
-  def copyToByteBufferAndClose(inputStream: InputStream): ByteBuffer = {
-    val initialSize = 0x10000 // 64K
-    val outStream = new ByteArrayOutputStream(initialSize)
-    copyBytes(inputStream, outStream)
-    inputStream.close()
-    ByteBuffer.wrap(outStream.toByteArray)
+  def format(date: Date): String = {
+    new SimpleDateFormat(fullRfc1123DateTimeFormat).format(date) + " GMT"
   }
 }

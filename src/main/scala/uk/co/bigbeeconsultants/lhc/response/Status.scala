@@ -25,7 +25,10 @@
 package uk.co.bigbeeconsultants.lhc.response
 
 /**Expresses an HTTP status line. */
-case class Status(code: Int, message: String)
+case class Status(code: Int, message: String) {
+  /** The category is 1=informational, 2=success, 3=redirect, 4=client error, 5=server error. */
+  lazy val category = code / 100
+}
 
 /**
  * Lists the official status codes as defined in RFC2616.

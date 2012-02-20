@@ -57,8 +57,8 @@ case class Part(value: String, qualifier: List[Qualifier] = Nil) {
 case class QualifiedValue(value: String) {
 
   val parts: List[Part] = {
-    val parts = for (v <- value.split(',')) yield {
-      val t = v.trim.split(';')
+    val parts = for (v <- Util.split(value, ',')) yield {
+      val t = Util.split(v.trim, ';')
       val qualifiers = for (q <- t.tail) yield {
         Qualifier(q.trim)
       }
@@ -67,5 +67,5 @@ case class QualifiedValue(value: String) {
     parts.toList
   }
 
-  override def toString = parts.mkString(", ")
+  override val toString = parts.mkString(", ")
 }

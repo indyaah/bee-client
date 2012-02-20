@@ -65,7 +65,7 @@ trait CachedBody extends Body {
  * as a string without much performance penalty. However, take care because the memory footprint will be large
  * when dealing with large volumes of response data.
  */
-final class BodyCache(val contentType: MediaType, byteData: ByteBuffer) extends CachedBody {
+final class ByteBodyCache(val contentType: MediaType, byteData: ByteBuffer) extends CachedBody {
 
   private var converted: String = null
 
@@ -89,7 +89,33 @@ final class BodyCache(val contentType: MediaType, byteData: ByteBuffer) extends 
   /**
    * Get the body of the response as an array of bytes.
    */
-  def asBytes: Array[Byte] = byteData.array()
+  def asBytes: Array[Byte] =
+    byteData.array()
+}
+
+
+/**
+ * Provides a Body implementation that caches a response in a ByteBuffer. This is also available
+ * as a string without much performance penalty. However, take care because the memory footprint will be large
+ * when dealing with large volumes of response data.
+ */
+final class StringBodyCache(val contentType: MediaType, bodyText: String) extends CachedBody {
+
+  /**
+   * Get the body of the response as a string.
+   */
+  override def asString: String = bodyText
+
+  /**
+   * Get the body of the response as an array of bytes.
+   */
+  def asBytes: Array[Byte] = {
+    val charset = contentType.charset.getOrElse(HttpClient.UTF8)
+    val buf = Charset.forName(charset).encode(bodyText)
+    val bytes = new Array[Byte](buf.limit())
+    buf.get(bytes, 0, buf.limit())
+    bytes
+  }
 }
 
 
@@ -99,10 +125,10 @@ final class BodyCache(val contentType: MediaType, byteData: ByteBuffer) extends 
  * when dealing with large volumes of response data.
  */
 final class BufferedBody extends CachedBody {
-  private var cache: BodyCache = null
+  private var cache: ByteBodyCache = null
 
   override def receiveData(contentType: MediaType, inputStream: InputStream) {
-    cache = new BodyCache(contentType, Util.copyToByteBufferAndClose(inputStream))
+    cache = new ByteBodyCache(contentType, Util.copyToByteBufferAndClose(inputStream))
   }
 
   def contentType: MediaType = if (cache != null) cache.contentType else null
@@ -117,6 +143,7 @@ final class BufferedBody extends CachedBody {
    */
   def asBytes: Array[Byte] = if (cache != null) cache.asBytes else null
 }
+
 
 object BufferedBody {
   implicit def asString(body: BufferedBody) = body.asString

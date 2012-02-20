@@ -1,5 +1,3 @@
-package uk.co.bigbeeconsultants.lhc.response
-
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -24,36 +22,32 @@ package uk.co.bigbeeconsultants.lhc.response
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
+package uk.co.bigbeeconsultants.lhc.header
+
 import org.junit.Test
-import org.junit.Assert._
 import java.net.URL
-import java.io.ByteArrayInputStream
-import uk.co.bigbeeconsultants.lhc.header.MediaType
+import org.junit.Assert._
+import uk.co.bigbeeconsultants.lhc.request.Request
+import uk.co.bigbeeconsultants.lhc.response.{Status, Response, Body, StringBodyCache}
 
-class BodyTest {
+class CookieJarTest {
 
-  val url1 = new URL("http://localhost/")
+  val ftpUrl1 = new URL("ftp://www.w3.org/standards/webdesign/htmlcss")
+  val httpUrl1 = new URL("http://www.w3.org/standards/webdesign/htmlcss")
+  val httpsUrl1 = new URL("https://www.w3.org/login/")
+  val body = new StringBodyCache(MediaType.TEXT_PLAIN, "")
 
   @Test
-  def bufferedBody() {
-    val s = """[ "Some json message text" ]"""
-    val bais = new ByteArrayInputStream(s.getBytes("UTF-8"))
-    val body = new BufferedBody
-    body.receiveData(MediaType.APPLICATION_JSON, bais)
-
-    assertEquals(MediaType.APPLICATION_JSON, body.contentType)
-    assertArrayEquals(s.getBytes("UTF-8"), body.asBytes)
-    assertEquals(s, body.asString)
+  def parse() {
+    val h1 = HeaderName.SET_COOKIE -> "lang=en-US; Expires=Wed, 09 Jun 2021 10:18:14 GMT"
+    val h2 = HeaderName.SET_COOKIE -> "lang=; Expires=Sun, 06 Nov 1994 08:49:37 GMT"
+    val request = Request.get(httpUrl1)
+    val response = Response(request, Status(200, "OK"), body, Headers(List(h1)))
+    val jar = new CookieJar
+    val newJar = jar.updateCookies(response)
   }
 
-
   @Test
-  def stringBody() {
-    val s = """[ "Some json message text" ]"""
-    val body = new StringBodyCache(MediaType.APPLICATION_JSON, s)
-
-    assertEquals(MediaType.APPLICATION_JSON, body.contentType)
-    assertEquals(s, body.asString)
-    assertArrayEquals(s.getBytes("UTF-8"), body.asBytes)
+  def cookieJar_filterByUrl1() {
   }
 }

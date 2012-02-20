@@ -1,4 +1,4 @@
-package uk.co.bigbeeconsultants.lhc.response
+package uk.co.bigbeeconsultants.lhc
 
 //-----------------------------------------------------------------------------
 // The MIT License
@@ -26,34 +26,44 @@ package uk.co.bigbeeconsultants.lhc.response
 
 import org.junit.Test
 import org.junit.Assert._
-import java.net.URL
-import java.io.ByteArrayInputStream
-import uk.co.bigbeeconsultants.lhc.header.MediaType
+import javax.xml.bind.DatatypeConverter
 
-class BodyTest {
-
-  val url1 = new URL("http://localhost/")
+class HttpDateTest {
 
   @Test
-  def bufferedBody() {
-    val s = """[ "Some json message text" ]"""
-    val bais = new ByteArrayInputStream(s.getBytes("UTF-8"))
-    val body = new BufferedBody
-    body.receiveData(MediaType.APPLICATION_JSON, bais)
-
-    assertEquals(MediaType.APPLICATION_JSON, body.contentType)
-    assertArrayEquals(s.getBytes("UTF-8"), body.asBytes)
-    assertEquals(s, body.asString)
+  def parse_silly() {
+    val d = HttpDate.parse("some silly rubbish")
+    assertEquals(HttpDate.default, d)
   }
-
 
   @Test
-  def stringBody() {
-    val s = """[ "Some json message text" ]"""
-    val body = new StringBodyCache(MediaType.APPLICATION_JSON, s)
-
-    assertEquals(MediaType.APPLICATION_JSON, body.contentType)
-    assertEquals(s, body.asString)
-    assertArrayEquals(s.getBytes("UTF-8"), body.asBytes)
+  def parse_rfc1123DateTimeFormat() {
+    val exp = DatatypeConverter.parseDateTime("2005-11-16T08:49:37Z").getTime
+    val dateString = "Wed, 16 Nov 2005 08:49:37 GMT"
+    val d = HttpDate.parse(dateString)
+    assertEquals(exp, d)
+    assertEquals(dateString, HttpDate.format(d))
   }
+
+  @Test
+  def parse_rfc850DateTimeFormat() {
+    val exp = DatatypeConverter.parseDateTime("2005-11-16T08:49:37Z").getTime
+    val d = HttpDate.parse("Wednesday, 16-Nov-05 08:49:37 GMT")
+    assertEquals(exp, d)
+  }
+
+  @Test
+  def parse_asciiDateTimeFormat1() {
+    val exp = DatatypeConverter.parseDateTime("1994-11-06T08:49:37Z").getTime
+    val d = HttpDate.parse("Sun Nov  6 08:49:37 1994")
+    assertEquals(exp, d)
+  }
+
+  @Test
+  def parse_asciiDateTimeFormat2() {
+    val exp = DatatypeConverter.parseDateTime("2005-11-16T08:49:37Z").getTime
+    val d = HttpDate.parse("Wed Nov 16 08:49:37 2005")
+    assertEquals(exp, d)
+  }
+
 }

@@ -32,6 +32,36 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 class UtilTest {
 
   @Test
+  def split_blank() {
+    assertEquals(List(""), Util.split("", ':'))
+  }
+
+  @Test
+  def split_sepOnly() {
+    assertEquals(List("", ""), Util.split(":", ':'))
+  }
+
+  @Test
+  def split_oneOnly() {
+    assertEquals(List("only"), Util.split("only", ':'))
+  }
+
+  @Test
+  def split_endOnly() {
+    assertEquals(List("only", ""), Util.split("only:", ':'))
+  }
+
+  @Test
+  def split_startOnly() {
+    assertEquals(List("", "only"), Util.split(":only", ':'))
+  }
+
+  @Test
+  def split_three() {
+    assertEquals(List("one", "two", "three"), Util.split("one:two:three", ':'))
+  }
+
+  @Test
   def divide0() {
     assertEquals(("", ""), Util.divide("", ':'))
   }
@@ -71,26 +101,4 @@ class UtilTest {
     assertEquals(bytes.length, count)
     assertEquals(result, str)
   }
-
-  @Test
-  def date1() {
-    val exp = DatatypeConverter.parseDateTime("1994-11-06T08:49:37Z").getTime
-    val d = Util.parseHttpDate("Sun, 06 Nov 1994 08:49:37 GMT")
-    assertEquals(exp, d)
-  }
-
-  @Test
-  def date2() {
-    val exp = DatatypeConverter.parseDateTime("1994-11-06T08:49:37Z").getTime
-    val d = Util.parseHttpDate("Sunday, 06-Nov-94 08:49:37 GMT")
-    assertEquals(exp, d)
-  }
-
-  @Test
-  def date3() {
-    val exp = DatatypeConverter.parseDateTime("1994-11-06T08:49:37Z").getTime
-    val d = Util.parseHttpDate("Sun Nov  6 08:49:37 1994")
-    assertEquals(exp, d)
-  }
-
 }

@@ -24,7 +24,7 @@
 
 package uk.co.bigbeeconsultants.lhc
 
-import header.{Headers, Header, MediaType}
+import header.{HeaderName, Headers, Header, MediaType}
 import response._
 import request.{Config, RequestException, Body, Request}
 import java.nio.ByteBuffer
@@ -32,7 +32,7 @@ import java.io._
 import java.util.zip.GZIPInputStream
 import java.net.{URLConnection, URL, HttpURLConnection}
 import collection.mutable.ListBuffer
-import Header._
+import HeaderName._
 import Status._
 
 /**
@@ -162,9 +162,10 @@ final class HttpClient(val config: Config = Config(),
     val contEnc = responseHeaders.find(CONTENT_ENCODING)
     val mediaType = MediaType(connWrapper.getContentType)
 
-    if (request.method == Request.HEAD) {
+    if (request.method == Request.HEAD || status.category == 1 ||
+      status.code == Status.S2_NO_CONTENT || status.code == Status.S3_NOT_MODIFIED) {
       selectStream(connWrapper).close()
-      Response(request, status, new BodyCache(mediaType, emptyBuffer), responseHeaders)
+      Response(request, status, new ByteBodyCache(mediaType, emptyBuffer), responseHeaders)
 
     } else {
       val body = responseBodyFactory.newBody(mediaType)
@@ -211,7 +212,7 @@ object HttpClient {
   val GZIP = "gzip"
 
   val defaultRequestHeaders = Headers(List(
-//    Header(ACCEPT_ENCODING, GZIP),
+    //    Header(ACCEPT_ENCODING, GZIP),
     Header(ACCEPT_CHARSET, UTF8)
   ))
 
@@ -220,6 +221,13 @@ object HttpClient {
    * are easily converted to strings.
    */
   val defaultResponseBodyFactory = new BufferedBodyFactory
+
+  /**
+   * Closes all the keep-alive connections still pending.
+   */
+  def closeConnections() {
+    CleanupThread.closeConnections()
+  }
 
   // Shuts down the background cleanup thread. Do not call this more than once.
   def terminate() {

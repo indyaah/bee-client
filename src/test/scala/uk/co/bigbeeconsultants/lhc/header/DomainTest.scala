@@ -1,5 +1,3 @@
-package uk.co.bigbeeconsultants.lhc.response
-
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -24,36 +22,45 @@ package uk.co.bigbeeconsultants.lhc.response
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
+package uk.co.bigbeeconsultants.lhc.header
+
 import org.junit.Test
 import org.junit.Assert._
 import java.net.URL
-import java.io.ByteArrayInputStream
-import uk.co.bigbeeconsultants.lhc.header.MediaType
 
-class BodyTest {
+class DomainTest {
 
-  val url1 = new URL("http://localhost/")
+  val ftpUrl1 = new URL("ftp://www.w3.org/standards/webdesign/htmlcss")
+  val httpUrl1 = new URL("http://www.w3.org/standards/webdesign/htmlcss")
+  val httpsUrl1 = new URL("https://www.w3.org/login/")
 
   @Test
-  def bufferedBody() {
-    val s = """[ "Some json message text" ]"""
-    val bais = new ByteArrayInputStream(s.getBytes("UTF-8"))
-    val body = new BufferedBody
-    body.receiveData(MediaType.APPLICATION_JSON, bais)
-
-    assertEquals(MediaType.APPLICATION_JSON, body.contentType)
-    assertArrayEquals(s.getBytes("UTF-8"), body.asBytes)
-    assertEquals(s, body.asString)
+  def domain_isIpAddress_withName() {
+    val d = Domain("alpha.bravo.charlie")
+    assertFalse(d.isIpAddress)
   }
 
+  @Test
+  def domain_isIpAddress_withDottedQuad() {
+    val d = Domain("10.1.233.0")
+    assertTrue(d.isIpAddress)
+  }
 
   @Test
-  def stringBody() {
-    val s = """[ "Some json message text" ]"""
-    val body = new StringBodyCache(MediaType.APPLICATION_JSON, s)
+  def domain_matchesSame() {
+    val d = Domain("www.w3.org")
+    assertTrue(d.matches(new URL("http://www.w3.org:80/standards/")))
+  }
 
-    assertEquals(MediaType.APPLICATION_JSON, body.contentType)
-    assertEquals(s, body.asString)
-    assertArrayEquals(s.getBytes("UTF-8"), body.asBytes)
+  @Test
+  def domain_matchesParent() {
+    val d = Domain("w3.org")
+    assertTrue(d.matches(httpUrl1))
+  }
+
+  @Test
+  def longerDomainName_isRejected() {
+    val d = Domain("members.w3.org")
+    assertFalse(d.matches(httpUrl1))
   }
 }

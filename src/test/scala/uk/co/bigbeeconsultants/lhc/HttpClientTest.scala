@@ -26,14 +26,14 @@ package uk.co.bigbeeconsultants.lhc
 
 import com.pyruby.stubserver.StubMethod
 import com.pyruby.stubserver.StubServer
-import header.{Headers, Header, MediaType}
+import header.{HeaderName, Headers, MediaType}
 import org.junit.Assert._
 import java.nio.{BufferUnderflowException, BufferOverflowException, ByteBuffer}
 import java.net.URL
 import request.Body
 import response.CachedBody
 import org.junit._
-import Header._
+import HeaderName._
 import MediaType._
 import scala.collection.JavaConversions._
 import java.io._
@@ -46,7 +46,7 @@ class HttpClientTest {
 
   val url = "/some/url"
 
-  @Test def get_shouldReturnOK() {
+  @Test def get200_shouldReturnOK() {
     val http = new HttpClient()
     val stubbedMethod = StubMethod.get(url)
     val json = """{"astring" : "the message" }"""
@@ -60,10 +60,23 @@ class HttpClientTest {
   }
 
 
+  @Test def get304_shouldReturnOK() {
+    val http = new HttpClient()
+    val stubbedMethod = StubMethod.get(url)
+    server.expect(stubbedMethod).thenReturn(304, APPLICATION_JSON, "ignore me")
+
+    val response = http.get(new URL(baseUrl + url))
+    server.verify()
+    assertEquals(APPLICATION_JSON, response.body.contentType)
+    assertEquals(APPLICATION_JSON.toString, response.headers.get(CONTENT_TYPE).value)
+    assertEquals("", response.body.asString)
+  }
+
+
   @Test def get_withGzip_shouldReturnText() {
     val http = new HttpClient()
     val stubbedMethod = StubMethod.get(url)
-    server.expect(stubbedMethod).thenReturn(200, TEXT_PLAIN.toString, toGzip(HttpClientTest.loadsOfText), Map(Header.CONTENT_ENCODING.name -> "gzip"))
+    server.expect(stubbedMethod).thenReturn(200, TEXT_PLAIN.toString, toGzip(HttpClientTest.loadsOfText), Map(CONTENT_ENCODING.name -> "gzip"))
 
     val response = http.get(new URL(baseUrl + url), Headers(List(ACCEPT_ENCODING -> "gzip")))
     server.verify()
@@ -123,7 +136,7 @@ class HttpClientTest {
   }
 
 
-  @Test def post_shouldReturnOK() {
+  @Test def post200_shouldReturnOK() {
     val http = new HttpClient()
     val stubbedMethod = StubMethod.post(url)
     val jsonRes = """{"astring" : "the response" }"""
@@ -133,6 +146,18 @@ class HttpClientTest {
     server.verify()
     assertEquals(APPLICATION_JSON, response.body.contentType)
     assertEquals(jsonRes, response.body.asString)
+  }
+
+
+  @Test def post204_shouldReturnOK() {
+    val http = new HttpClient()
+    val stubbedMethod = StubMethod.post(url)
+    server.expect(stubbedMethod).thenReturn(204, APPLICATION_JSON, "ignore me")
+
+    val response = http.post(new URL(baseUrl + url), Body(APPLICATION_JSON, Map("a" -> "b")))
+    server.verify()
+    assertEquals(APPLICATION_JSON, response.body.contentType)
+    assertEquals("", response.body.asString)
   }
 
 
@@ -207,9 +232,17 @@ class HttpClientTest {
     println(bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
   }
 
+  @Before
+  def before() {
+    server = new StubServer(port)
+    server.start()
+  }
+
   @After
   def after() {
     server.clearExpectations()
+    HttpClient.closeConnections()
+    server.stop()
   }
 }
 
@@ -221,8 +254,8 @@ object HttpClientTest {
   @BeforeClass
   def configure() {
     baseUrl = "http://localhost:" + port
-    server = new StubServer(port)
-    server.start()
+    //    server = new StubServer(port)
+    //    server.start()
   }
 
   @AfterClass
@@ -231,20 +264,24 @@ object HttpClientTest {
       HttpClient.terminate()
       assertFalse("Expect that cleanup thread has been successully shut down", CleanupThread.isRunning)
     }
-    server.stop()
+    //    server.stop()
   }
 
 
   lazy val loadsOfText: String = {
     val is = getClass.getClassLoader.getResourceAsStream("test-lighthttpclient.php")
-    val br = new BufferedReader(new InputStreamReader(new BufferedInputStream(is), "UTF-8"))
-    val sb = new StringBuilder
-    var line = br.readLine()
-    while (line != null) {
-      sb.append(line)
-      line = br.readLine()
+    try {
+      val br = new BufferedReader(new InputStreamReader(new BufferedInputStream(is), "UTF-8"))
+      val sb = new StringBuilder
+      var line = br.readLine()
+      while (line != null) {
+        sb.append(line)
+        line = br.readLine()
+      }
+      sb.toString()
+    } finally {
+      is.close()
     }
-    sb.toString()
   }
 
   def toGzip(s: String): Array[Byte] = {
