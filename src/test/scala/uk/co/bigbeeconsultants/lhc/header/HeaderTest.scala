@@ -103,22 +103,7 @@ class HeaderTest {
     val time = DatatypeConverter.parseDateTime("1994-11-06T08:49:37Z").getTime
     val h = Header("Date: Sun, 06 Nov 1994 08:49:37 GMT")
     assertEquals("Date", h.name)
-    assertEquals(time, h.toDate())
+    assertEquals(time, h.toDate().date)
   }
 
-  @Test
-  def cookie() {
-    val time = DatatypeConverter.parseDateTime("1994-11-06T08:49:37Z").getTime
-    val h = Header("Cookie:JSESSIONID=43CB070C8E4166DA94A5028822B04863; screenResolution=1366x768")
-    assertEquals("Cookie", h.name)
-    //    assertEquals(time, h.toDate())
-  }
-
-  @Test
-  def setCookie() {
-    val time = DatatypeConverter.parseDateTime("1994-11-06T08:49:37Z").getTime
-    val h = Header("Set-Cookie: JSESSIONID=0000UJcxEKVy4TFX3CLy8Gn08Rm:-1; Path=/")
-    assertEquals("Set-Cookie", h.name)
-    //    assertEquals(time, h.toDate())
-  }
 }

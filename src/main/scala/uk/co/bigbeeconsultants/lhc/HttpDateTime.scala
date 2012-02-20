@@ -24,11 +24,33 @@
 
 package uk.co.bigbeeconsultants.lhc
 
-import java.util.Date
 import java.text.SimpleDateFormat
 import com.weiglewilczek.slf4s.Logging
+import java.util.{Calendar, Date}
 
-object HttpDate extends Logging {
+/**
+ * Expresses the number of seconds since 1st Jan 1970, as used in HTTP date headers.
+ */
+case class HttpDateTime(seconds: Long) extends Ordered[HttpDateTime] {
+
+  def this(d: Date) = this(d.getTime / 1000)
+
+  def this(c: Calendar) = this(c.getTime)
+
+  def this() = this(System.currentTimeMillis() / 1000)
+
+  lazy val date = new Date(seconds * 1000)
+
+  def +(secondsDelta: Long) = if (secondsDelta == 0) this else new HttpDateTime(seconds + secondsDelta)
+
+  override lazy val toString = {
+    new SimpleDateFormat(HttpDateTime.fullRfc1123DateTimeFormat).format(date) + " GMT"
+  }
+
+  def compare(that: HttpDateTime) = (this.seconds - that.seconds).toInt
+}
+
+object HttpDateTime extends Logging {
 
   // Dates are always in GMT. The canonical representation is rfc1123DateTimeFormat.
   // leading "EEE, " assumed to have been stripped; trailing "GMT" ignored
@@ -42,24 +64,24 @@ object HttpDate extends Logging {
   // leading "EEE " assumed to have been stripped; trailing "GMT" ignored
   val asciiDateTimeFormat = "MMM d HH:mm:ss yyyy"
 
-  val default = new Date(0)
+  val zero = new HttpDateTime(0)
 
-  def parse(dateString: String, defaultValue: Date = default): Date = {
+  def parse(dateString: String, defaultValue: HttpDateTime = zero): HttpDateTime = {
     var result = defaultValue
     try {
       val discriminant = dateString.charAt(3)
       if (discriminant == ',') {
         val str = dateString.substring(5)
-        result = new SimpleDateFormat(rfc1123DateTimeFormat).parse(str)
+        result = new HttpDateTime(new SimpleDateFormat(rfc1123DateTimeFormat).parse(str))
       }
       else if (discriminant == ' ') {
         val str = dateString.substring(4)
-        result = new SimpleDateFormat(asciiDateTimeFormat).parse(str)
+        result = new HttpDateTime(new SimpleDateFormat(asciiDateTimeFormat).parse(str))
       }
       else {
         val p = dateString.indexOf(' ')
         val str = dateString.substring(p + 1)
-        result = new SimpleDateFormat(rfc850DateTimeFormat).parse(str)
+        result = new HttpDateTime(new SimpleDateFormat(rfc850DateTimeFormat).parse(str))
       }
     }
     catch {
@@ -68,9 +90,5 @@ object HttpDate extends Logging {
       }
     }
     result
-  }
-
-  def format(date: Date): String = {
-    new SimpleDateFormat(fullRfc1123DateTimeFormat).format(date) + " GMT"
   }
 }

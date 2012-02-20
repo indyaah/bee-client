@@ -28,42 +28,56 @@ import org.junit.Test
 import org.junit.Assert._
 import javax.xml.bind.DatatypeConverter
 
-class HttpDateTest {
+class HttpDateTimeTest {
 
   @Test
   def parse_silly() {
-    val d = HttpDate.parse("some silly rubbish")
-    assertEquals(HttpDate.default, d)
+    val d = HttpDateTime.parse("some silly rubbish")
+    assertEquals(HttpDateTime.zero, d)
   }
 
   @Test
   def parse_rfc1123DateTimeFormat() {
-    val exp = DatatypeConverter.parseDateTime("2005-11-16T08:49:37Z").getTime
+    val exp = new HttpDateTime(DatatypeConverter.parseDateTime("2005-11-16T08:49:37Z"))
     val dateString = "Wed, 16 Nov 2005 08:49:37 GMT"
-    val d = HttpDate.parse(dateString)
+    val d = HttpDateTime.parse(dateString)
     assertEquals(exp, d)
-    assertEquals(dateString, HttpDate.format(d))
+    assertEquals(dateString, d.toString)
   }
 
   @Test
   def parse_rfc850DateTimeFormat() {
-    val exp = DatatypeConverter.parseDateTime("2005-11-16T08:49:37Z").getTime
-    val d = HttpDate.parse("Wednesday, 16-Nov-05 08:49:37 GMT")
+    val exp = new HttpDateTime(DatatypeConverter.parseDateTime("2005-11-16T08:49:37Z"))
+    val d = HttpDateTime.parse("Wednesday, 16-Nov-05 08:49:37 GMT")
     assertEquals(exp, d)
   }
 
   @Test
   def parse_asciiDateTimeFormat1() {
-    val exp = DatatypeConverter.parseDateTime("1994-11-06T08:49:37Z").getTime
-    val d = HttpDate.parse("Sun Nov  6 08:49:37 1994")
+    val exp = new HttpDateTime(DatatypeConverter.parseDateTime("1994-11-06T08:49:37Z"))
+    val d = HttpDateTime.parse("Sun Nov  6 08:49:37 1994")
     assertEquals(exp, d)
   }
 
   @Test
   def parse_asciiDateTimeFormat2() {
-    val exp = DatatypeConverter.parseDateTime("2005-11-16T08:49:37Z").getTime
-    val d = HttpDate.parse("Wed Nov 16 08:49:37 2005")
+    val exp = new HttpDateTime(DatatypeConverter.parseDateTime("2005-11-16T08:49:37Z"))
+    val d = HttpDateTime.parse("Wed Nov 16 08:49:37 2005")
     assertEquals(exp, d)
+  }
+
+  @Test
+  def plus() {
+    val now = new HttpDateTime()
+    val later = new HttpDateTime() + 60
+    assertEquals(60, later.seconds - now.seconds)
+  }
+
+  @Test
+  def compare() {
+    val now = new HttpDateTime()
+    val later = new HttpDateTime() + 60
+    assertTrue(later > now)
   }
 
 }

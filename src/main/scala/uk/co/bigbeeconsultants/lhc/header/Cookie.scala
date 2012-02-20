@@ -32,10 +32,9 @@ package uk.co.bigbeeconsultants.lhc.header
 // - Uniform Resource Identifiers - http://tools.ietf.org/html/rfc2396
 // - IPv6 addresses - http://tools.ietf.org/html/rfc2732
 
-import java.util.Date
 import java.util.regex.Pattern
 import java.net.URL
-import uk.co.bigbeeconsultants.lhc.Util
+import uk.co.bigbeeconsultants.lhc.{HttpDateTime, Util}
 
 case class Domain(domain: String) {
   require(domain.length > 0)
@@ -70,9 +69,9 @@ object CookieKey {
 
 
 case class CookieValue(value: String,
-                       expires: Date = new Date(),
-                       creation: Date = new Date(),
-                       lastAccessed: Date = new Date(),
+                       expires: HttpDateTime = new HttpDateTime(),
+                       creation: HttpDateTime = new HttpDateTime(),
+                       lastAccessed: HttpDateTime = new HttpDateTime(),
                        persistent: Boolean = false,
                        hostOnly: Boolean = false,
                        secure: Boolean = false,

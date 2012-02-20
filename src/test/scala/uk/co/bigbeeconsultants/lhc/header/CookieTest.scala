@@ -26,10 +26,7 @@ package uk.co.bigbeeconsultants.lhc.header
 
 import org.junit.Test
 import java.net.URL
-import java.util.Date
-import uk.co.bigbeeconsultants.lhc.HttpDate
 import org.junit.Assert._
-import uk.co.bigbeeconsultants.lhc.header.Cookie._
 
 class CookieTest {
 

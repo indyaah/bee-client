@@ -32,9 +32,8 @@ package uk.co.bigbeeconsultants.lhc.header
 // - Uniform Resource Identifiers - http://tools.ietf.org/html/rfc2396
 // - IPv6 addresses - http://tools.ietf.org/html/rfc2732
 
-import java.util.Date
 import java.net.URL
-import uk.co.bigbeeconsultants.lhc.{HttpDate, Util}
+import uk.co.bigbeeconsultants.lhc.{HttpDateTime, Util}
 import uk.co.bigbeeconsultants.lhc.response.Response
 import collection.mutable.LinkedHashMap
 
@@ -47,7 +46,7 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
     var name: String = ""
     var value: String = ""
     var path: String = requestPath
-    val now = new Date()
+    val now = new HttpDateTime()
     var expires = now
     var domain: Domain = Domain(host)
     var hostOnly = true
@@ -83,12 +82,12 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
         persistent = true
         hasMaxAge = true
         val seconds = v.toLong
-        val millisecDelta = if (seconds > 0) seconds * 1000 else 0
-        expires = new Date(System.currentTimeMillis() + millisecDelta)
+        val secDelta = if (seconds > 0) seconds else 0
+        expires = new HttpDateTime(System.currentTimeMillis()/1000 + secDelta)
       }
       else if (a.equalsIgnoreCase("Expires") && !hasMaxAge) {
         persistent = true
-        expires = HttpDate.parse(v)
+        expires = HttpDateTime.parse(v)
       }
       else if (a.equalsIgnoreCase("Path")) {
         path = v

@@ -24,8 +24,7 @@
 
 package uk.co.bigbeeconsultants.lhc.header
 
-import java.util.Date
-import uk.co.bigbeeconsultants.lhc.{HttpDate, Util}
+import uk.co.bigbeeconsultants.lhc.{HttpDateTime, Util}
 
 /**
  * Provides an HTTP header.
@@ -36,7 +35,7 @@ case class Header(name: String, value: String) {
 
   def toLong: Long = value.toLong
 
-  def toDate(defaultValue: Date = HttpDate.default): Date = HttpDate.parse(value, defaultValue)
+  def toDate(defaultValue: HttpDateTime = HttpDateTime.zero): HttpDateTime = HttpDateTime.parse(value, defaultValue)
 
   def toQualifiedValue = QualifiedValue(value)
 

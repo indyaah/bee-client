@@ -24,13 +24,11 @@
 
 package uk.co.bigbeeconsultants.lhc
 
-import java.util.Date
-import java.text.SimpleDateFormat
 import java.io.{ByteArrayOutputStream, OutputStream, InputStream}
 import java.nio.ByteBuffer
 import collection.mutable.ListBuffer
 
-object Util {
+private[lhc] object Util {
   // Dates are always in GMT. The canonical representation is rfc1123DateTimeFormat.
   // leading "EEE, " assumed to have been stripped; trailing "GMT" ignored
   val rfc1123DateTimeFormat = "dd MMM yyyy HH:mm:ss"
