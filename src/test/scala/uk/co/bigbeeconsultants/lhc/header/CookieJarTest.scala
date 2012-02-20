@@ -91,7 +91,7 @@ class CookieJarTest {
 
   @Test
   def parseCookieWithExpiry() {
-    val tomorrow = new HttpDateTime(System.currentTimeMillis() + (24 * 60 * 60 * 1000))
+    val tomorrow = new HttpDateTime() + (24 * 60 * 60)
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; Expires=" + tomorrow)
     val request = Request.get(httpUrl1)
     val response = Response(request, ok, body, Headers(List(h1)))
@@ -163,7 +163,7 @@ class CookieJarTest {
 
   @Test
   def parseRealisticCookie() {
-    val tenYears = new HttpDateTime() + (10 * 365 * 24 * 60 * 60 * 1000L)
+    val tenYears = new HttpDateTime() + (10 * 365 * 24 * 60 * 60)
     val h1 = HeaderName.SET_COOKIE -> ("BBC-UID=646f4472; expires=" + tenYears + "; path=/; domain=bbc.co.uk")
     val request = Request.get(httpUrl2)
     val response = Response(request, ok, body, Headers(List(h1)))
@@ -177,7 +177,7 @@ class CookieJarTest {
     assertFalse(value1.httpOnly)
     assertFalse(value1.hostOnly)
     assertTrue(value1.persistent)
-    assertEquals(tenYears.seconds / 1000, value1.expires.seconds / 1000)
+    assertEquals(tenYears.seconds, value1.expires.seconds)
   }
 
   @Test

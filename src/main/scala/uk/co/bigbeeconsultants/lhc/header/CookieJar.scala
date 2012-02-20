@@ -83,7 +83,7 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
         hasMaxAge = true
         val seconds = v.toLong
         val secDelta = if (seconds > 0) seconds else 0
-        expires = new HttpDateTime(System.currentTimeMillis()/1000 + secDelta)
+        expires = new HttpDateTime() + secDelta
       }
       else if (a.equalsIgnoreCase("Expires") && !hasMaxAge) {
         persistent = true

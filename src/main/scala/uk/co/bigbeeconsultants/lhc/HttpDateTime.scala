@@ -71,17 +71,16 @@ object HttpDateTime extends Logging {
     try {
       val discriminant = dateString.charAt(3)
       if (discriminant == ',') {
-        val str = dateString.substring(5)
-        result = new HttpDateTime(new SimpleDateFormat(rfc1123DateTimeFormat).parse(str))
+        val df = new SimpleDateFormat(rfc1123DateTimeFormat)
+        result = new HttpDateTime(df.parse(dateString.substring(5)))
       }
       else if (discriminant == ' ') {
-        val str = dateString.substring(4)
-        result = new HttpDateTime(new SimpleDateFormat(asciiDateTimeFormat).parse(str))
+        val df = new SimpleDateFormat(asciiDateTimeFormat)
+        result = new HttpDateTime(df.parse(dateString.substring(4)))
       }
       else {
-        val p = dateString.indexOf(' ')
-        val str = dateString.substring(p + 1)
-        result = new HttpDateTime(new SimpleDateFormat(rfc850DateTimeFormat).parse(str))
+        val df = new SimpleDateFormat(rfc850DateTimeFormat)
+        result = new HttpDateTime(df.parse(dateString.substring(dateString.indexOf(' ') + 1)))
       }
     }
     catch {
