@@ -182,6 +182,22 @@ class CookieJarTest {
   }
 
   @Test
-  def cookieJar_filterByUrl1() {
+  def filterForRequest_withTwoCookies() {
+    val tenYears = new HttpDateTimeInstant() + (10 * 365 * 24 * 60 * 60)
+    val cKey1 = CookieKey("UID", "bbc.co.uk", "/")
+    val cVal1 = CookieValue(value = "646f4472", expires = tenYears)
+
+    val cKey2 = CookieKey("LANG", "www.bbc.co.uk", "/")
+    val cVal2 = CookieValue(value = "en", expires = tenYears)
+
+    val cKey3 = CookieKey("XYZ", "x.org", "/")
+    val cVal3 = CookieValue(value = "zzz", expires = tenYears)
+
+    val jar = new CookieJar(Map(cKey1 -> cVal1, cKey2 -> cVal2, cKey3 -> cVal3))
+
+    val header = jar.filterForRequest(httpUrl2.url)
+    assertEquals(HeaderName.COOKIE.name, header.name)
+    assertTrue(header.value, header.value == "UID=646f4472; LANG=en" ||
+      header.value == "LANG=en; UID=646f4472")
   }
 }

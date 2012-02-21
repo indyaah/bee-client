@@ -26,7 +26,6 @@ package uk.co.bigbeeconsultants.lhc
 
 import org.junit.Test
 import org.junit.Assert._
-import javax.xml.bind.DatatypeConverter
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 class UtilTest {

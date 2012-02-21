@@ -27,6 +27,7 @@ package uk.co.bigbeeconsultants.lhc.header
 
 case class HeaderName(name: String) {
   def -> (newValue: String) = new Header(name, newValue)
+  override def toString = name
 }
 
 object HeaderName {

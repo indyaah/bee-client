@@ -29,7 +29,7 @@ import java.net.{ConnectException, URL}
 import java.lang.AssertionError
 import request.{Config, Body}
 import response.CachedBody
-import org.junit.{Ignore, After, Before, Test}
+import org.junit.{After, Before, Test}
 import org.junit.Assert._
 
 class HttpIntegration {

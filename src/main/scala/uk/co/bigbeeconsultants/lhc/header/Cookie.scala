@@ -32,31 +32,8 @@ package uk.co.bigbeeconsultants.lhc.header
 // - Uniform Resource Identifiers - http://tools.ietf.org/html/rfc2396
 // - IPv6 addresses - http://tools.ietf.org/html/rfc2732
 
-import java.util.regex.Pattern
 import java.net.URL
-import uk.co.bigbeeconsultants.lhc.{HttpDateTimeInstant, Util}
-
-case class Domain(domain: String) {
-  require(domain.length > 0)
-  private val ipV4 = Pattern.compile("[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+")
-
-  def isIpAddress: Boolean = ipV4.matcher(domain).matches()
-
-  /**Tests whether this domain matches some URL. */
-  def matches(url: URL) = {
-    val host = Util.divide(url.getAuthority, ':')._1
-    if (host == domain) {
-      true
-    } else if (host.length > domain.length) {
-      host.endsWith(domain) &&
-        host.charAt(host.length - domain.length - 1) == '.' &&
-        !isIpAddress
-    } else {
-      false
-    }
-  }
-}
-
+import uk.co.bigbeeconsultants.lhc.HttpDateTimeInstant
 
 case class CookieKey(name: String, domain: Domain, path: String) {
   require(name.length > 0)
@@ -78,10 +55,11 @@ case class CookieValue(value: String,
                        httpOnly: Boolean = false,
                        serverProtocol: String = "http")
 
+
 case class Cookie(key: CookieKey, value: CookieValue) {
 
   /**Gets the cookie as a request header value. */
-  def asHeader = key.name + "=" + value
+  def asHeader = key.name + "=" + value.value
 
   /**Tests whether this cookie will be sent in the headers of a request to a specified URL. */
   def willBeSentTo(url: URL) = {

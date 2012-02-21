@@ -33,9 +33,9 @@ package uk.co.bigbeeconsultants.lhc.header
 // - IPv6 addresses - http://tools.ietf.org/html/rfc2732
 
 import java.net.URL
-import uk.co.bigbeeconsultants.lhc.{HttpDateTimeInstant, Util}
 import uk.co.bigbeeconsultants.lhc.response.Response
-import collection.mutable.LinkedHashMap
+import collection.mutable.{ListBuffer, LinkedHashMap}
+import uk.co.bigbeeconsultants.lhc.{HttpDateTimeInstant, Util}
 
 case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
 
@@ -143,11 +143,18 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
   }
 
 
-  def filterForRequest(url: URL): List[Header] = {
-    //TODO
-    Nil
+  def filterForRequest(url: URL): Header = {
+    val headers = new ListBuffer[String]
+    for ((key, value) <- cookies) {
+      val cookie = Cookie(key, value)
+      if (cookie.willBeSentTo(url)) {
+        headers += cookie.asHeader
+      }
+    }
+    HeaderName.COOKIE -> headers.mkString("; ")
   }
 }
+
 
 object CookieJar {
   def updateCookies(response: Response): CookieJar = new CookieJar().updateCookies(response)

@@ -24,52 +24,48 @@
 
 package uk.co.bigbeeconsultants.lhc.header
 
-import org.junit.Test
-import org.junit.Assert._
+import java.util.regex.Pattern
 import java.net.URL
 
-class DomainTest {
+case class Domain(domain: String) {
 
-  val ftpUrl1 = new URL("ftp://www.w3.org/standards/webdesign/htmlcss")
-  val httpUrl1 = new URL("http://www.w3.org/standards/webdesign/htmlcss")
-  val httpsUrl1 = new URL("https://www.w3.org/login/")
+  require(domain.length > 0)
 
-  @Test
-  def domain_isIpAddress_withName() {
-    val d = Domain("alpha.bravo.charlie")
-    assertFalse(d.isIpAddress)
+  private val ipV4 = Pattern.compile("[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+")
+
+  lazy val parent: Option[Domain] = {
+    if (isIpAddress) {
+      None
+    } else {
+      val firstDot = domain.indexOf('.')
+      val lastDot = domain.lastIndexOf('.')
+      if (firstDot > 0 && lastDot > firstDot) {
+        Some(Domain(domain.substring(firstDot + 1)))
+      } else {
+        None
+      }
+    }
   }
 
-  @Test
-  def domain_isIpAddress_withDottedQuad() {
-    val d = Domain("10.1.233.0")
-    assertTrue(d.isIpAddress)
-  }
+  def isIpAddress: Boolean = ipV4.matcher(domain).matches()
 
-  @Test
-  def domain_matchesSame() {
-    val d = Domain("www.w3.org")
-    assertTrue(d.matches(new URL("http://www.w3.org:80/standards/")))
+  /**Tests whether this domain matches some URL. */
+  def matches(url: URL) = {
+    val host = url.getHost
+    if (host == domain) {
+      true
+    } else if (host.length > domain.length) {
+      host.endsWith(domain) &&
+        host.charAt(host.length - domain.length - 1) == '.' &&
+        !isIpAddress
+    } else {
+      false
+    }
   }
+}
 
-  @Test
-  def domain_matchesParent() {
-    val d = Domain("w3.org")
-    assertTrue(d.matches(httpUrl1))
-  }
+object Domain {
+  def apply(url: URL): Domain = new Domain(url.getHost)
 
-  @Test
-  def longerDomainName_isRejected() {
-    val d = Domain("members.w3.org")
-    assertFalse(d.matches(httpUrl1))
-  }
-
-  @Test
-  def domainParent() {
-    val d = Domain("www.members.w3.org")
-    assertEquals("www.members.w3.org", d.domain)
-    assertEquals("members.w3.org", d.parent.get.domain)
-    assertEquals("w3.org", d.parent.get.parent.get.domain)
-    assertFalse(d.parent.get.parent.get.parent.isDefined)
-  }
+  //private def extractDomainFrom(url: URL) = Util.divide(url.getAuthority, ':')._1
 }
