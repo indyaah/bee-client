@@ -29,7 +29,7 @@ import java.net.URL
 import org.junit.Assert._
 import uk.co.bigbeeconsultants.lhc.request.Request
 import uk.co.bigbeeconsultants.lhc.response.{Status, Response, StringBodyCache}
-import uk.co.bigbeeconsultants.lhc.HttpDateTime
+import uk.co.bigbeeconsultants.lhc.HttpDateTimeInstant
 
 class CookieJarTest {
 
@@ -86,7 +86,7 @@ class CookieJarTest {
 
   @Test
   def parseCookieWithExpiry() {
-    val tomorrow = new HttpDateTime() + (24 * 60 * 60)
+    val tomorrow = new HttpDateTimeInstant() + (24 * 60 * 60)
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; Expires=" + tomorrow)
     val response = Response(httpUrl1, ok, body, Headers(List(h1)))
     val newJar = CookieJar.updateCookies(response)
@@ -101,7 +101,7 @@ class CookieJarTest {
   @Test
   def parseCookieWithMaxAge() {
     val day = 24 * 60 * 60
-    val tomorrow = new HttpDateTime() + day
+    val tomorrow = new HttpDateTimeInstant() + day
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; Max-Age=" + day)
     val response = Response(httpUrl1, ok, body, Headers(List(h1)))
     val newJar = CookieJar.updateCookies(response)
@@ -115,7 +115,7 @@ class CookieJarTest {
 
   @Test
   def parseCookieDeletion() {
-    val earlier = new HttpDateTime() - 1
+    val earlier = new HttpDateTimeInstant() - 1
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; Expires=" + earlier)
     val response = Response(httpUrl1, ok, body, Headers(List(h1)))
     val key = CookieKey("lang", "www.w3.org", "/standards/webdesign/")
@@ -129,8 +129,8 @@ class CookieJarTest {
   def parseCookieMaxAgeTrumpsExpires() {
     val day1 = 24 * 60 * 60
     val day7 = day1 * 10
-    val tomorrow = new HttpDateTime() + day1
-    val nextWeek = new HttpDateTime() + day7
+    val tomorrow = new HttpDateTimeInstant() + day1
+    val nextWeek = new HttpDateTimeInstant() + day7
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; Max-Age=" + day7 + "; Expires=" + tomorrow)
     val response = Response(httpUrl1, ok, body, Headers(List(h1)))
     val newJar = CookieJar.updateCookies(response)
@@ -165,7 +165,7 @@ class CookieJarTest {
 
   @Test
   def parseRealisticCookie() {
-    val tenYears = new HttpDateTime() + (10 * 365 * 24 * 60 * 60)
+    val tenYears = new HttpDateTimeInstant() + (10 * 365 * 24 * 60 * 60)
     val h1 = HeaderName.SET_COOKIE -> ("BBC-UID=646f4472; expires=" + tenYears + "; path=/; domain=bbc.co.uk")
     val response = Response(httpUrl2, ok, body, Headers(List(h1)))
     val newJar = CookieJar.updateCookies(response)

@@ -33,13 +33,13 @@ package uk.co.bigbeeconsultants.lhc.header
 // - IPv6 addresses - http://tools.ietf.org/html/rfc2732
 
 import java.net.URL
-import uk.co.bigbeeconsultants.lhc.{HttpDateTime, Util}
+import uk.co.bigbeeconsultants.lhc.{HttpDateTimeInstant, Util}
 import uk.co.bigbeeconsultants.lhc.response.Response
 import collection.mutable.LinkedHashMap
 
 case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
 
-  private def parseOneCookie(line: String, scheme: String, host: String, requestPath: String, now: HttpDateTime): Option[Cookie] = {
+  private def parseOneCookie(line: String, scheme: String, host: String, requestPath: String, now: HttpDateTimeInstant): Option[Cookie] = {
     var name: String = ""
     var value: String = ""
     var path: String = requestPath
@@ -83,7 +83,7 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
       }
       else if (a.equalsIgnoreCase("Expires") && !hasMaxAge) {
         persistent = true
-        expires = HttpDateTime.parse(v)
+        expires = HttpDateTimeInstant.parse(v)
       }
       else if (a.equalsIgnoreCase("Path")) {
         path = v
@@ -119,7 +119,7 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
       val lastSlash = fullPath.lastIndexOf('/')
       val path = if (fullPath == "/") "/" else fullPath.substring(0, lastSlash)
       // Construct the date only once - avoids rollover problems (which would be a bit like race conditions)
-      val now = new HttpDateTime()
+      val now = new HttpDateTimeInstant()
 
       val jar = new LinkedHashMap[CookieKey, CookieValue]
       jar ++= cookies

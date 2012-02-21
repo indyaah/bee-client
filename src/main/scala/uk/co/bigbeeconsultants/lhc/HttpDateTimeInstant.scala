@@ -31,7 +31,7 @@ import java.util.{Calendar, Date}
 /**
  * Expresses the number of seconds since 1st Jan 1970, as used in HTTP date headers.
  */
-case class HttpDateTime(seconds: Long) extends Ordered[HttpDateTime] {
+case class HttpDateTimeInstant(seconds: Long) extends Ordered[HttpDateTimeInstant] {
 
   def this(d: Date) = this(d.getTime / 1000)
 
@@ -41,18 +41,18 @@ case class HttpDateTime(seconds: Long) extends Ordered[HttpDateTime] {
 
   lazy val date = new Date(seconds * 1000)
 
-  def +(secondsDelta: Long) = if (secondsDelta == 0) this else new HttpDateTime(seconds + secondsDelta)
+  def +(secondsDelta: Long) = if (secondsDelta == 0) this else new HttpDateTimeInstant(seconds + secondsDelta)
 
-  def -(secondsDelta: Long) = if (secondsDelta == 0) this else new HttpDateTime(seconds - secondsDelta)
+  def -(secondsDelta: Long) = if (secondsDelta == 0) this else new HttpDateTimeInstant(seconds - secondsDelta)
 
   override lazy val toString = {
-    new SimpleDateFormat(HttpDateTime.fullRfc1123DateTimeFormat).format(date) + " GMT"
+    new SimpleDateFormat(HttpDateTimeInstant.fullRfc1123DateTimeFormat).format(date) + " GMT"
   }
 
-  def compare(that: HttpDateTime) = (this.seconds - that.seconds).toInt
+  def compare(that: HttpDateTimeInstant) = (this.seconds - that.seconds).toInt
 }
 
-object HttpDateTime extends Logging {
+object HttpDateTimeInstant extends Logging {
 
   // Dates are always in GMT. The canonical representation is rfc1123DateTimeFormat.
   // leading "EEE, " assumed to have been stripped; trailing "GMT" ignored
@@ -66,23 +66,23 @@ object HttpDateTime extends Logging {
   // leading "EEE " assumed to have been stripped; trailing "GMT" ignored
   val asciiDateTimeFormat = "MMM d HH:mm:ss yyyy"
 
-  val zero = new HttpDateTime(0)
+  val zero = new HttpDateTimeInstant(0)
 
-  def parse(dateString: String, defaultValue: HttpDateTime = zero): HttpDateTime = {
+  def parse(dateString: String, defaultValue: HttpDateTimeInstant = zero): HttpDateTimeInstant = {
     var result = defaultValue
     try {
       val discriminant = dateString.charAt(3)
       if (discriminant == ',') {
         val df = new SimpleDateFormat(rfc1123DateTimeFormat)
-        result = new HttpDateTime(df.parse(dateString.substring(5)))
+        result = new HttpDateTimeInstant(df.parse(dateString.substring(5)))
       }
       else if (discriminant == ' ') {
         val df = new SimpleDateFormat(asciiDateTimeFormat)
-        result = new HttpDateTime(df.parse(dateString.substring(4)))
+        result = new HttpDateTimeInstant(df.parse(dateString.substring(4)))
       }
       else {
         val df = new SimpleDateFormat(rfc850DateTimeFormat)
-        result = new HttpDateTime(df.parse(dateString.substring(dateString.indexOf(' ') + 1)))
+        result = new HttpDateTimeInstant(df.parse(dateString.substring(dateString.indexOf(' ') + 1)))
       }
     }
     catch {

@@ -34,7 +34,7 @@ package uk.co.bigbeeconsultants.lhc.header
 
 import java.util.regex.Pattern
 import java.net.URL
-import uk.co.bigbeeconsultants.lhc.{HttpDateTime, Util}
+import uk.co.bigbeeconsultants.lhc.{HttpDateTimeInstant, Util}
 
 case class Domain(domain: String) {
   require(domain.length > 0)
@@ -69,9 +69,9 @@ object CookieKey {
 
 
 case class CookieValue(value: String,
-                       expires: HttpDateTime = new HttpDateTime(),
-                       creation: HttpDateTime = new HttpDateTime(),
-                       lastAccessed: HttpDateTime = new HttpDateTime(),
+                       expires: HttpDateTimeInstant = new HttpDateTimeInstant(),
+                       creation: HttpDateTimeInstant = new HttpDateTimeInstant(),
+                       lastAccessed: HttpDateTimeInstant = new HttpDateTimeInstant(),
                        persistent: Boolean = false,
                        hostOnly: Boolean = false,
                        secure: Boolean = false,
