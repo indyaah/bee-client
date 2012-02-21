@@ -43,6 +43,8 @@ case class HttpDateTime(seconds: Long) extends Ordered[HttpDateTime] {
 
   def +(secondsDelta: Long) = if (secondsDelta == 0) this else new HttpDateTime(seconds + secondsDelta)
 
+  def -(secondsDelta: Long) = if (secondsDelta == 0) this else new HttpDateTime(seconds - secondsDelta)
+
   override lazy val toString = {
     new SimpleDateFormat(HttpDateTime.fullRfc1123DateTimeFormat).format(date) + " GMT"
   }

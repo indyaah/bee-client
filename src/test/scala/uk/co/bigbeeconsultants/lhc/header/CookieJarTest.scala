@@ -29,22 +29,20 @@ import java.net.URL
 import org.junit.Assert._
 import uk.co.bigbeeconsultants.lhc.request.Request
 import uk.co.bigbeeconsultants.lhc.response.{Status, Response, StringBodyCache}
-import java.util.Date
 import uk.co.bigbeeconsultants.lhc.HttpDateTime
 
 class CookieJarTest {
 
-  val ftpUrl1 = new URL("ftp://www.w3.org/standards/webdesign/htmlcss")
-  val httpUrl1 = new URL("http://www.w3.org/standards/webdesign/htmlcss")
-  val httpUrl2 = new URL("http://www.bbc.co.uk/radio/stations/radio1")
-  val httpsUrl1 = new URL("https://www.w3.org/login/")
+  val ftpUrl1 = Request.get(new URL("ftp://www.w3.org/standards/webdesign/htmlcss"))
+  val httpUrl1 = Request.get(new URL("http://www.w3.org/standards/webdesign/htmlcss"))
+  val httpUrl2 = Request.get(new URL("http://www.bbc.co.uk/radio/stations/radio1"))
+  val httpsUrl1 = Request.get(new URL("https://www.w3.org/login/"))
   val body = new StringBodyCache(MediaType.TEXT_PLAIN, "")
   val ok = Status(200, "OK")
 
   @Test
   def noCookies() {
-    val request = Request.get(httpUrl1)
-    val response = Response(request, ok, body, Headers(List()))
+    val response = Response(httpUrl1, ok, body, Headers(List()))
     val newJar = CookieJar.updateCookies(response)
     assertEquals(0, newJar.cookies.size)
   }
@@ -52,8 +50,7 @@ class CookieJarTest {
   @Test
   def parsePlainCookie() {
     val h1 = HeaderName.SET_COOKIE -> ("lang=en")
-    val request = Request.get(httpUrl1)
-    val response = Response(request, ok, body, Headers(List(h1)))
+    val response = Response(httpUrl1, ok, body, Headers(List(h1)))
     val newJar = CookieJar.updateCookies(response)
     assertEquals(1, newJar.cookies.size)
     val key1 = newJar.cookies.keys.iterator.next()
@@ -66,8 +63,7 @@ class CookieJarTest {
   @Test
   def parseCookieWithPath() {
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; Path=/standards")
-    val request = Request.get(httpUrl1)
-    val response = Response(request, ok, body, Headers(List(h1)))
+    val response = Response(httpUrl1, ok, body, Headers(List(h1)))
     val newJar = CookieJar.updateCookies(response)
     assertEquals(1, newJar.cookies.size)
     val key1 = newJar.cookies.keys.iterator.next()
@@ -79,8 +75,7 @@ class CookieJarTest {
   @Test
   def parseCookieWithDomain() {
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; Domain=w3.org")
-    val request = Request.get(httpUrl1)
-    val response = Response(request, ok, body, Headers(List(h1)))
+    val response = Response(httpUrl1, ok, body, Headers(List(h1)))
     val newJar = CookieJar.updateCookies(response)
     assertEquals(1, newJar.cookies.size)
     val key1 = newJar.cookies.keys.iterator.next()
@@ -93,8 +88,7 @@ class CookieJarTest {
   def parseCookieWithExpiry() {
     val tomorrow = new HttpDateTime() + (24 * 60 * 60)
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; Expires=" + tomorrow)
-    val request = Request.get(httpUrl1)
-    val response = Response(request, ok, body, Headers(List(h1)))
+    val response = Response(httpUrl1, ok, body, Headers(List(h1)))
     val newJar = CookieJar.updateCookies(response)
     assertEquals(1, newJar.cookies.size)
     val key1 = newJar.cookies.keys.iterator.next()
@@ -109,8 +103,7 @@ class CookieJarTest {
     val day = 24 * 60 * 60
     val tomorrow = new HttpDateTime() + day
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; Max-Age=" + day)
-    val request = Request.get(httpUrl1)
-    val response = Response(request, ok, body, Headers(List(h1)))
+    val response = Response(httpUrl1, ok, body, Headers(List(h1)))
     val newJar = CookieJar.updateCookies(response)
     assertEquals(1, newJar.cookies.size)
     val key1 = newJar.cookies.keys.iterator.next()
@@ -121,14 +114,25 @@ class CookieJarTest {
   }
 
   @Test
+  def parseCookieDeletion() {
+    val earlier = new HttpDateTime() - 1
+    val h1 = HeaderName.SET_COOKIE -> ("lang=en; Expires=" + earlier)
+    val response = Response(httpUrl1, ok, body, Headers(List(h1)))
+    val key = CookieKey("lang", "www.w3.org", "/standards/webdesign/")
+    val value = CookieValue("en")
+    val oldJar = new CookieJar(Map(key -> value))
+    val newJar = oldJar.updateCookies(response)
+    assertEquals(0, newJar.cookies.size)
+  }
+
+  @Test
   def parseCookieMaxAgeTrumpsExpires() {
     val day1 = 24 * 60 * 60
     val day7 = day1 * 10
     val tomorrow = new HttpDateTime() + day1
     val nextWeek = new HttpDateTime() + day7
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; Max-Age=" + day7 + "; Expires=" + tomorrow)
-    val request = Request.get(httpUrl1)
-    val response = Response(request, ok, body, Headers(List(h1)))
+    val response = Response(httpUrl1, ok, body, Headers(List(h1)))
     val newJar = CookieJar.updateCookies(response)
     assertEquals(1, newJar.cookies.size)
     val key1 = newJar.cookies.keys.iterator.next()
@@ -141,8 +145,7 @@ class CookieJarTest {
   @Test
   def parseCookieWithHttpOnly() {
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; HttpOnly")
-    val request = Request.get(ftpUrl1)
-    val response = Response(request, ok, body, Headers(List(h1)))
+    val response = Response(ftpUrl1, ok, body, Headers(List(h1)))
     val newJar = CookieJar.updateCookies(response)
     assertEquals(0, newJar.cookies.size)
   }
@@ -150,8 +153,7 @@ class CookieJarTest {
   @Test
   def parseCookieWithSecure() {
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; Secure")
-    val request = Request.get(httpUrl1)
-    val response = Response(request, ok, body, Headers(List(h1)))
+    val response = Response(httpUrl1, ok, body, Headers(List(h1)))
     val newJar = CookieJar.updateCookies(response)
     assertEquals(1, newJar.cookies.size)
     val key1 = newJar.cookies.keys.iterator.next()
@@ -165,8 +167,7 @@ class CookieJarTest {
   def parseRealisticCookie() {
     val tenYears = new HttpDateTime() + (10 * 365 * 24 * 60 * 60)
     val h1 = HeaderName.SET_COOKIE -> ("BBC-UID=646f4472; expires=" + tenYears + "; path=/; domain=bbc.co.uk")
-    val request = Request.get(httpUrl2)
-    val response = Response(request, ok, body, Headers(List(h1)))
+    val response = Response(httpUrl2, ok, body, Headers(List(h1)))
     val newJar = CookieJar.updateCookies(response)
     assertEquals(1, newJar.cookies.size)
     val key1 = newJar.cookies.keys.iterator.next()

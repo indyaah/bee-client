@@ -74,6 +74,13 @@ class HttpDateTimeTest {
   }
 
   @Test
+  def minus() {
+    val now = new HttpDateTime()
+    val later = new HttpDateTime() - 60
+    assertEquals(-60, later.seconds - now.seconds)
+  }
+
+  @Test
   def compare() {
     val now = new HttpDateTime()
     val later = new HttpDateTime() + 60

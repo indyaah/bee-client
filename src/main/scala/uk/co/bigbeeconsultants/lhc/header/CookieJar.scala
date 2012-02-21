@@ -38,15 +38,11 @@ import uk.co.bigbeeconsultants.lhc.response.Response
 import collection.mutable.LinkedHashMap
 
 case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
-  private val SKIP = 0
-  private val ADD = 1
-  private val DEL = -1
 
-  private def parseOneCookie(line: String, scheme: String, host: String, requestPath: String): (Int, Cookie) = {
+  private def parseOneCookie(line: String, scheme: String, host: String, requestPath: String, now: HttpDateTime): Option[Cookie] = {
     var name: String = ""
     var value: String = ""
     var path: String = requestPath
-    val now = new HttpDateTime()
     var expires = now
     var domain: Domain = Domain(host)
     var hostOnly = true
@@ -76,14 +72,14 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
       else if (a.equalsIgnoreCase("HttpOnly") && v == "") {
         httpOnly = true
         if (!scheme.startsWith("http"))
-          return (SKIP, null)
+          return None
       }
       else if (a.equalsIgnoreCase("Max-Age")) {
         persistent = true
         hasMaxAge = true
         val seconds = v.toLong
         val secDelta = if (seconds > 0) seconds else 0
-        expires = new HttpDateTime() + secDelta
+        expires = now + secDelta
       }
       else if (a.equalsIgnoreCase("Expires") && !hasMaxAge) {
         persistent = true
@@ -100,13 +96,13 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
 
     val k = CookieKey(name, domain, path)
     val v = CookieValue(value, expires, now, now, persistent, hostOnly, secure, httpOnly, scheme)
-    (ADD, Cookie(k, v))
+    Some(Cookie(k, v))
   }
 
   private def filterCookieHeaders(response: Response): List[Header] = {
     response.headers.list.filter(
       header => header.name == HeaderName.SET_COOKIE.name ||
-        header.name == HeaderName.SET_COOKIE2.name)
+        header.name == HeaderName.OBSOLETE_SET_COOKIE2.name)
   }
 
   /**Gets a new CookieJar derived from this one as augmented by the headers in a response. */
@@ -122,19 +118,21 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
       val fullPath = if (fPath == "") "/" else Util.divide(fPath, '?')._1
       val lastSlash = fullPath.lastIndexOf('/')
       val path = if (fullPath == "/") "/" else fullPath.substring(0, lastSlash)
+      // Construct the date only once - avoids rollover problems (which would be a bit like race conditions)
+      val now = new HttpDateTime()
 
       val jar = new LinkedHashMap[CookieKey, CookieValue]
       jar ++= cookies
 
       for (header <- setcookies) {
-        if (header.name == HeaderName.SET_COOKIE.name ||
-          header.name == HeaderName.SET_COOKIE2.name) {
-          for (line <- Util.split(header.value, '\n')) {
-            val (mode, cookie) = parseOneCookie(line, from.getProtocol, host, path)
-            mode match {
-              case ADD => jar.put(cookie.key, cookie.value)
-              case DEL => jar.remove(cookie.key)
-              case _ =>
+        for (line <- Util.split(header.value, '\n')) {
+          val optCookie = parseOneCookie(line, from.getProtocol, host, path, now)
+          if (optCookie.isDefined) {
+            val cookie = optCookie.get
+            if (cookie.value.expires < now) {
+              jar.remove(cookie.key)
+            } else {
+              jar.put(cookie.key, cookie.value)
             }
           }
         }
