@@ -39,10 +39,14 @@ import header.MediaType
 final class Body(val mediaType: MediaType, val copyTo: OutputStream => Unit)
 
 
-/**Factory for request bodies. */
+/**
+ * Factory for request bodies.
+ */
 object Body {
 
-  /**Factory for request bodies sourced from strings. */
+  /**
+   * Factory for request bodies sourced from strings.
+   */
   def apply(mediaType: MediaType, string: String): Body = {
     new Body(mediaType, (outputStream) => {
       val encoding = mediaType.charsetOrElse(HttpClient.UTF8)
@@ -50,7 +54,9 @@ object Body {
     })
   }
 
-  /**Factory for request bodies sourced from key-value pairs, typical for POST requests. */
+  /**
+   * Factory for request bodies sourced from key-value pairs, typical for POST requests.
+   */
   def apply(mediaType: MediaType, data: Map[String, String]): Body = {
     new Body(mediaType, (outputStream) => {
       val encoding = mediaType.charsetOrElse(HttpClient.UTF8)
@@ -66,4 +72,9 @@ object Body {
       w.close()
     })
   }
+
+  /**
+   * Factory for empty request bodies. An empty body differs from no body at all because it has a media type.
+   */
+  def apply(mediaType: MediaType): Body = new Body(mediaType, (outputStream) => {})
 }

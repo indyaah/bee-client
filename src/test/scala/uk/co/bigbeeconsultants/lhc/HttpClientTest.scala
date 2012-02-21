@@ -30,8 +30,6 @@ import header.{HeaderName, Headers, MediaType}
 import org.junit.Assert._
 import java.nio.{BufferUnderflowException, BufferOverflowException, ByteBuffer}
 import java.net.URL
-import request.Body
-import response.CachedBody
 import org.junit._
 import HeaderName._
 import MediaType._
@@ -129,7 +127,7 @@ class HttpClientTest {
     val jsonRes = """{"astring" : "the response" }"""
     server.expect(stubbedMethod).thenReturn(200, APPLICATION_JSON.toString, jsonRes)
 
-    val response = http.put(new URL(baseUrl + url), Body(APPLICATION_JSON, jsonReq))
+    val response = http.put(new URL(baseUrl + url), request.Body(APPLICATION_JSON, jsonReq))
     server.verify()
     assertEquals(APPLICATION_JSON, response.body.contentType)
     assertEquals(jsonRes, response.body.asString)
@@ -142,7 +140,7 @@ class HttpClientTest {
     val jsonRes = """{"astring" : "the response" }"""
     server.expect(stubbedMethod).thenReturn(200, APPLICATION_JSON, jsonRes)
 
-    val response = http.post(new URL(baseUrl + url), Body(APPLICATION_JSON, Map("a" -> "b")))
+    val response = http.post(new URL(baseUrl + url), request.Body(APPLICATION_JSON, Map("a" -> "b")))
     server.verify()
     assertEquals(APPLICATION_JSON, response.body.contentType)
     assertEquals(jsonRes, response.body.asString)
@@ -154,7 +152,7 @@ class HttpClientTest {
     val stubbedMethod = StubMethod.post(url)
     server.expect(stubbedMethod).thenReturn(204, APPLICATION_JSON, "ignore me")
 
-    val response = http.post(new URL(baseUrl + url), Body(APPLICATION_JSON, Map("a" -> "b")))
+    val response = http.post(new URL(baseUrl + url), request.Body(APPLICATION_JSON, Map("a" -> "b")))
     server.verify()
     assertEquals(APPLICATION_JSON, response.body.contentType)
     assertEquals("", response.body.asString)
@@ -166,7 +164,7 @@ class HttpClientTest {
     val http = new HttpClient()
     val stubbedMethod = StubMethod.post(url)
     server.expect(stubbedMethod).thenReturn(200, APPLICATION_JSON, "")
-    http.post(new URL(baseUrl + url), Body(APPLICATION_JSON, Map("a" -> "b")))
+    http.post(new URL(baseUrl + url), request.Body(APPLICATION_JSON, Map("a" -> "b")))
     server.verify()
     val transferEncoding = stubbedMethod.headers.get(TRANSFER_ENCODING)
     assertEquals("", transferEncoding)
@@ -221,7 +219,7 @@ class HttpClientTest {
       val response = http.get(new URL(baseUrl + url))
       assertEquals(200, response.status.code)
       assertEquals(IMAGE_JPG, response.body.contentType)
-      val bytes = response.body.asInstanceOf[CachedBody].asBytes
+      val bytes = response.body.asBytes
       assertEquals(size, bytes.length)
       server.verify()
       server.clearExpectations()

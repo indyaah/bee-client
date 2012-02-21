@@ -36,36 +36,46 @@ import uk.co.bigbeeconsultants.lhc.Util
  * to where it is needed, depending on the implementation.
  */
 trait Body {
-  /**Implementors will provide the means via this method for the response data to be consumed. */
+  /**
+   * Implementors may provide the means via this method for the response data to be consumed.
+   */
   def receiveData(contentType: MediaType, inputStream: InputStream) {}
 
-  /**Gets the content type and encoding of the response. */
+  /**
+   * Gets the content type and encoding of the response.
+   */
   def contentType: MediaType
 
   /**
-   * Gets the body as a string if available. By default, this merely returns toString(), which may not be
+   * Gets the body as an array of raw bytes if available. By default, this merely returns an empty array,
+   * which may not be much use.
+   */
+  def asBytes: Array[Byte] = new Array[Byte](0)
+
+  /**
+   * Gets the body as a string if available. By default, this merely returns an empty string, which may not be
    * much use.
    */
-  def asString: String = toString
+  def asString: String = ""
+}
+
+
+object Body {
+  implicit def asString(body: Body) = body.asString
 }
 
 
 /**
- * Provides a Body implementation that caches a response in a ByteBuffer. This is also available
- * as a string without much performance penalty. However, take care because the memory footprint will be large
- * when dealing with large volumes of response data.
+ * Provides an empty Body implementation.
  */
-trait CachedBody extends Body {
-  def asBytes: Array[Byte]
-}
+final class EmptyBody(val contentType: MediaType) extends Body
 
 
 /**
- * Provides a Body implementation that caches a response in a ByteBuffer. This is also available
- * as a string without much performance penalty. However, take care because the memory footprint will be large
- * when dealing with large volumes of response data.
+ * Provides a Body implementation that holds a response in a ByteBuffer. This is also available
+ * as a string without much performance penalty.
  */
-final class ByteBodyCache(val contentType: MediaType, byteData: ByteBuffer) extends CachedBody {
+final class ByteBufferBody(val contentType: MediaType, byteData: ByteBuffer) extends Body {
 
   private var converted: String = null
 
@@ -77,7 +87,14 @@ final class ByteBodyCache(val contentType: MediaType, byteData: ByteBuffer) exte
   }
 
   /**
+   * Get the body of the response as an array of bytes.
+   */
+  override def asBytes: Array[Byte] =
+    byteData.array()
+
+  /**
    * Get the body of the response as a string.
+   * This uses the character encoding of the contentType, or UTF-8 as a default.
    */
   override def asString: String = {
     if (converted == null) {
@@ -85,66 +102,56 @@ final class ByteBodyCache(val contentType: MediaType, byteData: ByteBuffer) exte
     }
     converted
   }
-
-  /**
-   * Get the body of the response as an array of bytes.
-   */
-  def asBytes: Array[Byte] =
-    byteData.array()
 }
 
 
 /**
- * Provides a Body implementation that caches a response in a ByteBuffer. This is also available
- * as a string without much performance penalty. However, take care because the memory footprint will be large
- * when dealing with large volumes of response data.
+ * Provides a Body implementation based simply on a string.
  */
-final class StringBodyCache(val contentType: MediaType, bodyText: String) extends CachedBody {
+final class StringBody(val contentType: MediaType, bodyText: String) extends Body {
 
   /**
-   * Get the body of the response as a string.
+   * Converts the body of the response into an array of bytes.
+   * This uses the character encoding of the contentType, or UTF-8 as a default.
    */
-  override def asString: String = bodyText
-
-  /**
-   * Get the body of the response as an array of bytes.
-   */
-  def asBytes: Array[Byte] = {
+  override def asBytes: Array[Byte] = {
     val charset = contentType.charset.getOrElse(HttpClient.UTF8)
     val buf = Charset.forName(charset).encode(bodyText)
     val bytes = new Array[Byte](buf.limit())
     buf.get(bytes, 0, buf.limit())
     bytes
   }
+
+  /**
+   * Get the body of the response as a string.
+   */
+  override def asString: String = bodyText
 }
 
 
 /**
- * Provides a Body implementation that copies the whole response into a ByteBuffer. This is also available
- * as a string without much performance penalty. However, take care because the memory footprint will be large
- * when dealing with large volumes of response data.
+ * Provides a Body implementation that copies the whole response from an input stream into a ByteBuffer. This is
+ * also available as a string without much performance penalty.
+ * <p>
+ * Take care because the memory footprint will be large when dealing with large volumes of response data.
  */
-final class BufferedBody extends CachedBody {
-  private var cache: ByteBodyCache = null
+final class InputStreamBufferBody extends Body {
+  private var cache: ByteBufferBody = null
 
   override def receiveData(contentType: MediaType, inputStream: InputStream) {
-    cache = new ByteBodyCache(contentType, Util.copyToByteBufferAndClose(inputStream))
+    cache = new ByteBufferBody(contentType, Util.copyToByteBufferAndClose(inputStream))
   }
 
   def contentType: MediaType = if (cache != null) cache.contentType else null
 
   /**
-   * Get the body of the response as a string.
-   */
-  override def asString: String = if (cache != null) cache.asString else null
-
-  /**
    * Get the body of the response as an array of bytes.
    */
-  def asBytes: Array[Byte] = if (cache != null) cache.asBytes else null
-}
+  override def asBytes: Array[Byte] = if (cache != null) cache.asBytes else null
 
-
-object BufferedBody {
-  implicit def asString(body: BufferedBody) = body.asString
+  /**
+   * Get the body of the response as a string.
+   * This uses the character encoding of the contentType, or UTF-8 as a default.
+   */
+  override def asString: String = if (cache != null) cache.asString else null
 }

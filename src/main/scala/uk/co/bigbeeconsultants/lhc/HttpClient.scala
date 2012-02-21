@@ -27,7 +27,6 @@ package uk.co.bigbeeconsultants.lhc
 import header.{HeaderName, Headers, Header, MediaType}
 import response._
 import request.{Config, RequestException, Body, Request}
-import java.nio.ByteBuffer
 import java.io._
 import java.util.zip.GZIPInputStream
 import java.net.{URLConnection, URL, HttpURLConnection}
@@ -46,37 +45,51 @@ final class HttpClient(val config: Config = Config(),
                        val commonRequestHeaders: Headers = HttpClient.defaultRequestHeaders,
                        val responseBodyFactory: BodyFactory = HttpClient.defaultResponseBodyFactory) {
 
-  private val emptyBuffer = ByteBuffer.allocateDirect(0)
-
-  /**Make a HEAD request. */
+  /**
+   * Make a HEAD request.
+   */
   def head(url: URL, requestHeaders: Headers = Nil) =
     execute(Request.head(url), requestHeaders)
 
-  /**Make a TRACE request. */
+  /**
+   * Make a TRACE request.
+   */
   def trace(url: URL, requestHeaders: Headers = Nil) =
     execute(Request.trace(url), requestHeaders)
 
-  /**Make a GET request. */
+  /**
+   * Make a GET request.
+   */
   def get(url: URL, requestHeaders: Headers = Nil) =
     execute(Request.get(url), requestHeaders)
 
-  /**Make a DELETE request. */
+  /**
+   * Make a DELETE request.
+   */
   def delete(url: URL, requestHeaders: Headers = Nil) =
     execute(Request.delete(url), requestHeaders)
 
-  /**Make an OPTIONS request. */
+  /**
+   * Make an OPTIONS request.
+   */
   def options(url: URL, body: Option[Body], requestHeaders: Headers = Nil) =
     execute(Request.options(url, body), requestHeaders)
 
-  /**Make a POST request. */
+  /**
+   * Make a POST request.
+   */
   def post(url: URL, body: Body, requestHeaders: Headers = Nil) =
     execute(Request.post(url, body), requestHeaders)
 
-  /**Make a PUT request. */
+  /**
+   * Make a PUT request.
+   */
   def put(url: URL, body: Body, requestHeaders: Headers = Nil) =
     execute(Request.put(url, body), requestHeaders)
 
-  /**Make an arbitrary request. */
+  /**
+   * Make an arbitrary request.
+   */
   def execute(request: Request, requestHeaders: Headers = Nil): Response = {
     val connWrapper = request.url.openConnection.asInstanceOf[HttpURLConnection]
     connWrapper.setAllowUserInteraction(false)
@@ -165,7 +178,7 @@ final class HttpClient(val config: Config = Config(),
     if (request.method == Request.HEAD || status.category == 1 ||
       status.code == Status.S2_NO_CONTENT || status.code == Status.S3_NOT_MODIFIED) {
       selectStream(connWrapper).close()
-      Response(request, status, new ByteBodyCache(mediaType, emptyBuffer), responseHeaders)
+      Response(request, status, new EmptyBody(mediaType), responseHeaders)
 
     } else {
       val body = responseBodyFactory.newBody(mediaType)

@@ -38,7 +38,7 @@ class BodyTest {
   def bufferedBody() {
     val s = """[ "Some json message text" ]"""
     val bais = new ByteArrayInputStream(s.getBytes("UTF-8"))
-    val body = new BufferedBody
+    val body = new InputStreamBufferBody
     body.receiveData(MediaType.APPLICATION_JSON, bais)
 
     assertEquals(MediaType.APPLICATION_JSON, body.contentType)
@@ -50,7 +50,7 @@ class BodyTest {
   @Test
   def stringBody() {
     val s = """[ "Some json message text" ]"""
-    val body = new StringBodyCache(MediaType.APPLICATION_JSON, s)
+    val body = new StringBody(MediaType.APPLICATION_JSON, s)
 
     assertEquals(MediaType.APPLICATION_JSON, body.contentType)
     assertEquals(s, body.asString)

@@ -40,5 +40,5 @@ trait BodyFactory {
  * instances for all media types.
  */
 final class BufferedBodyFactory extends BodyFactory {
-  def newBody(contentType: MediaType) = new BufferedBody
+  def newBody(contentType: MediaType) = new InputStreamBufferBody
 }

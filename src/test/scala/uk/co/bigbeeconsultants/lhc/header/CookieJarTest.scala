@@ -28,7 +28,7 @@ import org.junit.Test
 import java.net.URL
 import org.junit.Assert._
 import uk.co.bigbeeconsultants.lhc.request.Request
-import uk.co.bigbeeconsultants.lhc.response.{Status, Response, StringBodyCache}
+import uk.co.bigbeeconsultants.lhc.response.{Status, Response, StringBody}
 import uk.co.bigbeeconsultants.lhc.HttpDateTimeInstant
 
 class CookieJarTest {
@@ -37,7 +37,7 @@ class CookieJarTest {
   val httpUrl1 = Request.get(new URL("http://www.w3.org/standards/webdesign/htmlcss"))
   val httpUrl2 = Request.get(new URL("http://www.bbc.co.uk/radio/stations/radio1"))
   val httpsUrl1 = Request.get(new URL("https://www.w3.org/login/"))
-  val body = new StringBodyCache(MediaType.TEXT_PLAIN, "")
+  val body = new StringBody(MediaType.TEXT_PLAIN, "")
   val ok = Status(200, "OK")
 
   @Test

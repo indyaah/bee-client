@@ -28,7 +28,6 @@ import header.{HeaderName, MediaType}
 import java.net.{ConnectException, URL}
 import java.lang.AssertionError
 import request.{Config, Body}
-import response.CachedBody
 import org.junit.{After, Before, Test}
 import org.junit.Assert._
 
@@ -103,7 +102,7 @@ class HttpIntegration {
       val response = http.get(new URL(testImageUrl))
       assertEquals(200, response.status.code)
       assertEquals(MediaType.IMAGE_PNG, response.body.contentType)
-      val bytes = response.body.asInstanceOf[CachedBody].asBytes
+      val bytes = response.body.asBytes
       assertEquals(497, bytes.length)
       assertEquals('P', bytes(1))
       assertEquals('N', bytes(2))
@@ -191,7 +190,7 @@ class HttpIntegration {
         val response = http.get(new URL(testPhotoUrl + "?n=" + i))
         assertEquals(200, response.status.code)
         assertEquals(MediaType.IMAGE_JPG, response.body.contentType)
-        val bytes = response.body.asInstanceOf[CachedBody].asBytes
+        val bytes = response.body.asBytes
         assertEquals(size, bytes.length)
       }
       val duration = System.currentTimeMillis() - before
