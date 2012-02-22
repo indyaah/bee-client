@@ -24,7 +24,7 @@
 
 package uk.co.bigbeeconsultants.lhc
 
-import header.{HeaderName, Headers, Header, MediaType}
+import header.{CookieJar, HeaderName, Headers, Header, MediaType}
 import response._
 import request.{Config, RequestException, Body, Request}
 import java.io._
@@ -48,49 +48,49 @@ final class HttpClient(val config: Config = Config(),
   /**
    * Make a HEAD request.
    */
-  def head(url: URL, requestHeaders: Headers = Nil) =
-    execute(Request.head(url), requestHeaders)
+  def head(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
+    execute(Request.head(url), requestHeaders, jar)
 
   /**
    * Make a TRACE request.
    */
-  def trace(url: URL, requestHeaders: Headers = Nil) =
-    execute(Request.trace(url), requestHeaders)
+  def trace(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
+    execute(Request.trace(url), requestHeaders, jar)
 
   /**
    * Make a GET request.
    */
-  def get(url: URL, requestHeaders: Headers = Nil) =
-    execute(Request.get(url), requestHeaders)
+  def get(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
+    execute(Request.get(url), requestHeaders, jar)
 
   /**
    * Make a DELETE request.
    */
-  def delete(url: URL, requestHeaders: Headers = Nil) =
-    execute(Request.delete(url), requestHeaders)
+  def delete(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
+    execute(Request.delete(url), requestHeaders, jar)
 
   /**
    * Make an OPTIONS request.
    */
-  def options(url: URL, body: Option[Body], requestHeaders: Headers = Nil) =
-    execute(Request.options(url, body), requestHeaders)
+  def options(url: URL, body: Option[Body], requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
+    execute(Request.options(url, body), requestHeaders, jar)
 
   /**
    * Make a POST request.
    */
-  def post(url: URL, body: Body, requestHeaders: Headers = Nil) =
-    execute(Request.post(url, body), requestHeaders)
+  def post(url: URL, body: Body, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
+    execute(Request.post(url, body), requestHeaders, jar)
 
   /**
    * Make a PUT request.
    */
-  def put(url: URL, body: Body, requestHeaders: Headers = Nil) =
-    execute(Request.put(url, body), requestHeaders)
+  def put(url: URL, body: Body, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
+    execute(Request.put(url, body), requestHeaders, jar)
 
   /**
    * Make an arbitrary request.
    */
-  def execute(request: Request, requestHeaders: Headers = Nil): Response = {
+  def execute(request: Request, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
     val connWrapper = request.url.openConnection.asInstanceOf[HttpURLConnection]
     connWrapper.setAllowUserInteraction(false)
     connWrapper.setConnectTimeout(config.connectTimeout)
@@ -99,7 +99,7 @@ final class HttpClient(val config: Config = Config(),
     connWrapper.setUseCaches(config.useCaches)
 
     try {
-      setRequestHeaders(request, requestHeaders, connWrapper)
+      setRequestHeaders(request, requestHeaders, jar, connWrapper)
 
       connWrapper.connect()
 
@@ -142,7 +142,7 @@ final class HttpClient(val config: Config = Config(),
     //    if (config.keepAlive) CleanupThread.closeConnections()
   }
 
-  private def setRequestHeaders(request: Request, requestHeaders: Headers, connWrapper: HttpURLConnection) {
+  private def setRequestHeaders(request: Request, requestHeaders: Headers, jar: CookieJar, connWrapper: HttpURLConnection) {
     val method = if (request.method == null) Request.GET else request.method.toUpperCase
     connWrapper.setRequestMethod(method)
 
@@ -160,6 +160,11 @@ final class HttpClient(val config: Config = Config(),
 
     for (hdr <- requestHeaders.list) {
       connWrapper.setRequestProperty(hdr.name, hdr.value)
+    }
+
+    jar.filterForRequest(request.url) match {
+      case Some(hdr) => connWrapper.setRequestProperty(hdr.name, hdr.value)
+      case _ =>
     }
 
     if (request.method == Request.POST || request.method == Request.PUT) {

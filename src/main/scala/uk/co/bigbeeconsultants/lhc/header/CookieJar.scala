@@ -34,69 +34,47 @@ package uk.co.bigbeeconsultants.lhc.header
 
 import java.net.URL
 import uk.co.bigbeeconsultants.lhc.response.Response
-import collection.mutable.{ListBuffer, LinkedHashMap}
-import uk.co.bigbeeconsultants.lhc.{HttpDateTimeInstant, Util}
+import collection.mutable.{HashSet, LinkedHashMap, ListBuffer}
 
-case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
+case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map(), deleted: Set[CookieKey] = Set()) {
 
-  private def parseOneCookie(line: String, scheme: String, host: String, requestPath: String, now: HttpDateTimeInstant): Option[Cookie] = {
-    var name: String = ""
-    var value: String = ""
-    var path: String = requestPath
-    var expires = now
-    var domain: Domain = Domain(host)
-    var hostOnly = true
-    var persistent = false
-    var secure = false
-    var httpOnly = false
-    var hasMaxAge = false
+  /**
+   * Allows cookie jars to be merged together. As newJar is merged into this cookie jar, it trumps
+   * any matching cookies already in this jar.
+   * @return a new cookie jar containing the merged cookies.
+   */
+  def merge(newJar: CookieJar): CookieJar = {
+    val jar = new LinkedHashMap[CookieKey, CookieValue]
+    jar ++= cookies
 
-    for (attr <- Util.split(line, ';')) {
+    val del = new HashSet[CookieKey]
+    del ++= deleted
 
-      val t = Util.divide(attr, '=')
-      val a = t._1.trim
-      val v = t._2.trim
-
-      if (name == "") {
-        name = a
-        value = v
-      }
-      else if (a.equalsIgnoreCase("Domain")) {
-        // TODO reject cookies in the public suffix list http://publicsuffix.org/list/
-        domain = Domain(v)
-        hostOnly = false
-      }
-      else if (a.equalsIgnoreCase("Secure") && v == "") {
-        secure = true
-      }
-      else if (a.equalsIgnoreCase("HttpOnly") && v == "") {
-        httpOnly = true
-        if (!scheme.startsWith("http"))
-          return None
-      }
-      else if (a.equalsIgnoreCase("Max-Age")) {
-        persistent = true
-        hasMaxAge = true
-        val seconds = v.toLong
-        val secDelta = if (seconds > 0) seconds else 0
-        expires = now + secDelta
-      }
-      else if (a.equalsIgnoreCase("Expires") && !hasMaxAge) {
-        persistent = true
-        expires = HttpDateTimeInstant.parse(v)
-      }
-      else if (a.equalsIgnoreCase("Path")) {
-        path = v
-      }
+    for ((key, value) <- newJar.cookies) {
+      jar.put(key, value)
+      del.remove(key)
     }
 
-    if (!path.endsWith("/")) {
-      path += "/"
+    for (key <- newJar.deleted) {
+      jar.remove(key)
+      del.add(key)
     }
 
-    val k = CookieKey(name, domain, path)
-    val v = CookieValue(value, expires, now, now, persistent, hostOnly, secure, httpOnly, scheme)
-    Some(Cookie(k, v))
+    new CookieJar(jar.toMap, del.toSet)
+  }
+
+  /**
+   * Gets a new CookieJar derived from this one as augmented by the headers in a response.
+   * @return a new cookie jar containing the merged cookies.
+   */
+  def updateCookies(response: Response): CookieJar = {
+    val setcookies = filterCookieHeaders(response)
+    if (setcookies.isEmpty) {
+      this
+    }
+    else {
+      CookieParser.updateCookies(this, response.request.url, setcookies)
+    }
   }
 
   private def filterCookieHeaders(response: Response): List[Header] = {
@@ -105,45 +83,12 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
         header.name == HeaderName.OBSOLETE_SET_COOKIE2.name)
   }
 
-  /**Gets a new CookieJar derived from this one as augmented by the headers in a response. */
-  def updateCookies(response: Response): CookieJar = {
-    val setcookies = filterCookieHeaders(response)
-    if (setcookies.isEmpty) {
-      this
-    }
-    else {
-      val from = response.request.url
-      val host = Util.divide(from.getAuthority, ':')._1
-      val fPath = from.getPath
-      val fullPath = if (fPath == "") "/" else Util.divide(fPath, '?')._1
-      val lastSlash = fullPath.lastIndexOf('/')
-      val path = if (fullPath == "/") "/" else fullPath.substring(0, lastSlash)
-      // Construct the date only once - avoids rollover problems (which would be a bit like race conditions)
-      val now = new HttpDateTimeInstant()
-
-      val jar = new LinkedHashMap[CookieKey, CookieValue]
-      jar ++= cookies
-
-      for (header <- setcookies) {
-        for (line <- Util.split(header.value, '\n')) {
-          val optCookie = parseOneCookie(line, from.getProtocol, host, path, now)
-          if (optCookie.isDefined) {
-            val cookie = optCookie.get
-            if (cookie.value.expires < now) {
-              jar.remove(cookie.key)
-            } else {
-              jar.put(cookie.key, cookie.value)
-            }
-          }
-        }
-      }
-
-      CookieJar(jar.toMap)
-    }
-  }
-
-
-  def filterForRequest(url: URL): Header = {
+  /**
+   * Before making a request, use this method to pull the necessary cookies out of the jar.
+   * @return an optional cookie header, which will contain one or more cookie values to be sent
+   * with the request.
+   */
+  def filterForRequest(url: URL): Option[Header] = {
     val headers = new ListBuffer[String]
     for ((key, value) <- cookies) {
       val cookie = Cookie(key, value)
@@ -151,11 +96,17 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map()) {
         headers += cookie.asHeader
       }
     }
-    HeaderName.COOKIE -> headers.mkString("; ")
+    if (headers.isEmpty) None else Some(HeaderName.COOKIE -> headers.mkString("; "))
   }
 }
 
 
 object CookieJar {
-  def updateCookies(response: Response): CookieJar = new CookieJar().updateCookies(response)
+  /** Constant empty cookie jar. */
+  val empty = new CookieJar()
+
+  /**
+   * Constructs a new cookie jar containing all the cookies (if any) that are received in the response.
+   */
+  def harvestCookies(response: Response): CookieJar = new CookieJar().updateCookies(response)
 }

@@ -65,7 +65,7 @@ class HttpIntegration {
       assertEquals(MediaType.TEXT_HTML, body.contentType)
       assertTrue(body.asString == "")
     } catch {
-      case e: ConnectException =>
+      case e: Exception =>
         skipTestWarning("HEAD", testScriptUrl, e)
     }
   }
@@ -81,7 +81,7 @@ class HttpIntegration {
       val bodyLines = string.split("\n")
       assertEquals("GET", extractLineFromResponse("REQUEST_METHOD", bodyLines))
     } catch {
-      case e: ConnectException =>
+      case e: Exception =>
         skipTestWarning("GET", testScriptUrl, e)
     }
   }
@@ -108,7 +108,7 @@ class HttpIntegration {
       assertEquals('N', bytes(2))
       assertEquals('G', bytes(3))
     } catch {
-      case e: ConnectException =>
+      case e: Exception =>
         skipTestWarning("GET", testImageUrl, e)
     }
   }
@@ -125,7 +125,7 @@ class HttpIntegration {
       val bodyLines = body.asString.split("\n")
       assertEquals("GET", extractLineFromResponse("REQUEST_METHOD", bodyLines))
     } catch {
-      case e: ConnectException =>
+      case e: Exception =>
         skipTestWarning("GET", url, e)
     }
   }
@@ -142,7 +142,7 @@ class HttpIntegration {
       val location = response.headers.get(HeaderName.LOCATION).value
       assertTrue(location, location.startsWith(serverUrl))
     } catch {
-      case e: ConnectException =>
+      case e: Exception =>
         skipTestWarning("GET", testScriptUrl, e)
     }
   }
@@ -159,7 +159,7 @@ class HttpIntegration {
       val location = response.headers.get(HeaderName.LOCATION).value
       assertTrue(location, location.startsWith(serverUrl))
     } catch {
-      case e: ConnectException =>
+      case e: Exception =>
         skipTestWarning("GET", testScriptUrl, e)
     }
   }
@@ -175,7 +175,7 @@ class HttpIntegration {
       val bodyLines = body.asString.split("\n")
       assertEquals("DELETE", extractLineFromResponse("REQUEST_METHOD", bodyLines))
     } catch {
-      case e: ConnectException =>
+      case e: Exception =>
         skipTestWarning("DELETE", testScriptUrl, e)
     }
   }
@@ -198,7 +198,7 @@ class HttpIntegration {
       val rate = (bytes / duration)
       println(bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
     } catch {
-      case e: ConnectException =>
+      case e: Exception =>
         skipTestWarning("GET", testPhotoUrl, e)
     }
   }
@@ -229,7 +229,8 @@ class HttpIntegration {
           }
         } catch {
           case e: Exception =>
-            throw new RuntimeException("soakTestTextOK " + i, e)
+            skipTestWarning("GET", "soakTestTextOK " + i, e)
+            return
         }
 
       }
@@ -238,7 +239,7 @@ class HttpIntegration {
       val rate = (bytes / duration)
       println(bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
     } catch {
-      case e: ConnectException =>
+      case e: Exception =>
         skipTestWarning("GET", testPhotoUrl, e)
     }
   }
@@ -253,7 +254,12 @@ class HttpIntegration {
     throw new AssertionError("Expect response to contain\n" + expectedHeader)
   }
 
-  private def skipTestWarning(method: String, url: String, e: ConnectException) {
-    System.err.println("***** Test skipped: " + method + " " + url + " : " + e.getMessage)
+  private def skipTestWarning(method: String, url: String, e: Exception) {
+    if (e.getCause.isInstanceOf[ConnectException]) {
+      System.err.println("***** Test skipped: " + method + " " + url + " : " + e.getMessage)
+    }
+    else {
+      throw e
+    }
   }
 }

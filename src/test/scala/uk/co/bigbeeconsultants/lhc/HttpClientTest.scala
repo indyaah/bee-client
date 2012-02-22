@@ -24,9 +24,10 @@
 
 package uk.co.bigbeeconsultants.lhc
 
+import com.pyruby.stubserver.Header._
 import com.pyruby.stubserver.StubMethod
 import com.pyruby.stubserver.StubServer
-import header.{HeaderName, Headers, MediaType}
+import header._
 import org.junit.Assert._
 import java.nio.{BufferUnderflowException, BufferOverflowException, ByteBuffer}
 import java.net.URL
@@ -44,6 +45,12 @@ class HttpClientTest {
 
   val url = "/some/url"
 
+  private def convertHeaderList(headers: List[Header]): List[com.pyruby.stubserver.Header] = {
+    headers.map {
+      header => new com.pyruby.stubserver.Header(header.name, header.value)
+    }
+  }
+
   @Test def get200_shouldReturnOK() {
     val http = new HttpClient()
     val stubbedMethod = StubMethod.get(url)
@@ -55,6 +62,28 @@ class HttpClientTest {
     assertEquals(APPLICATION_JSON, response.body.contentType)
     assertEquals(APPLICATION_JSON.toString, response.headers.get(CONTENT_TYPE).value)
     assertEquals(json, response.body.asString)
+  }
+
+  @Test def get200_shouldSetCookie_andThenSendCookie() {
+    val http = new HttpClient()
+    val stubbedMethod1 = StubMethod.get(url)
+    val json = """{"astring" : "the message" }"""
+    val cookieHeaders = List(SET_COOKIE -> "foo=bar", SET_COOKIE -> ("dead=; Expires=" + HttpDateTimeInstant.zero))
+    server.expect(stubbedMethod1).thenReturn(200, APPLICATION_JSON, json, convertHeaderList(cookieHeaders))
+
+    val response1 = http.get(new URL(baseUrl + url))
+    server.verify()
+    val jar1 = CookieJar.harvestCookies(response1)
+    assertEquals(1, jar1.cookies.size)
+    assertEquals(1, jar1.deleted.size)
+
+    val stubbedMethod2 = stubbedMethod1.ifHeader(COOKIE.name, "foo=bar")
+    server.expect(stubbedMethod2).thenReturn(200, APPLICATION_JSON, json)
+    val response2 = http.get(new URL(baseUrl + url), Nil, jar1)
+    server.verify()
+    val jar2 = CookieJar.harvestCookies(response2)
+    assertEquals(0, jar2.cookies.size)
+    assertEquals(0, jar2.deleted.size)
   }
 
 
@@ -74,14 +103,15 @@ class HttpClientTest {
   @Test def get_withGzip_shouldReturnText() {
     val http = new HttpClient()
     val stubbedMethod = StubMethod.get(url)
-    server.expect(stubbedMethod).thenReturn(200, TEXT_PLAIN.toString, toGzip(HttpClientTest.loadsOfText), Map(CONTENT_ENCODING.name -> "gzip"))
+    server.expect(stubbedMethod).thenReturn(200, TEXT_PLAIN.toString, toGzip(HttpClientTest.loadsOfText),
+      convertHeaderList(List(CONTENT_ENCODING -> "gzip")))
 
     val response = http.get(new URL(baseUrl + url), Headers(List(ACCEPT_ENCODING -> "gzip")))
     server.verify()
     val body = response.body
     assertEquals(TEXT_PLAIN, body.contentType)
     assertEquals(HttpClientTest.loadsOfText, body.asString)
-    val accEnc = stubbedMethod.headers.get("Accept-Encoding")
+    val accEnc = stubbedMethod.requestHeaders.get("Accept-Encoding")
     assertEquals("gzip", accEnc)
   }
 
@@ -159,14 +189,14 @@ class HttpClientTest {
   }
 
 
-  @Ignore // chnked data not yet implemented and HttpURLConnection may be too buggy anyway
+  @Ignore // chunked data not yet implemented and HttpURLConnection may be too buggy anyway
   @Test def post_withChunkSize_shouldSetChunkHeader() {
     val http = new HttpClient()
     val stubbedMethod = StubMethod.post(url)
     server.expect(stubbedMethod).thenReturn(200, APPLICATION_JSON, "")
     http.post(new URL(baseUrl + url), request.Body(APPLICATION_JSON, Map("a" -> "b")))
     server.verify()
-    val transferEncoding = stubbedMethod.headers.get(TRANSFER_ENCODING)
+    val transferEncoding = stubbedMethod.requestHeaders.get(TRANSFER_ENCODING)
     assertEquals("", transferEncoding)
   }
 
