@@ -60,15 +60,12 @@ trait Body {
 }
 
 
-object Body {
-  implicit def asString(body: Body) = body.asString
-}
-
-
 /**
  * Provides an empty Body implementation.
  */
-final class EmptyBody(val contentType: MediaType) extends Body
+final class EmptyBody(val contentType: MediaType) extends Body {
+  override def toString = asString
+}
 
 
 /**
@@ -102,6 +99,8 @@ final class ByteBufferBody(val contentType: MediaType, byteData: ByteBuffer) ext
     }
     converted
   }
+
+  override def toString = asString
 }
 
 
@@ -126,6 +125,8 @@ final class StringBody(val contentType: MediaType, bodyText: String) extends Bod
    * Get the body of the response as a string.
    */
   override def asString: String = bodyText
+
+  override def toString = asString
 }
 
 
@@ -154,4 +155,6 @@ final class InputStreamBufferBody extends Body {
    * This uses the character encoding of the contentType, or UTF-8 as a default.
    */
   override def asString: String = if (cache != null) cache.asString else null
+
+  override def toString = asString
 }

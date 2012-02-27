@@ -61,7 +61,7 @@ class HttpClientTest {
     server.verify()
     assertEquals(APPLICATION_JSON, response.body.contentType)
     assertEquals(APPLICATION_JSON.toString, response.headers.get(CONTENT_TYPE).value)
-    assertEquals(json, response.body.asString)
+    assertEquals(json, response.body.toString)
   }
 
   @Test def get200_shouldSetCookie_andThenSendCookie() {
@@ -110,7 +110,7 @@ class HttpClientTest {
     server.verify()
     val body = response.body
     assertEquals(TEXT_PLAIN, body.contentType)
-    assertEquals(HttpClientTest.loadsOfText, body.asString)
+    assertEquals(HttpClientTest.loadsOfText, body.toString)
     val accEnc = stubbedMethod.requestHeaders.get("Accept-Encoding")
     assertEquals("gzip", accEnc)
   }
@@ -141,7 +141,7 @@ class HttpClientTest {
     for (i <- 1 to n) {
       val response = http.get(new URL(baseUrl + url + i))
       assertEquals(APPLICATION_JSON, response.body.contentType)
-      assertEquals(json, response.body.asString)
+      assertEquals(json, response.body.toString)
     }
     val after = System.currentTimeMillis()
     server.verify()
@@ -160,7 +160,7 @@ class HttpClientTest {
     val response = http.put(new URL(baseUrl + url), request.Body(APPLICATION_JSON, jsonReq))
     server.verify()
     assertEquals(APPLICATION_JSON, response.body.contentType)
-    assertEquals(jsonRes, response.body.asString)
+    assertEquals(jsonRes, response.body.toString)
   }
 
 
@@ -173,7 +173,7 @@ class HttpClientTest {
     val response = http.post(new URL(baseUrl + url), request.Body(APPLICATION_JSON, Map("a" -> "b")))
     server.verify()
     assertEquals(APPLICATION_JSON, response.body.contentType)
-    assertEquals(jsonRes, response.body.asString)
+    assertEquals(jsonRes, response.body.toString)
   }
 
 

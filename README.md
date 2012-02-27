@@ -13,10 +13,9 @@ making HTTP requests. It has the following features:
 
 *   Flexible and efficient handling of content (entity) bodies.
 
-*   (Mostly) complete implementation - *all* HTTP methods and headers are
-    supported.
+*   Complete implementation: *all* HTTP methods and headers are supported.
 
-*   Standards-compliance is more complete than HttpURLConnection.
+*   Standards-compliance is better than HttpURLConnection.
 
 *   Cookies are supported. They are held in immutable cookie jars gleaned
     from response headers (or created programmatically) and then sent back

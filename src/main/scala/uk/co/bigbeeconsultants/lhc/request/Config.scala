@@ -28,7 +28,7 @@ package uk.co.bigbeeconsultants.lhc.request
  * Specifies configuration options that will be used across many requests.
  */
 case class Config(connectTimeout: Int = 2000,
-                  readTimeout: Int = 500,
+                  readTimeout: Int = 5000,
                   followRedirects: Boolean = true,
                   useCaches: Boolean = true,
                   sendHostHeader: Boolean = true)

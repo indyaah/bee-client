@@ -43,7 +43,7 @@ class BodyTest {
 
     assertEquals(MediaType.APPLICATION_JSON, body.contentType)
     assertArrayEquals(s.getBytes("UTF-8"), body.asBytes)
-    assertEquals(s, body.asString)
+    assertEquals(s, body.toString)
   }
 
 
@@ -53,7 +53,7 @@ class BodyTest {
     val body = new StringBody(MediaType.APPLICATION_JSON, s)
 
     assertEquals(MediaType.APPLICATION_JSON, body.contentType)
-    assertEquals(s, body.asString)
+    assertEquals(s, body.toString)
     assertArrayEquals(s.getBytes("UTF-8"), body.asBytes)
   }
 }

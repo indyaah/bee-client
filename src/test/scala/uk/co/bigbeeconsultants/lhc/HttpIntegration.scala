@@ -63,7 +63,7 @@ class HttpIntegration {
       assertEquals(200, response.status.code)
       val body = response.body
       assertEquals(MediaType.TEXT_HTML, body.contentType)
-      assertTrue(body.asString == "")
+      assertTrue(body.toString == "")
     } catch {
       case e: Exception =>
         skipTestWarning("HEAD", testScriptUrl, e)
@@ -76,7 +76,7 @@ class HttpIntegration {
       assertEquals(200, response.status.code)
       val body = response.body
       assertEquals(MediaType.TEXT_HTML, body.contentType)
-      val string = body.asString
+      val string = body.toString
       assertTrue(string.startsWith("<html>"))
       val bodyLines = string.split("\n")
       assertEquals("GET", extractLineFromResponse("REQUEST_METHOD", bodyLines))
@@ -121,8 +121,8 @@ class HttpIntegration {
       assertEquals(200, response.status.code)
       val body = response.body
       assertEquals(MediaType.TEXT_PLAIN, body.contentType)
-      assertTrue(body.asString.startsWith("CONTENT_LENGTH"))
-      val bodyLines = body.asString.split("\n")
+      assertTrue(body.toString.startsWith("CONTENT_LENGTH"))
+      val bodyLines = body.toString.split("\n")
       assertEquals("GET", extractLineFromResponse("REQUEST_METHOD", bodyLines))
     } catch {
       case e: Exception =>
@@ -138,7 +138,7 @@ class HttpIntegration {
       assertEquals(302, response.status.code)
       val body = response.body
       assertEquals(MediaType.TEXT_HTML, body.contentType)
-      assertEquals(0, body.asString.length)
+      assertEquals(0, body.toString.length)
       val location = response.headers.get(HeaderName.LOCATION).value
       assertTrue(location, location.startsWith(serverUrl))
     } catch {
@@ -155,7 +155,7 @@ class HttpIntegration {
       assertEquals(302, response.status.code)
       val body = response.body
       assertEquals(MediaType.TEXT_HTML, body.contentType)
-      assertEquals(0, body.asString.length)
+      assertEquals(0, body.toString.length)
       val location = response.headers.get(HeaderName.LOCATION).value
       assertTrue(location, location.startsWith(serverUrl))
     } catch {
@@ -171,8 +171,8 @@ class HttpIntegration {
       assertEquals(200, response.status.code)
       val body = response.body
       assertEquals(MediaType.TEXT_HTML, body.contentType)
-      assertTrue(body.asString.startsWith("<html>"))
-      val bodyLines = body.asString.split("\n")
+      assertTrue(body.toString.startsWith("<html>"))
+      val bodyLines = body.toString.split("\n")
       assertEquals("DELETE", extractLineFromResponse("REQUEST_METHOD", bodyLines))
     } catch {
       case e: Exception =>
@@ -218,7 +218,7 @@ class HttpIntegration {
           assertEquals(is, 200, response.status.code)
           val body = response.body
           assertEquals(is, MediaType.TEXT_HTML, body.contentType)
-          val string = body.asString
+          val string = body.toString
           assertTrue(is, string.startsWith("<html>"))
           if (size < 0) {
             first = string
