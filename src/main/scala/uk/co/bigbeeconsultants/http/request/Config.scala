@@ -22,16 +22,17 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http.request
 
-version := "0.1.9"
+/**
+ * Specifies configuration options that will be used across many requests.
+ */
+case class Config(connectTimeout: Int = 2000,
+                  readTimeout: Int = 5000,
+                  followRedirects: Boolean = true,
+                  useCaches: Boolean = true,
+                  sendHostHeader: Boolean = true)
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
-
-// append -deprecation to the options passed to the Scala compiler
-scalacOptions += "-deprecation"
-
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+// These features are planned to be included when a less-buggy networking layer is available.
+//keepAlive: Boolean = true,
+//                  chunkSizeInKB: Int = -1)

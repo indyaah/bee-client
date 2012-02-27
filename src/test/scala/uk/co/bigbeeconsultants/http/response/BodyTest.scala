@@ -1,3 +1,5 @@
+package uk.co.bigbeeconsultants.http.response
+
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -22,16 +24,36 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+import org.junit.Test
+import org.junit.Assert._
+import java.net.URL
+import java.io.ByteArrayInputStream
+import uk.co.bigbeeconsultants.http.header.MediaType
 
-version := "0.1.9"
+class BodyTest {
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+  val url1 = new URL("http://localhost/")
 
-// append -deprecation to the options passed to the Scala compiler
-scalacOptions += "-deprecation"
+  @Test
+  def bufferedBody() {
+    val s = """[ "Some json message text" ]"""
+    val bais = new ByteArrayInputStream(s.getBytes("UTF-8"))
+    val body = new InputStreamBufferBody
+    body.receiveData(MediaType.APPLICATION_JSON, bais)
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+    assertEquals(MediaType.APPLICATION_JSON, body.contentType)
+    assertArrayEquals(s.getBytes("UTF-8"), body.asBytes)
+    assertEquals(s, body.toString)
+  }
+
+
+  @Test
+  def stringBody() {
+    val s = """[ "Some json message text" ]"""
+    val body = new StringBody(MediaType.APPLICATION_JSON, s)
+
+    assertEquals(MediaType.APPLICATION_JSON, body.contentType)
+    assertEquals(s, body.toString)
+    assertArrayEquals(s.getBytes("UTF-8"), body.asBytes)
+  }
+}

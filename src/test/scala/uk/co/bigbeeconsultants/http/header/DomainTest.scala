@@ -22,16 +22,54 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http.header
 
-version := "0.1.9"
+import org.junit.Test
+import org.junit.Assert._
+import java.net.URL
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+class DomainTest {
 
-// append -deprecation to the options passed to the Scala compiler
-scalacOptions += "-deprecation"
+  val ftpUrl1 = new URL("ftp://www.w3.org/standards/webdesign/htmlcss")
+  val httpUrl1 = new URL("http://www.w3.org/standards/webdesign/htmlcss")
+  val httpsUrl1 = new URL("https://www.w3.org/login/")
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+  @Test
+  def domain_isIpAddress_withName() {
+    val d = Domain("alpha.bravo.charlie")
+    assertFalse(d.isIpAddress)
+  }
+
+  @Test
+  def domain_isIpAddress_withDottedQuad() {
+    val d = Domain("10.1.233.0")
+    assertTrue(d.isIpAddress)
+  }
+
+  @Test
+  def domain_matchesSame() {
+    val d = Domain("www.w3.org")
+    assertTrue(d.matches(new URL("http://www.w3.org:80/standards/")))
+  }
+
+  @Test
+  def domain_matchesParent() {
+    val d = Domain("w3.org")
+    assertTrue(d.matches(httpUrl1))
+  }
+
+  @Test
+  def longerDomainName_isRejected() {
+    val d = Domain("members.w3.org")
+    assertFalse(d.matches(httpUrl1))
+  }
+
+  @Test
+  def domainParent() {
+    val d = Domain("www.members.w3.org")
+    assertEquals("www.members.w3.org", d.domain)
+    assertEquals("members.w3.org", d.parent.get.domain)
+    assertEquals("w3.org", d.parent.get.parent.get.domain)
+    assertFalse(d.parent.get.parent.get.parent.isDefined)
+  }
+}

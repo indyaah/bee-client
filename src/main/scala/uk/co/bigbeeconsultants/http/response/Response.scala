@@ -22,16 +22,13 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http.response
 
-version := "0.1.9"
+import uk.co.bigbeeconsultants.http.header.Headers
+import uk.co.bigbeeconsultants.http.request.Request
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
-
-// append -deprecation to the options passed to the Scala compiler
-scalacOptions += "-deprecation"
-
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+/**
+ * Represents a HTTP response. This is essentially immutable, although the implementation of
+ * the response body may vary.
+ */
+case class Response(request: Request, status: Status, body: Body, headers: Headers)

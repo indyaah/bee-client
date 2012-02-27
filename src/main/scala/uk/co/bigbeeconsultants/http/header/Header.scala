@@ -22,16 +22,37 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http.header
 
-version := "0.1.9"
+import uk.co.bigbeeconsultants.http.{HttpDateTimeInstant, Util}
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+/**
+ * Provides an HTTP header.
+ */
+case class Header(name: String, value: String) {
 
-// append -deprecation to the options passed to the Scala compiler
-scalacOptions += "-deprecation"
+  def toInt: Int = value.toInt
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+  def toLong: Long = value.toLong
+
+  def toDate(defaultValue: HttpDateTimeInstant = HttpDateTimeInstant.zero): HttpDateTimeInstant = HttpDateTimeInstant.parse(value, defaultValue)
+
+  def toQualifiedValue = QualifiedValue(value)
+
+  def toMediaType = MediaType(value)
+
+  //TODO
+//  def toCookie = Cookie(Util.divide(value, '='))
+
+  override def toString = name + ": " + value
+
+  lazy val hasListValue = HeaderName.headersWithListValues.contains(name)
+}
+
+
+object Header {
+  def apply(raw: String): Header = {
+    val t = Util.divide(raw, ':')
+    apply(t._1.trim, t._2.trim)
+  }
+}

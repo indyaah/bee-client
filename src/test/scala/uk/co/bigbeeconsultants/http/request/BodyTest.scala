@@ -1,3 +1,5 @@
+package uk.co.bigbeeconsultants.http.request
+
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -22,16 +24,37 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+import org.junit.Test
+import org.junit.Assert._
+import java.net.URL
+import java.io.ByteArrayOutputStream
+import collection.immutable.ListMap
+import uk.co.bigbeeconsultants.http.header.MediaType
+import uk.co.bigbeeconsultants.http.HttpClient
 
-version := "0.1.9"
+class BodyTest {
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+  val url1 = new URL("http://localhost/")
 
-// append -deprecation to the options passed to the Scala compiler
-scalacOptions += "-deprecation"
+  @Test
+  def bodyWithString() {
+    val mt = MediaType.APPLICATION_JSON
+    val b = Body(mt, "[1, 2, 3]")
+    assertSame(mt, b.mediaType)
+    val baos = new ByteArrayOutputStream
+    b.copyTo(baos)
+    val result = baos.toString(HttpClient.UTF8)
+    assertEquals("[1, 2, 3]", result)
+  }
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+  @Test
+  def bodyWithKeyValPairs() {
+    val mt = MediaType.APPLICATION_JSON
+    val b = Body(mt, ListMap("a" -> "1", "b" -> "2", "c" -> "3"))
+    assertSame(mt, b.mediaType)
+    val baos = new ByteArrayOutputStream
+    b.copyTo(baos)
+    val result = baos.toString(HttpClient.UTF8)
+    assertEquals("a=1&b=2&c=3", result)
+  }
+}

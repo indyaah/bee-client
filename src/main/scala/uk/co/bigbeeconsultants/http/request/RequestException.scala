@@ -22,16 +22,15 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http.request
 
-version := "0.1.9"
+import uk.co.bigbeeconsultants.http.response.{Response, Status}
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
 
-// append -deprecation to the options passed to the Scala compiler
-scalacOptions += "-deprecation"
+class RequestException(val request: Request, val status: Status, val response: Option[Response], cause: Option[Exception])
+  extends RuntimeException(cause orNull) {
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+  override def getMessage: String = {
+    "%s %s\n  %d %s".format(request.method, request.url, status.code, status.message)
+  }
+}

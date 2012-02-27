@@ -22,16 +22,50 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http.header
 
-version := "0.1.9"
+import uk.co.bigbeeconsultants.http.Util
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+/**
+ * Specifies a key/value pair used as one of (potentially many) parameters attached to a compound header value.
+ */
+case class Qualifier(label: String, value: String) {
+  override def toString =
+    if (value.length() > 0) label + "=" + value
+    else label
+}
 
-// append -deprecation to the options passed to the Scala compiler
-scalacOptions += "-deprecation"
+object Qualifier {
+  def apply(str: String) = {
+    val t = Util.divide(str, '=')
+    new Qualifier(t._1, t._2)
+  }
+}
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+
+case class Part(value: String, qualifier: List[Qualifier] = Nil) {
+  override def toString =
+    if (qualifier.isEmpty) value
+    else value + ";" + qualifier.mkString(";")
+}
+
+
+/**
+ * Defines an HTTP header with a list of qualifiers. Typically, such values are
+ * used for the 'accept' category of headers.
+ */
+case class QualifiedValue(value: String) {
+
+  val parts: List[Part] = {
+    val parts = for (v <- Util.split(value, ',')) yield {
+      val t = Util.split(v.trim, ';')
+      val qualifiers = for (q <- t.tail) yield {
+        Qualifier(q.trim)
+      }
+      Part(t.head, qualifiers.toList)
+    }
+    parts.toList
+  }
+
+  override val toString = parts.mkString(", ")
+}

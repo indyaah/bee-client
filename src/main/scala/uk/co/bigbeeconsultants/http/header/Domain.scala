@@ -22,16 +22,50 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http.header
 
-version := "0.1.9"
+import java.util.regex.Pattern
+import java.net.URL
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+case class Domain(domain: String) {
 
-// append -deprecation to the options passed to the Scala compiler
-scalacOptions += "-deprecation"
+  require(domain.length > 0)
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+  private val ipV4 = Pattern.compile("[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+")
+
+  lazy val parent: Option[Domain] = {
+    if (isIpAddress) {
+      None
+    } else {
+      val firstDot = domain.indexOf('.')
+      val lastDot = domain.lastIndexOf('.')
+      if (firstDot > 0 && lastDot > firstDot) {
+        Some(Domain(domain.substring(firstDot + 1)))
+      } else {
+        None
+      }
+    }
+  }
+
+  def isIpAddress: Boolean = ipV4.matcher(domain).matches()
+
+  /**Tests whether this domain matches some URL. */
+  def matches(url: URL) = {
+    val host = url.getHost
+    if (host == domain) {
+      true
+    } else if (host.length > domain.length) {
+      host.endsWith(domain) &&
+        host.charAt(host.length - domain.length - 1) == '.' &&
+        !isIpAddress
+    } else {
+      false
+    }
+  }
+}
+
+object Domain {
+  def apply(url: URL): Domain = new Domain(url.getHost)
+
+  //private def extractDomainFrom(url: URL) = Util.divide(url.getAuthority, ':')._1
+}

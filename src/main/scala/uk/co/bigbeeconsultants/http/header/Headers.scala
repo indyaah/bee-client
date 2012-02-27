@@ -22,16 +22,25 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http.header
 
-version := "0.1.9"
+/**
+ * Holds a list of headers.
+ */
+case class Headers(list: List[Header]) {
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+  /**
+   * Finds all the headers that have a given name.
+   */
+  def find (name: String): List[Header] = list.filter(_.name equalsIgnoreCase name)
 
-// append -deprecation to the options passed to the Scala compiler
-scalacOptions += "-deprecation"
+  /**
+   * Finds the one header that has a given name. If none exists, an exception will be thrown.
+   * If more than one match exists, only the first will be returned.
+   */
+  def get (name: String): Header = find(name)(0)
+}
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+object Headers {
+  implicit def createHeaders(list: List[Header]): Headers = new Headers(list)
+}

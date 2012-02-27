@@ -22,16 +22,23 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http.response
 
-version := "0.1.9"
+import uk.co.bigbeeconsultants.http.header.MediaType
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+/**
+ * Defines the factory method used for pluggable creation of response bodies. The content type is
+ * available when the decision is made about what instance is required.
+ */
+trait BodyFactory {
+  def newBody(contentType: MediaType): Body
+}
 
-// append -deprecation to the options passed to the Scala compiler
-scalacOptions += "-deprecation"
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+/**
+ * Provides a simple imeplementation of BodyFactory that creates new BufferedBody
+ * instances for all media types.
+ */
+final class BufferedBodyFactory extends BodyFactory {
+  def newBody(contentType: MediaType) = new InputStreamBufferBody
+}
