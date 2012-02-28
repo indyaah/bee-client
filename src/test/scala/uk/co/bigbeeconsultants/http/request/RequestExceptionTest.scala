@@ -24,23 +24,21 @@ package uk.co.bigbeeconsultants.http.request
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-import org.junit.Test
-import org.junit.Assert._
 import java.net.URL
 import uk.co.bigbeeconsultants.http.header.MediaType
 import uk.co.bigbeeconsultants.http.response.Status
+import org.scalatest.FunSuite
 
-class RequestExceptionTest {
+class RequestExceptionTest extends FunSuite {
 
-  val url1 = new URL("http://localhost/")
+  val url1 = new URL ("http://localhost/")
 
-  @Test
-  def requestExceptionGetMessage() {
+  test ("requestExceptionGetMessage") {
     val mt = MediaType.APPLICATION_JSON
-    val b = Body(mt, "[1, 2, 3]")
-    val r = Request.put(url1, b)
-    val s = Status(400, "Bad request")
-    val re = new RequestException(r, s, None, None)
-    assertEquals("PUT http://localhost/\n  400 Bad request", re.getMessage)
+    val b = Body (mt, "[1, 2, 3]")
+    val r = Request.put (url1, b)
+    val s = Status (400, "Bad request")
+    val re = new RequestException (r, s, None, None)
+    expect ("PUT http://localhost/\n  400 Bad request")(re.getMessage)
   }
 }

@@ -77,8 +77,8 @@ final class ByteBufferBody(val contentType: MediaType, byteData: ByteBuffer) ext
   private var converted: String = null
 
   private def convertToString = {
-    val charset = contentType.charset.getOrElse(HttpClient.UTF8)
-    val string = Charset.forName(charset).decode(byteData).toString
+    val charset = contentType.charset.getOrElse (HttpClient.UTF8)
+    val string = Charset.forName (charset).decode (byteData).toString
     byteData.rewind
     string
   }
@@ -87,7 +87,7 @@ final class ByteBufferBody(val contentType: MediaType, byteData: ByteBuffer) ext
    * Get the body of the response as an array of bytes.
    */
   override def asBytes: Array[Byte] =
-    byteData.array()
+    byteData.array ()
 
   /**
    * Get the body of the response as a string.
@@ -114,10 +114,10 @@ final class StringBody(val contentType: MediaType, bodyText: String) extends Bod
    * This uses the character encoding of the contentType, or UTF-8 as a default.
    */
   override def asBytes: Array[Byte] = {
-    val charset = contentType.charset.getOrElse(HttpClient.UTF8)
-    val buf = Charset.forName(charset).encode(bodyText)
-    val bytes = new Array[Byte](buf.limit())
-    buf.get(bytes, 0, buf.limit())
+    val charset = contentType.charset.getOrElse (HttpClient.UTF8)
+    val buf = Charset.forName (charset).encode (bodyText)
+    val bytes = new Array[Byte](buf.limit ())
+    buf.get (bytes, 0, buf.limit ())
     bytes
   }
 
@@ -140,7 +140,7 @@ final class InputStreamBufferBody extends Body {
   private var cache: ByteBufferBody = null
 
   override def receiveData(contentType: MediaType, inputStream: InputStream) {
-    cache = new ByteBufferBody(contentType, Util.copyToByteBufferAndClose(inputStream))
+    cache = new ByteBufferBody (contentType, Util.copyToByteBufferAndClose (inputStream))
   }
 
   def contentType: MediaType = if (cache != null) cache.contentType else null

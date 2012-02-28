@@ -24,80 +24,68 @@ package uk.co.bigbeeconsultants.http
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-import org.junit.Test
-import org.junit.Assert._
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import org.scalatest.FunSuite
 
-class UtilTest {
+class UtilTest extends FunSuite {
 
-  @Test
-  def split_blank() {
-    assertEquals(List(""), Util.split("", ':'))
+  test ("split_blank") {
+    expect (List (""))(Util.split ("", ':'))
   }
 
-  @Test
-  def split_sepOnly() {
-    assertEquals(List("", ""), Util.split(":", ':'))
+  test ("split_sepOnly") {
+    expect (List ("", ""))(Util.split (":", ':'))
   }
 
-  @Test
-  def split_oneOnly() {
-    assertEquals(List("only"), Util.split("only", ':'))
+  test ("split_oneOnly") {
+    expect (List ("only"))(Util.split ("only", ':'))
   }
 
-  @Test
-  def split_endOnly() {
-    assertEquals(List("only", ""), Util.split("only:", ':'))
+  test ("split_endOnly") {
+    expect (List ("only", ""))(Util.split ("only:", ':'))
   }
 
-  @Test
-  def split_startOnly() {
-    assertEquals(List("", "only"), Util.split(":only", ':'))
+  test ("split_startOnly") {
+    expect (List ("", "only"))(Util.split (":only", ':'))
   }
 
-  @Test
-  def split_three() {
-    assertEquals(List("one", "two", "three"), Util.split("one:two:three", ':'))
+  test ("split_three") {
+    expect (List ("one", "two", "three"))(Util.split ("one:two:three", ':'))
   }
 
-  @Test
-  def divide0() {
-    assertEquals(("", ""), Util.divide("", ':'))
+  test ("divide0") {
+    expect (("", ""))(Util.divide ("", ':'))
   }
 
-  @Test
-  def divide1() {
-    assertEquals(("xyz", ""), Util.divide("xyz", ':'))
+  test ("divide1") {
+    expect (("xyz", ""))(Util.divide ("xyz", ':'))
   }
 
-  @Test
-  def divide2() {
-    assertEquals(("aa", "bb:cc"), Util.divide("aa:bb:cc", ':'))
+  test ("divide2") {
+    expect (("aa", "bb:cc"))(Util.divide ("aa:bb:cc", ':'))
   }
 
-  @Test
-  def copyBytesShort() {
+  test ("copyBytesShort") {
     val str = "short string"
     val bytes = str.getBytes
-    val bais = new ByteArrayInputStream(bytes)
+    val bais = new ByteArrayInputStream (bytes)
     val baos = new ByteArrayOutputStream
-    val count = Util.copyBytes(bais, baos)
-    val result = new String(baos.toByteArray)
-    assertEquals(bytes.length, count)
-    assertEquals(result, str)
+    val count = Util.copyBytes (bais, baos)
+    val result = new String (baos.toByteArray)
+    expect (bytes.length)(count)
+    expect (result)(str)
   }
 
-  @Test
-  def copyBytesLong() {
+  test ("copyBytesLong") {
     val sb = new StringBuilder
-    for (i <- 1 to 10000) sb.append("this is my string of text which will be repeated many times.")
-    val str = sb.toString()
+    for (i <- 1 to 10000) sb.append ("this is my string of text which will be repeated many times.")
+    val str = sb.toString ()
     val bytes = str.getBytes
-    val bais = new ByteArrayInputStream(bytes)
+    val bais = new ByteArrayInputStream (bytes)
     val baos = new ByteArrayOutputStream
-    val count = Util.copyBytes(bais, baos)
-    val result = new String(baos.toByteArray)
-    assertEquals(bytes.length, count)
-    assertEquals(result, str)
+    val count = Util.copyBytes (bais, baos)
+    val result = new String (baos.toByteArray)
+    expect (bytes.length)(count)
+    expect (result)(str)
   }
 }

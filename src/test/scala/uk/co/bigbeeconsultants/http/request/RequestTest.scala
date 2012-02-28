@@ -24,31 +24,28 @@ package uk.co.bigbeeconsultants.http.request
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-import org.junit.Test
-import org.junit.Assert._
 import java.net.URL
 import uk.co.bigbeeconsultants.http.header.MediaType
+import org.scalatest.FunSuite
 
-class RequestTest {
+class RequestTest extends FunSuite {
 
-  val url1 = new URL("http://localhost/")
+  val url1 = new URL ("http://localhost/")
 
-  @Test
-  def requestNoBody() {
-    val r = Request.get(url1)
-    assertEquals(url1, r.url)
-    assertEquals("GET", r.method)
-    assertTrue(r.body.isEmpty)
+  test ("requestNoBody") {
+    val r = Request.get (url1)
+    expect (url1)(r.url)
+    expect ("GET")(r.method)
+    expect (true)(r.body.isEmpty)
   }
 
-  @Test
-  def RequestWithBody() {
+  test ("RequestWithBody") {
     val mt = MediaType.APPLICATION_JSON
-    val b = Body(mt, "[1, 2, 3]")
-    val r = Request.put(url1, b)
-    assertEquals(url1, r.url)
-    assertEquals("PUT", r.method)
-    assertEquals(b, r.body.get)
-    assertEquals("UTF-8", r.body.get.mediaType.charsetOrElse("UTF-8"))
+    val b = Body (mt, "[1, 2, 3]")
+    val r = Request.put (url1, b)
+    expect (url1)(r.url)
+    expect ("PUT")(r.method)
+    expect (b)(r.body.get)
+    expect ("UTF-8")(r.body.get.mediaType.charsetOrElse ("UTF-8"))
   }
 }

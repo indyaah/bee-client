@@ -24,48 +24,48 @@ package uk.co.bigbeeconsultants.http.header
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-import org.junit.Test
-import org.junit.Assert._
+import org.scalatest.FunSuite
 
-class MediaTypeTest {
+class MediaTypeTest extends FunSuite {
 
-  @Test
-  def mediaType_constructionVariants() {
-    assertEquals("application/json", MediaType.APPLICATION_JSON.toString)
-    assertEquals("text/plain", MediaType("text/plain").toString)
-    assertTrue(MediaType.STAR_STAR.isWildcardType)
-    assertTrue(MediaType.STAR_STAR.isWildcardSubtype)
-    assertFalse(MediaType.TEXT_PLAIN.isWildcardType)
-    assertFalse(MediaType.TEXT_PLAIN.isWildcardSubtype)
+
+  test ("mediaType_constructionVariants") {
+    expect ("application/json")(MediaType.APPLICATION_JSON.toString)
+    expect ("text/plain")(MediaType ("text/plain").toString)
+    expect (true)(MediaType.STAR_STAR.isWildcardType)
+    expect (true)(MediaType.STAR_STAR.isWildcardSubtype)
+    expect (false)(MediaType.TEXT_PLAIN.isWildcardType)
+    expect (false)(MediaType.TEXT_PLAIN.isWildcardSubtype)
   }
 
-  @Test
-  def parser() {
-    val mt = MediaType("text/html; charset=ISO-8859-1")
-    assertEquals("text/html; charset=ISO-8859-1", mt.toString)
-    assertEquals("text", mt.`type`)
-    assertEquals("html", mt.subtype)
-    assertEquals("ISO-8859-1", mt.charset.get)
+
+  test ("parser") {
+    val mt = MediaType ("text/html; charset=ISO-8859-1")
+    expect ("text/html; charset=ISO-8859-1")(mt.toString)
+    expect ("text")(mt.`type`)
+    expect ("html")(mt.subtype)
+    expect ("ISO-8859-1")(mt.charset.get)
   }
 
-  @Test
-  def edgeCases() {
-    assertEquals("text/*", MediaType("text/").toString)
-    assertEquals("*/x", MediaType("/x").toString)
-    assertEquals("*/*", MediaType("/").toString)
-    assertEquals("*/*", MediaType("").toString)
+
+  test ("edgeCases") {
+    expect ("text/*")(MediaType ("text/").toString)
+    expect ("*/x")(MediaType ("/x").toString)
+    expect ("*/*")(MediaType ("/").toString)
+    expect ("*/*")(MediaType ("").toString)
   }
 
-  @Test
-  def withCharset() {
+
+  test ("withCharset") {
     val mt1 = MediaType.TEXT_HTML
-    assertTrue(mt1.charset.isEmpty)
-    val mt2 = mt1.withCharset("UTF-8")
-    assertEquals("UTF-8", mt2.charset.get)
+    expect (true)(mt1.charset.isEmpty)
+    val mt2 = mt1.withCharset ("UTF-8")
+    expect ("UTF-8")(mt2.charset.get)
   }
 
-  @Test(expected = classOf[IllegalArgumentException])
-  def withNullCharset() {
-    MediaType.TEXT_HTML.withCharset(null)
+  test ("withNullCharset") {
+    intercept[IllegalArgumentException] {
+      MediaType.TEXT_HTML.withCharset (null)
+    }
   }
 }

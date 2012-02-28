@@ -24,52 +24,51 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import org.junit.Test
-import org.junit.Assert._
 import java.net.URL
+import org.scalatest.FunSuite
 
-class DomainTest {
+class DomainTest extends FunSuite {
 
-  val ftpUrl1 = new URL("ftp://www.w3.org/standards/webdesign/htmlcss")
-  val httpUrl1 = new URL("http://www.w3.org/standards/webdesign/htmlcss")
-  val httpsUrl1 = new URL("https://www.w3.org/login/")
+  val ftpUrl1 = new URL ("ftp://www.w3.org/standards/webdesign/htmlcss")
+  val httpUrl1 = new URL ("http://www.w3.org/standards/webdesign/htmlcss")
+  val httpsUrl1 = new URL ("https://www.w3.org/login/")
 
-  @Test
-  def domain_isIpAddress_withName() {
-    val d = Domain("alpha.bravo.charlie")
-    assertFalse(d.isIpAddress)
+
+  test ("domain_isIpAddress_withName") {
+    val d = Domain ("alpha.bravo.charlie")
+    expect (false)(d.isIpAddress)
   }
 
-  @Test
-  def domain_isIpAddress_withDottedQuad() {
-    val d = Domain("10.1.233.0")
-    assertTrue(d.isIpAddress)
+
+  test ("domain_isIpAddress_withDottedQuad") {
+    val d = Domain ("10.1.233.0")
+    expect (true)(d.isIpAddress)
   }
 
-  @Test
-  def domain_matchesSame() {
-    val d = Domain("www.w3.org")
-    assertTrue(d.matches(new URL("http://www.w3.org:80/standards/")))
+
+  test ("domain_matchesSame") {
+    val d = Domain ("www.w3.org")
+    expect (true)(d.matches (new URL ("http://www.w3.org:80/standards/")))
   }
 
-  @Test
-  def domain_matchesParent() {
-    val d = Domain("w3.org")
-    assertTrue(d.matches(httpUrl1))
+
+  test ("domain_matchesParent") {
+    val d = Domain ("w3.org")
+    expect (true)(d.matches (httpUrl1))
   }
 
-  @Test
-  def longerDomainName_isRejected() {
-    val d = Domain("members.w3.org")
-    assertFalse(d.matches(httpUrl1))
+
+  test ("longerDomainName_isRejected") {
+    val d = Domain ("members.w3.org")
+    expect (false)(d.matches (httpUrl1))
   }
 
-  @Test
-  def domainParent() {
-    val d = Domain("www.members.w3.org")
-    assertEquals("www.members.w3.org", d.domain)
-    assertEquals("members.w3.org", d.parent.get.domain)
-    assertEquals("w3.org", d.parent.get.parent.get.domain)
-    assertFalse(d.parent.get.parent.get.parent.isDefined)
+
+  test ("domainParent") {
+    val d = Domain ("www.members.w3.org")
+    expect ("www.members.w3.org")(d.domain)
+    expect ("members.w3.org")(d.parent.get.domain)
+    expect ("w3.org")(d.parent.get.parent.get.domain)
+    expect (false)(d.parent.get.parent.get.parent.isDefined)
   }
 }

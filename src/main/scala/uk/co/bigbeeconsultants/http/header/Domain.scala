@@ -29,25 +29,25 @@ import java.net.URL
 
 case class Domain(domain: String) {
 
-  require(domain.length > 0)
+  require (domain.length > 0)
 
-  private val ipV4 = Pattern.compile("[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+")
+  private val ipV4 = Pattern.compile ("[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+")
 
   lazy val parent: Option[Domain] = {
     if (isIpAddress) {
       None
     } else {
-      val firstDot = domain.indexOf('.')
-      val lastDot = domain.lastIndexOf('.')
+      val firstDot = domain.indexOf ('.')
+      val lastDot = domain.lastIndexOf ('.')
       if (firstDot > 0 && lastDot > firstDot) {
-        Some(Domain(domain.substring(firstDot + 1)))
+        Some (Domain (domain.substring (firstDot + 1)))
       } else {
         None
       }
     }
   }
 
-  def isIpAddress: Boolean = ipV4.matcher(domain).matches()
+  def isIpAddress: Boolean = ipV4.matcher (domain).matches ()
 
   /**Tests whether this domain matches some URL. */
   def matches(url: URL) = {
@@ -55,8 +55,8 @@ case class Domain(domain: String) {
     if (host == domain) {
       true
     } else if (host.length > domain.length) {
-      host.endsWith(domain) &&
-        host.charAt(host.length - domain.length - 1) == '.' &&
+      host.endsWith (domain) &&
+        host.charAt (host.length - domain.length - 1) == '.' &&
         !isIpAddress
     } else {
       false
@@ -65,7 +65,7 @@ case class Domain(domain: String) {
 }
 
 object Domain {
-  def apply(url: URL): Domain = new Domain(url.getHost)
+  def apply(url: URL): Domain = new Domain (url.getHost)
 
   //private def extractDomainFrom(url: URL) = Util.divide(url.getAuthority, ':')._1
 }

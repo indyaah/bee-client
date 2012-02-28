@@ -50,19 +50,19 @@ object Request {
   val TRACE = "TRACE"
 
   // methods without an entity body
-  def get(url: URL): Request = Request(GET, url, None)
+  def get(url: URL): Request = Request (GET, url, None)
 
-  def head(url: URL): Request = Request(HEAD, url, None)
+  def head(url: URL): Request = Request (HEAD, url, None)
 
-  def delete(url: URL): Request = Request(DELETE, url, None)
+  def delete(url: URL): Request = Request (DELETE, url, None)
 
-  def trace(url: URL): Request = Request(TRACE, url, None)
+  def trace(url: URL): Request = Request (TRACE, url, None)
 
   // method with an optional entity body
-  def options(url: URL, body: Option[Body] = None): Request = Request(OPTIONS, url, body)
+  def options(url: URL, body: Option[Body] = None): Request = Request (OPTIONS, url, body)
 
   // methods requiring an entity body
-  def post(url: URL, body: Body): Request = Request(POST, url, Some(body))
+  def post(url: URL, body: Body): Request = Request (POST, url, Some (body))
 
-  def put(url: URL, body: Body): Request = Request(PUT, url, Some(body))
+  def put(url: URL, body: Body): Request = Request (PUT, url, Some (body))
 }

@@ -36,7 +36,7 @@ import java.net.URL
 import uk.co.bigbeeconsultants.http.response.Response
 import collection.mutable.{HashSet, LinkedHashMap, ListBuffer}
 
-case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map(), deleted: Set[CookieKey] = Set()) {
+case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map (), deleted: Set[CookieKey] = Set ()) {
 
   /**
    * Allows cookie jars to be merged together. As newJar is merged into this cookie jar, it trumps
@@ -51,16 +51,16 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map(), deleted: Set[
     del ++= deleted
 
     for ((key, value) <- newJar.cookies) {
-      jar.put(key, value)
-      del.remove(key)
+      jar.put (key, value)
+      del.remove (key)
     }
 
     for (key <- newJar.deleted) {
-      jar.remove(key)
-      del.add(key)
+      jar.remove (key)
+      del.add (key)
     }
 
-    new CookieJar(jar.toMap, del.toSet)
+    new CookieJar (jar.toMap, del.toSet)
   }
 
   /**
@@ -68,17 +68,17 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map(), deleted: Set[
    * @return a new cookie jar containing the merged cookies.
    */
   def updateCookies(response: Response): CookieJar = {
-    val setcookies = filterCookieHeaders(response)
+    val setcookies = filterCookieHeaders (response)
     if (setcookies.isEmpty) {
       this
     }
     else {
-      CookieParser.updateCookies(this, response.request.url, setcookies)
+      CookieParser.updateCookies (this, response.request.url, setcookies)
     }
   }
 
   private def filterCookieHeaders(response: Response): List[Header] = {
-    response.headers.list.filter(
+    response.headers.list.filter (
       header => header.name == HeaderName.SET_COOKIE.name ||
         header.name == HeaderName.OBSOLETE_SET_COOKIE2.name)
   }
@@ -91,22 +91,22 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map(), deleted: Set[
   def filterForRequest(url: URL): Option[Header] = {
     val headers = new ListBuffer[String]
     for ((key, value) <- cookies) {
-      val cookie = Cookie(key, value)
-      if (cookie.willBeSentTo(url)) {
+      val cookie = Cookie (key, value)
+      if (cookie.willBeSentTo (url)) {
         headers += cookie.asHeader
       }
     }
-    if (headers.isEmpty) None else Some(HeaderName.COOKIE -> headers.mkString("; "))
+    if (headers.isEmpty) None else Some (HeaderName.COOKIE -> headers.mkString ("; "))
   }
 }
 
 
 object CookieJar {
-  /** Constant empty cookie jar. */
-  val empty = new CookieJar()
+  /**Constant empty cookie jar. */
+  val empty = new CookieJar ()
 
   /**
    * Constructs a new cookie jar containing all the cookies (if any) that are received in the response.
    */
-  def harvestCookies(response: Response): CookieJar = new CookieJar().updateCookies(response)
+  def harvestCookies(response: Response): CookieJar = new CookieJar ().updateCookies (response)
 }

@@ -26,13 +26,17 @@ package uk.co.bigbeeconsultants.http.response
 
 /**Expresses an HTTP status line. */
 case class Status(code: Int, message: String) {
-  /** The category is 1=informational, 2=success, 3=redirect, 4=client error, 5=server error. */
+  /**The category is 1=informational, 2=success, 3=redirect, 4=client error, 5=server error. */
   lazy val category = code / 100
 
   def isInformational = category == 1
+
   def isSuccess = category == 2
+
   def isRedirection = category == 3
+
   def isClientError = category == 4
+
   def isServerError = category == 5
 }
 

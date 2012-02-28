@@ -24,36 +24,34 @@ package uk.co.bigbeeconsultants.http.response
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-import org.junit.Test
-import org.junit.Assert._
-import java.net.URL
 import java.io.ByteArrayInputStream
 import uk.co.bigbeeconsultants.http.header.MediaType
+import org.scalatest.FunSuite
+import org.scalatest.matchers.ShouldMatchers
 
-class BodyTest {
+class BodyTest extends FunSuite with ShouldMatchers {
 
-  val url1 = new URL("http://localhost/")
-
-  @Test
-  def bufferedBody() {
+  test ("InputStreamBufferBody") {
     val s = """[ "Some json message text" ]"""
-    val bais = new ByteArrayInputStream(s.getBytes("UTF-8"))
+    val bytes = s.getBytes ("UTF-8")
+    val bais = new ByteArrayInputStream (bytes)
     val body = new InputStreamBufferBody
-    body.receiveData(MediaType.APPLICATION_JSON, bais)
+    body.receiveData (MediaType.APPLICATION_JSON, bais)
 
-    assertEquals(MediaType.APPLICATION_JSON, body.contentType)
-    assertArrayEquals(s.getBytes("UTF-8"), body.asBytes)
-    assertEquals(s, body.toString)
+    body.contentType should be (MediaType.APPLICATION_JSON)
+    body.asBytes should be (bytes)
+    body.toString should be (s)
   }
 
 
-  @Test
-  def stringBody() {
-    val s = """[ "Some json message text" ]"""
-    val body = new StringBody(MediaType.APPLICATION_JSON, s)
 
-    assertEquals(MediaType.APPLICATION_JSON, body.contentType)
-    assertEquals(s, body.toString)
-    assertArrayEquals(s.getBytes("UTF-8"), body.asBytes)
+  test ("StringBody") {
+    val s = """[ "Some json message text" ]"""
+    val bytes = s.getBytes ("UTF-8")
+    val body = new StringBody (MediaType.APPLICATION_JSON, s)
+
+    body.contentType should be (MediaType.APPLICATION_JSON)
+    body.asBytes should be (bytes)
+    body.toString should be (s)
   }
 }

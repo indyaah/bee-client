@@ -35,24 +35,24 @@ case class Header(name: String, value: String) {
 
   def toLong: Long = value.toLong
 
-  def toDate(defaultValue: HttpDateTimeInstant = HttpDateTimeInstant.zero): HttpDateTimeInstant = HttpDateTimeInstant.parse(value, defaultValue)
+  def toDate(defaultValue: HttpDateTimeInstant = HttpDateTimeInstant.zero): HttpDateTimeInstant = HttpDateTimeInstant.parse (value, defaultValue)
 
-  def toQualifiedValue = QualifiedValue(value)
+  def toQualifiedValue = QualifiedValue (value)
 
-  def toMediaType = MediaType(value)
+  def toMediaType = MediaType (value)
 
   //TODO
-//  def toCookie = Cookie(Util.divide(value, '='))
+  //  def toCookie = Cookie(Util.divide(value, '='))
 
   override def toString = name + ": " + value
 
-  lazy val hasListValue = HeaderName.headersWithListValues.contains(name)
+  lazy val hasListValue = HeaderName.headersWithListValues.contains (name)
 }
 
 
 object Header {
   def apply(raw: String): Header = {
-    val t = Util.divide(raw, ':')
-    apply(t._1.trim, t._2.trim)
+    val t = Util.divide (raw, ':')
+    apply (t._1.trim, t._2.trim)
   }
 }

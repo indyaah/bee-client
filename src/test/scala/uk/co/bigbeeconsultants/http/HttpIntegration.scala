@@ -28,235 +28,223 @@ import header.{HeaderName, MediaType}
 import java.net.{ConnectException, URL}
 import java.lang.AssertionError
 import request.{Config, Body}
-import org.junit.{After, Before, Test}
-import org.junit.Assert._
+import org.scalatest.{BeforeAndAfter, FunSuite}
 
-class HttpIntegration {
+class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   private val serverUrl = "http://localhost/lighthttpclient/"
   private val testScriptUrl = serverUrl + "test-lighthttpclient.php"
   private val testImageUrl = serverUrl + "B.png"
   private val testPhotoUrl = serverUrl + "plataria-sunset.jpg"
-  private val jsonBody = Body(MediaType.APPLICATION_JSON, """{ "x": 1, "y": true }""")
+  private val jsonBody = Body (MediaType.APPLICATION_JSON, """{ "x": 1, "y": true }""")
 
   var http: HttpClient = _
 
-  @Before
-  def before() {
-    http = new HttpClient(config = Config(followRedirects = false))
+  before {
+    http = new HttpClient (config = Config (followRedirects = false))
   }
 
-  @After
-  def close() {
-    http.closeConnections()
+  after {
+    http.closeConnections ()
   }
 
-  @Test
-  def setupOK() {
+  test ("setupOK") {
     //    assertFalse(http.config.keepAlive)
   }
 
-  @Test
-  def htmlHeadOK() {
+  test ("htmlHeadOK") {
     try {
-      val response = http.head(new URL(testScriptUrl))
-      assertEquals(200, response.status.code)
+      val response = http.head (new URL (testScriptUrl))
+      expect (200)(response.status.code)
       val body = response.body
-      assertEquals(MediaType.TEXT_HTML, body.contentType)
-      assertTrue(body.toString == "")
+      expect (MediaType.TEXT_HTML)(body.contentType)
+      expect (true)(body.toString == "")
     } catch {
       case e: Exception =>
-        skipTestWarning("HEAD", testScriptUrl, e)
+        skipTestWarning ("HEAD", testScriptUrl, e)
     }
   }
 
-  def htmlGet(url: String) {
+  private def htmlGet(url: String) {
     try {
-      val response = http.get(new URL(url))
-      assertEquals(200, response.status.code)
+      val response = http.get (new URL (url))
+      expect (200)(response.status.code)
       val body = response.body
-      assertEquals(MediaType.TEXT_HTML, body.contentType)
+      expect (MediaType.TEXT_HTML)(body.contentType)
       val string = body.toString
-      assertTrue(string.startsWith("<html>"))
-      val bodyLines = string.split("\n")
-      assertEquals("GET", extractLineFromResponse("REQUEST_METHOD", bodyLines))
+      expect (true)(string.startsWith ("<html>"))
+      val bodyLines = string.split ("\n")
+      expect ("GET")(extractLineFromResponse ("REQUEST_METHOD", bodyLines))
     } catch {
       case e: Exception =>
-        skipTestWarning("GET", testScriptUrl, e)
+        skipTestWarning ("GET", testScriptUrl, e)
     }
   }
 
-  @Test
-  def htmlGetOK() {
-    htmlGet(testScriptUrl)
+  test ("htmlGetOK") {
+    htmlGet (testScriptUrl)
   }
 
-  @Test
-  def htmlGetOK2() {
-    htmlGet(testScriptUrl + "?LOREM=1")
+  test ("htmlGetOK2") {
+    htmlGet (testScriptUrl + "?LOREM=1")
   }
 
-  @Test
-  def pngGetOK() {
+  test ("pngGetOK") {
     try {
-      val response = http.get(new URL(testImageUrl))
-      assertEquals(200, response.status.code)
-      assertEquals(MediaType.IMAGE_PNG, response.body.contentType)
+      val response = http.get (new URL (testImageUrl))
+      expect (200)(response.status.code)
+      expect (MediaType.IMAGE_PNG)(response.body.contentType)
       val bytes = response.body.asBytes
-      assertEquals(497, bytes.length)
-      assertEquals('P', bytes(1))
-      assertEquals('N', bytes(2))
-      assertEquals('G', bytes(3))
+      expect (497)(bytes.length)
+      expect ('P')(bytes (1))
+      expect ('N')(bytes (2))
+      expect ('G')(bytes (3))
     } catch {
       case e: Exception =>
-        skipTestWarning("GET", testImageUrl, e)
+        skipTestWarning ("GET", testImageUrl, e)
     }
   }
 
-  @Test
-  def plainGetOK() {
+  test ("plainGetOK") {
     val url = testScriptUrl + "?CT=text/plain"
     try {
-      val response = http.get(new URL(url))
-      assertEquals(200, response.status.code)
+      val response = http.get (new URL (url))
+      expect (200)(response.status.code)
       val body = response.body
-      assertEquals(MediaType.TEXT_PLAIN, body.contentType)
-      assertTrue(body.toString.startsWith("CONTENT_LENGTH"))
-      val bodyLines = body.toString.split("\n")
-      assertEquals("GET", extractLineFromResponse("REQUEST_METHOD", bodyLines))
+      expect (MediaType.TEXT_PLAIN)(body.contentType)
+      expect (true)(body.toString.startsWith ("CONTENT_LENGTH"))
+      val bodyLines = body.toString.split ("\n")
+      expect ("GET")(extractLineFromResponse ("REQUEST_METHOD", bodyLines))
     } catch {
       case e: Exception =>
-        skipTestWarning("GET", url, e)
+        skipTestWarning ("GET", url, e)
     }
   }
 
-  @Test
-  def htmlPostWithJsonBodyOK() {
+  test ("htmlPostWithJsonBodyOK") {
     val url = testScriptUrl + "?CT=text/plain"
     try {
-      val response = http.post(new URL(url), jsonBody)
-      assertEquals(302, response.status.code)
+      val response = http.post (new URL (url), jsonBody)
+      expect (302)(response.status.code)
       val body = response.body
-      assertEquals(MediaType.TEXT_HTML, body.contentType)
-      assertEquals(0, body.toString.length)
-      val location = response.headers.get(HeaderName.LOCATION).value
-      assertTrue(location, location.startsWith(serverUrl))
+      expect (MediaType.TEXT_HTML)(body.contentType)
+      expect (0)(body.toString.length)
+      val location = response.headers.get (HeaderName.LOCATION).value
+      expect (true, location)(location.startsWith (serverUrl))
     } catch {
       case e: Exception =>
-        skipTestWarning("GET", testScriptUrl, e)
+        skipTestWarning ("GET", testScriptUrl, e)
     }
   }
 
-  @Test
-  def htmlPostWithShortBodyOK() {
+  test ("htmlPostWithShortBodyOK") {
     val url = testScriptUrl + "?CT=text/plain"
     try {
-      val response = http.post(new URL(url), jsonBody)
-      assertEquals(302, response.status.code)
+      val response = http.post (new URL (url), jsonBody)
+      expect (302)(response.status.code)
       val body = response.body
-      assertEquals(MediaType.TEXT_HTML, body.contentType)
-      assertEquals(0, body.toString.length)
-      val location = response.headers.get(HeaderName.LOCATION).value
-      assertTrue(location, location.startsWith(serverUrl))
+      expect (MediaType.TEXT_HTML)(body.contentType)
+      expect (0)(body.toString.length)
+      val location = response.headers.get (HeaderName.LOCATION).value
+      expect (true, location)(location.startsWith (serverUrl))
     } catch {
       case e: Exception =>
-        skipTestWarning("GET", testScriptUrl, e)
+        skipTestWarning ("GET", testScriptUrl, e)
     }
   }
 
-  @Test
-  def htmlDeleteOK() {
+  test ("htmlDeleteOK") {
     try {
-      val response = http.delete(new URL(testScriptUrl + "?D=1"))
-      assertEquals(200, response.status.code)
+      val response = http.delete (new URL (testScriptUrl + "?D=1"))
+      expect (200)(response.status.code)
       val body = response.body
-      assertEquals(MediaType.TEXT_HTML, body.contentType)
-      assertTrue(body.toString.startsWith("<html>"))
-      val bodyLines = body.toString.split("\n")
-      assertEquals("DELETE", extractLineFromResponse("REQUEST_METHOD", bodyLines))
+      expect (MediaType.TEXT_HTML)(body.contentType)
+      expect (true)(body.toString.startsWith ("<html>"))
+      val bodyLines = body.toString.split ("\n")
+      expect ("DELETE")(extractLineFromResponse ("REQUEST_METHOD", bodyLines))
     } catch {
       case e: Exception =>
-        skipTestWarning("DELETE", testScriptUrl, e)
+        skipTestWarning ("DELETE", testScriptUrl, e)
     }
   }
 
-  @Test
-  def soakTestJpgOK() {
+  test ("soakTestJpgOK") {
     try {
       val size = 1605218
       val loops = 500
-      val before = System.currentTimeMillis()
+      val before = System.currentTimeMillis ()
       for (i <- 1 to loops) {
-        val response = http.get(new URL(testPhotoUrl + "?n=" + i))
-        assertEquals(200, response.status.code)
-        assertEquals(MediaType.IMAGE_JPG, response.body.contentType)
+        val response = http.get (new URL (testPhotoUrl + "?n=" + i))
+        expect (200)(response.status.code)
+        expect (MediaType.IMAGE_JPG)(response.body.contentType)
         val bytes = response.body.asBytes
-        assertEquals(size, bytes.length)
+        expect (size)(bytes.length)
       }
-      val duration = System.currentTimeMillis() - before
-      val bytes = BigDecimal(size * loops)
+      val duration = System.currentTimeMillis () - before
+      val bytes = BigDecimal (size * loops)
       val rate = (bytes / duration)
-      println(bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
+      println (bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
     } catch {
       case e: Exception =>
-        skipTestWarning("GET", testPhotoUrl, e)
+        skipTestWarning ("GET", testPhotoUrl, e)
     }
   }
 
-  @Test
-  def soakTestTextOK() {
+  test ("soakTestTextOK") {
     try {
       var size = -1
       var first = "NOT SET"
       val loops = 200
-      val before = System.currentTimeMillis()
+      val before = System.currentTimeMillis ()
+      var ok = true
       for (i <- 1 to loops) {
-
-        try {
-          val is = i.toString
-          val response = http.get(new URL(testScriptUrl + "?STUM=1"))
-          assertEquals(is, 200, response.status.code)
-          val body = response.body
-          assertEquals(is, MediaType.TEXT_HTML, body.contentType)
-          val string = body.toString
-          assertTrue(is, string.startsWith("<html>"))
-          if (size < 0) {
-            first = string
-            size = first.length
-          } else {
-            assertEquals(is, first, string)
-            assertEquals(is, size, string.length)
+        if (ok) {
+          try {
+            val is = i.toString
+            val response = http.get (new URL (testScriptUrl + "?STUM=1"))
+            expect (200)(response.status.code)
+            val body = response.body
+            expect (MediaType.TEXT_HTML)(body.contentType)
+            val string = body.toString
+            expect (true, is)(string.startsWith ("<html>"))
+            if (size < 0) {
+              first = string
+              size = first.length
+            } else {
+              expect (first, is)(string)
+              expect (size, is)(string.length)
+            }
+          } catch {
+            case e: Exception =>
+              skipTestWarning ("GET", "soakTestTextOK " + i, e)
+              ok = false
           }
-        } catch {
-          case e: Exception =>
-            skipTestWarning("GET", "soakTestTextOK " + i, e)
-            return
         }
-
       }
-      val duration = System.currentTimeMillis() - before
-      val bytes = BigDecimal(size * loops)
+
+      val duration = System.currentTimeMillis () - before
+      val bytes = BigDecimal (size * loops)
       val rate = (bytes / duration)
-      println(bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
+      println (bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
     } catch {
       case e: Exception =>
-        skipTestWarning("GET", testPhotoUrl, e)
+        skipTestWarning ("GET", testPhotoUrl, e)
     }
   }
 
   private def extractLineFromResponse(expectedHeader: String, bodyLines: Seq[String]): String = {
     val expectedHeaderColon = expectedHeader + ':'
     for (line <- bodyLines) {
-      if (line.startsWith(expectedHeaderColon)) {
-        return line.substring(line.indexOf(':') + 1).trim()
+      if (line.startsWith (expectedHeaderColon)) {
+        return line.substring (line.indexOf (':') + 1).trim ()
       }
     }
-    throw new AssertionError("Expect response to contain\n" + expectedHeader)
+    throw new AssertionError ("Expect response to contain\n" + expectedHeader)
   }
 
   private def skipTestWarning(method: String, url: String, e: Exception) {
     if (e.getCause.isInstanceOf[ConnectException]) {
-      System.err.println("***** Test skipped: " + method + " " + url + " : " + e.getMessage)
+      System.err.println ("***** Test skipped: " + method + " " + url + " : " + e.getMessage)
     }
     else {
       throw e

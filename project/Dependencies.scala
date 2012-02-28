@@ -38,7 +38,7 @@ object Dependencies {
   val slf4jApi         = "org.slf4j"          % "slf4j-api"         % slf4jVersion withSources()
   val slf4jJcl         = "org.slf4j"          % "jcl-over-slf4j"    % slf4jVersion withSources()
   val slf4jLog4j       = "org.slf4j"          % "log4j-over-slf4j"  % slf4jVersion withSources()
-  val slf4s            = "com.weiglewilczek.slf4s" %% "slf4s"       % "1.0.7"
+  val slf4s            = "com.weiglewilczek.slf4s" %% "slf4s"       % "1.0.+"
 
   val logbackCore      = "ch.qos.logback"     % "logback-core"      % logbackVersion % "test"
   val logbackClassic   = "ch.qos.logback"     % "logback-classic"   % logbackVersion % "test"
@@ -55,9 +55,9 @@ object Dependencies {
 
   // ========== Test ==========
 
-//  val scalatest	       = "org.scalatest"           % "scalatest_2.9.1"          % "1.6.+" % "test" withSources()
-  val junit            = "junit"                   % "junit"                    % "4.8.+" % "test" withSources()
-  val junitInterface   = "com.novocode"            % "junit-interface"          % "0.7"   % "test"
+  val scalatest	       = "org.scalatest"           % "scalatest_2.9.1"          % "1.6.+" % "test" withSources()
+//  val junit            = "junit"                   % "junit"                    % "4.8.+" % "test" withSources()
+//  val junitInterface   = "com.novocode"            % "junit-interface"          % "0.7"   % "test"
 
   // see lib folder
   //val stubserver       = "tarttelin"               % "stubserver"               % "0.3"   % "test"

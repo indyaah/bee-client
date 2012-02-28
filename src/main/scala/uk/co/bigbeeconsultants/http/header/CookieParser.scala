@@ -43,16 +43,16 @@ private[header] object CookieParser {
     var value: String = ""
     var path: String = requestPath
     var expires = now
-    var domain: Domain = Domain(host)
+    var domain: Domain = Domain (host)
     var hostOnly = true
     var persistent = false
     var secure = false
     var httpOnly = false
     var hasMaxAge = false
 
-    for (attr <- Util.split(line, ';')) {
+    for (attr <- Util.split (line, ';')) {
 
-      val t = Util.divide(attr, '=')
+      val t = Util.divide (attr, '=')
       val a = t._1.trim
       val v = t._2.trim
 
@@ -60,42 +60,42 @@ private[header] object CookieParser {
         name = a
         value = v
       }
-      else if (a.equalsIgnoreCase("Domain")) {
+      else if (a.equalsIgnoreCase ("Domain")) {
         // TODO reject cookies in the public suffix list http://publicsuffix.org/list/
-        domain = Domain(v)
+        domain = Domain (v)
         hostOnly = false
       }
-      else if (a.equalsIgnoreCase("Secure") && v == "") {
+      else if (a.equalsIgnoreCase ("Secure") && v == "") {
         secure = true
       }
-      else if (a.equalsIgnoreCase("HttpOnly") && v == "") {
+      else if (a.equalsIgnoreCase ("HttpOnly") && v == "") {
         httpOnly = true
-        if (!scheme.startsWith("http"))
+        if (!scheme.startsWith ("http"))
           return None
       }
-      else if (a.equalsIgnoreCase("Max-Age")) {
+      else if (a.equalsIgnoreCase ("Max-Age")) {
         persistent = true
         hasMaxAge = true
         val seconds = v.toLong
         val secDelta = if (seconds > 0) seconds else 0
         expires = now + secDelta
       }
-      else if (a.equalsIgnoreCase("Expires") && !hasMaxAge) {
+      else if (a.equalsIgnoreCase ("Expires") && !hasMaxAge) {
         persistent = true
-        expires = HttpDateTimeInstant.parse(v)
+        expires = HttpDateTimeInstant.parse (v)
       }
-      else if (a.equalsIgnoreCase("Path")) {
+      else if (a.equalsIgnoreCase ("Path")) {
         path = v
       }
     }
 
-    if (!path.endsWith("/")) {
+    if (!path.endsWith ("/")) {
       path += "/"
     }
 
-    val k = CookieKey(name, domain, path)
-    val v = CookieValue(value, expires, now, now, persistent, hostOnly, secure, httpOnly, scheme)
-    Some(Cookie(k, v))
+    val k = CookieKey (name, domain, path)
+    val v = CookieValue (value, expires, now, now, persistent, hostOnly, secure, httpOnly, scheme)
+    Some (Cookie (k, v))
   }
 
 
@@ -103,11 +103,11 @@ private[header] object CookieParser {
   def updateCookies(previous: CookieJar, from: URL, setcookies: List[Header]): CookieJar = {
 
     val fPath = from.getPath
-    val lastSlash = fPath.lastIndexOf('/')
-    val path = if (lastSlash < 0) "/" else fPath.substring(0, lastSlash + 1)
+    val lastSlash = fPath.lastIndexOf ('/')
+    val path = if (lastSlash < 0) "/" else fPath.substring (0, lastSlash + 1)
 
     // Construct the date only once - avoids rollover problems (which would be a bit like race conditions)
-    val now = new HttpDateTimeInstant()
+    val now = new HttpDateTimeInstant ()
 
     val jar = new LinkedHashMap[CookieKey, CookieValue]
     jar ++= previous.cookies
@@ -116,21 +116,21 @@ private[header] object CookieParser {
     del ++= previous.deleted
 
     for (header <- setcookies) {
-      for (line <- Util.split(header.value, '\n')) {
-        val optCookie = parseOneCookie(line, from.getProtocol, from.getHost, path, now)
+      for (line <- Util.split (header.value, '\n')) {
+        val optCookie = parseOneCookie (line, from.getProtocol, from.getHost, path, now)
         if (optCookie.isDefined) {
           val cookie = optCookie.get
           if (cookie.value.expires < now) {
-            jar.remove(cookie.key)
-            del.add(cookie.key)
+            jar.remove (cookie.key)
+            del.add (cookie.key)
           } else {
-            jar.put(cookie.key, cookie.value)
-            del.remove(cookie.key)
+            jar.put (cookie.key, cookie.value)
+            del.remove (cookie.key)
           }
         }
       }
     }
 
-    new CookieJar(jar.toMap, del.toSet)
+    new CookieJar (jar.toMap, del.toSet)
   }
 }

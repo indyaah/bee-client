@@ -28,9 +28,9 @@ import uk.co.bigbeeconsultants.http.response.{Response, Status}
 
 
 class RequestException(val request: Request, val status: Status, val response: Option[Response], cause: Option[Exception])
-  extends RuntimeException(cause orNull) {
+  extends RuntimeException (cause orNull) {
 
   override def getMessage: String = {
-    "%s %s\n  %d %s".format(request.method, request.url, status.code, status.message)
+    "%s %s\n  %d %s".format (request.method, request.url, status.code, status.message)
   }
 }

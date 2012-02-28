@@ -24,67 +24,57 @@ package uk.co.bigbeeconsultants.http
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-import org.junit.Test
-import org.junit.Assert._
 import javax.xml.bind.DatatypeConverter
+import org.scalatest.FunSuite
 
-class HttpDateTimeInstantTest {
+class HttpDateTimeInstantTest extends FunSuite {
 
-  @Test
-  def parse_silly() {
-    val d = HttpDateTimeInstant.parse("some silly rubbish")
-    assertEquals(HttpDateTimeInstant.zero, d)
+  test ("parse silly") {
+    val d = HttpDateTimeInstant.parse ("some silly rubbish")
+    expect (HttpDateTimeInstant.zero)(d)
   }
 
-  @Test
-  def parse_rfc1123DateTimeFormat() {
-    val exp = new HttpDateTimeInstant(DatatypeConverter.parseDateTime("2005-11-16T08:49:37Z"))
+  test ("parse rfc1123DateTimeFormat") {
+    val exp = new HttpDateTimeInstant (DatatypeConverter.parseDateTime ("2005-11-16T08:49:37Z"))
     val dateString = "Wed, 16 Nov 2005 08:49:37 GMT"
-    val d = HttpDateTimeInstant.parse(dateString)
-    assertEquals(exp, d)
-    assertEquals(dateString, d.toString)
+    val d = HttpDateTimeInstant.parse (dateString)
+    expect (exp)(d)
+    expect (dateString)(d.toString)
   }
 
-  @Test
-  def parse_rfc850DateTimeFormat() {
-    val exp = new HttpDateTimeInstant(DatatypeConverter.parseDateTime("2005-11-16T08:49:37Z"))
-    val d = HttpDateTimeInstant.parse("Wednesday, 16-Nov-05 08:49:37 GMT")
-    assertEquals(exp, d)
+  test ("parse rfc850DateTimeFormat") {
+    val exp = new HttpDateTimeInstant (DatatypeConverter.parseDateTime ("2005-11-16T08:49:37Z"))
+    val d = HttpDateTimeInstant.parse ("Wednesday, 16-Nov-05 08:49:37 GMT")
+    expect (exp)(d)
   }
 
-  @Test
-  def parse_asciiDateTimeFormat1() {
-    val exp = new HttpDateTimeInstant(DatatypeConverter.parseDateTime("1994-11-06T08:49:37Z"))
-    val d = HttpDateTimeInstant.parse("Sun Nov  6 08:49:37 1994")
-    assertEquals(exp, d)
+  test ("parse asciiDateTimeFormat1") {
+    val exp = new HttpDateTimeInstant (DatatypeConverter.parseDateTime ("1994-11-06T08:49:37Z"))
+    val d = HttpDateTimeInstant.parse ("Sun Nov  6 08:49:37 1994")
+    expect (exp)(d)
   }
 
-  @Test
-  def parse_asciiDateTimeFormat2() {
-    val exp = new HttpDateTimeInstant(DatatypeConverter.parseDateTime("2005-11-16T08:49:37Z"))
-    val d = HttpDateTimeInstant.parse("Wed Nov 16 08:49:37 2005")
-    assertEquals(exp, d)
+  test ("parse asciiDateTimeFormat2") {
+    val exp = new HttpDateTimeInstant (DatatypeConverter.parseDateTime ("2005-11-16T08:49:37Z"))
+    val d = HttpDateTimeInstant.parse ("Wed Nov 16 08:49:37 2005")
+    expect (exp)(d)
   }
 
-  @Test
-  def plus() {
-    val now = new HttpDateTimeInstant()
-    val later = new HttpDateTimeInstant() + 60
-    assertEquals(60, later.seconds - now.seconds)
+  test ("plus") {
+    val now = new HttpDateTimeInstant ()
+    val later = new HttpDateTimeInstant () + 60
+    expect (60)(later.seconds - now.seconds)
   }
 
-  @Test
-  def minus() {
-    val now = new HttpDateTimeInstant()
-    val later = new HttpDateTimeInstant() - 60
-    assertEquals(-60, later.seconds - now.seconds)
+  test ("minus") {
+    val now = new HttpDateTimeInstant ()
+    val later = new HttpDateTimeInstant () - 60
+    expect (-60)(later.seconds - now.seconds)
   }
 
-  @Test
-  def compare() {
-    val now = new HttpDateTimeInstant()
-    val later = new HttpDateTimeInstant() + 60
-    assertTrue(later > now)
+  test ("compare") {
+    val now = new HttpDateTimeInstant ()
+    val later = new HttpDateTimeInstant () + 60
+    expect (true)(later > now)
   }
-
 }

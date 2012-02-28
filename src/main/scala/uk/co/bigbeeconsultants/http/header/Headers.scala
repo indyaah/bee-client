@@ -32,15 +32,15 @@ case class Headers(list: List[Header]) {
   /**
    * Finds all the headers that have a given name.
    */
-  def find (name: String): List[Header] = list.filter(_.name equalsIgnoreCase name)
+  def find(name: String): List[Header] = list.filter (_.name equalsIgnoreCase name)
 
   /**
    * Finds the one header that has a given name. If none exists, an exception will be thrown.
    * If more than one match exists, only the first will be returned.
    */
-  def get (name: String): Header = find(name)(0)
+  def get(name: String): Header = find (name)(0)
 }
 
 object Headers {
-  implicit def createHeaders(list: List[Header]): Headers = new Headers(list)
+  implicit def createHeaders(list: List[Header]): Headers = new Headers (list)
 }

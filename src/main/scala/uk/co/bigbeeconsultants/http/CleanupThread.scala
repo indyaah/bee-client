@@ -39,12 +39,12 @@ import org.jcsp.lang.{PoisonException, Channel, Any2OneChannel}
 private[http] object CleanupThread extends Thread {
   val limit = 1000
 
-  private val channel: Any2OneChannel[Either[HttpURLConnection, Boolean]] = Channel.any2one(0)
+  private val channel: Any2OneChannel[Either[HttpURLConnection, Boolean]] = Channel.any2one (0)
   private val zombies = new ListBuffer[HttpURLConnection]
   private var running = true
 
-  setName("Http-Client-Cleanup")
-  start()
+  setName ("Http-Client-Cleanup")
+  start ()
 
   /**
    * Adds a keep-alive connection to the list of those that will be cleaned up later.
@@ -52,11 +52,11 @@ private[http] object CleanupThread extends Thread {
   def futureClose(connWrapper: HttpURLConnection) {
     require (running)
     try {
-      channel.out.write(Left(connWrapper))
+      channel.out.write (Left (connWrapper))
     }
     catch {
       case pe: PoisonException =>
-        throw new IllegalStateException("CleanupThread has already been shut down", pe)
+        throw new IllegalStateException ("CleanupThread has already been shut down", pe)
     }
   }
 
@@ -65,7 +65,7 @@ private[http] object CleanupThread extends Thread {
    */
   def closeConnections() {
     require (running)
-    channel.out.write(Right(true))
+    channel.out.write (Right (true))
   }
 
   /**
@@ -73,34 +73,34 @@ private[http] object CleanupThread extends Thread {
    */
   def terminate() {
     require (running)
-    channel.out.write(Right(false))
+    channel.out.write (Right (false))
     // spin until completed - a simple way to avoid some race conditions here
     while (running) {
-      Thread.sleep(1)
+      Thread.sleep (1)
     }
   }
 
-  /** DO NOT CALL THIS */
+  /**DO NOT CALL THIS */
   override def run() {
     while (running) {
       channel.in.read match {
-        case Left(connWrapper) =>
+        case Left (connWrapper) =>
           zombies += connWrapper
-          if (zombies.size > limit) cleanup()
-        case Right(flag) =>
-          cleanup()
+          if (zombies.size > limit) cleanup ()
+        case Right (flag) =>
+          cleanup ()
           running = flag
       }
     }
-    channel.in.poison(1)
+    channel.in.poison (1)
     //println(getName + " terminated")
   }
 
-  /** Tests the state of the thread. */
+  /**Tests the state of the thread. */
   def isRunning = running
 
   private def cleanup() {
-    for (conn <- zombies) conn.disconnect()
-    zombies.clear()
+    for (conn <- zombies) conn.disconnect ()
+    zombies.clear ()
   }
 }

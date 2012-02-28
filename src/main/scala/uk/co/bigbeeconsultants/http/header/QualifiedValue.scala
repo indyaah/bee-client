@@ -31,14 +31,14 @@ import uk.co.bigbeeconsultants.http.Util
  */
 case class Qualifier(label: String, value: String) {
   override def toString =
-    if (value.length() > 0) label + "=" + value
+    if (value.length () > 0) label + "=" + value
     else label
 }
 
 object Qualifier {
   def apply(str: String) = {
-    val t = Util.divide(str, '=')
-    new Qualifier(t._1, t._2)
+    val t = Util.divide (str, '=')
+    new Qualifier (t._1, t._2)
   }
 }
 
@@ -46,7 +46,7 @@ object Qualifier {
 case class Part(value: String, qualifier: List[Qualifier] = Nil) {
   override def toString =
     if (qualifier.isEmpty) value
-    else value + ";" + qualifier.mkString(";")
+    else value + ";" + qualifier.mkString (";")
 }
 
 
@@ -57,15 +57,15 @@ case class Part(value: String, qualifier: List[Qualifier] = Nil) {
 case class QualifiedValue(value: String) {
 
   val parts: List[Part] = {
-    val parts = for (v <- Util.split(value, ',')) yield {
-      val t = Util.split(v.trim, ';')
+    val parts = for (v <- Util.split (value, ',')) yield {
+      val t = Util.split (v.trim, ';')
       val qualifiers = for (q <- t.tail) yield {
-        Qualifier(q.trim)
+        Qualifier (q.trim)
       }
-      Part(t.head, qualifiers.toList)
+      Part (t.head, qualifiers.toList)
     }
     parts.toList
   }
 
-  override val toString = parts.mkString(", ")
+  override val toString = parts.mkString (", ")
 }

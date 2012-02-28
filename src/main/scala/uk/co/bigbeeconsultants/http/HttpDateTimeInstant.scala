@@ -33,20 +33,20 @@ import java.util.{Calendar, Date}
  */
 case class HttpDateTimeInstant(seconds: Long) extends Ordered[HttpDateTimeInstant] {
 
-  def this(d: Date) = this(d.getTime / 1000)
+  def this(d: Date) = this (d.getTime / 1000)
 
-  def this(c: Calendar) = this(c.getTime)
+  def this(c: Calendar) = this (c.getTime)
 
-  def this() = this(System.currentTimeMillis() / 1000)
+  def this() = this (System.currentTimeMillis () / 1000)
 
-  lazy val date = new Date(seconds * 1000)
+  lazy val date = new Date (seconds * 1000)
 
-  def +(secondsDelta: Long) = if (secondsDelta == 0) this else new HttpDateTimeInstant(seconds + secondsDelta)
+  def +(secondsDelta: Long) = if (secondsDelta == 0) this else new HttpDateTimeInstant (seconds + secondsDelta)
 
-  def -(secondsDelta: Long) = if (secondsDelta == 0) this else new HttpDateTimeInstant(seconds - secondsDelta)
+  def -(secondsDelta: Long) = if (secondsDelta == 0) this else new HttpDateTimeInstant (seconds - secondsDelta)
 
   override lazy val toString = {
-    new SimpleDateFormat(HttpDateTimeInstant.fullRfc1123DateTimeFormat).format(date) + " GMT"
+    new SimpleDateFormat (HttpDateTimeInstant.fullRfc1123DateTimeFormat).format (date) + " GMT"
   }
 
   def compare(that: HttpDateTimeInstant) = (this.seconds - that.seconds).toInt
@@ -66,28 +66,28 @@ object HttpDateTimeInstant extends Logging {
   // leading "EEE " assumed to have been stripped; trailing "GMT" ignored
   val asciiDateTimeFormat = "MMM d HH:mm:ss yyyy"
 
-  val zero = new HttpDateTimeInstant(0)
+  val zero = new HttpDateTimeInstant (0)
 
   def parse(dateString: String, defaultValue: HttpDateTimeInstant = zero): HttpDateTimeInstant = {
     var result = defaultValue
     try {
-      val discriminant = dateString.charAt(3)
+      val discriminant = dateString.charAt (3)
       if (discriminant == ',') {
-        val df = new SimpleDateFormat(rfc1123DateTimeFormat)
-        result = new HttpDateTimeInstant(df.parse(dateString.substring(5)))
+        val df = new SimpleDateFormat (rfc1123DateTimeFormat)
+        result = new HttpDateTimeInstant (df.parse (dateString.substring (5)))
       }
       else if (discriminant == ' ') {
-        val df = new SimpleDateFormat(asciiDateTimeFormat)
-        result = new HttpDateTimeInstant(df.parse(dateString.substring(4)))
+        val df = new SimpleDateFormat (asciiDateTimeFormat)
+        result = new HttpDateTimeInstant (df.parse (dateString.substring (4)))
       }
       else {
-        val df = new SimpleDateFormat(rfc850DateTimeFormat)
-        result = new HttpDateTimeInstant(df.parse(dateString.substring(dateString.indexOf(' ') + 1)))
+        val df = new SimpleDateFormat (rfc850DateTimeFormat)
+        result = new HttpDateTimeInstant (df.parse (dateString.substring (dateString.indexOf (' ') + 1)))
       }
     }
     catch {
       case e: Exception => {
-        logger.error(dateString + ": failed to parse date. " + e.getMessage)
+        logger.error (dateString + ": failed to parse date. " + e.getMessage)
       }
     }
     result

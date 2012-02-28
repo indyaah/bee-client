@@ -24,37 +24,36 @@ package uk.co.bigbeeconsultants.http.request
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-import org.junit.Test
-import org.junit.Assert._
 import java.net.URL
 import java.io.ByteArrayOutputStream
 import collection.immutable.ListMap
 import uk.co.bigbeeconsultants.http.header.MediaType
 import uk.co.bigbeeconsultants.http.HttpClient
+import org.scalatest.FunSuite
 
-class BodyTest {
+class BodyTest extends FunSuite {
 
-  val url1 = new URL("http://localhost/")
+  val url1 = new URL ("http://localhost/")
 
-  @Test
-  def bodyWithString() {
+
+  test ("bodyWithString") {
     val mt = MediaType.APPLICATION_JSON
-    val b = Body(mt, "[1, 2, 3]")
-    assertSame(mt, b.mediaType)
+    val b = Body (mt, "[1, 2, 3]")
+    expect (mt)(b.mediaType)
     val baos = new ByteArrayOutputStream
-    b.copyTo(baos)
-    val result = baos.toString(HttpClient.UTF8)
-    assertEquals("[1, 2, 3]", result)
+    b.copyTo (baos)
+    val result = baos.toString (HttpClient.UTF8)
+    expect ("[1, 2, 3]")(result)
   }
 
-  @Test
-  def bodyWithKeyValPairs() {
+
+  test ("bodyWithKeyValPairs") {
     val mt = MediaType.APPLICATION_JSON
-    val b = Body(mt, ListMap("a" -> "1", "b" -> "2", "c" -> "3"))
-    assertSame(mt, b.mediaType)
+    val b = Body (mt, ListMap ("a" -> "1", "b" -> "2", "c" -> "3"))
+    expect (mt)(b.mediaType)
     val baos = new ByteArrayOutputStream
-    b.copyTo(baos)
-    val result = baos.toString(HttpClient.UTF8)
-    assertEquals("a=1&b=2&c=3", result)
+    b.copyTo (baos)
+    val result = baos.toString (HttpClient.UTF8)
+    expect ("a=1&b=2&c=3")(result)
   }
 }

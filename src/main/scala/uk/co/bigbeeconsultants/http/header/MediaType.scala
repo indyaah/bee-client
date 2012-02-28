@@ -27,12 +27,13 @@ package uk.co.bigbeeconsultants.http.header
 import uk.co.bigbeeconsultants.http.{HttpClient, Util}
 
 case class MediaType(`type`: String, subtype: String, charset: Option[String] = None) {
+
   import MediaType._
 
   def value = `type` + '/' + subtype
 
   /**Gets the charset as a list of zero or one Qualifier. */
-  def qualifier = if (charset.isEmpty) Nil else List(Qualifier("charset", charset.get))
+  def qualifier = if (charset.isEmpty) Nil else List (Qualifier ("charset", charset.get))
 
   override def toString = {
     val qual = if (charset.isEmpty) {
@@ -76,18 +77,18 @@ case class MediaType(`type`: String, subtype: String, charset: Option[String] = 
       false
     else if (`type` == WILDCARD || other.`type` == WILDCARD)
       true
-    else if (`type`.equalsIgnoreCase(other.`type`) && (subtype == WILDCARD || other.subtype == WILDCARD))
+    else if (`type`.equalsIgnoreCase (other.`type`) && (subtype == WILDCARD || other.subtype == WILDCARD))
       true
     else
-      `type`.equalsIgnoreCase(other.`type`) && subtype.equalsIgnoreCase(other.subtype)
+      `type`.equalsIgnoreCase (other.`type`) && subtype.equalsIgnoreCase (other.subtype)
   }
 
   /**
    * Creates a new instance with a different charset.
    */
   def withCharset(newCharset: String) = {
-    require(newCharset != null && newCharset.length() > 0)
-    MediaType(`type`, subtype, Some(newCharset))
+    require (newCharset != null && newCharset.length () > 0)
+    MediaType (`type`, subtype, Some (newCharset))
   }
 }
 
@@ -95,35 +96,35 @@ object MediaType {
   /**The value of a type or subtype wildcard: "*" */
   val WILDCARD = "*"
 
-  val STAR_STAR = MediaType(WILDCARD, WILDCARD)
-  val APPLICATION_JSON = MediaType("application", "json")
-  val APPLICATION_XML = MediaType("application", "xml")
-  val APPLICATION_SVG_XML = MediaType("application", "svg+xml")
-  val APPLICATION_ATOM_XML = MediaType("application", "atom+xml")
-  val APPLICATION_XHTML_XML = MediaType("application", "xhtml+xml")
-  val APPLICATION_OCTET_STREAM = MediaType("application", "octet-stream")
-  val APPLICATION_FORM_URLENCODED = MediaType("application", "x-www-form-urlencoded")
-  val MULTIPART_FORM_DATA = MediaType("multipart", "form-data")
+  val STAR_STAR = MediaType (WILDCARD, WILDCARD)
+  val APPLICATION_JSON = MediaType ("application", "json")
+  val APPLICATION_XML = MediaType ("application", "xml")
+  val APPLICATION_SVG_XML = MediaType ("application", "svg+xml")
+  val APPLICATION_ATOM_XML = MediaType ("application", "atom+xml")
+  val APPLICATION_XHTML_XML = MediaType ("application", "xhtml+xml")
+  val APPLICATION_OCTET_STREAM = MediaType ("application", "octet-stream")
+  val APPLICATION_FORM_URLENCODED = MediaType ("application", "x-www-form-urlencoded")
+  val MULTIPART_FORM_DATA = MediaType ("multipart", "form-data")
 
-  val TEXT_PLAIN = MediaType("text", "plain")
-  val TEXT_XML = MediaType("text", "xml")
-  val TEXT_HTML = MediaType("text", "html")
-  val IMAGE_PNG = MediaType("image", "png")
-  val IMAGE_JPG = MediaType("image", "jpeg")
+  val TEXT_PLAIN = MediaType ("text", "plain")
+  val TEXT_XML = MediaType ("text", "xml")
+  val TEXT_HTML = MediaType ("text", "html")
+  val IMAGE_PNG = MediaType ("image", "png")
+  val IMAGE_JPG = MediaType ("image", "jpeg")
 
   def apply(str: String) = {
-    val t1 = Util.divide(str, ';')
+    val t1 = Util.divide (str, ';')
     val qualifier = if (t1._2.length > 0) {
-      val q = Qualifier(t1._2.trim)
-      assume(q.label == "charset")
-      Some(q.value)
+      val q = Qualifier (t1._2.trim)
+      assume (q.label == "charset")
+      Some (q.value)
     } else {
       None
     }
-    val t2 = Util.divide(t1._1, '/')
+    val t2 = Util.divide (t1._1, '/')
     val `type` = if (t2._1.length > 0) t2._1 else WILDCARD
     val subtype = if (t2._2.length > 0) t2._2 else WILDCARD
-    new MediaType(`type`, subtype, qualifier)
+    new MediaType (`type`, subtype, qualifier)
   }
 
   implicit def convertToString(mt: MediaType) = mt.toString

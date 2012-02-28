@@ -36,19 +36,19 @@ import java.net.URL
 import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 
 case class CookieKey(name: String, domain: Domain, path: String) {
-  require(name.length > 0)
-  require(path.endsWith("/"), path)
+  require (name.length > 0)
+  require (path.endsWith ("/"), path)
 }
 
 object CookieKey {
-  def apply (name: String, domain: String, path: String = "/") = new CookieKey(name, Domain(domain), path)
+  def apply(name: String, domain: String, path: String = "/") = new CookieKey (name, Domain (domain), path)
 }
 
 
 case class CookieValue(value: String,
-                       expires: HttpDateTimeInstant = new HttpDateTimeInstant(),
-                       creation: HttpDateTimeInstant = new HttpDateTimeInstant(),
-                       lastAccessed: HttpDateTimeInstant = new HttpDateTimeInstant(),
+                       expires: HttpDateTimeInstant = new HttpDateTimeInstant (),
+                       creation: HttpDateTimeInstant = new HttpDateTimeInstant (),
+                       lastAccessed: HttpDateTimeInstant = new HttpDateTimeInstant (),
                        persistent: Boolean = false,
                        hostOnly: Boolean = false,
                        secure: Boolean = false,
@@ -65,9 +65,9 @@ case class Cookie(key: CookieKey, value: CookieValue) {
   def willBeSentTo(url: URL) = {
     val p = url.getProtocol
     val qSecure = !value.secure || p == "https"
-    val qHttpOnly = !value.httpOnly || p.startsWith("http")
-    val qDomain = key.domain.matches(url)
-    val qPath = key.path.isEmpty || url.getPath.startsWith(key.path)
+    val qHttpOnly = !value.httpOnly || p.startsWith ("http")
+    val qDomain = key.domain.matches (url)
+    val qPath = key.path.isEmpty || url.getPath.startsWith (key.path)
     qSecure && qHttpOnly && qDomain && qPath
   }
 }
