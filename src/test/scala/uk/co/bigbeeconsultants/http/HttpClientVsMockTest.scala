@@ -25,19 +25,18 @@
 package uk.co.bigbeeconsultants.http
 
 import header._
-import HeaderName._
+import header.HeaderName._
 import MediaType._
-import request.{Request, Config}
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import java.net.{HttpURLConnection, Proxy, URL}
-import java.io.ByteArrayInputStream
 import org.mockito.Mockito._
+import request.{Body, Request, Config}
 import response.{Status, BodyFactory}
 import collection.immutable.ListMap
+import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
 
 
 class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
-
 
   val url = new URL ("http://server/some/url")
   var httpURLConnection: HttpURLConnection = null
@@ -61,6 +60,13 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     when (httpURLConnection.getHeaderFieldKey (i)).thenReturn (null)
   }
 
+  private def verifyRequestSettings(method: String, headers: List[Header]) {
+    verify (httpURLConnection).setRequestMethod (method)
+    for (h <- headers) {
+      verify (httpURLConnection).setRequestProperty (h.name, h.value)
+    }
+  }
+
   private def verifyHeaders(n: Int) {
     verify (httpURLConnection).getHeaderFieldKey (0)
     for (i <- 1 to n) {
@@ -68,6 +74,14 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
       verify (httpURLConnection).getHeaderField (i)
     }
     verify (httpURLConnection).getHeaderFieldKey (n + 1)
+  }
+
+  private def verifyConfig(config: Config) {
+    verify (httpURLConnection).setConnectTimeout (config.connectTimeout)
+    verify (httpURLConnection).setReadTimeout (config.readTimeout)
+    verify (httpURLConnection).setInstanceFollowRedirects (config.followRedirects)
+    verify (httpURLConnection).setUseCaches (config.useCaches)
+    verify (httpURLConnection).setAllowUserInteraction (false)
   }
 
   private def newHttpClient(config: Config = Config (),
@@ -79,24 +93,24 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     }
   }
 
-  test ("mock get with broadly default settings should confirm all interations") {
+
+  def executeBasicSettingsWithoutBody(method: String) {
     val expectedContent = "hello world"
     createMock ("text/plain", expectedContent, Status (200, "OK"))
     expectHeaders (ListMap ("Content-Type" -> "text/plain"))
 
     val http = newHttpClient ()
 
-    val response = http.get (url)
+    val response = method match {
+      case "GET" => http.get (url)
+      case "HEAD" => http.head (url)
+      case "TRACE" => http.trace (url)
+      case "OPTIONS" => http.options (url, None)
+      case "DELETE" => http.delete (url)
+    }
 
-    verify (httpURLConnection).setAllowUserInteraction (false)
-    verify (httpURLConnection).setConnectTimeout (2000)
-    verify (httpURLConnection).setReadTimeout (5000);
-    verify (httpURLConnection).setInstanceFollowRedirects (true)
-    verify (httpURLConnection).setUseCaches (true)
-    verify (httpURLConnection).setRequestMethod ("GET")
-    verify (httpURLConnection).setRequestProperty (HOST, "server")
-    verify (httpURLConnection).setRequestProperty (ACCEPT_ENCODING, "gzip")
-    verify (httpURLConnection).setRequestProperty (ACCEPT_CHARSET, "UTF-8")
+    verifyConfig(Config())
+    verifyRequestSettings (method, List(HOST -> "server", ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8"))
     verify (httpURLConnection).getContentType
     verify (httpURLConnection, times (3)).getResponseCode
     verify (httpURLConnection).getResponseMessage
@@ -110,40 +124,88 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     expect (expectedContent)(response.body.toString)
   }
 
+  test ("mock methods with broadly default settings and without a body should confirm all interations") {
+    executeBasicSettingsWithoutBody("GET")
+    executeBasicSettingsWithoutBody("HEAD")
+    executeBasicSettingsWithoutBody("TRACE")
+    executeBasicSettingsWithoutBody("OPTIONS")
+    executeBasicSettingsWithoutBody("DELETE")
+  }
+
+
+  def executeBasicSettingsWithBody(method: String) = {
+    val expectedContent = "hello world"
+    createMock ("text/plain", expectedContent, Status (200, "OK"))
+    expectHeaders (ListMap ("Content-Type" -> "text/plain"))
+
+    val baos = new ByteArrayOutputStream ()
+    when (httpURLConnection.getOutputStream).thenReturn (baos)
+
+    val http = newHttpClient ()
+
+    val response = method match {
+      case "POST" => http.post (url, Body(TEXT_PLAIN, Map("foo" -> "bar", "a" -> "z")))
+      case "PUT" => http.put (url, Body(TEXT_PLAIN, "hello world"))
+    }
+
+    verifyConfig(Config())
+    verifyRequestSettings (method, List(HOST -> "server", ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8", CONTENT_TYPE -> "text/plain"))
+    verify (httpURLConnection).setDoOutput (true)
+    verify (httpURLConnection).getContentType
+    verify (httpURLConnection, times (3)).getResponseCode
+    verify (httpURLConnection).getResponseMessage
+    verify (httpURLConnection).getInputStream
+    verify (httpURLConnection).getOutputStream
+    verify (httpURLConnection).connect ()
+    verify (httpURLConnection).disconnect ()
+    verifyHeaders (1)
+    verifyNoMoreInteractions (httpURLConnection)
+
+    expect (TEXT_PLAIN)(response.body.contentType)
+    expect (expectedContent)(response.body.toString)
+    baos.toString("UTF-8")
+  }
+
+  test ("mock methods with broadly default settings and with a body should confirm all interations") {
+    expect("foo=bar&a=z") (executeBasicSettingsWithBody("POST"))
+    expect("hello world") (executeBasicSettingsWithBody("PUT"))
+  }
+
+
   test ("config connect timeout should send the correct header") {
     createMock ("text/plain", "hello world", Status (200, "OK"))
     expectHeaders (ListMap ("Content-Type" -> "text/plain"))
 
-    newHttpClient (config = Config (connectTimeout = 12345)).get (url)
-
-    verify (httpURLConnection).setConnectTimeout (12345)
+    val config = Config (connectTimeout = 12345)
+    newHttpClient (config).get (url)
+    verifyConfig(config)
   }
 
   test ("config read timeout should send the correct header") {
     createMock ("text/plain", "hello world", Status (200, "OK"))
     expectHeaders (ListMap ("Content-Type" -> "text/plain"))
 
-    newHttpClient (config = Config (readTimeout = 12345)).get (url)
-
-    verify (httpURLConnection).setReadTimeout (12345)
+    val config = Config (readTimeout = 12345)
+    newHttpClient (config).get (url)
+    verifyConfig(config)
   }
 
   test ("config follow redirects should send the correct header") {
     createMock ("text/plain", "hello world", Status (200, "OK"))
     expectHeaders (ListMap ("Content-Type" -> "text/plain"))
 
-    newHttpClient (config = Config (followRedirects = false)).get (url)
-
-    verify (httpURLConnection).setInstanceFollowRedirects (false)
+    val config = Config (followRedirects = false)
+    newHttpClient (config).get (url)
+    verifyConfig(config)
   }
 
   test ("config use caches should send the correct header") {
     createMock ("text/plain", "hello world", Status (200, "OK"))
     expectHeaders (ListMap ("Content-Type" -> "text/plain"))
 
-    newHttpClient (config = Config (useCaches = false)).get (url)
-
-    verify (httpURLConnection).setUseCaches (false)
+    val config = Config (useCaches = false)
+    newHttpClient (config).get (url)
+    verifyConfig(config)
   }
 
   test ("config host header flag should be able to disable the host header") {
@@ -154,4 +216,5 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
 
     verify (httpURLConnection, times (0)).setRequestProperty (HOST, "server")
   }
+
 }

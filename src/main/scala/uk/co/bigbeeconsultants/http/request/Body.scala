@@ -57,7 +57,7 @@ object Body {
   /**
    * Factory for request bodies sourced from key-value pairs, typical for POST requests.
    */
-  def apply(mediaType: MediaType, data: Map[String, String]): Body = {
+  def apply(mediaType: MediaType = MediaType.APPLICATION_FORM_URLENCODED, data: Map[String, String]): Body = {
     new Body (mediaType, (outputStream) => {
       val encoding = mediaType.charsetOrElse (HttpClient.UTF8)
       val w = new OutputStreamWriter (outputStream, encoding)
