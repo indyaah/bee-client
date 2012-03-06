@@ -43,7 +43,7 @@ object LightHttpClient extends Build {
       libraryDependencies ++= Seq(
         jcsp, slf4jApi, slf4s,
         // for testing
-        jettyEmbedded, scalatest,
+        jettyEmbedded, scalatest, mockito,
         logbackCore, logbackClassic
       )
     // plus all the jars in the lib folder

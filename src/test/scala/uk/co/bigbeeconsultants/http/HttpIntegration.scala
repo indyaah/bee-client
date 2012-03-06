@@ -25,10 +25,10 @@
 package uk.co.bigbeeconsultants.http
 
 import header.{HeaderName, MediaType}
-import java.net.{ConnectException, URL}
 import java.lang.AssertionError
 import request.{Config, Body}
 import org.scalatest.{BeforeAndAfter, FunSuite}
+import java.net.{ConnectException, Proxy, URL}
 
 class HttpIntegration extends FunSuite with BeforeAndAfter {
 
@@ -37,11 +37,14 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   private val testImageUrl = serverUrl + "B.png"
   private val testPhotoUrl = serverUrl + "plataria-sunset.jpg"
   private val jsonBody = Body (MediaType.APPLICATION_JSON, """{ "x": 1, "y": true }""")
+//  private val proxyAddress = new InetSocketAddress("localhost", 8888);
+//  private val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
+  private val proxy = Proxy.NO_PROXY
 
   var http: HttpClient = _
 
   before {
-    http = new HttpClient (config = Config (followRedirects = false))
+    http = new HttpClient (config = Config (followRedirects = false), proxy = proxy)
   }
 
   after {
@@ -52,10 +55,10 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
     //    assertFalse(http.config.keepAlive)
   }
 
-  test ("htmlHeadOK") {
+  def headTest(url: String) {
     try {
-      val response = http.head (new URL (testScriptUrl))
-      expect (200)(response.status.code)
+      val response = http.head (new URL (url))
+      expect (200, url)(response.status.code)
       val body = response.body
       expect (MediaType.TEXT_HTML)(body.contentType)
       expect (true)(body.toString == "")
@@ -65,10 +68,16 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
     }
   }
 
+  ignore ("htmlHeadOK") {
+    for (i <- 1 to 100) {
+      headTest (testScriptUrl + "?LOREM=" + i)
+    }
+  }
+
   private def htmlGet(url: String) {
     try {
       val response = http.get (new URL (url))
-      expect (200)(response.status.code)
+      expect (200, url)(response.status.code)
       val body = response.body
       expect (MediaType.TEXT_HTML)(body.contentType)
       val string = body.toString
@@ -82,7 +91,9 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test ("htmlGetOK") {
-    htmlGet (testScriptUrl)
+    for (i <- 1 to 100) {
+      htmlGet (testScriptUrl + "?LOREM=" + i)
+    }
   }
 
   test ("htmlGetOK2") {

@@ -28,18 +28,18 @@ import com.pyruby.stubserver.StubMethod
 import com.pyruby.stubserver.StubServer
 import header._
 import java.nio.{BufferUnderflowException, BufferOverflowException, ByteBuffer}
-import java.net.URL
 import HeaderName._
 import MediaType._
 import scala.collection.JavaConversions._
 import java.io._
 import java.util.zip.GZIPOutputStream
 import org.scalatest.{BeforeAndAfter, FunSuite}
+import java.net.URL
 
 
-class HttpClientTest extends FunSuite with BeforeAndAfter {
+class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
-  import HttpClientTest._
+  import HttpClientTestUtils._
 
   val url = "/some/url"
 
@@ -48,6 +48,7 @@ class HttpClientTest extends FunSuite with BeforeAndAfter {
       header => new com.pyruby.stubserver.Header (header.name, header.value)
     }
   }
+
 
   test ("get should return 200-OK") {
     val http = new HttpClient ()
@@ -61,6 +62,20 @@ class HttpClientTest extends FunSuite with BeforeAndAfter {
     expect (APPLICATION_JSON.toString)(response.headers.get (CONTENT_TYPE).value)
     expect (json)(response.body.toString)
   }
+
+
+  test ("get should return 304-redirect") {
+    val http = new HttpClient ()
+    val stubbedMethod = StubMethod.get (url)
+    server.expect (stubbedMethod).thenReturn (304, APPLICATION_JSON, "ignore me")
+
+    val response = http.get (new URL (baseUrl + url))
+    server.verify ()
+    expect (APPLICATION_JSON)(response.body.contentType)
+    expect (APPLICATION_JSON.toString)(response.headers.get (CONTENT_TYPE).value)
+    expect ("")(response.body.asString)
+  }
+
 
   test ("get should set cookie and then send cookie") {
     val http = new HttpClient ()
@@ -85,30 +100,17 @@ class HttpClientTest extends FunSuite with BeforeAndAfter {
   }
 
 
-  test ("get should return 304-redirect") {
-    val http = new HttpClient ()
-    val stubbedMethod = StubMethod.get (url)
-    server.expect (stubbedMethod).thenReturn (304, APPLICATION_JSON, "ignore me")
-
-    val response = http.get (new URL (baseUrl + url))
-    server.verify ()
-    expect (APPLICATION_JSON)(response.body.contentType)
-    expect (APPLICATION_JSON.toString)(response.headers.get (CONTENT_TYPE).value)
-    expect ("")(response.body.asString)
-  }
-
-
   test ("get with gzip should return text") {
     val http = new HttpClient ()
     val stubbedMethod = StubMethod.get (url)
-    server.expect (stubbedMethod).thenReturn (200, TEXT_PLAIN.toString, toGzip (HttpClientTest.loadsOfText),
+    server.expect (stubbedMethod).thenReturn (200, TEXT_PLAIN.toString, toGzip (loadsOfText),
       convertHeaderList (List (CONTENT_ENCODING -> "gzip")))
 
     val response = http.get (new URL (baseUrl + url), Headers (List (ACCEPT_ENCODING -> "gzip")))
     server.verify ()
     val body = response.body
     expect (TEXT_PLAIN)(body.contentType)
-    expect (HttpClientTest.loadsOfText)(body.toString)
+    expect (loadsOfText)(body.toString)
     val accEnc = stubbedMethod.requestHeaders.get ("Accept-Encoding")
     expect ("gzip")(accEnc)
   }
@@ -276,7 +278,7 @@ class HttpClientTest extends FunSuite with BeforeAndAfter {
   private var server: StubServer = null
 }
 
-object HttpClientTest {
+object HttpClientTestUtils {
 
   lazy val loadsOfText: String = {
     val is = getClass.getClassLoader.getResourceAsStream ("test-lighthttpclient.php")

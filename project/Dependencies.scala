@@ -63,5 +63,6 @@ object Dependencies {
   //val stubserver       = "tarttelin"               % "stubserver"               % "0.3"   % "test"
   // Currently directly from source https://github.com/rickb777/JavaStubServer
 
-//  val mockito          = "org.mockito"             % "mockito-all"              % "1.8.+" % "test"
+  val mockito          = "org.mockito"             % "mockito-all"              % "1.8.+" % "test"
+  //val scct             = "reaktor"                 % "scct_2.9.1"               % "0.1-SNAPSHOT" % "test"
 }

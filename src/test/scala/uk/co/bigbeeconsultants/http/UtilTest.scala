@@ -78,7 +78,7 @@ class UtilTest extends FunSuite {
 
   test ("copyBytesLong") {
     val sb = new StringBuilder
-    for (i <- 1 to 10000) sb.append ("this is my string of text which will be repeated many times.")
+    for (i <- 1 to 10000) sb.append ("this is my string of text which will be repeated many times.\n")
     val str = sb.toString ()
     val bytes = str.getBytes
     val bais = new ByteArrayInputStream (bytes)

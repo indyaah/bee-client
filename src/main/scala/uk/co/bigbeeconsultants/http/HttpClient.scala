@@ -28,22 +28,19 @@ import header.{CookieJar, HeaderName, Headers, Header, MediaType}
 import response._
 import request.{Config, RequestException, Body, Request}
 import java.io._
-import java.util.zip.GZIPInputStream
-import java.net.{URLConnection, URL, HttpURLConnection}
+import java.net.{URLConnection, URL, Proxy, HttpURLConnection}
 import collection.mutable.ListBuffer
 import HeaderName._
 import Status._
+import java.util.zip.GZIPInputStream
 
 /**
  * Constructs an instance for handling any number of HTTP requests.
- * <p>
- * By default, HTTP cookies are ignored. If you require support for cookies, use the standard
- * java.net.CookieHandler classes, e.g.
- * <code>java.net.CookieHandler.setDefault( new java.net.CookieManager() )</code>.
  */
 class HttpClient(val config: Config = Config (),
                  val commonRequestHeaders: Headers = HttpClient.defaultRequestHeaders,
-                 val responseBodyFactory: BodyFactory = HttpClient.defaultResponseBodyFactory) {
+                 val responseBodyFactory: BodyFactory = HttpClient.defaultResponseBodyFactory,
+                 val proxy: Proxy = Proxy.NO_PROXY) {
 
   /**
    * Make a HEAD request.
@@ -91,23 +88,23 @@ class HttpClient(val config: Config = Config (),
    * Make an arbitrary request.
    */
   def execute(request: Request, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
-    val connWrapper = request.url.openConnection.asInstanceOf[HttpURLConnection]
-    connWrapper.setAllowUserInteraction (false)
-    connWrapper.setConnectTimeout (config.connectTimeout)
-    connWrapper.setReadTimeout (config.readTimeout);
-    connWrapper.setInstanceFollowRedirects (config.followRedirects)
-    connWrapper.setUseCaches (config.useCaches)
+    val httpURLConnection = openConnection (request)
+    httpURLConnection.setAllowUserInteraction (false)
+    httpURLConnection.setConnectTimeout (config.connectTimeout)
+    httpURLConnection.setReadTimeout (config.readTimeout);
+    httpURLConnection.setInstanceFollowRedirects (config.followRedirects)
+    httpURLConnection.setUseCaches (config.useCaches)
 
     try {
-      setRequestHeaders (request, requestHeaders, jar, connWrapper)
+      setRequestHeaders (request, requestHeaders, jar, httpURLConnection)
 
-      connWrapper.connect ()
+      httpURLConnection.connect ()
 
-      copyRequestBodyToOutputStream (request, connWrapper)
+      copyRequestBodyToOutputStream (request, httpURLConnection)
 
-      val status = Status (connWrapper.getResponseCode, connWrapper.getResponseMessage)
-      val result = getContent (status, request, connWrapper)
-      if (connWrapper.getResponseCode >= 400) {
+      val status = Status (httpURLConnection.getResponseCode, httpURLConnection.getResponseMessage)
+      val result = getContent (status, request, httpURLConnection)
+      if (httpURLConnection.getResponseCode >= 400) {
         throw new RequestException (request, status, Some (result), None)
       }
       result
@@ -118,108 +115,124 @@ class HttpClient(val config: Config = Config (),
         throw new RequestException (request, status, None, Some (ioe))
 
     } finally {
-      markConnectionForClosure (connWrapper)
+      markConnectionForClosure (httpURLConnection)
     }
   }
 
-  private def copyRequestBodyToOutputStream(request: Request, connWrapper: HttpURLConnection) {
+  /**Provides a seam for testing. Not for normal use. */
+  protected def openConnection(request: Request) = request.url.openConnection (proxy).asInstanceOf[HttpURLConnection]
+
+  private def copyRequestBodyToOutputStream(request: Request, httpURLConnection: HttpURLConnection) {
     if (request.method == Request.POST || request.method == Request.PUT) {
       require (request.body.isDefined, "An entity body is required when making a POST request.")
       if (request.method == Request.POST) {
-        request.body.get.copyTo (connWrapper.getOutputStream)
+        request.body.get.copyTo (httpURLConnection.getOutputStream)
       }
     }
   }
 
-  private def markConnectionForClosure(connWrapper: HttpURLConnection) {
+  private def markConnectionForClosure(httpURLConnection: HttpURLConnection) {
     //    if (!config.keepAlive) {
-    connWrapper.disconnect ()
+    httpURLConnection.disconnect ()
     //    }
-    //    else CleanupThread.futureClose(connWrapper)
+    //    else CleanupThread.futureClose(httpURLConnection)
   }
 
   def closeConnections() {
     //    if (config.keepAlive) CleanupThread.closeConnections()
   }
 
-  private def setRequestHeaders(request: Request, requestHeaders: Headers, jar: CookieJar, connWrapper: HttpURLConnection) {
+  private def setRequestHeaders(request: Request, requestHeaders: Headers, jar: CookieJar, httpURLConnection: HttpURLConnection) {
     val method = if (request.method == null) Request.GET else request.method.toUpperCase
-    connWrapper.setRequestMethod (method)
+    httpURLConnection.setRequestMethod (method)
 
     if (config.sendHostHeader) {
-      connWrapper.setRequestProperty (HOST, request.url.getHost)
+      httpURLConnection.setRequestProperty (HOST, request.url.getHost)
     }
 
     if (request.body.isDefined) {
-      connWrapper.setRequestProperty (CONTENT_TYPE, request.body.get.mediaType)
+      httpURLConnection.setRequestProperty (CONTENT_TYPE, request.body.get.mediaType)
     }
 
     for (hdr <- commonRequestHeaders.list) {
-      connWrapper.setRequestProperty (hdr.name, hdr.value)
+      httpURLConnection.setRequestProperty (hdr.name, hdr.value)
     }
 
     for (hdr <- requestHeaders.list) {
-      connWrapper.setRequestProperty (hdr.name, hdr.value)
+      httpURLConnection.setRequestProperty (hdr.name, hdr.value)
     }
 
     jar.filterForRequest (request.url) match {
-      case Some (hdr) => connWrapper.setRequestProperty (hdr.name, hdr.value)
+      case Some (hdr) => httpURLConnection.setRequestProperty (hdr.name, hdr.value)
       case _ =>
     }
 
     if (request.method == Request.POST || request.method == Request.PUT) {
-      connWrapper.setDoOutput (true)
+      httpURLConnection.setDoOutput (true)
       //      if (config.chunkSizeInKB >= 0) {
-      //        connWrapper.setFixedLengthStreamingMode(config.chunkSizeInKB * 1024)
+      //        httpURLConnection.setFixedLengthStreamingMode(config.chunkSizeInKB * 1024)
       //      }
     }
   }
 
-  private def getContent(status: Status, request: Request, connWrapper: HttpURLConnection): Response = {
-    val responseHeaders = processResponseHeaders (connWrapper)
+  private def getContent(status: Status, request: Request, httpURLConnection: HttpURLConnection): Response = {
+    val responseHeaders = processResponseHeaders (httpURLConnection)
     val contEnc = responseHeaders.find (CONTENT_ENCODING)
-    val mediaType = MediaType (connWrapper.getContentType)
+    val mediaType = MediaType (httpURLConnection.getContentType)
+    val body = responseBodyFactory.newBody (mediaType)
 
     if (request.method == Request.HEAD || status.category == 1 ||
       status.code == Status.S2_NO_CONTENT || status.code == Status.S3_NOT_MODIFIED) {
-      selectStream (connWrapper).close ()
-      Response (request, status, new EmptyBody (mediaType), responseHeaders)
+      val iStream = selectStream (httpURLConnection)
+      //      Response (request, status, new EmptyBody (mediaType), responseHeaders)
+      body.receiveData (mediaType, iStream)
+      Response (request, status, body, responseHeaders)
 
     } else {
-      val body = responseBodyFactory.newBody (mediaType)
-      val stream = getBodyStream (contEnc, connWrapper)
+      val stream = getBodyStream (contEnc, httpURLConnection)
       body.receiveData (mediaType, stream)
       Response (request, status, body, responseHeaders)
     }
   }
 
-  private def getBodyStream(contEnc: List[Header], connWrapper: HttpURLConnection) = {
-    val iStream = selectStream (connWrapper)
-    if (!contEnc.isEmpty && contEnc (0).value.contains (HttpClient.GZIP)) {
-      new GZIPInputStream (iStream)
+  private def getBodyStream(contEnc: List[Header], httpURLConnection: HttpURLConnection) = {
+    val iStream = selectStream (httpURLConnection)
+    if (!contEnc.isEmpty) {
+      val enc = contEnc (0).toQualifiedValue
+      if (enc.parts.exists (_.value == HttpClient.GZIP)) {
+        new GZIPInputStream (iStream)
+        //TODO deflate
+        //      } else if (enc.contains (HttpClient.DEFLATE)) {
+        //        new InflaterInputStream (iStream, new Inflater (true))
+      } else {
+        iStream
+      }
     } else {
       iStream
     }
   }
 
-  private def selectStream(connWrapper: HttpURLConnection) = {
-    if (connWrapper.getResponseCode >= 400) connWrapper.getErrorStream else connWrapper.getInputStream
+  private def selectStream(httpURLConnection: HttpURLConnection) = {
+    if (httpURLConnection.getResponseCode >= 400)
+      httpURLConnection.getErrorStream
+    else
+      httpURLConnection.getInputStream
   }
 
-  private def processResponseHeaders(connWrapper: URLConnection) = {
+  private def processResponseHeaders(urlConnection: URLConnection) = {
     val result = new ListBuffer[Header]
     var i = 0
-    var key = connWrapper.getHeaderFieldKey (i)
+    var key = urlConnection.getHeaderFieldKey (i)
     if (key == null) {
       // some implementations start counting from 1
       i += 1
-      key = connWrapper.getHeaderFieldKey (i)
+      key = urlConnection.getHeaderFieldKey (i)
     }
     while (key != null) {
-      val value = connWrapper.getHeaderField (i)
+      val value = urlConnection.getHeaderField (i)
       result += Header (key, value)
       i += 1
-      key = connWrapper.getHeaderFieldKey (i)
+      key = urlConnection.getHeaderFieldKey (i)
     }
     Headers (result.toList)
   }
@@ -228,9 +241,11 @@ class HttpClient(val config: Config = Config (),
 object HttpClient {
   val UTF8 = "UTF-8"
   val GZIP = "gzip"
+  val DEFLATE = "deflate"
 
   val defaultRequestHeaders = Headers (List (
-    //    Header(ACCEPT_ENCODING, GZIP),
+    Header (ACCEPT_ENCODING, GZIP),
+    //    Header (CONNECTION, "Close"),
     Header (ACCEPT_CHARSET, UTF8)
   ))
 
