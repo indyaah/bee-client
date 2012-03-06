@@ -101,16 +101,16 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
 
     val http = newHttpClient ()
 
+    val headers = Headers (List (ACCEPT_LANGUAGE -> "en"))
     val response = method match {
-      case "GET" => http.get (url)
-      case "HEAD" => http.head (url)
-      case "TRACE" => http.trace (url)
-      case "OPTIONS" => http.options (url, None)
-      case "DELETE" => http.delete (url)
+      case "GET" => http.get (url, headers)
+      case "HEAD" => http.head (url, headers)
+      case "TRACE" => http.trace (url, headers)
+      case "DELETE" => http.delete (url, headers)
     }
 
     verifyConfig(Config())
-    verifyRequestSettings (method, List(HOST -> "server", ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8"))
+    verifyRequestSettings (method, List(HOST -> "server", ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8", ACCEPT_LANGUAGE -> "en"))
     verify (httpURLConnection).getContentType
     verify (httpURLConnection, times (3)).getResponseCode
     verify (httpURLConnection).getResponseMessage
@@ -128,7 +128,6 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     executeBasicSettingsWithoutBody("GET")
     executeBasicSettingsWithoutBody("HEAD")
     executeBasicSettingsWithoutBody("TRACE")
-    executeBasicSettingsWithoutBody("OPTIONS")
     executeBasicSettingsWithoutBody("DELETE")
   }
 
@@ -143,13 +142,14 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
 
     val http = newHttpClient ()
 
+    val headers = Headers (List (ACCEPT_LANGUAGE -> "en"))
     val response = method match {
-      case "POST" => http.post (url, Body(TEXT_PLAIN, Map("foo" -> "bar", "a" -> "z")))
-      case "PUT" => http.put (url, Body(TEXT_PLAIN, "hello world"))
-    }
+      case "POST" => http.post (url, Body(TEXT_PLAIN, Map("foo" -> "bar", "a" -> "z")), headers)
+      case "PUT" => http.put (url, Body(TEXT_PLAIN, "hello world"), headers)
+      case "OPTIONS" => http.options (url, Some(Body(TEXT_PLAIN, "hello world")), headers)    }
 
     verifyConfig(Config())
-    verifyRequestSettings (method, List(HOST -> "server", ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8", CONTENT_TYPE -> "text/plain"))
+    verifyRequestSettings (method, List(HOST -> "server", ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8", ACCEPT_LANGUAGE -> "en", CONTENT_TYPE -> "text/plain"))
     verify (httpURLConnection).setDoOutput (true)
     verify (httpURLConnection).getContentType
     verify (httpURLConnection, times (3)).getResponseCode
@@ -169,6 +169,7 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
   test ("mock methods with broadly default settings and with a body should confirm all interations") {
     expect("foo=bar&a=z") (executeBasicSettingsWithBody("POST"))
     expect("hello world") (executeBasicSettingsWithBody("PUT"))
+    expect("hello world") (executeBasicSettingsWithBody("OPTIONS"))
   }
 
 

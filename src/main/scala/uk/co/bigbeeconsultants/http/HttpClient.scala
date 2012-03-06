@@ -123,9 +123,10 @@ class HttpClient(val config: Config = Config (),
   protected def openConnection(request: Request) = request.url.openConnection (proxy).asInstanceOf[HttpURLConnection]
 
   private def copyRequestBodyToOutputStream(request: Request, httpURLConnection: HttpURLConnection) {
-    if (request.method == Request.POST || request.method == Request.PUT) {
-      require (request.body.isDefined, "An entity body is required when making a POST request.")
+    if (request.body.isDefined) {
       request.body.get.copyTo (httpURLConnection.getOutputStream)
+    } else {
+      require (request.method != Request.POST && request.method != Request.PUT, "An entity body is required when making a POST/PUT request.")
     }
   }
 
@@ -165,11 +166,8 @@ class HttpClient(val config: Config = Config (),
       case _ =>
     }
 
-    if (request.method == Request.POST || request.method == Request.PUT) {
+    if (request.body.isDefined) {
       httpURLConnection.setDoOutput (true)
-      //      if (config.chunkSizeInKB >= 0) {
-      //        httpURLConnection.setFixedLengthStreamingMode(config.chunkSizeInKB * 1024)
-      //      }
     }
   }
 
