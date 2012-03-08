@@ -41,7 +41,7 @@ class MediaTypeTest extends FunSuite {
 
   test ("parser") {
     val mt = MediaType ("text/html; charset=ISO-8859-1")
-    expect ("text/html; charset=ISO-8859-1")(mt.toString)
+    expect ("text/html;charset=ISO-8859-1")(mt.toString)
     expect ("text")(mt.`type`)
     expect ("html")(mt.subtype)
     expect ("ISO-8859-1")(mt.charset.get)
@@ -53,6 +53,18 @@ class MediaTypeTest extends FunSuite {
     expect ("*/x")(MediaType ("/x").toString)
     expect ("*/*")(MediaType ("/").toString)
     expect ("*/*")(MediaType ("").toString)
+  }
+
+
+  test ("isCompatible") {
+    val mt = MediaType ("text/html")
+    expect (true)(mt.isCompatible (MediaType ("text/*")))
+    expect (true)(mt.isCompatible (MediaType ("*/*")))
+    expect (true)(mt.isCompatible (MediaType ("*/html")))
+    expect (true)(mt.isCompatible (MediaType ("text/html")))
+    expect (false)(mt.isCompatible (MediaType ("text/plain")))
+    expect (false)(mt.isCompatible (MediaType ("image/*")))
+    expect (false)(mt.isCompatible (null))
   }
 
 

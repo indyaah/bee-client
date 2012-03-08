@@ -87,7 +87,7 @@ class HttpClient(val config: Config = Config (),
   /**
    * Make an arbitrary request.
    */
-  def execute(request: Request, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
+  private def execute(request: Request, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
     val httpURLConnection = openConnection (request)
     httpURLConnection.setAllowUserInteraction (false)
     httpURLConnection.setConnectTimeout (config.connectTimeout)
@@ -135,10 +135,6 @@ class HttpClient(val config: Config = Config (),
     httpURLConnection.disconnect ()
     //    }
     //    else CleanupThread.futureClose(httpURLConnection)
-  }
-
-  def closeConnections() {
-    //    if (config.keepAlive) CleanupThread.closeConnections()
   }
 
   private def setRequestHeaders(request: Request, requestHeaders: Headers, jar: CookieJar, httpURLConnection: HttpURLConnection) {
@@ -231,6 +227,14 @@ class HttpClient(val config: Config = Config (),
       key = urlConnection.getHeaderFieldKey (i)
     }
     Headers (result.toList)
+  }
+
+  /**
+   * Closes any remaining connections in this HttpClient instance. Use this to clean up. It is possible to continue
+   * to make further connections after each invocation of this method.
+   */
+  def closeConnections() {
+    //    if (config.keepAlive) CleanupThread.closeConnections()
   }
 }
 

@@ -27,12 +27,13 @@ import sbt.Package._
 import Keys._
 
 object Resolvers {
-  val resolvers = Seq (ScalaToolsReleases, DefaultMavenRepository)
+  val localhost = URLRepository("local-nexus", Patterns("http://localhost:8081/nexus/"))
+  val resolvers = Seq (localhost, ScalaToolsReleases, DefaultMavenRepository)
 }
 
 object Dependencies {
   val slf4jVersion     = "1.6.+"
-  val logbackVersion   = "0.9.+"
+  val logbackVersion   = "1.0.+"
   val jettyVersion     = "6.1.26"
 
   val slf4jApi         = "org.slf4j"          % "slf4j-api"         % slf4jVersion withSources()

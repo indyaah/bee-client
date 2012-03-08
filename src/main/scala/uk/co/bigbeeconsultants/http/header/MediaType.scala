@@ -32,17 +32,13 @@ case class MediaType(`type`: String, subtype: String, charset: Option[String] = 
 
   def value = `type` + '/' + subtype
 
-  /**Gets the charset as a list of zero or one Qualifier. */
-  def qualifier = if (charset.isEmpty) Nil else List (Qualifier ("charset", charset.get))
-
-  override def toString = {
-    val qual = if (charset.isEmpty) {
-      ""
-    } else {
-      "; charset=" + charset.get
-    }
-    value + qual
+  /** Gets this media type in the form used within QualifiedValue. */
+  def toQualifiedPart = {
+    val qual = if (charset.isEmpty) Nil else List (Qualifier ("charset", charset.get))
+    QualifiedPart (value, qual)
   }
+
+  override def toString = toQualifiedPart.toString
 
   /**
    * Gets the character set, or returns a default value.
@@ -88,7 +84,7 @@ case class MediaType(`type`: String, subtype: String, charset: Option[String] = 
    */
   def withCharset(newCharset: String) = {
     require (newCharset != null && newCharset.length () > 0)
-    MediaType (`type`, subtype, Some (newCharset))
+    new MediaType (`type`, subtype, Some (newCharset))
   }
 }
 
@@ -113,19 +109,18 @@ object MediaType {
   val IMAGE_JPG = MediaType ("image", "jpeg")
 
   def apply(str: String) = {
-    val t1 = Util.divide (str, ';')
-    val qualifier = if (t1._2.length > 0) {
-      val q = Qualifier (t1._2.trim)
-      assume (q.label == "charset")
-      Some (q.value)
-    } else {
+    val qp = QualifiedPart.parse (str)
+    val qualifier = if (qp.qualifier.isEmpty) {
       None
+    } else {
+      val q = qp.qualifier (0)
+      if (q.label == "charset") Some (q.value) else None
     }
-    val t2 = Util.divide (t1._1, '/')
-    val `type` = if (t2._1.length > 0) t2._1 else WILDCARD
-    val subtype = if (t2._2.length > 0) t2._2 else WILDCARD
-    new MediaType (`type`, subtype, qualifier)
+    val t2 = Util.divide (qp.value, '/')
+    new MediaType (orWildcard (t2._1), orWildcard (t2._2), qualifier)
   }
+
+  private def orWildcard(s: String) = if (s.length > 0) s else WILDCARD
 
   implicit def convertToString(mt: MediaType) = mt.toString
 }

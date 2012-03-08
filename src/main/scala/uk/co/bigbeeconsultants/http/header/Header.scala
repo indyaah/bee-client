@@ -39,10 +39,9 @@ case class Header(name: String, value: String) {
 
   def toQualifiedValue = QualifiedValue (value)
 
-  def toMediaType = MediaType (value)
+  def toRangeValue = RangeValue (value)
 
-  //TODO
-  //  def toCookie = Cookie(Util.divide(value, '='))
+  def toMediaType = MediaType (value)
 
   override def toString = name + ": " + value
 

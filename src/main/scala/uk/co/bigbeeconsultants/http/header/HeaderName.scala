@@ -36,64 +36,64 @@ object HeaderName {
 
   // General headers
   val CACHE_CONTROL = HeaderName ("Cache-Control")
-  val CONNECTION = HeaderName ("Connection")
-  val DATE = HeaderName ("Date")
-  val PRAGMA = HeaderName ("Pragma")
-  val TRAILER = HeaderName ("Trailer")
-  val TRANSFER_ENCODING = HeaderName ("Transfer-Encoding")
-  val UPGRADE = HeaderName ("Upgrade")
-  val VIA = HeaderName ("Via")
-  val WARNING = HeaderName ("Warning")
+  val CONNECTION = HeaderName ("Connection") // ListValue
+  val DATE = HeaderName ("Date") // HttpDateTimeInstant
+  val PRAGMA = HeaderName ("Pragma") // ListValue
+  val TRAILER = HeaderName ("Trailer") // ListValue
+  val TRANSFER_ENCODING = HeaderName ("Transfer-Encoding") // ListValue
+  val UPGRADE = HeaderName ("Upgrade") // ListValue
+  val VIA = HeaderName ("Via") // ListValue
+  val WARNING = HeaderName ("Warning") // ListValue (in ISO8859-1)
 
   // Request & response headers
-  val ACCEPT_RANGES = HeaderName ("Accept-Ranges")
+  val ACCEPT_RANGES = HeaderName ("Accept-Ranges") // RangeValue
 
   // Request headers
-  val ACCEPT = HeaderName ("Accept")
-  val ACCEPT_CHARSET = HeaderName ("Accept-Charset")
-  val ACCEPT_ENCODING = HeaderName ("Accept-Encoding")
-  val ACCEPT_LANGUAGE = HeaderName ("Accept-Language")
+  val ACCEPT = HeaderName ("Accept") // QualifiedValue
+  val ACCEPT_CHARSET = HeaderName ("Accept-Charset") // QualifiedValue
+  val ACCEPT_ENCODING = HeaderName ("Accept-Encoding") // QualifiedValue
+  val ACCEPT_LANGUAGE = HeaderName ("Accept-Language") // QualifiedValue
   val AUTHORIZATION = HeaderName ("Authorization")
   val COOKIE = HeaderName ("Cookie")
   val OBSOLETE_COOKIE2 = HeaderName ("Cookie2")
   val EXPECT = HeaderName ("Expect")
-  val FROM = HeaderName ("From")
-  val HOST = HeaderName ("Host")
-  val IF_MATCH = HeaderName ("If-Match")
-  val IF_MODIFIED_SINCE = HeaderName ("If-Modified-Since")
-  val IF_NONE_MATCH = HeaderName ("If-None-Match")
+  val FROM = HeaderName ("From") // String
+  val HOST = HeaderName ("Host") // String
+  val IF_MATCH = HeaderName ("If-Match") // ListValue
+  val IF_MODIFIED_SINCE = HeaderName ("If-Modified-Since") // HttpDateTimeInstant
+  val IF_NONE_MATCH = HeaderName ("If-None-Match") // ListValue
   val IF_RANGE = HeaderName ("If-Range")
-  val IF_UNMODIFIED_SINCE = HeaderName ("If-Unmodified-Since")
-  val MAX_FORWARDS = HeaderName ("Max-Forwards")
+  val IF_UNMODIFIED_SINCE = HeaderName ("If-Unmodified-Since") // HttpDateTimeInstant
+  val MAX_FORWARDS = HeaderName ("Max-Forwards") // Int
   val PROXY_AUTHORIZATION = HeaderName ("Proxy-Authorization")
-  val RANGE = HeaderName ("Range")
-  val REFERER = HeaderName ("Referer")
-  val TE = HeaderName ("TE")
-  val USER_AGENT = HeaderName ("User-Agent")
+  val RANGE = HeaderName ("Range") // RangePart
+  val REFERER = HeaderName ("Referer") // String
+  val TE = HeaderName ("TE") // QualifiedValue
+  val USER_AGENT = HeaderName ("User-Agent") // String
 
   // Response headers
-  val AGE = HeaderName ("Age")
-  val ETAG = HeaderName ("ETag")
-  val LOCATION = HeaderName ("Location")
+  val AGE = HeaderName ("Age") // Int
+  val ETAG = HeaderName ("ETag") // String
+  val LOCATION = HeaderName ("Location") // String
   val PROXY_AUTHENTICATE = HeaderName ("Proxy-Authenticate")
-  val RETRY_AFTER = HeaderName ("Retry-After")
+  val RETRY_AFTER = HeaderName ("Retry-After") // HttpDateTimeInstant or Int
   val SET_COOKIE = HeaderName ("Set-Cookie")
   val OBSOLETE_SET_COOKIE2 = HeaderName ("Set-Cookie2")
-  val SERVER = HeaderName ("Server")
-  val VARY = HeaderName ("Vary")
-  val WWW_AUTHENTICATE = HeaderName ("WWW-Authenticate")
+  val SERVER = HeaderName ("Server") // String
+  val VARY = HeaderName ("Vary") // ListValue
+  val WWW_AUTHENTICATE = HeaderName ("WWW-Authenticate") // ListValue
 
   // Entity headers
-  val ALLOW = HeaderName ("Allow")
-  val CONTENT_ENCODING = HeaderName ("Content-Encoding")
-  val CONTENT_LANGUAGE = HeaderName ("Content-Language")
-  val CONTENT_LENGTH = HeaderName ("Content-Length")
-  val CONTENT_LOCATION = HeaderName ("Content-Location")
+  val ALLOW = HeaderName ("Allow") // ListValue
+  val CONTENT_ENCODING = HeaderName ("Content-Encoding") // ListValue
+  val CONTENT_LANGUAGE = HeaderName ("Content-Language") // ListValue
+  val CONTENT_LENGTH = HeaderName ("Content-Length") // Int
+  val CONTENT_LOCATION = HeaderName ("Content-Location") // String
   val CONTENT_MD5 = HeaderName ("Content-MD5")
-  val CONTENT_RANGE = HeaderName ("Content-Range")
-  val CONTENT_TYPE = HeaderName ("Content-Type")
-  val EXPIRES = HeaderName ("Expires")
-  val LAST_MODIFIED = HeaderName ("Last-Modified")
+  val CONTENT_RANGE = HeaderName ("Content-Range") // RangeValue
+  val CONTENT_TYPE = HeaderName ("Content-Type") // MediaType
+  val EXPIRES = HeaderName ("Expires") // HttpDateTimeInstant
+  val LAST_MODIFIED = HeaderName ("Last-Modified") // HttpDateTimeInstant
 
 
   val headersWithListValues: Set[String] = Set (ACCEPT.name,

@@ -43,10 +43,20 @@ object Qualifier {
 }
 
 
-case class Part(value: String, qualifier: List[Qualifier] = Nil) {
+case class QualifiedPart(value: String, qualifier: List[Qualifier] = Nil) {
   override def toString =
     if (qualifier.isEmpty) value
     else value + ";" + qualifier.mkString (";")
+}
+
+object QualifiedPart {
+  def parse(str: String) = {
+    val t = Util.split (str.trim, ';')
+    val qualifiers = t.tail.map {
+      q => Qualifier (q.trim)
+    }
+    new QualifiedPart (t.head, qualifiers.toList)
+  }
 }
 
 
@@ -56,16 +66,13 @@ case class Part(value: String, qualifier: List[Qualifier] = Nil) {
  */
 case class QualifiedValue(value: String) {
 
-  val parts: List[Part] = {
-    val parts = for (v <- Util.split (value, ',')) yield {
-      val t = Util.split (v.trim, ';')
-      val qualifiers = for (q <- t.tail) yield {
-        Qualifier (q.trim)
-      }
-      Part (t.head, qualifiers.toList)
-    }
-    parts.toList
+  val parts: List[QualifiedPart] = {
+    Util.split (value, ',').map {
+      v: String => QualifiedPart.parse(v)
+    }.toList
   }
+
+  def apply(i: Int) = parts (i).value
 
   override val toString = parts.mkString (", ")
 }

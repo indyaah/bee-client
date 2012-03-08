@@ -37,8 +37,8 @@ class HeaderTest extends FunSuite {
 
 
   test ("value_toString") {
-    expect ("v")(Part ("v").toString)
-    val v1 = Part ("v", List (Qualifier ("a", "b")))
+    expect ("v")(QualifiedPart ("v").toString)
+    val v1 = QualifiedPart ("v", List (Qualifier ("a", "b")))
     expect ("v;a=b")(v1.toString)
   }
 
@@ -66,6 +66,17 @@ class HeaderTest extends FunSuite {
   }
 
 
+  test ("simple list") {
+    val h = Header ("Allow: GET, POST, PUT")
+    val v = h.toQualifiedValue
+    expect ("Allow")(h.name)
+    expect (3)(v.parts.size)
+    expect ("GET")(v.parts (0).value)
+    expect ("Allow: GET, POST, PUT")(h.toString)
+    expect ("GET, POST, PUT")(v.toString)
+  }
+
+
   test ("oneQ") {
     val h = Header ("Accept: audio/*;q=0.2, audio/basic")
     val v = h.toQualifiedValue
@@ -80,21 +91,13 @@ class HeaderTest extends FunSuite {
   }
 
 
-  test ("complexQ") {
-    val h = Header ("Accept: text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5")
-    val v = h.toQualifiedValue
-    expect ("Accept")(h.name)
-    expect (5)(v.parts.size)
-    expect ("text/*")(v.parts (0).value)
-    expect ("q")(v.parts (0).qualifier (0).label)
-    expect ("0.3")(v.parts (0).qualifier (0).value)
-    expect ("text/html")(v.parts (3).value)
-    expect ("level")(v.parts (3).qualifier (0).label)
-    expect ("2")(v.parts (3).qualifier (0).value)
-    expect ("q")(v.parts (3).qualifier (1).label)
-    expect ("0.4")(v.parts (3).qualifier (1).value)
-    expect ("Accept: text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5")(h.toString)
-    expect ("text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5")(v.toString)
+  test ("range") {
+    val h = Header ("Accept-Ranges: bytes=500-599,700-799")
+    val v = h.toRangeValue
+    expect ("Accept-Ranges")(h.name)
+    expect (2)(v.parts.size)
+    expect ("Accept-Ranges: bytes=500-599,700-799")(h.toString)
+    expect ("bytes=500-599,700-799")(v.toString)
   }
 
 
