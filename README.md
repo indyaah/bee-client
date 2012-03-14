@@ -52,5 +52,3 @@ for future versions.
 *   Proxy support enhanced to support conditional switching.
 
 *   Tested against a very wide range of servers.
-
-*   Support for range-valued headers.
