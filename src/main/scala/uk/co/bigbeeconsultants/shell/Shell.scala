@@ -26,15 +26,11 @@ class Shell(val echo: Boolean = false, val handleExitCode: (Int) => Unit = (x) =
   }
 
   def cat(source: Source): PipeElement = {
-    new Copier(source.get (1, Int.MaxValue), this)
+    new LineFilter ((x) => true, source.get (1, Int.MaxValue), this)
   }
 
   def cat(iterable: Iterable[String]): PipeElement = {
-    new Copier(iterable.iterator, this)
-  }
-
-  private class Copier(upstream: Iterator[String], shell: Shell) extends PipeElement (shell) {
-    protected def exec = upstream
+    new LineFilter ((x) => true, iterable.iterator, this)
   }
 }
 
@@ -87,13 +83,13 @@ class TextFile(file: EncFile) extends Source with Sink {
   }
 
   def put(lines: TraversableOnce[String]) {
-    val pw = new PrintWriter (new OutputStreamWriter (new FileOutputStream (file.name), file.encoding))
+    val pw = printWriter (false)
     lines.foreach (pw.println (_))
     pw.close ()
   }
 
   def append(lines: TraversableOnce[String]) {
-    val pw = new PrintWriter (new OutputStreamWriter (new FileOutputStream (file.name), file.encoding))
+    val pw = printWriter (true)
     lines.foreach (pw.println (_))
     pw.close ()
   }

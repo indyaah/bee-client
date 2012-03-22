@@ -18,15 +18,15 @@ object ShellEssay {
     println ("===== 1 =====")
     sh.cmd ("ls -l src") |> Stdout
     println ("===== 2 =====")
-    sh.cat (List ("hello", "world")) -| "cut -c 2-" |> Stdout
-    //      println("===== 3 =====")
-    //      sh.cat(List ("hello", "world", env("SHELL"))) | ((x:String) => x.substring(1)) |> Stdout
-    //      println("===== 4 =====")
-    //      sh.cmd ("find . -type d") | "xargs ls -l" |> Stdout
-    println ("===== 5 =====")
+    sh.cat (List ("hello", "world", env ("SHELL"))) | "cut -c 2-" |> Stdout
+    println ("===== 3 =====")
+    sh.cat (List ("hello", "world", env ("SHELL"))) | ((x: String) => x.substring (0, 3)) |> Stdout
+    println ("===== 4 =====")
     sh.cat (EncFile ("/etc/hosts")) |> Stdout
+    println ("===== 5 =====")
+    sh.cat (EncFile ("/etc/hosts")) & ((x: String) => x.startsWith ("127.")) | ((x: String) => "=" + x) |> Stdout
     println ("===== 6 =====")
-    sh.cat (EncFile ("/etc/hosts")) --> ((x: String) => x.startsWith ("127.")) |> Stdout
+    sh.cmd ("find . -type d") & ((x: String) => x.startsWith ("./src/main/")) |> Stdout
     println ("===== 7 =====")
     sh.cmd ("cat /nonexistent") |> Stdout
     println ("===== 8 =====")

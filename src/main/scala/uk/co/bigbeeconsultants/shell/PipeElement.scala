@@ -7,17 +7,17 @@ abstract class PipeElement(shell: Shell = new Shell) {
 
   protected def exec: Iterator[String]
 
-  def -|(next: String) = {
+  def |(next: String): PipeElement = {
     new ShellCommand (next, exec, shell)
   }
 
-  def -->(predicate: (String) => Boolean) = {
+  def &(predicate: (String) => Boolean): PipeElement = {
     new LineFilter (predicate, exec, shell)
   }
 
-  //  def |(fn: (String) => String) = {
-  //    new LineChanger (fn, exec, shell)
-  //  }
+  def |(fn: (String) => String): PipeElement = {
+    new LineChanger (fn, exec, shell)
+  }
 
   def |>(sink: Sink) = {
     sink.put (exec)
@@ -51,12 +51,15 @@ class LineFilter(predicate: (String) => Boolean,
 private class FilterIterator(predicate: (String) => Boolean,
                              upstream: Iterator[String]) extends Iterator[String] {
   private var nextLine: String = null
+  prefetch ()
 
   private def prefetch() {
-    while (upstream.hasNext && nextLine == null) {
+    nextLine = null
+    var seeking = true
+    while (seeking && upstream.hasNext) {
       nextLine = upstream.next ()
-      if (!predicate (nextLine)) {
-        nextLine == null
+      if (predicate (nextLine)) {
+        seeking = false
       }
     }
   }
@@ -65,8 +68,8 @@ private class FilterIterator(predicate: (String) => Boolean,
 
   def next() = {
     if (nextLine == null) {
-      upstream.next ()
-    } // force exception
+      upstream.next () // force exception
+    }
     val result = nextLine
     prefetch ()
     result
