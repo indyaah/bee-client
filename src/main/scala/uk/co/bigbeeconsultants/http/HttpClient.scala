@@ -195,11 +195,11 @@ class HttpClient(val config: Config = Config (),
       status.code == Status.S2_NO_CONTENT || status.code == Status.S3_NOT_MODIFIED) {
       val iStream = selectStream (httpURLConnection)
       //      Response (request, status, new EmptyResponseBody (mediaType), responseHeaders)
-      responseFactory.captureResponse(request, status, mediaType, responseHeaders, iStream)
+      responseFactory.captureResponse (request, status, mediaType, responseHeaders, iStream)
 
     } else {
       val stream = getBodyStream (contEnc, httpURLConnection)
-      responseFactory.captureResponse(request, status, mediaType, responseHeaders, stream)
+      responseFactory.captureResponse (request, status, mediaType, responseHeaders, stream)
     }
   }
 

@@ -73,7 +73,7 @@ final class ByteBufferResponseBody(val contentType: MediaType, byteData: ByteBuf
  * Take care because the memory footprint will be large when dealing with large volumes of response data.
  */
 final class CopiedByteBufferResponseBody extends ResponseBody {
-  private var cache: ByteBufferResponseBody = null
+  private[this] var cache: ByteBufferResponseBody = null
 
   override def receiveData(contentType: MediaType, inputStream: InputStream) {
     cache = new ByteBufferResponseBody (contentType, Util.copyToByteBufferAndClose (inputStream))

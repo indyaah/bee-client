@@ -68,7 +68,7 @@ case class QualifiedValue(value: String) {
 
   val parts: List[QualifiedPart] = {
     Util.split (value, ',').map {
-      v: String => QualifiedPart.parse(v)
+      v: String => QualifiedPart.parse (v)
     }.toList
   }
 

@@ -79,7 +79,7 @@ object RequestBody {
    */
   def apply(mediaType: MediaType, inputStream: InputStream): RequestBody = {
     new RequestBody (mediaType, (outputStream) => {
-      Util.copyBytes(inputStream, outputStream)
+      Util.copyBytes (inputStream, outputStream)
     })
   }
 

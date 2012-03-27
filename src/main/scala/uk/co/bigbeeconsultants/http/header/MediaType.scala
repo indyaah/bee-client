@@ -32,7 +32,7 @@ case class MediaType(`type`: String, subtype: String, charset: Option[String] = 
 
   def value = `type` + '/' + subtype
 
-  /** Gets this media type in the form used within QualifiedValue. */
+  /**Gets this media type in the form used within QualifiedValue. */
   def toQualifiedPart = {
     val qual = if (charset.isEmpty) Nil else List (Qualifier ("charset", charset.get))
     QualifiedPart (value, qual)

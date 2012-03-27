@@ -34,11 +34,11 @@ import uk.co.bigbeeconsultants.http.header.{Headers, MediaType}
  * stream. The data is not buffered more than necessary to copy it.
  */
 final class CopyStreamResponseBody(outputStream: OutputStream) extends ResponseBody {
-  private var _contentType: MediaType = _
+  private[this] var _contentType: MediaType = _
 
   override def receiveData(contentType: MediaType, inputStream: InputStream) {
     _contentType = contentType
-    Util.copyBytes(inputStream, outputStream)
+    Util.copyBytes (inputStream, outputStream)
     inputStream.close ()
   }
 
@@ -54,13 +54,13 @@ final class CopyStreamResponseBody(outputStream: OutputStream) extends ResponseB
  * used once only and discarded.
  */
 class CopyStreamResponseFactory(outputStream: OutputStream) extends ResponseFactory {
-  private var _response: Response = _
+  private[this] var _response: Response = _
 
   def captureResponse(request: Request, status: Status, mediaType: MediaType, headers: Headers, stream: InputStream) {
-    val body = new CopyStreamResponseBody(outputStream)
-    body.receiveData(mediaType, stream)
-    _response = new Response(request, status, body, headers)
+    val body = new CopyStreamResponseBody (outputStream)
+    body.receiveData (mediaType, stream)
+    _response = new Response (request, status, body, headers)
   }
 
-  override def response = Some(_response)
+  override def response = Some (_response)
 }

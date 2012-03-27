@@ -49,7 +49,7 @@ case class HttpDateTimeInstant(seconds: Long) extends Ordered[HttpDateTimeInstan
     new SimpleDateFormat (HttpDateTimeInstant.fullRfc1123DateTimeFormat).format (date) + " GMT"
   }
 
-  def compare(that: HttpDateTimeInstant) = seconds.compare(that.seconds)
+  def compare(that: HttpDateTimeInstant) = seconds.compare (that.seconds)
 }
 
 object HttpDateTimeInstant extends Logging {

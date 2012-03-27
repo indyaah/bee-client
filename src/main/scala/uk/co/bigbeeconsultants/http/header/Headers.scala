@@ -26,11 +26,14 @@ package uk.co.bigbeeconsultants.http.header
 
 /**
  * Holds a list of headers.
+ * <p>
+ * Remember that header names are case-insensitive. The get and find methods take this into account.
  */
 case class Headers(list: List[Header]) {
 
   /**
    * Finds all the headers that have a given name.
+   * @param name the required header name. Uppercase or lowercase doesn't matter.
    */
   def find(name: String): List[Header] = list.filter (_.name equalsIgnoreCase name)
 

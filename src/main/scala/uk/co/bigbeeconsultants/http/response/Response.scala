@@ -42,14 +42,15 @@ trait ResponseFactory {
   def response: Option[Response] = None
 }
 
-class BufferedResponseFactory extends ResponseFactory {
+
+private[http] class BufferedResponseFactory extends ResponseFactory {
   private var _response: Response = _
 
   def captureResponse(request: Request, status: Status, mediaType: MediaType, headers: Headers, stream: InputStream) {
     val body = new CopiedByteBufferResponseBody
-    body.receiveData(mediaType, stream)
-    _response = new Response(request, status, body, headers)
+    body.receiveData (mediaType, stream)
+    _response = new Response (request, status, body, headers)
   }
 
-  override def response = Some(_response)
+  override def response = Some (_response)
 }

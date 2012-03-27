@@ -25,34 +25,47 @@
 package uk.co.bigbeeconsultants.http.servlet
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
-import uk.co.bigbeeconsultants.http.request.RequestBody
-import uk.co.bigbeeconsultants.http.header.{Header, Headers}
-import uk.co.bigbeeconsultants.http.response.Response
+import uk.co.bigbeeconsultants.http.request.{Request, RequestBody}
+import uk.co.bigbeeconsultants.http.header.{MediaType, Header, Headers}
+import java.io.InputStream
+import uk.co.bigbeeconsultants.http.response.{CopyStreamResponseBody, Status, ResponseFactory}
 
 /**
- * Adapts HTTP Servlet request and response objects to the Light Http Client API. This allows a variety of
- * solutions such as proxying to be implemented easily.
+ * Adapts HTTP Servlet request objects to the Light Http Client API. This allows a variety of solutions such as
+ * reverse proxying to be implemented easily.
  */
-class HttpServletAdapter {
+class HttpServletRequestAdapter(req: HttpServletRequest) {
 
-  def getRequestBody(req: HttpServletRequest): RequestBody = {
-//    request.RequestBody()
-//    req.getInputStream
-    null
-  }
-
-  def convertRequestHeaders(req: HttpServletRequest): Headers = {
+  def headers: Headers = {
     import scala.collection.JavaConversions.enumerationAsScalaIterator
-    new Headers(enumerationAsScalaIterator(req.getHeaderNames).map {
+    new Headers (enumerationAsScalaIterator (req.getHeaderNames).map {
       headerName: Any =>
-        new Header(headerName.toString, req.getHeader(headerName.toString))
+        new Header (headerName.toString, req.getHeader (headerName.toString))
     }.toList)
   }
 
-  def copyResponse(response: Response, resp: HttpServletResponse) = {
-    for (header <- response.headers.list) {
-      resp.setHeader(header.name, header.value)
+  def requestBody: RequestBody = {
+    val mediaType = MediaType (req.getContentType)
+    RequestBody(mediaType, req.getInputStream)
+  }
+}
+
+
+/**
+ * Adapts HTTP Servlet response objects to the Light Http Client API. This allows a variety of solutions such as
+ * reverse proxying to be implemented easily.
+ */
+class HttpServletResponseAdapter(resp: HttpServletResponse) extends ResponseFactory {
+
+  def captureResponse(request: Request, status: Status, mediaType: MediaType, headers: Headers, stream: InputStream) {
+    resp.setStatus(status.code, status.message)
+
+    for (header <- headers.list) {
+      resp.setHeader (header.name, header.value)
     }
-    response.body.asBytes
+
+    val body = new CopyStreamResponseBody (resp.getOutputStream)
+    body.receiveData (mediaType, stream)
+    stream.close()
   }
 }
