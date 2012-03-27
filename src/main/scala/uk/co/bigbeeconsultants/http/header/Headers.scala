@@ -31,6 +31,8 @@ package uk.co.bigbeeconsultants.http.header
  */
 case class Headers(list: List[Header]) {
 
+  def names = list.map { _.name }
+
   /**
    * Finds all the headers that have a given name.
    * @param name the required header name. Uppercase or lowercase doesn't matter.

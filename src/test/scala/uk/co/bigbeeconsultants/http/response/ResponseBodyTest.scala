@@ -28,18 +28,16 @@ import uk.co.bigbeeconsultants.http.header.MediaType
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import uk.co.bigbeeconsultants.http.HttpClient
-import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
+import java.io.ByteArrayInputStream
 
 class ResponseBodyTest extends FunSuite with ShouldMatchers {
 
-  test("CopiedByteBufferResponseBody") {
+  test("ByteBufferResponseBody") {
     val s = """[ "Some json message text" ]"""
     val mt = MediaType.APPLICATION_JSON
     val bytes = s.getBytes("UTF-8")
     val bais = new ByteArrayInputStream(bytes)
-    val body = new CopiedByteBufferResponseBody
-
-    body.receiveData(mt, bais)
+    val body = new ByteBufferResponseBody(mt, bais)
 
     body.contentType should be(mt)
     body.asBytes should be(bytes)
@@ -56,20 +54,5 @@ class ResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentType should be(mt)
     body.asBytes should be(bytes)
     body.toString should be(s)
-  }
-
-
-  test("CopyStreamResponseBody") {
-    val s = """So shaken as we are, so wan with care!"""
-    val baos = new ByteArrayOutputStream
-    val inputStream = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
-    val mt = MediaType.TEXT_PLAIN
-    val body = new CopyStreamResponseBody(baos)
-
-    body.receiveData(mt, inputStream)
-
-    body.contentType should be(mt)
-    val result = new String(baos.toByteArray, HttpClient.UTF8)
-    result should be (s)
   }
 }

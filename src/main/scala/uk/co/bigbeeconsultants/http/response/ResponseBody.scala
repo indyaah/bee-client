@@ -27,18 +27,13 @@ package uk.co.bigbeeconsultants.http.response
 import java.nio.charset.Charset
 import uk.co.bigbeeconsultants.http.header.MediaType
 import uk.co.bigbeeconsultants.http.HttpClient
-import java.io.InputStream
+import java.nio.ByteBuffer
 
 /**
  * Defines the outline of a response body. This may or may not be buffered in memory or streamed directly
  * to where it is needed, depending on the implementation.
  */
 trait ResponseBody {
-  /**
-   * Implementors may provide the means via this method for the response data to be consumed.
-   */
-  def receiveData(contentType: MediaType, inputStream: InputStream) {}
-
   /**
    * Gets the content type and encoding of the response.
    */

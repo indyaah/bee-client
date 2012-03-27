@@ -22,34 +22,28 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.http.response
+package uk.co.bigbeeconsultants.http.header
 
-import uk.co.bigbeeconsultants.http.header.Headers
-import uk.co.bigbeeconsultants.http.request.Request
-import uk.co.bigbeeconsultants.http.header.MediaType
-import java.io.InputStream
+import uk.co.bigbeeconsultants.http.header.HeaderName._
+import org.scalatest.FunSuite
 
-/**
- * Represents a HTTP response. This is essentially immutable, although the implementation of
- * the response body may vary.
- */
-case class Response(request: Request, status: Status, body: ResponseBody, headers: Headers)
+class HeadersTest extends FunSuite {
 
-
-trait ResponseFactory {
-  def captureResponse(request: Request, status: Status, mediaType: MediaType, headers: Headers, stream: InputStream)
-
-  def response: Option[Response] = None
-}
-
-
-private[http] class BufferedResponseFactory extends ResponseFactory {
-  private var _response: Response = _
-
-  def captureResponse(request: Request, status: Status, mediaType: MediaType, headers: Headers, stream: InputStream) {
-    val body = new ByteBufferResponseBody(mediaType, stream)
-    _response = new Response (request, status, body, headers)
+  test ("names") {
+    val n = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar"))
+    expect (List (HOST.name, ACCEPT.name, ACCEPT.name))(n.names)
   }
 
-  override def response = Some (_response)
+  test ("find") {
+    val n = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar"))
+    expect (List (HOST -> "localhost"))(n.find (HOST.name))
+    expect (List (ACCEPT -> "foo", ACCEPT -> "bar"))(n.find (ACCEPT.name))
+  }
+
+  test ("get") {
+    val n = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar"))
+    expect (HOST -> "localhost")(n.get (HOST.name))
+    expect (ACCEPT -> "foo")(n.get (ACCEPT.name))
+  }
+
 }

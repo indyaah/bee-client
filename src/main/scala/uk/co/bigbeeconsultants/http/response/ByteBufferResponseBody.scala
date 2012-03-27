@@ -31,12 +31,16 @@ import java.io.InputStream
 import uk.co.bigbeeconsultants.http.{Util, HttpClient}
 
 /**
- * Provides a body implementation that holds a response in a ByteBuffer. This is also available
- * as a string without much performance penalty.
+ * Provides a body implementation that copies the whole response from the response input stream into a ByteBuffer.
+ * This is also available as a string without much performance penalty.
+ * <p>
+ * Take care because the memory footprint will be large when dealing with large volumes of response data.
  */
-final class ByteBufferResponseBody(val contentType: MediaType, byteData: ByteBuffer) extends ResponseBody {
+final class ByteBufferResponseBody(val contentType: MediaType, inputStream: InputStream) extends ResponseBody {
 
-  private var converted: String = null
+  private[this] val byteData: ByteBuffer = Util.copyToByteBufferAndClose (inputStream)
+
+  private[this] var converted: String = null
 
   private def convertToString = {
     val charset = contentType.charset.getOrElse (HttpClient.UTF8)
@@ -48,8 +52,7 @@ final class ByteBufferResponseBody(val contentType: MediaType, byteData: ByteBuf
   /**
    * Get the body of the response as an array of bytes.
    */
-  override def asBytes: Array[Byte] =
-    byteData.array ()
+  override def asBytes: Array[Byte] = byteData.array ()
 
   /**
    * Get the body of the response as a string.
@@ -61,36 +64,6 @@ final class ByteBufferResponseBody(val contentType: MediaType, byteData: ByteBuf
     }
     converted
   }
-
-  override def toString = asString
-}
-
-
-/**
- * Provides a body implementation that copies the whole response from the response input stream into a ByteBuffer.
- * This is also available as a string without much performance penalty.
- * <p>
- * Take care because the memory footprint will be large when dealing with large volumes of response data.
- */
-final class CopiedByteBufferResponseBody extends ResponseBody {
-  private[this] var cache: ByteBufferResponseBody = null
-
-  override def receiveData(contentType: MediaType, inputStream: InputStream) {
-    cache = new ByteBufferResponseBody (contentType, Util.copyToByteBufferAndClose (inputStream))
-  }
-
-  def contentType: MediaType = if (cache != null) cache.contentType else null
-
-  /**
-   * Get the body of the response as an array of bytes.
-   */
-  override def asBytes: Array[Byte] = if (cache != null) cache.asBytes else null
-
-  /**
-   * Get the body of the response as a string.
-   * This uses the character encoding of the contentType, or UTF-8 as a default.
-   */
-  override def asString: String = if (cache != null) cache.asString else null
 
   override def toString = asString
 }

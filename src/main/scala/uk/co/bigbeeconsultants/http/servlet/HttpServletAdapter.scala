@@ -28,7 +28,8 @@ import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import uk.co.bigbeeconsultants.http.request.{Request, RequestBody}
 import uk.co.bigbeeconsultants.http.header.{MediaType, Header, Headers}
 import java.io.InputStream
-import uk.co.bigbeeconsultants.http.response.{CopyStreamResponseBody, Status, ResponseFactory}
+import uk.co.bigbeeconsultants.http.response.{Status, ResponseFactory}
+import uk.co.bigbeeconsultants.http.Util
 
 /**
  * Adapts HTTP Servlet request objects to the Light Http Client API. This allows a variety of solutions such as
@@ -46,7 +47,7 @@ class HttpServletRequestAdapter(req: HttpServletRequest) {
 
   def requestBody: RequestBody = {
     val mediaType = MediaType (req.getContentType)
-    RequestBody(mediaType, req.getInputStream)
+    RequestBody (mediaType, req.getInputStream)
   }
 }
 
@@ -56,16 +57,33 @@ class HttpServletRequestAdapter(req: HttpServletRequest) {
  * reverse proxying to be implemented easily.
  */
 class HttpServletResponseAdapter(resp: HttpServletResponse) extends ResponseFactory {
+  private[this] var _request: Request = _
+  private[this] var _status: Status = _
+  private[this] var _mediaType: MediaType = _
+  private[this] var _headers: Headers = _
 
-  def captureResponse(request: Request, status: Status, mediaType: MediaType, headers: Headers, stream: InputStream) {
-    resp.setStatus(status.code, status.message)
+  def captureResponse(request: Request, status: Status, mediaType: MediaType, headers: Headers, inputStream: InputStream) {
+    _request = request
+    _status = status
+    _mediaType = mediaType
+    _headers = headers
+
+    resp.setStatus (status.code, status.message)
 
     for (header <- headers.list) {
       resp.setHeader (header.name, header.value)
     }
 
-    val body = new CopyStreamResponseBody (resp.getOutputStream)
-    body.receiveData (mediaType, stream)
-    stream.close()
+    Util.copyBytes (inputStream, resp.getOutputStream)
+    inputStream.close ()
+    resp.getOutputStream.close()
   }
+
+  def request = _request
+
+  def status = _status
+
+  def mediaType = _mediaType
+
+  def headers = _headers
 }

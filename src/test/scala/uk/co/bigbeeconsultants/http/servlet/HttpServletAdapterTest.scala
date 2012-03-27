@@ -25,12 +25,48 @@
 package uk.co.bigbeeconsultants.http.servlet
 
 import org.scalatest.FunSuite
+import uk.co.bigbeeconsultants.http.header.HeaderName._
+import uk.co.bigbeeconsultants.http.header.{MediaType, Headers}
+import uk.co.bigbeeconsultants.http.util.StubHttpServletRequest
+import java.{util => ju}
 
 class HttpServletAdapterTest extends FunSuite {
 
-  test("getRequestBody") {
-
+  private def putAll(headers: Headers, map: ju.HashMap[String, ju.List[String]]) {
+    for (h <- headers.list) {
+      var list = map.get(h.name)
+      if (list == null) {
+        list = new ju.ArrayList()
+        map.put(h.name, list)
+      }
+      list.add(h.value)
+    }
   }
+
+  test("getRequestBody") {
+    val headers = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT_LANGUAGE -> "en", CONTENT_TYPE -> "text/plain"))
+    val req = new StubHttpServletRequest
+    req.contentType = MediaType.TEXT_PLAIN.value
+    putAll(headers, req.headers)
+
+    val adapter = new HttpServletRequestAdapter (req)
+
+    expect(headers) (adapter.headers)
+    expect(MediaType.TEXT_PLAIN) (adapter.requestBody.mediaType)
+  }
+
+
+//  test("CopyStreamResponseBody") {
+//    val s = """So shaken as we are, so wan with care!"""
+//    val baos = new ByteArrayOutputStream
+//    val inputStream = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
+//    val mt = MediaType.TEXT_PLAIN
+//    val body = new CopyStreamResponseBody(baos, mt, inputStream)
+//
+//    body.contentType should be(mt)
+//    val result = new String(baos.toByteArray, HttpClient.UTF8)
+//    result should be (s)
+//  }
 
 
   test ("convertRequestHeaders") {

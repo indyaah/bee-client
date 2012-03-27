@@ -50,6 +50,8 @@ case class Header(name: String, value: String) {
 
 
 object Header {
+  def apply(tuple: (String, String)): Header = new Header(tuple._1, tuple._2)
+
   def apply(raw: String): Header = {
     val t = Util.divide (raw, ':')
     apply (t._1.trim, t._2.trim)
