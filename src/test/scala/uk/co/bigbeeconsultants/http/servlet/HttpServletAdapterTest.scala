@@ -22,16 +22,23 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http.servlet
 
-version := "0.3.0"
+import org.scalatest.FunSuite
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+class HttpServletAdapterTest extends FunSuite {
 
-// append -deprecation to the options passed to the Scala compiler
-scalacOptions += "-deprecation"
+  test("getRequestBody") {
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+  }
+
+
+  test ("convertRequestHeaders") {
+
+  }
+
+
+  test("copyResponse") {
+
+  }
+}

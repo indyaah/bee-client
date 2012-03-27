@@ -26,7 +26,7 @@ package uk.co.bigbeeconsultants.http
 
 import header.{HeaderName, MediaType}
 import java.lang.AssertionError
-import request.{Config, Body}
+import request.{Config, RequestBody}
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import java.net.{ConnectException, Proxy, URL}
 
@@ -36,7 +36,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   private val testScriptUrl = serverUrl + "test-lighthttpclient.php"
   private val testImageUrl = serverUrl + "B.png"
   private val testPhotoUrl = serverUrl + "plataria-sunset.jpg"
-  private val jsonBody = Body (MediaType.APPLICATION_JSON, """{ "x": 1, "y": true }""")
+  private val jsonBody = RequestBody (MediaType.APPLICATION_JSON, """{ "x": 1, "y": true }""")
 //  private val proxyAddress = new InetSocketAddress("localhost", 8888);
 //  private val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
   private val proxy = Proxy.NO_PROXY

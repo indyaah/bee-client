@@ -26,7 +26,7 @@ package uk.co.bigbeeconsultants.http
 
 import header.{CookieJar, HeaderName, Headers, Header, MediaType}
 import response._
-import request.{Config, RequestException, Body, Request}
+import request.{Config, RequestException, RequestBody, Request}
 import java.io._
 import java.net.{URLConnection, URL, Proxy, HttpURLConnection}
 import collection.mutable.ListBuffer
@@ -39,7 +39,6 @@ import java.util.zip.GZIPInputStream
  */
 class HttpClient(val config: Config = Config (),
                  val commonRequestHeaders: Headers = HttpClient.defaultRequestHeaders,
-                 val responseBodyFactory: BodyFactory = HttpClient.defaultResponseBodyFactory,
                  val proxy: Proxy = Proxy.NO_PROXY) {
 
   /**
@@ -69,25 +68,25 @@ class HttpClient(val config: Config = Config (),
   /**
    * Make an OPTIONS request.
    */
-  def options(url: URL, body: Option[Body], requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
+  def options(url: URL, body: Option[RequestBody], requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
     execute (Request.options (url, body), requestHeaders, jar)
 
   /**
    * Make a POST request.
    */
-  def post(url: URL, body: Body, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
+  def post(url: URL, body: RequestBody, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
     execute (Request.post (url, body), requestHeaders, jar)
 
   /**
    * Make a PUT request.
    */
-  def put(url: URL, body: Body, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
+  def put(url: URL, body: RequestBody, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
     execute (Request.put (url, body), requestHeaders, jar)
 
   /**
    * Make an arbitrary request.
    */
-  private def execute(request: Request, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
+  def execute(request: Request, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
     val httpURLConnection = openConnection (request)
     httpURLConnection.setAllowUserInteraction (false)
     httpURLConnection.setConnectTimeout (config.connectTimeout)
@@ -171,12 +170,12 @@ class HttpClient(val config: Config = Config (),
     val responseHeaders = processResponseHeaders (httpURLConnection)
     val contEnc = responseHeaders.find (CONTENT_ENCODING)
     val mediaType = MediaType (httpURLConnection.getContentType)
-    val body = responseBodyFactory.newBody (mediaType)
+    val body = request.responseBodyFactory.newBody (mediaType)
 
     if (request.method == Request.HEAD || status.category == 1 ||
       status.code == Status.S2_NO_CONTENT || status.code == Status.S3_NOT_MODIFIED) {
       val iStream = selectStream (httpURLConnection)
-      //      Response (request, status, new EmptyBody (mediaType), responseHeaders)
+      //      Response (request, status, new EmptyResponseBody (mediaType), responseHeaders)
       body.receiveData (mediaType, iStream)
       Response (request, status, body, responseHeaders)
 
@@ -248,12 +247,6 @@ object HttpClient {
     //    Header (CONNECTION, "Close"),
     Header (ACCEPT_CHARSET, UTF8)
   ))
-
-  /**
-   * Provides the 'standard' way to capture response bodies in buffers that
-   * are easily converted to strings.
-   */
-  val defaultResponseBodyFactory = new BufferedBodyFactory
 
   /**
    * Closes all the keep-alive connections still pending.

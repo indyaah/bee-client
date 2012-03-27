@@ -24,31 +24,31 @@
 
 package uk.co.bigbeeconsultants.http.request
 
-import java.io.{OutputStreamWriter, OutputStream}
 import java.net.URLEncoder
 import uk.co.bigbeeconsultants.http._
 import header.MediaType
+import java.io.{InputStream, OutputStreamWriter, OutputStream}
 
 /**
  * Carries body data on a request. The body data is supplied by a closure using the
- * HTTP output stream as its parameter, allowing data to be streamed from an arbitrary
+ * target HTTP output stream as its parameter, allowing data to be streamed from an arbitrary
  * source in order to minimise memory footprint, if required.
  * <p>
  * The companion object provides apply methods for common sources of body data.
  */
-final class Body(val mediaType: MediaType, val copyTo: OutputStream => Unit)
+final class RequestBody(val mediaType: MediaType, val copyTo: OutputStream => Unit)
 
 
 /**
  * Factory for request bodies.
  */
-object Body {
+object RequestBody {
 
   /**
    * Factory for request bodies sourced from strings.
    */
-  def apply(mediaType: MediaType, string: String): Body = {
-    new Body (mediaType, (outputStream) => {
+  def apply(mediaType: MediaType, string: String): RequestBody = {
+    new RequestBody (mediaType, (outputStream) => {
       val encoding = mediaType.charsetOrElse (HttpClient.UTF8)
       outputStream.write (string.getBytes (encoding))
     })
@@ -57,8 +57,8 @@ object Body {
   /**
    * Factory for request bodies sourced from key-value pairs, typical for POST requests.
    */
-  def apply(mediaType: MediaType = MediaType.APPLICATION_FORM_URLENCODED, data: Map[String, String]): Body = {
-    new Body (mediaType, (outputStream) => {
+  def apply(mediaType: MediaType = MediaType.APPLICATION_FORM_URLENCODED, data: Map[String, String]): RequestBody = {
+    new RequestBody (mediaType, (outputStream) => {
       val encoding = mediaType.charsetOrElse (HttpClient.UTF8)
       val w = new OutputStreamWriter (outputStream, encoding)
       var first = true
@@ -74,7 +74,17 @@ object Body {
   }
 
   /**
+   * Factory for request bodies sourced from input streams. This copies the content from the input stream,
+   * which it leaves unclosed.
+   */
+  def apply(mediaType: MediaType, inputStream: InputStream): RequestBody = {
+    new RequestBody (mediaType, (outputStream) => {
+      Util.copyBytes(inputStream, outputStream)
+    })
+  }
+
+  /**
    * Factory for empty request bodies. An empty body differs from no body at all because it has a media type.
    */
-  def apply(mediaType: MediaType): Body = new Body (mediaType, (outputStream) => {})
+  def apply(mediaType: MediaType): RequestBody = new RequestBody (mediaType, (outputStream) => {})
 }

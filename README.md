@@ -31,6 +31,8 @@ making HTTP requests. It has the following features:
 
 *   Tested against a range of servers.
 
+*   The number of external dependencies is minimised (currently: jcsp, slf4j, slf4s).
+
 It is written in Scala but may be called (a lot less easily) from Java also.
 
 Future Plans
@@ -52,3 +54,8 @@ for future versions.
 *   Proxy support enhanced to support conditional switching.
 
 *   Tested against a very wide range of servers.
+
+Footnotes
+---------
+
+* Versions are numbered using the [SemVer](http://semver.org/) pattern.

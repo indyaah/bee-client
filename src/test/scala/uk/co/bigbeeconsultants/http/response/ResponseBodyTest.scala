@@ -1,5 +1,3 @@
-package uk.co.bigbeeconsultants.http.request
-
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -24,21 +22,54 @@ package uk.co.bigbeeconsultants.http.request
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-import java.net.URL
+package uk.co.bigbeeconsultants.http.response
+
 import uk.co.bigbeeconsultants.http.header.MediaType
-import uk.co.bigbeeconsultants.http.response.Status
 import org.scalatest.FunSuite
+import org.scalatest.matchers.ShouldMatchers
+import uk.co.bigbeeconsultants.http.HttpClient
+import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
 
-class RequestExceptionTest extends FunSuite {
+class ResponseBodyTest extends FunSuite with ShouldMatchers {
 
-  val url1 = new URL ("http://localhost/")
-
-  test ("requestExceptionGetMessage") {
+  test("CopiedByteBufferResponseBody") {
+    val s = """[ "Some json message text" ]"""
     val mt = MediaType.APPLICATION_JSON
-    val b = RequestBody (mt, "[1, 2, 3]")
-    val r = Request.put (url1, b)
-    val s = Status (400, "Bad request")
-    val re = new RequestException (r, s, None, None)
-    expect ("PUT http://localhost/\n  400 Bad request")(re.getMessage)
+    val bytes = s.getBytes("UTF-8")
+    val bais = new ByteArrayInputStream(bytes)
+    val body = new CopiedByteBufferResponseBody
+
+    body.receiveData(mt, bais)
+
+    body.contentType should be(mt)
+    body.asBytes should be(bytes)
+    body.toString should be(s)
+  }
+
+
+  test("StringResponseBody") {
+    val s = """[ "Some json message text" ]"""
+    val bytes = s.getBytes(HttpClient.UTF8)
+    val mt = MediaType.APPLICATION_JSON
+    val body = new StringResponseBody(mt, s)
+
+    body.contentType should be(mt)
+    body.asBytes should be(bytes)
+    body.toString should be(s)
+  }
+
+
+  test("CopyStreamResponseBody") {
+    val s = """So shaken as we are, so wan with care!"""
+    val baos = new ByteArrayOutputStream
+    val inputStream = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
+    val mt = MediaType.TEXT_PLAIN
+    val body = new CopyStreamResponseBody(baos)
+
+    body.receiveData(mt, inputStream)
+
+    body.contentType should be(mt)
+    val result = new String(baos.toByteArray, HttpClient.UTF8)
+    result should be (s)
   }
 }

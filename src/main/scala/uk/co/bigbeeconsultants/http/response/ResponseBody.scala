@@ -24,18 +24,16 @@
 
 package uk.co.bigbeeconsultants.http.response
 
-import java.io.InputStream
-import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import uk.co.bigbeeconsultants.http.header.MediaType
 import uk.co.bigbeeconsultants.http.HttpClient
-import uk.co.bigbeeconsultants.http.Util
+import java.io.InputStream
 
 /**
  * Defines the outline of a response body. This may or may not be buffered in memory or streamed directly
  * to where it is needed, depending on the implementation.
  */
-trait Body {
+trait ResponseBody {
   /**
    * Implementors may provide the means via this method for the response data to be consumed.
    */
@@ -63,51 +61,15 @@ trait Body {
 /**
  * Provides an empty Body implementation.
  */
-final class EmptyBody(val contentType: MediaType) extends Body {
+final class EmptyResponseBody(val contentType: MediaType) extends ResponseBody {
   override def toString = asString
 }
 
 
 /**
- * Provides a Body implementation that holds a response in a ByteBuffer. This is also available
- * as a string without much performance penalty.
+ * Provides a body implementation based simply on a string.
  */
-final class ByteBufferBody(val contentType: MediaType, byteData: ByteBuffer) extends Body {
-
-  private var converted: String = null
-
-  private def convertToString = {
-    val charset = contentType.charset.getOrElse (HttpClient.UTF8)
-    val string = Charset.forName (charset).decode (byteData).toString
-    byteData.rewind
-    string
-  }
-
-  /**
-   * Get the body of the response as an array of bytes.
-   */
-  override def asBytes: Array[Byte] =
-    byteData.array ()
-
-  /**
-   * Get the body of the response as a string.
-   * This uses the character encoding of the contentType, or UTF-8 as a default.
-   */
-  override def asString: String = {
-    if (converted == null) {
-      converted = convertToString
-    }
-    converted
-  }
-
-  override def toString = asString
-}
-
-
-/**
- * Provides a Body implementation based simply on a string.
- */
-final class StringBody(val contentType: MediaType, bodyText: String) extends Body {
+final class StringResponseBody(val contentType: MediaType, bodyText: String) extends ResponseBody {
 
   /**
    * Converts the body of the response into an array of bytes.
@@ -125,36 +87,6 @@ final class StringBody(val contentType: MediaType, bodyText: String) extends Bod
    * Get the body of the response as a string.
    */
   override def asString: String = bodyText
-
-  override def toString = asString
-}
-
-
-/**
- * Provides a Body implementation that copies the whole response from an input stream into a ByteBuffer. This is
- * also available as a string without much performance penalty.
- * <p>
- * Take care because the memory footprint will be large when dealing with large volumes of response data.
- */
-final class InputStreamBufferBody extends Body {
-  private var cache: ByteBufferBody = null
-
-  override def receiveData(contentType: MediaType, inputStream: InputStream) {
-    cache = new ByteBufferBody (contentType, Util.copyToByteBufferAndClose (inputStream))
-  }
-
-  def contentType: MediaType = if (cache != null) cache.contentType else null
-
-  /**
-   * Get the body of the response as an array of bytes.
-   */
-  override def asBytes: Array[Byte] = if (cache != null) cache.asBytes else null
-
-  /**
-   * Get the body of the response as a string.
-   * This uses the character encoding of the contentType, or UTF-8 as a default.
-   */
-  override def asString: String = if (cache != null) cache.asString else null
 
   override def toString = asString
 }

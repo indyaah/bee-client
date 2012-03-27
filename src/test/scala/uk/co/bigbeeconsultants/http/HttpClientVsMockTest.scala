@@ -30,8 +30,8 @@ import MediaType._
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import java.net.{HttpURLConnection, Proxy, URL}
 import org.mockito.Mockito._
-import request.{Body, Request, Config}
-import response.{Status, BodyFactory}
+import request.{RequestBody, Request, Config}
+import response.Status
 import collection.immutable.ListMap
 import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
 
@@ -86,9 +86,8 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
 
   private def newHttpClient(config: Config = Config (),
                             commonRequestHeaders: Headers = HttpClient.defaultRequestHeaders,
-                            responseBodyFactory: BodyFactory = HttpClient.defaultResponseBodyFactory,
                             proxy: Proxy = Proxy.NO_PROXY) = {
-    new HttpClient (config, commonRequestHeaders, responseBodyFactory, proxy) {
+    new HttpClient (config, commonRequestHeaders, proxy) {
       override def openConnection(request: Request) = httpURLConnection
     }
   }
@@ -144,9 +143,9 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
 
     val headers = Headers (List (ACCEPT_LANGUAGE -> "en"))
     val response = method match {
-      case "POST" => http.post (url, Body(TEXT_PLAIN, Map("foo" -> "bar", "a" -> "z")), headers)
-      case "PUT" => http.put (url, Body(TEXT_PLAIN, "hello world"), headers)
-      case "OPTIONS" => http.options (url, Some(Body(TEXT_PLAIN, "hello world")), headers)    }
+      case "POST" => http.post (url, RequestBody(TEXT_PLAIN, Map("foo" -> "bar", "a" -> "z")), headers)
+      case "PUT" => http.put (url, RequestBody(TEXT_PLAIN, "hello world"), headers)
+      case "OPTIONS" => http.options (url, Some(RequestBody(TEXT_PLAIN, "hello world")), headers)    }
 
     verifyConfig(Config())
     verifyRequestSettings (method, List(HOST -> "server", ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8", ACCEPT_LANGUAGE -> "en", CONTENT_TYPE -> "text/plain"))

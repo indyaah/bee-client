@@ -25,12 +25,16 @@
 package uk.co.bigbeeconsultants.http.request
 
 import java.net.URL
+import uk.co.bigbeeconsultants.http.response.{ByteBufferResponseBodyFactory, ResponseBodyFactory}
 
 /**
  * Represents the requirements for an HTTP request. Immutable.
  * Normally, this class will not be instantiated directly but via the Request object methods.
  */
-final case class Request(method: String, url: URL, body: Option[Body] = None)
+final case class Request(method: String,
+                         url: URL,
+                         body: Option[RequestBody] = None,
+                         responseBodyFactory: ResponseBodyFactory = ByteBufferResponseBodyFactory)
 
 /**
  * Provides factory methods for creating request objects of various types. These include
@@ -59,10 +63,10 @@ object Request {
   def trace(url: URL): Request = Request (TRACE, url, None)
 
   // method with an optional entity body
-  def options(url: URL, body: Option[Body] = None): Request = Request (OPTIONS, url, body)
+  def options(url: URL, body: Option[RequestBody] = None): Request = Request (OPTIONS, url, body)
 
   // methods requiring an entity body
-  def post(url: URL, body: Body): Request = Request (POST, url, Some (body))
+  def post(url: URL, body: RequestBody): Request = Request (POST, url, Some (body))
 
-  def put(url: URL, body: Body): Request = Request (PUT, url, Some (body))
+  def put(url: URL, body: RequestBody): Request = Request (PUT, url, Some (body))
 }

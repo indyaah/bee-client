@@ -1,5 +1,3 @@
-package uk.co.bigbeeconsultants.http.request
-
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -24,36 +22,37 @@ package uk.co.bigbeeconsultants.http.request
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-import java.net.URL
-import java.io.ByteArrayOutputStream
-import collection.immutable.ListMap
-import uk.co.bigbeeconsultants.http.header.MediaType
-import uk.co.bigbeeconsultants.http.HttpClient
-import org.scalatest.FunSuite
+package uk.co.bigbeeconsultants.http.servlet
 
-class BodyTest extends FunSuite {
+import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
+import uk.co.bigbeeconsultants.http.request.RequestBody
+import uk.co.bigbeeconsultants.http.header.{Header, Headers}
+import uk.co.bigbeeconsultants.http.response.Response
 
-  val url1 = new URL ("http://localhost/")
+/**
+ * Adapts HTTP Servlet request and response objects to the Light Http Client API. This allows a variety of
+ * solutions such as proxying to be implemented easily.
+ */
+class HttpServletAdapter {
 
-
-  test ("bodyWithString") {
-    val mt = MediaType.APPLICATION_JSON
-    val b = Body (mt, "[1, 2, 3]")
-    expect (mt)(b.mediaType)
-    val baos = new ByteArrayOutputStream
-    b.copyTo (baos)
-    val result = baos.toString (HttpClient.UTF8)
-    expect ("[1, 2, 3]")(result)
+  def getRequestBody(req: HttpServletRequest): RequestBody = {
+//    request.RequestBody()
+//    req.getInputStream
+    null
   }
 
+  def convertRequestHeaders(req: HttpServletRequest): Headers = {
+    import scala.collection.JavaConversions.enumerationAsScalaIterator
+    new Headers(enumerationAsScalaIterator(req.getHeaderNames).map {
+      headerName: Any =>
+        new Header(headerName.toString, req.getHeader(headerName.toString))
+    }.toList)
+  }
 
-  test ("bodyWithKeyValPairs") {
-    val mt = MediaType.APPLICATION_JSON
-    val b = Body (mt, ListMap ("a" -> "1", "b" -> "2", "c" -> "3"))
-    expect (mt)(b.mediaType)
-    val baos = new ByteArrayOutputStream
-    b.copyTo (baos)
-    val result = baos.toString (HttpClient.UTF8)
-    expect ("a=1&b=2&c=3")(result)
+  def copyResponse(response: Response, resp: HttpServletResponse) = {
+    for (header <- response.headers.list) {
+      resp.setHeader(header.name, header.value)
+    }
+    response.body.asBytes
   }
 }

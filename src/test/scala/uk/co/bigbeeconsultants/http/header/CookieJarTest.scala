@@ -26,7 +26,7 @@ package uk.co.bigbeeconsultants.http.header
 
 import java.net.URL
 import uk.co.bigbeeconsultants.http.request.Request
-import uk.co.bigbeeconsultants.http.response.{Status, Response, StringBody}
+import uk.co.bigbeeconsultants.http.response.{Status, Response, StringResponseBody}
 import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 import org.scalatest.FunSuite
 
@@ -36,7 +36,7 @@ class CookieJarTest extends FunSuite {
   val httpUrl1 = Request.get (new URL ("http://www.w3.org/standards/webdesign/htmlcss"))
   val httpUrl2 = Request.get (new URL ("http://www.bbc.co.uk/radio/stations/radio1"))
   val httpsUrl1 = Request.get (new URL ("https://www.w3.org/login/"))
-  val body = new StringBody (MediaType.TEXT_PLAIN, "")
+  val body = new StringResponseBody (MediaType.TEXT_PLAIN, "")
   val ok = Status (200, "OK")
 
   test ("noCookies") {

@@ -30,15 +30,6 @@ import uk.co.bigbeeconsultants.http.header.MediaType
  * Defines the factory method used for pluggable creation of response bodies. The content type is
  * available when the decision is made about what instance is required.
  */
-trait BodyFactory {
-  def newBody(contentType: MediaType): Body
-}
-
-
-/**
- * Provides a simple imeplementation of BodyFactory that creates new BufferedBody
- * instances for all media types.
- */
-final class BufferedBodyFactory extends BodyFactory {
-  def newBody(contentType: MediaType) = new InputStreamBufferBody
+trait ResponseBodyFactory {
+  def newBody(contentType: MediaType): ResponseBody
 }

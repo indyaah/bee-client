@@ -22,16 +22,36 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http.response
 
-version := "0.3.0"
+import uk.co.bigbeeconsultants.http.header.MediaType
+import uk.co.bigbeeconsultants.http.Util
+import java.io.{OutputStream, InputStream}
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+/**
+ * Provides a body implementation that copies the whole response from the response input stream into an output
+ * stream. The data is not buffered more than necessary to copy it.
+ */
+final class CopyStreamResponseBody(outputStream: OutputStream) extends ResponseBody {
+  private var _contentType: MediaType = _
 
-// append -deprecation to the options passed to the Scala compiler
-scalacOptions += "-deprecation"
+  override def receiveData(contentType: MediaType, inputStream: InputStream) {
+    _contentType = contentType
+    Util.copyBytes(inputStream, outputStream)
+    inputStream.close ()
+  }
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+  def contentType: MediaType = _contentType
+}
+
+
+/**
+ * Provides an implementation of ResponseBodyFactory that creates new CopyStreamResponseBody
+ * instances for all media types, using the output stream provided in the constructor.
+ * This might be used, for example, in copying the response back to to an HttpServletResponse.
+ * Typically, this will need a new factory instance for every response output stream, which will be
+ * used once only and discarded.
+ */
+class CopyStreamResponseBodyFactory(outputStream: OutputStream) extends ResponseBodyFactory {
+  def newBody(contentType: MediaType) = new CopyStreamResponseBody(outputStream)
+}

@@ -1,5 +1,3 @@
-package uk.co.bigbeeconsultants.http.response
-
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -24,34 +22,51 @@ package uk.co.bigbeeconsultants.http.response
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-import java.io.ByteArrayInputStream
+package uk.co.bigbeeconsultants.http.request
+
+import java.net.URL
+import collection.immutable.ListMap
 import uk.co.bigbeeconsultants.http.header.MediaType
+import uk.co.bigbeeconsultants.http.HttpClient
 import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
-class BodyTest extends FunSuite with ShouldMatchers {
+class RequestBodyTest extends FunSuite {
 
-  test ("InputStreamBufferBody") {
-    val s = """[ "Some json message text" ]"""
-    val bytes = s.getBytes ("UTF-8")
-    val bais = new ByteArrayInputStream (bytes)
-    val body = new InputStreamBufferBody
-    body.receiveData (MediaType.APPLICATION_JSON, bais)
+  val url1 = new URL ("http://localhost/")
 
-    body.contentType should be (MediaType.APPLICATION_JSON)
-    body.asBytes should be (bytes)
-    body.toString should be (s)
+
+  test ("body with string") {
+    val mt = MediaType.APPLICATION_JSON
+    val b = RequestBody (mt, "[1, 2, 3]")
+    expect (mt)(b.mediaType)
+    val baos = new ByteArrayOutputStream
+    b.copyTo (baos)
+    val result = baos.toString (HttpClient.UTF8)
+    expect ("[1, 2, 3]")(result)
   }
 
 
+  test ("body with input stream") {
+    val s = "So shaken as we are, so wan with care!"
+    val inputStream = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
+    val mt = MediaType.TEXT_PLAIN
+    val b = RequestBody (mt, inputStream)
+    expect (mt)(b.mediaType)
+    val baos = new ByteArrayOutputStream
+    b.copyTo (baos)
+    val result = baos.toString (HttpClient.UTF8)
+    expect (s)(result)
+  }
 
-  test ("StringBody") {
-    val s = """[ "Some json message text" ]"""
-    val bytes = s.getBytes ("UTF-8")
-    val body = new StringBody (MediaType.APPLICATION_JSON, s)
 
-    body.contentType should be (MediaType.APPLICATION_JSON)
-    body.asBytes should be (bytes)
-    body.toString should be (s)
+  test ("body with keyVal p airs") {
+    val mt = MediaType.APPLICATION_JSON
+    val b = RequestBody (mt, ListMap ("a" -> "1", "b" -> "2", "c" -> "3"))
+    expect (mt)(b.mediaType)
+    val baos = new ByteArrayOutputStream
+    b.copyTo (baos)
+    val result = baos.toString (HttpClient.UTF8)
+    expect ("a=1&b=2&c=3")(result)
   }
 }

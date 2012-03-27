@@ -31,4 +31,4 @@ import uk.co.bigbeeconsultants.http.request.Request
  * Represents a HTTP response. This is essentially immutable, although the implementation of
  * the response body may vary.
  */
-case class Response(request: Request, status: Status, body: Body, headers: Headers)
+case class Response(request: Request, status: Status, body: ResponseBody, headers: Headers)
