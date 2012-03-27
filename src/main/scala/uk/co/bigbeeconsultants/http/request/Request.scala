@@ -25,7 +25,6 @@
 package uk.co.bigbeeconsultants.http.request
 
 import java.net.URL
-import uk.co.bigbeeconsultants.http.response.{ByteBufferResponseBodyFactory, ResponseBodyFactory}
 
 /**
  * Represents the requirements for an HTTP request. Immutable.
@@ -33,8 +32,7 @@ import uk.co.bigbeeconsultants.http.response.{ByteBufferResponseBodyFactory, Res
  */
 final case class Request(method: String,
                          url: URL,
-                         body: Option[RequestBody] = None,
-                         responseBodyFactory: ResponseBodyFactory = ByteBufferResponseBodyFactory)
+                         body: Option[RequestBody] = None)
 
 /**
  * Provides factory methods for creating request objects of various types. These include

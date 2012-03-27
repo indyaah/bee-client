@@ -44,49 +44,70 @@ class HttpClient(val config: Config = Config (),
   /**
    * Make a HEAD request.
    */
-  def head(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
-    execute (Request.head (url), requestHeaders, jar)
+  def head(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
+    val responseFactory = new BufferedResponseFactory
+    execute (Request.head (url), requestHeaders, jar, responseFactory)
+    responseFactory.response.get
+  }
 
   /**
    * Make a TRACE request.
    */
-  def trace(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
-    execute (Request.trace (url), requestHeaders, jar)
+  def trace(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
+    val responseFactory = new BufferedResponseFactory
+    execute (Request.trace (url), requestHeaders, jar, responseFactory)
+    responseFactory.response.get
+  }
 
   /**
    * Make a GET request.
    */
-  def get(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
-    execute (Request.get (url), requestHeaders, jar)
+  def get(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
+    val responseFactory = new BufferedResponseFactory
+    execute (Request.get (url), requestHeaders, jar, responseFactory)
+    responseFactory.response.get
+  }
 
   /**
    * Make a DELETE request.
    */
-  def delete(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
-    execute (Request.delete (url), requestHeaders, jar)
+  def delete(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
+    val responseFactory = new BufferedResponseFactory
+    execute (Request.delete (url), requestHeaders, jar, responseFactory)
+    responseFactory.response.get
+  }
 
   /**
    * Make an OPTIONS request.
    */
-  def options(url: URL, body: Option[RequestBody], requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
-    execute (Request.options (url, body), requestHeaders, jar)
+  def options(url: URL, body: Option[RequestBody], requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
+    val responseFactory = new BufferedResponseFactory
+    execute (Request.options (url, body), requestHeaders, jar, responseFactory)
+    responseFactory.response.get
+  }
 
   /**
    * Make a POST request.
    */
-  def post(url: URL, body: RequestBody, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
-    execute (Request.post (url, body), requestHeaders, jar)
+  def post(url: URL, body: RequestBody, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
+    val responseFactory = new BufferedResponseFactory
+    execute (Request.post (url, body), requestHeaders, jar, responseFactory)
+    responseFactory.response.get
+  }
 
   /**
    * Make a PUT request.
    */
-  def put(url: URL, body: RequestBody, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty) =
-    execute (Request.put (url, body), requestHeaders, jar)
+  def put(url: URL, body: RequestBody, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
+    val responseFactory = new BufferedResponseFactory
+    execute (Request.put (url, body), requestHeaders, jar, responseFactory)
+    responseFactory.response.get
+  }
 
   /**
    * Make an arbitrary request.
    */
-  def execute(request: Request, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
+  def execute(request: Request, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty, responseFactory: ResponseFactory) {
     val httpURLConnection = openConnection (request)
     httpURLConnection.setAllowUserInteraction (false)
     httpURLConnection.setConnectTimeout (config.connectTimeout)
@@ -102,11 +123,10 @@ class HttpClient(val config: Config = Config (),
       copyRequestBodyToOutputStream (request, httpURLConnection)
 
       val status = Status (httpURLConnection.getResponseCode, httpURLConnection.getResponseMessage)
-      val result = getContent (status, request, httpURLConnection)
+      handleContent (status, request, responseFactory, httpURLConnection)
       if (httpURLConnection.getResponseCode >= 400) {
-        throw new RequestException (request, status, Some (result), None)
+        throw new RequestException (request, status, responseFactory.response, None)
       }
-      result
 
     } catch {
       case ioe: IOException =>
@@ -166,23 +186,20 @@ class HttpClient(val config: Config = Config (),
     }
   }
 
-  private def getContent(status: Status, request: Request, httpURLConnection: HttpURLConnection): Response = {
+  private def handleContent(status: Status, request: Request, responseFactory: ResponseFactory, httpURLConnection: HttpURLConnection) {
     val responseHeaders = processResponseHeaders (httpURLConnection)
     val contEnc = responseHeaders.find (CONTENT_ENCODING)
     val mediaType = MediaType (httpURLConnection.getContentType)
-    val body = request.responseBodyFactory.newBody (mediaType)
 
     if (request.method == Request.HEAD || status.category == 1 ||
       status.code == Status.S2_NO_CONTENT || status.code == Status.S3_NOT_MODIFIED) {
       val iStream = selectStream (httpURLConnection)
       //      Response (request, status, new EmptyResponseBody (mediaType), responseHeaders)
-      body.receiveData (mediaType, iStream)
-      Response (request, status, body, responseHeaders)
+      responseFactory.captureResponse(request, status, mediaType, responseHeaders, iStream)
 
     } else {
       val stream = getBodyStream (contEnc, httpURLConnection)
-      body.receiveData (mediaType, stream)
-      Response (request, status, body, responseHeaders)
+      responseFactory.captureResponse(request, status, mediaType, responseHeaders, stream)
     }
   }
 

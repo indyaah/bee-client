@@ -24,9 +24,10 @@
 
 package uk.co.bigbeeconsultants.http.response
 
-import uk.co.bigbeeconsultants.http.header.MediaType
 import uk.co.bigbeeconsultants.http.Util
 import java.io.{OutputStream, InputStream}
+import uk.co.bigbeeconsultants.http.request.Request
+import uk.co.bigbeeconsultants.http.header.{Headers, MediaType}
 
 /**
  * Provides a body implementation that copies the whole response from the response input stream into an output
@@ -46,12 +47,20 @@ final class CopyStreamResponseBody(outputStream: OutputStream) extends ResponseB
 
 
 /**
- * Provides an implementation of ResponseBodyFactory that creates new CopyStreamResponseBody
+ * Provides an implementation of ResponseFactory that creates new CopyStreamResponseBody
  * instances for all media types, using the output stream provided in the constructor.
  * This might be used, for example, in copying the response back to to an HttpServletResponse.
- * Typically, this will need a new factory instance for every response output stream, which will be
+ * Typically, this will need a new factory instance for every response output stream that will be
  * used once only and discarded.
  */
-class CopyStreamResponseBodyFactory(outputStream: OutputStream) extends ResponseBodyFactory {
-  def newBody(contentType: MediaType) = new CopyStreamResponseBody(outputStream)
+class CopyStreamResponseFactory(outputStream: OutputStream) extends ResponseFactory {
+  private var _response: Response = _
+
+  def captureResponse(request: Request, status: Status, mediaType: MediaType, headers: Headers, stream: InputStream) {
+    val body = new CopyStreamResponseBody(outputStream)
+    body.receiveData(mediaType, stream)
+    _response = new Response(request, status, body, headers)
+  }
+
+  override def response = Some(_response)
 }

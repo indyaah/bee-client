@@ -94,12 +94,3 @@ final class CopiedByteBufferResponseBody extends ResponseBody {
 
   override def toString = asString
 }
-
-
-/**
- * Provides an implementation of ResponseBodyFactory that creates new CopiedByteBufferResponseBody
- * instances for all media types.
- */
-object ByteBufferResponseBodyFactory extends ResponseBodyFactory {
-  def newBody(contentType: MediaType) = new CopiedByteBufferResponseBody
-}
