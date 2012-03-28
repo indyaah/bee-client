@@ -104,4 +104,23 @@ class SplitURLTest extends FunSuite {
     expect(None)(surl.query)
     expect(s)(surl.toString)
   }
+
+  test("convertToURL implicit converter") {
+    val url = new URL("http://www.w3.org/")
+    val surl = SplitURL(url)
+    val url2: URL = surl
+    expect(url)(url2)
+  }
+
+  test("convertFromURL implicit converter") {
+    val url = new URL("http://www.w3.org/")
+    val surl: SplitURL = url
+    expect(url)(surl.asURL)
+  }
+
+  test("convertFromString implicit converter") {
+    val url = "http://www.w3.org/"
+    val surl: SplitURL = url
+    expect(url)(surl.toString)
+  }
 }

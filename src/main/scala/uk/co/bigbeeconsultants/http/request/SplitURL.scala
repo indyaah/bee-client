@@ -108,4 +108,8 @@ object SplitURL {
   }
 
   private def splitPathWithoutLeadingSlash(path: String) = if (path.length > 0) List() ++ path.split('/') else Nil
+
+  implicit def convertToURL(splitUrl: SplitURL): URL = splitUrl.asURL
+  implicit def convertFromURL(url: URL): SplitURL = apply(url)
+  implicit def convertFromString(url: String): SplitURL = apply(url)
 }
