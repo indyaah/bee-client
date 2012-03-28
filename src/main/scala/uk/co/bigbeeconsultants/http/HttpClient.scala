@@ -259,11 +259,11 @@ object HttpClient {
   val GZIP = "gzip"
   val DEFLATE = "deflate"
 
-  val defaultRequestHeaders = Headers (List (
-    Header (ACCEPT_ENCODING, GZIP),
-    //    Header (CONNECTION, "Close"),
-    Header (ACCEPT_CHARSET, UTF8)
-  ))
+  val defaultRequestHeaders = Headers (
+    ACCEPT_ENCODING -> GZIP,
+    // CONNECTION -> "Close",
+    ACCEPT_CHARSET -> UTF8
+  )
 
   /**
    * Closes all the keep-alive connections still pending.

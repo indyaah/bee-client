@@ -29,19 +29,22 @@ making HTTP requests. It has the following features:
 
 *   No 'static' variables are used, so multiple configurations can co-exist within a JVM.
 
-*   Tested against a range of servers.
+*   Tested against a range of servers: Apache2, Nginx, Lighttpd, Cherokee.
 
 *   The number of external dependencies is minimised (currently: jcsp, slf4j, slf4s).
 
 It is written in Scala but may be called (a lot less easily) from Java also.
+
+Known Bugs
+----------
+
+*   (none)
 
 Future Plans
 ------------
 
 The following features are not supported yet, but are under consideration
 for future versions.
-
-*   Gzip content encoding (doesn't work in the current version yet)
 
 *   HTTP/1.1 keep-alive connections.
 

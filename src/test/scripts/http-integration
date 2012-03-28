@@ -1,0 +1,6 @@
+#!/bin/bash
+DIR=target
+
+curl -i http://localhost/lighthttpclient/test-lighthttpclient.txt > $DIR/test-lighthttpclient.txt.out
+curl -i http://localhost/lighthttpclient/test-lighthttpclient.html > $DIR/test-lighthttpclient.html.out
+#curl -i http://localhost/lighthttpclient/test-lighthttpclient.php?CT=text/plain

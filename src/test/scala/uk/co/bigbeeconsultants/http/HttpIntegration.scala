@@ -24,27 +24,48 @@
 
 package uk.co.bigbeeconsultants.http
 
-import header.{HeaderName, MediaType}
+import header.{HeaderName, Headers, MediaType}
+import HttpClient._
+import header.HeaderName._
 import java.lang.AssertionError
 import request.{Config, RequestBody}
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import java.net.{ConnectException, Proxy, URL}
+import java.io.File
 
 class HttpIntegration extends FunSuite with BeforeAndAfter {
 
+  private val testHtmlFile = "test-lighthttpclient.html"
+  private val testTxtFile = "test-lighthttpclient.txt"
+  private val testPhpFile = "test-lighthttpclient.php"
+  private val testImageFile = "B.png"
+  private val testPhotoFile = "plataria-sunset.jpg"
+
   private val serverUrl = "http://localhost/lighthttpclient/"
-  private val testScriptUrl = serverUrl + "test-lighthttpclient.php"
-  private val testImageUrl = serverUrl + "B.png"
-  private val testPhotoUrl = serverUrl + "plataria-sunset.jpg"
+  private val testHtmlUrl = serverUrl + testHtmlFile
+  private val testTxtUrl = serverUrl + testTxtFile
+  private val testPhpUrl = serverUrl + testPhpFile
+  private val testImageUrl = serverUrl + testImageFile
+  private val testPhotoUrl = serverUrl + testPhotoFile
+
   private val jsonBody = RequestBody (MediaType.APPLICATION_JSON, """{ "x": 1, "y": true }""")
-//  private val proxyAddress = new InetSocketAddress("localhost", 8888);
-//  private val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
+  //  private val proxyAddress = new InetSocketAddress("localhost", 8888);
+  //  private val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
   private val proxy = Proxy.NO_PROXY
+
+  private val basicHeaders = Headers (ACCEPT_CHARSET -> UTF8)
+  private val gzipHeaders = Headers (ACCEPT_ENCODING -> GZIP)
+
+  private val dir = new File ("src/test/resources")
+  private val testHtmlSize = 1497
+  private val testTxtSize = new File (dir, testTxtFile).length
+  private val testImageSize = 497
+  private val testPhotoSize = 1605218
 
   var http: HttpClient = _
 
   before {
-    http = new HttpClient (config = Config (followRedirects = false), proxy = proxy)
+    http = new HttpClient (config = Config (followRedirects = false), commonRequestHeaders = basicHeaders, proxy = proxy)
   }
 
   after {
@@ -55,58 +76,58 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
     //    assertFalse(http.config.keepAlive)
   }
 
-  def headTest(url: String) {
+  def headTest(url: String, size: Long) {
     try {
-      val response = http.head (new URL (url))
+      val response = http.head (new URL (url), gzipHeaders)
       expect (200, url)(response.status.code)
       val body = response.body
       expect (MediaType.TEXT_HTML)(body.contentType)
+      expectHeaderIfPresent ("gzip")(response.headers, CONTENT_ENCODING)
+//      expectHeaderIfPresent (size)(response.headers, CONTENT_LENGTH)
       expect (true)(body.toString == "")
     } catch {
       case e: Exception =>
-        skipTestWarning ("HEAD", testScriptUrl, e)
+        skipTestWarning ("HEAD", testPhpUrl, e)
     }
   }
 
-  ignore ("htmlHeadOK") {
+  test ("html text/html head x100") {
     for (i <- 1 to 100) {
-      headTest (testScriptUrl + "?LOREM=" + i)
+      headTest (testHtmlUrl + "?LOREM=" + i, testHtmlSize)
     }
   }
 
-  private def htmlGet(url: String) {
+  private def htmlGet(url: String, size: Long) {
     try {
-      val response = http.get (new URL (url))
+      val response = http.get (new URL (url), gzipHeaders)
       expect (200, url)(response.status.code)
       val body = response.body
       expect (MediaType.TEXT_HTML)(body.contentType)
       val string = body.toString
-      expect (true)(string.startsWith ("<html>"))
+      expect (true)(string.startsWith ("<!DOCTYPE html>"))
+      expect ("gzip")(response.headers.get (CONTENT_ENCODING).value)
+      //expect (size)(response.headers.get (CONTENT_LENGTH).toInt)
       val bodyLines = string.split ("\n")
-      expect ("GET")(extractLineFromResponse ("REQUEST_METHOD", bodyLines))
+      expect ("<!DOCTYPE html>")(bodyLines (0))
     } catch {
       case e: Exception =>
-        skipTestWarning ("GET", testScriptUrl, e)
+        skipTestWarning ("GET", testPhpUrl, e)
     }
   }
 
-  test ("htmlGetOK") {
+  test ("html text/html get x100") {
     for (i <- 1 to 100) {
-      htmlGet (testScriptUrl + "?LOREM=" + i)
+      htmlGet (testHtmlUrl + "?LOREM=" + i, testHtmlSize)
     }
   }
 
-  test ("htmlGetOK2") {
-    htmlGet (testScriptUrl + "?LOREM=1")
-  }
-
-  test ("pngGetOK") {
+  test ("image/png get x1") {
     try {
-      val response = http.get (new URL (testImageUrl))
+      val response = http.get (new URL (testImageUrl), gzipHeaders)
       expect (200)(response.status.code)
       expect (MediaType.IMAGE_PNG)(response.body.contentType)
       val bytes = response.body.asBytes
-      expect (497)(bytes.length)
+      expect (testImageSize)(bytes.length)
       expect ('P')(bytes (1))
       expect ('N')(bytes (2))
       expect ('G')(bytes (3))
@@ -116,57 +137,54 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
     }
   }
 
-  test ("plainGetOK") {
-    val url = testScriptUrl + "?CT=text/plain"
+  test ("txt text/plain get x1") {
+    val url = testTxtUrl + "?CT=text/plain"
     try {
-      val response = http.get (new URL (url))
+      val response = http.get (new URL (url), gzipHeaders)
       expect (200)(response.status.code)
       val body = response.body
       expect (MediaType.TEXT_PLAIN)(body.contentType)
-      expect (true)(body.toString.startsWith ("CONTENT_LENGTH"))
+      expect (true)(body.toString.startsWith ("Lorem "))
       val bodyLines = body.toString.split ("\n")
-      expect ("GET")(extractLineFromResponse ("REQUEST_METHOD", bodyLines))
+      //expect ("GET")(extractLineFromResponse ("REQUEST_METHOD", bodyLines))
     } catch {
       case e: Exception =>
         skipTestWarning ("GET", url, e)
     }
   }
 
-  test ("htmlPostWithJsonBodyOK") {
-    val url = testScriptUrl + "?CT=text/plain"
+  test ("php text/plain options x1") {
+    val url = testPhpUrl + "?CT=text/plain"
     try {
-      val response = http.post (new URL (url), jsonBody)
+      val response = http.options (new URL (url), None)
+      expect (302)(response.status.code)
+      val body = response.body
+      expect (0)(body.toString.length)
+    } catch {
+      case e: Exception =>
+        skipTestWarning ("GET", url, e)
+    }
+  }
+
+  test ("php text/plain post x1") {
+    val url = testPhpUrl + "?CT=text/plain"
+    try {
+      val response = http.post (new URL (url), jsonBody, gzipHeaders)
       expect (302)(response.status.code)
       val body = response.body
       expect (MediaType.TEXT_HTML)(body.contentType)
       expect (0)(body.toString.length)
-      val location = response.headers.get (HeaderName.LOCATION).value
+      val location = response.headers.get (LOCATION).value
       expect (true, location)(location.startsWith (serverUrl))
     } catch {
       case e: Exception =>
-        skipTestWarning ("GET", testScriptUrl, e)
+        skipTestWarning ("GET", testPhpUrl, e)
     }
   }
 
-  test ("htmlPostWithShortBodyOK") {
-    val url = testScriptUrl + "?CT=text/plain"
+  test ("php text/html delete x1") {
     try {
-      val response = http.post (new URL (url), jsonBody)
-      expect (302)(response.status.code)
-      val body = response.body
-      expect (MediaType.TEXT_HTML)(body.contentType)
-      expect (0)(body.toString.length)
-      val location = response.headers.get (HeaderName.LOCATION).value
-      expect (true, location)(location.startsWith (serverUrl))
-    } catch {
-      case e: Exception =>
-        skipTestWarning ("GET", testScriptUrl, e)
-    }
-  }
-
-  test ("htmlDeleteOK") {
-    try {
-      val response = http.delete (new URL (testScriptUrl + "?D=1"))
+      val response = http.delete (new URL (testPhpUrl + "?D=1"), gzipHeaders)
       expect (200)(response.status.code)
       val body = response.body
       expect (MediaType.TEXT_HTML)(body.contentType)
@@ -175,24 +193,23 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       expect ("DELETE")(extractLineFromResponse ("REQUEST_METHOD", bodyLines))
     } catch {
       case e: Exception =>
-        skipTestWarning ("DELETE", testScriptUrl, e)
+        skipTestWarning ("DELETE", testPhpUrl, e)
     }
   }
 
-  test ("soakTestJpgOK") {
+  test ("jpg image/jpg get x100") {
     try {
-      val size = 1605218
-      val loops = 500
+      val loops = 100
       val before = System.currentTimeMillis ()
       for (i <- 1 to loops) {
-        val response = http.get (new URL (testPhotoUrl + "?n=" + i))
+        val response = http.get (new URL (testPhotoUrl + "?n=" + i), gzipHeaders)
         expect (200)(response.status.code)
         expect (MediaType.IMAGE_JPG)(response.body.contentType)
         val bytes = response.body.asBytes
-        expect (size)(bytes.length)
+        expect (testPhotoSize)(bytes.length)
       }
       val duration = System.currentTimeMillis () - before
-      val bytes = BigDecimal (size * loops)
+      val bytes = BigDecimal (testPhotoSize * loops)
       val rate = (bytes / duration)
       println (bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
     } catch {
@@ -201,18 +218,18 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
     }
   }
 
-  test ("soakTestTextOK") {
+  test ("php text/html get x100") {
     try {
       var size = -1
       var first = "NOT SET"
-      val loops = 200
+      val loops = 100
       val before = System.currentTimeMillis ()
       var ok = true
       for (i <- 1 to loops) {
         if (ok) {
           try {
             val is = i.toString
-            val response = http.get (new URL (testScriptUrl + "?STUM=1"))
+            val response = http.get (new URL (testPhpUrl + "?STUM=1"), gzipHeaders)
             expect (200)(response.status.code)
             val body = response.body
             expect (MediaType.TEXT_HTML)(body.contentType)
@@ -242,6 +259,14 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
         skipTestWarning ("GET", testPhotoUrl, e)
     }
   }
+
+  private def expectHeaderIfPresent(expected: Any)(headers: Headers, name: HeaderName) {
+    val hdrs = headers.find (name.name)
+    if (!hdrs.isEmpty) {
+      expect (expected)(hdrs (0).value)
+    }
+  }
+
 
   private def extractLineFromResponse(expectedHeader: String, bodyLines: Seq[String]): String = {
     val expectedHeaderColon = expectedHeader + ':'
