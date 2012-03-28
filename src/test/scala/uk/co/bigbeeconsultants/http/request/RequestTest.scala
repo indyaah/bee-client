@@ -1,5 +1,3 @@
-package uk.co.bigbeeconsultants.http.request
-
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -23,6 +21,8 @@ package uk.co.bigbeeconsultants.http.request
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
+
+package uk.co.bigbeeconsultants.http.request
 
 import java.net.URL
 import uk.co.bigbeeconsultants.http.header.MediaType
