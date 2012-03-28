@@ -25,17 +25,21 @@
 package uk.co.bigbeeconsultants.http.servlet
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
-import uk.co.bigbeeconsultants.http.request.{Request, RequestBody}
 import uk.co.bigbeeconsultants.http.header.{MediaType, Header, Headers}
 import java.io.InputStream
 import uk.co.bigbeeconsultants.http.response.{Status, ResponseFactory}
 import uk.co.bigbeeconsultants.http.Util
+import uk.co.bigbeeconsultants.http.request.{SplitURL, Request, RequestBody}
 
 /**
  * Adapts HTTP Servlet request objects to the Light Http Client API. This allows a variety of solutions such as
  * reverse proxying to be implemented easily.
  */
 class HttpServletRequestAdapter(req: HttpServletRequest) {
+
+  def url: SplitURL = {
+    SplitURL(req.getScheme, req.getServerName, req.getServerPort, req.getRequestURI, null, req.getQueryString)
+  }
 
   def headers: Headers = {
     import scala.collection.JavaConversions.enumerationAsScalaIterator
@@ -46,7 +50,8 @@ class HttpServletRequestAdapter(req: HttpServletRequest) {
   }
 
   def requestBody: RequestBody = {
-    val mediaType = MediaType (req.getContentType)
+    val contentType = req.getContentType
+    val mediaType = if (contentType != null) MediaType (contentType) else MediaType.TEXT_PLAIN
     RequestBody (mediaType, req.getInputStream)
   }
 }

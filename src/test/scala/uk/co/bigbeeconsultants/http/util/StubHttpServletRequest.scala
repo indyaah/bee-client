@@ -33,12 +33,12 @@ class StubHttpServletRequest extends HttpServletRequest {
   var characterEncoding = ""
   var contentLength = 0
   var contentType = ""
-  var contextPath = ""
-  var protocol = ""
-  var scheme = ""
-  var method = ""
-  var serverName = ""
-  var serverPort = 0
+  var contextPath = "/context"
+  var protocol = "HTTP/1.1"
+  var scheme = "http"
+  var method = "GET"
+  var serverName = "localhost"
+  var serverPort = -1
   var remoteAddr = ""
   var remoteHost = ""
   var remotePort = 0
@@ -46,10 +46,10 @@ class StubHttpServletRequest extends HttpServletRequest {
   var localAddr = ""
   var localName = ""
   var localPort = 0
-  var requestURI = ""
+  var requestURI = "/context/x/y/z"
   var requestURL = new StringBuffer
-  var queryString = ""
-  var pathInfo = ""
+  var queryString = "a=1"
+  var pathInfo = "/x/y/z"
   var pathTranslated = ""
   var servletPath = ""
   var secure = false

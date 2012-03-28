@@ -29,6 +29,7 @@ import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.header.{MediaType, Headers}
 import uk.co.bigbeeconsultants.http.util.StubHttpServletRequest
 import java.{util => ju}
+import uk.co.bigbeeconsultants.http.request.SplitURL
 
 class HttpServletAdapterTest extends FunSuite {
 
@@ -43,7 +44,16 @@ class HttpServletAdapterTest extends FunSuite {
     }
   }
 
-  test("getRequestBody") {
+  test("url") {
+    val req = new StubHttpServletRequest
+    req.contentType = MediaType.TEXT_PLAIN.value
+    val splitUrl = SplitURL("http", "localhost", -1, "/context/x/y/z", null, "a=1")
+
+    val adapter = new HttpServletRequestAdapter (req)
+    expect(splitUrl) (adapter.url)
+  }
+
+  test("requestBody") {
     val headers = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT_LANGUAGE -> "en", CONTENT_TYPE -> "text/plain"))
     val req = new StubHttpServletRequest
     req.contentType = MediaType.TEXT_PLAIN.value

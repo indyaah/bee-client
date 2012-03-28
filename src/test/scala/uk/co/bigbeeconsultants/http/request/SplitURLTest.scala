@@ -81,7 +81,7 @@ class SplitURLTest extends FunSuite {
     expect(s)(surl.toString)
   }
 
-  test("string parser 1") {
+  test("string parser 1a") {
     val s = "http://myserver:8080/Addressing/URL/5_BNF.html#z12?red=yes"
     val surl = SplitURL(s)
     expect("http")(surl.scheme)
@@ -93,7 +93,7 @@ class SplitURLTest extends FunSuite {
     expect(s)(surl.toString)
   }
 
-  test("string parser 2") {
+  test("string parser 1b") {
     val s = "http://myserver/"
     val surl = SplitURL(s)
     expect("http")(surl.scheme)
@@ -102,6 +102,30 @@ class SplitURLTest extends FunSuite {
     expect(Nil)(surl.path)
     expect(None)(surl.fragment)
     expect(None)(surl.query)
+    expect(s)(surl.toString)
+  }
+
+  test("string parser 2a") {
+    val s = "http://myserver/"
+    val surl = SplitURL("http", "myserver", -1, "", null, null)
+    expect("http")(surl.scheme)
+    expect("myserver")(surl.host)
+    expect(None)(surl.port)
+    expect(Nil)(surl.path)
+    expect(None)(surl.fragment)
+    expect(None)(surl.query)
+    expect(s)(surl.toString)
+  }
+
+  test("string parser 2b") {
+    val s = "http://myserver:8080/Addressing/URL/5_BNF.html?red=yes"
+    val surl = SplitURL("http", "myserver", 8080, "/Addressing/URL/5_BNF.html", null, "red=yes")
+    expect("http")(surl.scheme)
+    expect("myserver")(surl.host)
+    expect(Some(8080))(surl.port)
+    expect(List("Addressing", "URL", "5_BNF.html"))(surl.path)
+    expect(None)(surl.fragment)
+    expect(Some("red=yes"))(surl.query)
     expect(s)(surl.toString)
   }
 

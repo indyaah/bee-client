@@ -43,17 +43,20 @@ case class SplitURL(scheme: String,
     else
       new URL(toString)
 
-  override def toString = scheme + "://" + host + port.map(":" + _.toString).getOrElse("") +
-    "/" + path.mkString("/") + fragment.map("#" + _).getOrElse("") + query.map("?" + _).getOrElse("")
+  def hostAndPort = host + port.map(":" + _.toString).getOrElse("")
+
+  def pathString = "/" + path.mkString("/") + fragment.map("#" + _).getOrElse("") + query.map("?" + _).getOrElse("")
+
+  override def toString = scheme + "://" + hostAndPort + pathString
 }
 
 
 object SplitURL {
-  /** Factory method creates an instance from a URL. */
+  /**Factory method creates an instance from a URL. */
   def apply(url: URL) = new SplitURL(url.getProtocol, url.getHost, portAsOption(url.getPort),
     trimAndSplitPath(url.getFile), strAsOption(url.getRef), strAsOption(url.getQuery))
 
-  /** Factory method creates an instance from a string containing a URL. */
+  /**Factory method creates an instance from a string containing a URL. */
   def apply(url: String) = {
     val p1 = url.indexOf("://")
     require(p1 > 0, "Malformed URL: no scheme part.")
@@ -95,21 +98,36 @@ object SplitURL {
     new SplitURL(scheme, host, port, splitPathWithoutLeadingSlash(path), fragment, qs)
   }
 
-  private def portAsOption(port: Int) = if (port > 0) Some(port) else None
+  /**
+   * Factory method creates an instance from several fields.
+   * The fragment and query parameters are nullable. The port parameter can be negative to indicate default.
+   */
+  def apply(scheme: String, host: String, port: Int, path: String, fragment: String, query: String) = {
+    new SplitURL(scheme, host, portAsOption(port), trimAndSplitPath(path), Option(fragment), Option(query))
+  }
+
+  private def portAsOption(port: Int) = if (port < 0) None else Some(port)
 
   private def strAsOption(str: String) = if (str != null && str.length > 0) Some(str) else None
 
-  private def trimAndSplitPath(path: String) = {
-    val q = path.indexOf('?')
-    if (q > 0)
-      splitPathWithoutLeadingSlash(path.substring(1, q))
-    else
-      splitPathWithoutLeadingSlash(path.substring(1))
+  private def trimAndSplitPath(path: String): List[String] = {
+    if (path.length == 0 || path(0) != '/') {
+      val q = path.indexOf('?')
+      if (q > 0)
+        splitPathWithoutLeadingSlash(path.substring(0, q))
+      else
+        splitPathWithoutLeadingSlash(path)
+    }
+    else {
+      trimAndSplitPath(path.substring(1))
+    }
   }
 
   private def splitPathWithoutLeadingSlash(path: String) = if (path.length > 0) List() ++ path.split('/') else Nil
 
   implicit def convertToURL(splitUrl: SplitURL): URL = splitUrl.asURL
+
   implicit def convertFromURL(url: URL): SplitURL = apply(url)
+
   implicit def convertFromString(url: String): SplitURL = apply(url)
 }
