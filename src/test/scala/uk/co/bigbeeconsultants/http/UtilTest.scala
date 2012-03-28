@@ -73,12 +73,12 @@ class UtilTest extends FunSuite {
     val count = Util.copyBytes (bais, baos)
     val result = new String (baos.toByteArray)
     expect (bytes.length)(count)
-    expect (result)(str)
+    expect (str)(result)
   }
 
   test ("copyBytesLong") {
     val sb = new StringBuilder
-    for (i <- 1 to 10000) sb.append ("this is my string of text which will be repeated many times.\n")
+    for (i <- 1 to 10000) sb.append (i + " this is my string of text which will be repeated many times.\n")
     val str = sb.toString ()
     val bytes = str.getBytes
     val bais = new ByteArrayInputStream (bytes)
@@ -86,6 +86,18 @@ class UtilTest extends FunSuite {
     val count = Util.copyBytes (bais, baos)
     val result = new String (baos.toByteArray)
     expect (bytes.length)(count)
-    expect (result)(str)
+    expect (str)(result)
+  }
+
+  test ("copyText") {
+    val sb = new StringBuilder
+    for (i <- 1 to 5) sb.append (i + " this is my string of text which will be repeated many times.\n")
+    val str = sb.toString ()
+    val bytes = str.getBytes
+    val bais = new ByteArrayInputStream (bytes)
+    val baos = new ByteArrayOutputStream
+    Util.copyText (bais, baos)
+    val result = new String (baos.toByteArray)
+    expect (str)(result)
   }
 }

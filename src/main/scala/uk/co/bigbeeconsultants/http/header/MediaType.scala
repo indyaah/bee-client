@@ -34,8 +34,8 @@ case class MediaType(`type`: String, subtype: String, charset: Option[String] = 
 
   /**Gets this media type in the form used within QualifiedValue. */
   def toQualifiedPart = {
-    val qual = if (charset.isEmpty) Nil else List (Qualifier ("charset", charset.get))
-    QualifiedPart (value, qual)
+    val qual = if (charset.isEmpty) Nil else List(Qualifier("charset", charset.get))
+    QualifiedPart(value, qual)
   }
 
   override def toString = toQualifiedPart.toString
@@ -73,18 +73,26 @@ case class MediaType(`type`: String, subtype: String, charset: Option[String] = 
       false
     else if (`type` == WILDCARD || other.`type` == WILDCARD)
       true
-    else if (`type`.equalsIgnoreCase (other.`type`) && (subtype == WILDCARD || other.subtype == WILDCARD))
+    else if (`type`.equalsIgnoreCase(other.`type`) && (subtype == WILDCARD || other.subtype == WILDCARD))
       true
     else
-      `type`.equalsIgnoreCase (other.`type`) && subtype.equalsIgnoreCase (other.subtype)
+      `type`.equalsIgnoreCase(other.`type`) && subtype.equalsIgnoreCase(other.subtype)
   }
 
   /**
    * Creates a new instance with a different charset.
    */
   def withCharset(newCharset: String) = {
-    require (newCharset != null && newCharset.length () > 0)
-    new MediaType (`type`, subtype, Some (newCharset))
+    require(newCharset != null && newCharset.length() > 0)
+    new MediaType(`type`, subtype, Some(newCharset))
+  }
+
+  def isTextual = {
+    `type` match {
+      case "text" => true
+      case "application" if (subtype == "json" || subtype == "xml" || subtype.endsWith("+xml")) => true
+      case _ => false
+    }
   }
 }
 
@@ -92,32 +100,32 @@ object MediaType {
   /**The value of a type or subtype wildcard: "*" */
   val WILDCARD = "*"
 
-  val STAR_STAR = MediaType (WILDCARD, WILDCARD)
-  val APPLICATION_JSON = MediaType ("application", "json")
-  val APPLICATION_XML = MediaType ("application", "xml")
-  val APPLICATION_SVG_XML = MediaType ("application", "svg+xml")
-  val APPLICATION_ATOM_XML = MediaType ("application", "atom+xml")
-  val APPLICATION_XHTML_XML = MediaType ("application", "xhtml+xml")
-  val APPLICATION_OCTET_STREAM = MediaType ("application", "octet-stream")
-  val APPLICATION_FORM_URLENCODED = MediaType ("application", "x-www-form-urlencoded")
-  val MULTIPART_FORM_DATA = MediaType ("multipart", "form-data")
+  val STAR_STAR = MediaType(WILDCARD, WILDCARD)
+  val APPLICATION_JSON = MediaType("application", "json")
+  val APPLICATION_XML = MediaType("application", "xml")
+  val APPLICATION_SVG_XML = MediaType("application", "svg+xml")
+  val APPLICATION_ATOM_XML = MediaType("application", "atom+xml")
+  val APPLICATION_XHTML_XML = MediaType("application", "xhtml+xml")
+  val APPLICATION_OCTET_STREAM = MediaType("application", "octet-stream")
+  val APPLICATION_FORM_URLENCODED = MediaType("application", "x-www-form-urlencoded")
+  val MULTIPART_FORM_DATA = MediaType("multipart", "form-data")
 
-  val TEXT_PLAIN = MediaType ("text", "plain")
-  val TEXT_XML = MediaType ("text", "xml")
-  val TEXT_HTML = MediaType ("text", "html")
-  val IMAGE_PNG = MediaType ("image", "png")
-  val IMAGE_JPG = MediaType ("image", "jpeg")
+  val TEXT_PLAIN = MediaType("text", "plain")
+  val TEXT_XML = MediaType("text", "xml")
+  val TEXT_HTML = MediaType("text", "html")
+  val IMAGE_PNG = MediaType("image", "png")
+  val IMAGE_JPG = MediaType("image", "jpeg")
 
   def apply(str: String) = {
-    val qp = QualifiedPart.parse (str)
+    val qp = QualifiedPart.parse(str)
     val qualifier = if (qp.qualifier.isEmpty) {
       None
     } else {
-      val q = qp.qualifier (0)
-      if (q.label == "charset") Some (q.value) else None
+      val q = qp.qualifier(0)
+      if (q.label == "charset") Some(q.value) else None
     }
-    val t2 = Util.divide (qp.value, '/')
-    new MediaType (orWildcard (t2._1), orWildcard (t2._2), qualifier)
+    val t2 = Util.divide(qp.value, '/')
+    new MediaType(orWildcard(t2._1), orWildcard(t2._2), qualifier)
   }
 
   private def orWildcard(s: String) = if (s.length > 0) s else WILDCARD

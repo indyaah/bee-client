@@ -24,9 +24,9 @@
 
 package uk.co.bigbeeconsultants.http
 
-import java.io.{ByteArrayOutputStream, OutputStream, InputStream}
-import java.nio.ByteBuffer
 import collection.mutable.ListBuffer
+import java.nio.ByteBuffer
+import java.io._
 
 private[http] object Util {
   // Dates are always in GMT. The canonical representation is rfc1123DateTimeFormat.
@@ -44,43 +44,75 @@ private[http] object Util {
     val part = new StringBuilder
     for (c <- str.toCharArray) {
       if (c == sep) {
-        list += part.toString ()
-        part.setLength (0)
+        list += part.toString()
+        part.setLength(0)
       } else {
         part += c
       }
     }
-    list += part.toString ()
+    list += part.toString()
     list.toList
   }
 
   def divide(str: String, sep: Char) = {
-    val s = str.indexOf (sep)
+    val s = str.indexOf(sep)
     if (s >= 0 && s < str.length) {
-      val a = str.substring (0, s)
-      val b = str.substring (s + 1)
+      val a = str.substring(0, s)
+      val b = str.substring(s + 1)
       (a, b)
     }
     else (str, "")
   }
 
+  /**
+   * Copies the bytes from an input stream into a new byte buffer, then closes the input stream.
+   * @param inputStream the input stream
+   * @return the new byte buffer
+   */
+  def copyToByteBufferAndClose(inputStream: InputStream): ByteBuffer = {
+    val initialSize = 0x10000 // 64K
+    val outStream = new ByteArrayOutputStream(initialSize)
+    copyBytes(inputStream, outStream)
+    inputStream.close()
+    ByteBuffer.wrap(outStream.toByteArray)
+  }
+
+  /**
+   * Directly copies the bytes from an input stream to an output stream, using only a small buffer.
+   * @param input the input stream
+   * @param output the output stream
+   * @return the number of bytes copied
+   */
   def copyBytes(input: InputStream, output: OutputStream): Long = {
     val buffer: Array[Byte] = new Array[Byte](DEFAULT_BUFFER_SIZE)
     var count: Long = 0
-    var n = input.read (buffer)
+    var n = input.read(buffer)
     while (n >= 0) {
-      output.write (buffer, 0, n)
+      output.write(buffer, 0, n)
       count += n
-      n = input.read (buffer)
+      n = input.read(buffer)
     }
     count
   }
 
-  def copyToByteBufferAndClose(inputStream: InputStream): ByteBuffer = {
-    val initialSize = 0x10000 // 64K
-    val outStream = new ByteArrayOutputStream (initialSize)
-    copyBytes (inputStream, outStream)
-    inputStream.close ()
-    ByteBuffer.wrap (outStream.toByteArray)
+  /**
+   * Copies the text from an input stream to an output stream line by line, allowing alteration of the text.
+   * This might be used to rewrite URLs in body content, for example.
+   * @param input the input stream
+   * @param output the output stream
+   * @param charset the character set, default UTF-8
+   * @param alter an optional function for changing each line of text before writing it out. This is applied
+   * line by line.
+   */
+  def copyText(input: InputStream, output: OutputStream, charset: String = HttpClient.UTF8,
+               alter: (String) => String = (x) => x) {
+    val in = new BufferedReader(new InputStreamReader(input, charset))
+    val out = new PrintWriter(new OutputStreamWriter(output, charset))
+    var line = in.readLine
+    while (line != null) {
+      out.println(alter(line))
+      line = in.readLine
+    }
+    out.flush()
   }
 }

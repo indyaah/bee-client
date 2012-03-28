@@ -60,8 +60,14 @@ class HttpServletRequestAdapter(req: HttpServletRequest) {
 /**
  * Adapts HTTP Servlet response objects to the Light Http Client API. This allows a variety of solutions such as
  * reverse proxying to be implemented easily.
+ * @param resp the response to be created
+ * @param rewrite an optional mutation function that is applied to every line of the body content.
+ * @param condition an optional condition that limits when the rewrite function will be used
  */
-class HttpServletResponseAdapter(resp: HttpServletResponse) extends ResponseFactory {
+class HttpServletResponseAdapter(resp: HttpServletResponse,
+                                 rewrite: (String) => String = (x) => x,
+                                 condition: (MediaType) => Boolean = (mt) => mt.isTextual) extends ResponseFactory {
+
   private[this] var _request: Request = _
   private[this] var _status: Status = _
   private[this] var _mediaType: MediaType = _
@@ -79,7 +85,13 @@ class HttpServletResponseAdapter(resp: HttpServletResponse) extends ResponseFact
       resp.setHeader (header.name, header.value)
     }
 
-    Util.copyBytes (inputStream, resp.getOutputStream)
+    if (condition(mediaType)) {
+      Util.copyText (inputStream, resp.getOutputStream, mediaType.charsetOrUTF8, rewrite)
+    }
+    else {
+      Util.copyBytes (inputStream, resp.getOutputStream)
+    }
+
     inputStream.close ()
     resp.getOutputStream.close()
   }

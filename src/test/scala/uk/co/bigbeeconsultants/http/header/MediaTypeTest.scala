@@ -68,6 +68,18 @@ class MediaTypeTest extends FunSuite {
   }
 
 
+  test ("isTextual") {
+    expect (false)(MediaType.APPLICATION_OCTET_STREAM.isTextual)
+    expect (false)(MediaType.IMAGE_JPG.isTextual)
+    expect (false)(MediaType.STAR_STAR.isTextual)
+    expect (true)(MediaType.TEXT_PLAIN.isTextual)
+    expect (true)(MediaType.TEXT_HTML.isTextual)
+    expect (true)(MediaType.APPLICATION_JSON.isTextual)
+    expect (true)(MediaType.APPLICATION_XML.isTextual)
+    expect (true)(MediaType.APPLICATION_SVG_XML.isTextual)
+  }
+
+
   test ("withCharset") {
     val mt1 = MediaType.TEXT_HTML
     expect (true)(mt1.charset.isEmpty)
