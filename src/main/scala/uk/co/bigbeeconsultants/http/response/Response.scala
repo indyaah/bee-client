@@ -28,6 +28,7 @@ import uk.co.bigbeeconsultants.http.header.Headers
 import uk.co.bigbeeconsultants.http.request.Request
 import uk.co.bigbeeconsultants.http.header.MediaType
 import java.io.InputStream
+import com.weiglewilczek.slf4s.Logging
 
 /**
  * Represents a HTTP response. This is essentially immutable, although the implementation of
@@ -43,12 +44,13 @@ trait ResponseFactory {
 }
 
 
-private[http] class BufferedResponseFactory extends ResponseFactory {
+private[http] class BufferedResponseFactory extends ResponseFactory with Logging {
   private var _response: Response = _
 
   def captureResponse(request: Request, status: Status, mediaType: MediaType, headers: Headers, stream: InputStream) {
     val body = new ByteBufferResponseBody(mediaType, stream)
     _response = new Response (request, status, body, headers)
+    logger.debug(_response.toString)
   }
 
   override def response = Some (_response)

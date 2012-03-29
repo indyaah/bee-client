@@ -38,7 +38,7 @@ case class MediaType(`type`: String, subtype: String, charset: Option[String] = 
     QualifiedPart(value, qual)
   }
 
-  override def toString = toQualifiedPart.toString
+  override lazy val toString = toQualifiedPart.toString
 
   /**
    * Gets the character set, or returns a default value.

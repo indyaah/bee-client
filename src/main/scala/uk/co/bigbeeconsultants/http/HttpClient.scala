@@ -24,22 +24,24 @@
 
 package uk.co.bigbeeconsultants.http
 
+import header.HeaderName._
 import header.{CookieJar, HeaderName, Headers, Header, MediaType}
 import response._
 import request.{Config, RequestException, RequestBody, Request}
 import java.io._
 import java.net.{URLConnection, URL, Proxy, HttpURLConnection}
 import collection.mutable.ListBuffer
-import HeaderName._
 import Status._
 import java.util.zip.GZIPInputStream
+import com.weiglewilczek.slf4s.Logging
+import collection.immutable.List
 
 /**
  * Constructs an instance for handling any number of HTTP requests.
  */
 class HttpClient(val config: Config = Config (),
                  val commonRequestHeaders: Headers = HttpClient.defaultRequestHeaders,
-                 val proxy: Proxy = Proxy.NO_PROXY) {
+                 val proxy: Proxy = Proxy.NO_PROXY) extends Logging {
 
   /**
    * Make a HEAD request.
@@ -108,6 +110,8 @@ class HttpClient(val config: Config = Config (),
    * Make an arbitrary request.
    */
   def execute(request: Request, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty, responseFactory: ResponseFactory) {
+    logger.debug(request.toString)
+
     val httpURLConnection = openConnection (request)
     httpURLConnection.setAllowUserInteraction (false)
     httpURLConnection.setConnectTimeout (config.connectTimeout)
@@ -162,22 +166,28 @@ class HttpClient(val config: Config = Config (),
 
     if (config.sendHostHeader) {
       httpURLConnection.setRequestProperty (HOST, request.url.getHost)
+      logger.debug((HOST -> request.url.getHost).toString)
     }
 
     if (request.body.isDefined) {
       httpURLConnection.setRequestProperty (CONTENT_TYPE, request.body.get.mediaType)
+      logger.debug((CONTENT_TYPE -> request.body.get.mediaType).toString)
     }
 
     for (hdr <- commonRequestHeaders.list) {
       httpURLConnection.setRequestProperty (hdr.name, hdr.value)
+      logger.debug(hdr.toString)
     }
 
     for (hdr <- requestHeaders.list) {
       httpURLConnection.setRequestProperty (hdr.name, hdr.value)
+      logger.debug(hdr.toString)
     }
 
     jar.filterForRequest (request.url) match {
-      case Some (hdr) => httpURLConnection.setRequestProperty (hdr.name, hdr.value)
+      case Some (hdr) =>
+        httpURLConnection.setRequestProperty (hdr.name, hdr.value)
+        logger.debug(hdr.toString)
       case _ =>
     }
 
@@ -194,7 +204,6 @@ class HttpClient(val config: Config = Config (),
     if (request.method == Request.HEAD || status.category == 1 ||
       status.code == Status.S2_NO_CONTENT || status.code == Status.S3_NOT_MODIFIED) {
       val iStream = selectStream (httpURLConnection)
-      //      Response (request, status, new EmptyResponseBody (mediaType), responseHeaders)
       responseFactory.captureResponse (request, status, mediaType, responseHeaders, iStream)
 
     } else {

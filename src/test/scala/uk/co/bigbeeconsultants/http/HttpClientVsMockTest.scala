@@ -93,9 +93,9 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
   }
 
 
-  def executeBasicSettingsWithoutBody(method: String) {
+  def executeBasicSettingsWithoutBody(method: String, contentType: String) {
     val expectedContent = "hello world"
-    createMock ("text/plain", expectedContent, Status (200, "OK"))
+    createMock (contentType, expectedContent, Status (200, "OK"))
     expectHeaders (ListMap ("Content-Type" -> "text/plain"))
 
     val http = newHttpClient ()
@@ -123,11 +123,18 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     expect (expectedContent)(response.body.toString)
   }
 
+
   test ("mock methods with broadly default settings and without a body should confirm all interations") {
-    executeBasicSettingsWithoutBody("GET")
-    executeBasicSettingsWithoutBody("HEAD")
-    executeBasicSettingsWithoutBody("TRACE")
-    executeBasicSettingsWithoutBody("DELETE")
+    executeBasicSettingsWithoutBody("GET", "text/plain")
+    executeBasicSettingsWithoutBody("HEAD", "text/plain")
+    executeBasicSettingsWithoutBody("TRACE", "text/plain")
+    executeBasicSettingsWithoutBody("DELETE", "text/plain")
+  }
+
+
+  ignore ("mock methods without a content type and without a body should confirm all interations") {
+    executeBasicSettingsWithoutBody("GET", null)
+    executeBasicSettingsWithoutBody("HEAD", null)
   }
 
 
@@ -165,6 +172,7 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     baos.toString("UTF-8")
   }
 
+
   test ("mock methods with broadly default settings and with a body should confirm all interations") {
     expect("foo=bar&a=z") (executeBasicSettingsWithBody("POST"))
     expect("hello world") (executeBasicSettingsWithBody("PUT"))
@@ -181,6 +189,7 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     verifyConfig(config)
   }
 
+
   test ("config read timeout should send the correct header") {
     createMock ("text/plain", "hello world", Status (200, "OK"))
     expectHeaders (ListMap ("Content-Type" -> "text/plain"))
@@ -189,6 +198,7 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     newHttpClient (config).get (url)
     verifyConfig(config)
   }
+
 
   test ("config follow redirects should send the correct header") {
     createMock ("text/plain", "hello world", Status (200, "OK"))
@@ -199,6 +209,7 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     verifyConfig(config)
   }
 
+
   test ("config use caches should send the correct header") {
     createMock ("text/plain", "hello world", Status (200, "OK"))
     expectHeaders (ListMap ("Content-Type" -> "text/plain"))
@@ -207,6 +218,7 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     newHttpClient (config).get (url)
     verifyConfig(config)
   }
+
 
   test ("config host header flag should be able to disable the host header") {
     createMock ("text/plain", "hello world", Status (200, "OK"))

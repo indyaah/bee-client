@@ -38,21 +38,26 @@ import uk.co.bigbeeconsultants.http.{Util, HttpClient}
  */
 final class ByteBufferResponseBody(val contentType: MediaType, inputStream: InputStream) extends ResponseBody {
 
-  private[this] val byteData: ByteBuffer = Util.copyToByteBufferAndClose (inputStream)
+  private[this] val byteData: ByteBuffer = Util.copyToByteBufferAndClose(inputStream)
 
   private[this] var converted: String = null
 
   private def convertToString = {
-    val charset = contentType.charset.getOrElse (HttpClient.UTF8)
-    val string = Charset.forName (charset).decode (byteData).toString
-    byteData.rewind
-    string
+    if (contentType.isTextual) {
+      val charset = contentType.charset.getOrElse(HttpClient.UTF8)
+      val string = Charset.forName(charset).decode(byteData).toString
+      byteData.rewind
+      string
+    }
+    else {
+      "Binary data (" + contentType + ")"
+    }
   }
 
   /**
    * Get the body of the response as an array of bytes.
    */
-  override def asBytes: Array[Byte] = byteData.array ()
+  override def asBytes: Array[Byte] = byteData.array()
 
   /**
    * Get the body of the response as a string.

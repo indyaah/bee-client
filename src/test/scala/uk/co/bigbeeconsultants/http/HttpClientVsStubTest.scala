@@ -30,6 +30,7 @@ import header._
 import java.nio.{BufferUnderflowException, BufferOverflowException, ByteBuffer}
 import HeaderName._
 import MediaType._
+import request.Config
 import scala.collection.JavaConversions._
 import java.io._
 import java.util.zip.GZIPOutputStream
@@ -42,6 +43,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
   import HttpClientTestUtils._
 
   val url = "/some/url"
+  val config = Config().copy(connectTimeout = 5000, readTimeout = 10000)
 
   private def convertHeaderList(headers: List[Header]): List[com.pyruby.stubserver.Header] = {
     headers.map {
@@ -51,7 +53,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
 
   test ("get should return 200-OK") {
-    val http = new HttpClient ()
+    val http = new HttpClient (config)
     val stubbedMethod = StubMethod.get (url)
     val json = """{"astring" : "the message" }"""
     server.expect (stubbedMethod).thenReturn (200, APPLICATION_JSON, json)
@@ -65,7 +67,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
 
   test ("get should return 304-redirect") {
-    val http = new HttpClient ()
+    val http = new HttpClient (config)
     val stubbedMethod = StubMethod.get (url)
     server.expect (stubbedMethod).thenReturn (304, APPLICATION_JSON, "ignore me")
 
@@ -78,7 +80,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
 
   test ("get should set cookie and then send cookie") {
-    val http = new HttpClient ()
+    val http = new HttpClient (config)
     val stubbedMethod1 = StubMethod.get (url)
     val json = """{"astring" : "the message" }"""
     val cookieHeaders = List (SET_COOKIE -> "foo=bar", SET_COOKIE -> ("dead=; Expires=" + HttpDateTimeInstant.zero))
@@ -101,7 +103,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
 
   test ("get with gzip should return text") {
-    val http = new HttpClient ()
+    val http = new HttpClient (config)
     val stubbedMethod = StubMethod.get (url)
     server.expect (stubbedMethod).thenReturn (200, TEXT_PLAIN.toString, toGzip (loadsOfText),
       convertHeaderList (List (CONTENT_ENCODING -> "gzip")))
@@ -117,7 +119,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
 
   test ("head should return 200-OK") {
-    val http = new HttpClient ()
+    val http = new HttpClient (config)
     val stubbedMethod = StubMethod.head (url)
     server.expect (stubbedMethod).thenReturn (200, TEXT_HTML, "")
 
@@ -129,7 +131,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
 
   test ("get several urls should close OK") {
-    val http = new HttpClient ()
+    val http = new HttpClient (config)
     val json = """{"a" : "b" }"""
     val n = 100
     for (i <- 1 to n) {
@@ -151,7 +153,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
 
   test ("put should return 200-OK") {
-    val http = new HttpClient ()
+    val http = new HttpClient (config)
     val stubbedMethod = StubMethod.put (url)
     val jsonReq = """{"astring" : "the request" }"""
     val jsonRes = """{"astring" : "the response" }"""
@@ -165,7 +167,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
 
   test ("post should return 200-OK") {
-    val http = new HttpClient ()
+    val http = new HttpClient (config)
     val stubbedMethod = StubMethod.post (url)
     val jsonRes = """{"astring" : "the response" }"""
     server.expect (stubbedMethod).thenReturn (200, APPLICATION_JSON, jsonRes)
@@ -178,7 +180,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
 
   test ("post should return 204-OK") {
-    val http = new HttpClient ()
+    val http = new HttpClient (config)
     val stubbedMethod = StubMethod.post (url)
     server.expect (stubbedMethod).thenReturn (204, APPLICATION_JSON, "ignore me")
 
@@ -191,7 +193,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
   // chunked data not yet implemented and HttpURLConnection may be too buggy anyway
   ignore ("post with chunk size should set chunk header") {
-    val http = new HttpClient ()
+    val http = new HttpClient (config)
     val stubbedMethod = StubMethod.post (url)
     server.expect (stubbedMethod).thenReturn (200, APPLICATION_JSON, "")
     http.post (new URL (baseUrl + url), request.RequestBody (APPLICATION_JSON, Map ("a" -> "b")))
@@ -202,7 +204,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
 
   test ("delete should return 204-OK") {
-    val http = new HttpClient ()
+    val http = new HttpClient (config)
     val stubbedMethod = StubMethod.delete (url)
     server.expect (stubbedMethod).thenReturn (204, APPLICATION_JSON, "")
 
@@ -234,7 +236,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
 
   test ("soak test jpg image 200-OK") {
-    val http = new HttpClient ()
+    val http = new HttpClient (config)
     val is = getClass.getClassLoader.getResourceAsStream ("plataria-sunset.jpg")
     val jpgBytes = Util.copyToByteBufferAndClose (is).array ()
     val size = jpgBytes.length
