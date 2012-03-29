@@ -199,7 +199,8 @@ class HttpClient(val config: Config = Config (),
   private def handleContent(status: Status, request: Request, responseFactory: ResponseFactory, httpURLConnection: HttpURLConnection) {
     val responseHeaders = processResponseHeaders (httpURLConnection)
     val contEnc = responseHeaders.find (CONTENT_ENCODING)
-    val mediaType = MediaType (httpURLConnection.getContentType)
+    val contentType = httpURLConnection.getContentType
+    val mediaType = if (contentType != null) Some(MediaType (contentType)) else None
 
     if (request.method == Request.HEAD || status.category == 1 ||
       status.code == Status.S2_NO_CONTENT || status.code == Status.S3_NOT_MODIFIED) {

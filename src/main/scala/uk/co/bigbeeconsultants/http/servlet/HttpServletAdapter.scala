@@ -70,10 +70,10 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
 
   private[this] var _request: Request = _
   private[this] var _status: Status = _
-  private[this] var _mediaType: MediaType = _
+  private[this] var _mediaType: Option[MediaType] = _
   private[this] var _headers: Headers = _
 
-  def captureResponse(request: Request, status: Status, mediaType: MediaType, headers: Headers, inputStream: InputStream) {
+  def captureResponse(request: Request, status: Status, mediaType: Option[MediaType], headers: Headers, inputStream: InputStream) {
     _request = request
     _status = status
     _mediaType = mediaType
@@ -85,8 +85,8 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
       resp.setHeader (header.name, header.value)
     }
 
-    if (condition(mediaType)) {
-      Util.copyText (inputStream, resp.getOutputStream, mediaType.charsetOrUTF8, rewrite)
+    if (mediaType.isDefined && condition(mediaType.get)) {
+      Util.copyText (inputStream, resp.getOutputStream, mediaType.get.charsetOrUTF8, rewrite)
     }
     else {
       Util.copyBytes (inputStream, resp.getOutputStream)

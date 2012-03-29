@@ -17,7 +17,7 @@
     <logger name="org" level="WARN"/>
 
     <!-- NB the root uber-level further restricts the logger and appender levels listed above -->
-    <root level="INFO">
+    <root level="ERROR">
         <appender-ref ref="FILE"/>
     </root>
 </configuration>

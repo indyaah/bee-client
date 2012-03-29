@@ -53,9 +53,11 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     when (httpURLConnection.getHeaderFieldKey (0)).thenReturn (null)
     var i = 1
     for ((k, v) <- map) {
-      when (httpURLConnection.getHeaderFieldKey (i)).thenReturn (k)
-      when (httpURLConnection.getHeaderField (i)).thenReturn (v)
-      i += 1
+      if (v != null) {
+        when (httpURLConnection.getHeaderFieldKey (i)).thenReturn (k)
+        when (httpURLConnection.getHeaderField (i)).thenReturn (v)
+        i += 1
+      }
     }
     when (httpURLConnection.getHeaderFieldKey (i)).thenReturn (null)
   }
@@ -93,10 +95,10 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
   }
 
 
-  def executeBasicSettingsWithoutBody(method: String, contentType: String) {
+  def executeBasicSettingsWithoutBody(method: String, contentType: String, status: Status = Status (200, "OK")) {
     val expectedContent = "hello world"
-    createMock (contentType, expectedContent, Status (200, "OK"))
-    expectHeaders (ListMap ("Content-Type" -> "text/plain"))
+    createMock (contentType, expectedContent, status)
+    expectHeaders (ListMap ("Content-Type" -> contentType))
 
     val http = newHttpClient ()
 
@@ -106,6 +108,7 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
       case "HEAD" => http.head (url, headers)
       case "TRACE" => http.trace (url, headers)
       case "DELETE" => http.delete (url, headers)
+      case "POST" => http.post (url, RequestBody(MediaType.TEXT_HTML), headers)
     }
 
     verifyConfig(Config())
@@ -132,9 +135,30 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
   }
 
 
+  // TODO
   ignore ("mock methods without a content type and without a body should confirm all interations") {
-    executeBasicSettingsWithoutBody("GET", null)
-    executeBasicSettingsWithoutBody("HEAD", null)
+    val expectedContent = "hello world"
+    createMock (null, expectedContent, Status (204, "No content"))
+    expectHeaders (ListMap ())
+
+    val http = newHttpClient ()
+
+    val headers = Headers (List (ACCEPT_LANGUAGE -> "en"))
+    val response = http.post (url, RequestBody(MediaType.TEXT_HTML), headers)
+
+    verifyConfig(Config())
+    verifyRequestSettings ("POST", List(HOST -> "server", ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8", ACCEPT_LANGUAGE -> "en"))
+    verify (httpURLConnection).getContentType
+    verify (httpURLConnection, times (3)).getResponseCode
+    verify (httpURLConnection).getResponseMessage
+    verify (httpURLConnection).getInputStream
+    verify (httpURLConnection).connect ()
+    verify (httpURLConnection).disconnect ()
+    verifyHeaders (0)
+    verifyNoMoreInteractions (httpURLConnection)
+
+    expect (TEXT_PLAIN)(response.body.contentType)
+    expect (expectedContent)(response.body.toString)
   }
 
 

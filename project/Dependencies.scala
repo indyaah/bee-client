@@ -39,7 +39,7 @@ object Dependencies {
   val slf4jApi         = "org.slf4j"          % "slf4j-api"         % slf4jVersion withSources()
   val slf4jJcl         = "org.slf4j"          % "jcl-over-slf4j"    % slf4jVersion withSources()
   val slf4jLog4j       = "org.slf4j"          % "log4j-over-slf4j"  % slf4jVersion withSources()
-  val slf4s            = "com.weiglewilczek.slf4s" %% "slf4s"       % "1.0.+"
+  val slf4s            = "com.weiglewilczek.slf4s" %% "slf4s"       % "1.0.+" withSources()
 
   val logbackCore      = "ch.qos.logback"     % "logback-core"      % logbackVersion % "test"
   val logbackClassic   = "ch.qos.logback"     % "logback-classic"   % logbackVersion % "test"

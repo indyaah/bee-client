@@ -1,3 +1,4 @@
+<?php
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -22,35 +23,5 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.http.response
-
-import uk.co.bigbeeconsultants.http.header.Headers
-import uk.co.bigbeeconsultants.http.request.Request
-import uk.co.bigbeeconsultants.http.header.MediaType
-import java.io.InputStream
-
-/**
- * Represents a HTTP response. This is essentially immutable, although the implementation of
- * the response body may vary.
- */
-case class Response(request: Request, status: Status, body: ResponseBody, headers: Headers)
-
-
-trait ResponseFactory {
-  def captureResponse(request: Request, status: Status, mediaType: Option[MediaType], headers: Headers, stream: InputStream)
-
-  def response: Option[Response] = None
-}
-
-
-private[http] class BufferedResponseFactory extends ResponseFactory { // with Logging {
-  private var _response: Response = _
-
-  def captureResponse(request: Request, status: Status, mediaType: Option[MediaType], headers: Headers, stream: InputStream) {
-    val body = new ByteBufferResponseBody(mediaType.getOrElse(MediaType.APPLICATION_OCTET_STREAM), stream)
-    _response = new Response (request, status, body, headers)
-    //logger.debug((_response.toString))
-  }
-
-  override def response = Some (_response)
-}
+header("Status: 204 No content");
+?>
