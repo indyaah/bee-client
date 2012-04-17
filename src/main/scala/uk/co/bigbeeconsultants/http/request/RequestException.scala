@@ -25,9 +25,10 @@
 package uk.co.bigbeeconsultants.http.request
 
 import uk.co.bigbeeconsultants.http.response.{Response, Status}
+import java.io.IOException
 
 
-class RequestException(val request: Request, val status: Status, val response: Option[Response], cause: Option[Exception])
+class RequestException(val request: Request, val status: Status, val response: Option[Response], val cause: Option[IOException])
   extends RuntimeException (cause orNull) {
 
   override def getMessage: String = {

@@ -114,7 +114,7 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     verifyConfig(Config())
     verifyRequestSettings (method, List(HOST -> "server", ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8", ACCEPT_LANGUAGE -> "en"))
     verify (httpURLConnection).getContentType
-    verify (httpURLConnection, times (3)).getResponseCode
+    verify (httpURLConnection, times (2)).getResponseCode
     verify (httpURLConnection).getResponseMessage
     verify (httpURLConnection).getInputStream
     verify (httpURLConnection).connect ()
@@ -182,7 +182,7 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     verifyRequestSettings (method, List(HOST -> "server", ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8", ACCEPT_LANGUAGE -> "en", CONTENT_TYPE -> "text/plain"))
     verify (httpURLConnection).setDoOutput (true)
     verify (httpURLConnection).getContentType
-    verify (httpURLConnection, times (3)).getResponseCode
+    verify (httpURLConnection, times (2)).getResponseCode
     verify (httpURLConnection).getResponseMessage
     verify (httpURLConnection).getInputStream
     verify (httpURLConnection).getOutputStream

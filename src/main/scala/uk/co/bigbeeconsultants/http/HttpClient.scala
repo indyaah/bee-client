@@ -25,16 +25,16 @@
 package uk.co.bigbeeconsultants.http
 
 import header.HeaderName._
-import header.{CookieJar, HeaderName, Headers, Header, MediaType}
+import header.{CookieJar, Headers, Header, MediaType}
 import response._
 import request.{Config, RequestException, RequestBody, Request}
 import java.io._
-import java.net.{URLConnection, URL, Proxy, HttpURLConnection}
 import collection.mutable.ListBuffer
 import Status._
 import java.util.zip.GZIPInputStream
 import com.weiglewilczek.slf4s.Logging
 import collection.immutable.List
+import java.net._
 
 /**
  * Constructs an instance for handling any number of HTTP requests.
@@ -108,9 +108,16 @@ class HttpClient(val config: Config = Config (),
 
   /**
    * Make an arbitrary request.
+   * @param request the request
+   * @param requestHeaders the optional request headers (use Nil if none are required)
+   * @param jar the optional cookie jar (use CookieJar.empty if none is required)
+   * @param responseFactory the response factory, e.g. new BufferedResponseFactory
+   * @throws RequestException if an IO exception occurred
+   * @return the response (for all outcomes including 4xx and 5xx status codes) if
+   *         no exception occurred
    */
   def execute(request: Request, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty, responseFactory: ResponseFactory) {
-    logger.debug(request.toString)
+    logger.debug (request.toString)
 
     val httpURLConnection = openConnection (request)
     httpURLConnection.setAllowUserInteraction (false)
@@ -128,11 +135,12 @@ class HttpClient(val config: Config = Config (),
 
       val status = Status (httpURLConnection.getResponseCode, httpURLConnection.getResponseMessage)
       handleContent (status, request, responseFactory, httpURLConnection)
-      if (httpURLConnection.getResponseCode >= 400) {
-        throw new RequestException (request, status, responseFactory.response, None)
-      }
 
     } catch {
+      case ce: ConnectException =>
+        val status = Status (S5_SERVICE_UNAVAILABLE, ce.getMessage)
+        throw new RequestException (request, status, None, Some (ce))
+
       case ioe: IOException =>
         val status = Status (S5_INTERNAL_ERROR, ioe.getMessage)
         throw new RequestException (request, status, None, Some (ioe))
@@ -166,28 +174,28 @@ class HttpClient(val config: Config = Config (),
 
     if (config.sendHostHeader) {
       httpURLConnection.setRequestProperty (HOST, request.url.getHost)
-      logger.debug((HOST -> request.url.getHost).toString)
+      logger.debug ((HOST -> request.url.getHost).toString)
     }
 
     if (request.body.isDefined) {
       httpURLConnection.setRequestProperty (CONTENT_TYPE, request.body.get.mediaType)
-      logger.debug((CONTENT_TYPE -> request.body.get.mediaType).toString)
+      logger.debug ((CONTENT_TYPE -> request.body.get.mediaType).toString)
     }
 
     for (hdr <- commonRequestHeaders.list) {
       httpURLConnection.setRequestProperty (hdr.name, hdr.value)
-      logger.debug(hdr.toString)
+      logger.debug (hdr.toString)
     }
 
     for (hdr <- requestHeaders.list) {
       httpURLConnection.setRequestProperty (hdr.name, hdr.value)
-      logger.debug(hdr.toString)
+      logger.debug (hdr.toString)
     }
 
     jar.filterForRequest (request.url) match {
       case Some (hdr) =>
         httpURLConnection.setRequestProperty (hdr.name, hdr.value)
-        logger.debug(hdr.toString)
+        logger.debug (hdr.toString)
       case _ =>
     }
 
@@ -200,7 +208,7 @@ class HttpClient(val config: Config = Config (),
     val responseHeaders = processResponseHeaders (httpURLConnection)
     val contEnc = responseHeaders.find (CONTENT_ENCODING)
     val contentType = httpURLConnection.getContentType
-    val mediaType = if (contentType != null) Some(MediaType (contentType)) else None
+    val mediaType = if (contentType != null) Some (MediaType (contentType)) else None
 
     if (request.method == Request.HEAD || status.category == 1 ||
       status.code == Status.S2_NO_CONTENT || status.code == Status.S3_NOT_MODIFIED) {
