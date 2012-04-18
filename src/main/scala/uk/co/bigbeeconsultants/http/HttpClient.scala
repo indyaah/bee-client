@@ -27,14 +27,12 @@ package uk.co.bigbeeconsultants.http
 import header.HeaderName._
 import header.{CookieJar, Headers, Header, MediaType}
 import response._
-import request.{Config, RequestException, RequestBody, Request}
-import java.io._
-import collection.mutable.ListBuffer
-import Status._
+import request.{Config, RequestBody, Request}
+import java.net._
 import java.util.zip.GZIPInputStream
 import com.weiglewilczek.slf4s.Logging
+import collection.mutable.ListBuffer
 import collection.immutable.List
-import java.net._
 
 /**
  * Constructs an instance for handling any number of HTTP requests.
@@ -112,7 +110,7 @@ class HttpClient(val config: Config = Config (),
    * @param requestHeaders the optional request headers (use Nil if none are required)
    * @param jar the optional cookie jar (use CookieJar.empty if none is required)
    * @param responseFactory the response factory, e.g. new BufferedResponseFactory
-   * @throws RequestException if an IO exception occurred
+   * @throws IOException (or ConnectException subclass) if an IO exception occurred
    * @return the response (for all outcomes including 4xx and 5xx status codes) if
    *         no exception occurred
    */
@@ -135,15 +133,6 @@ class HttpClient(val config: Config = Config (),
 
       val status = Status (httpURLConnection.getResponseCode, httpURLConnection.getResponseMessage)
       handleContent (status, request, responseFactory, httpURLConnection)
-
-    } catch {
-      case ce: ConnectException =>
-        val status = Status (S5_SERVICE_UNAVAILABLE, ce.getMessage)
-        throw new RequestException (request, status, None, Some (ce))
-
-      case ioe: IOException =>
-        val status = Status (S5_INTERNAL_ERROR, ioe.getMessage)
-        throw new RequestException (request, status, None, Some (ioe))
 
     } finally {
       markConnectionForClosure (httpURLConnection)
