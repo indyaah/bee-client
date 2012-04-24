@@ -16,6 +16,11 @@ making HTTP requests. It has the following features:
 *   Easy handling of headers - both for requests and responses; both with simple values and
     with complex structure.
 
+*   Easy handling of entity bodies along with the media type and character encoding. UTF-8 is used
+    as the default character encoding.
+
+*   Request entity bodies can be streamed in. Response entity bodies can be streamed out.
+
 *   Complete implementation: *all* HTTP methods and headers are supported.
 
 *   Standards-compliance is better than HttpURLConnection.

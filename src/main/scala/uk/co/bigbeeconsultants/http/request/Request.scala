@@ -67,4 +67,6 @@ object Request {
   def post(url: URL, body: RequestBody): Request = Request (POST, url, Some (body))
 
   def put(url: URL, body: RequestBody): Request = Request (PUT, url, Some (body))
+
+  implicit def toURL(url: String) = new URL(url)
 }
