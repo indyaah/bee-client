@@ -36,6 +36,11 @@ import java.io.InputStream
 case class Response(request: Request, status: Status, body: ResponseBody, headers: Headers)
 
 
+/**
+ * Defines how responses will be handled. The 'standard' implementation is BufferedResponseFactory,
+ * which returns responses buffered in byte arrays (and also strings).
+ * @see BufferedResponseFactory
+ */
 trait ResponseFactory {
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType], headers: Headers, stream: InputStream)
 
@@ -43,14 +48,20 @@ trait ResponseFactory {
 }
 
 
-private[http] class BufferedResponseFactory extends ResponseFactory { // with Logging {
-  private var _response: Response = _
+/**
+ * Provides a response factory implementation that returns responses buffered in byte
+ * arrays (and also strings), using ByteBufferResponseBody.
+ * @see ByteBufferResponseBody
+ */
+class BufferedResponseFactory extends ResponseFactory {
+  // with Logging {
+  private var _response: Option[Response] = None
 
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType], headers: Headers, stream: InputStream) {
-    val body = new ByteBufferResponseBody(mediaType.getOrElse(MediaType.APPLICATION_OCTET_STREAM), stream)
-    _response = new Response (request, status, body, headers)
-    //logger.debug((_response.toString))
+    val body = new ByteBufferResponseBody (mediaType.getOrElse (MediaType.APPLICATION_OCTET_STREAM), stream)
+    _response = Some (new Response (request, status, body, headers))
+    //    logger.debug((_response.get.toString))
   }
 
-  override def response = Some (_response)
+  override def response = _response
 }
