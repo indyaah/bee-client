@@ -41,7 +41,13 @@ import collection.immutable.ListMap
  * CookieJar holds cookies as key/value pairs. It also holds a list of deleted keys to
  * allow the server to mark cookies for deletion; this is used when jars are merged together.
  */
-case class CookieJar(cookies: ListMap[CookieKey, CookieValue] = ListMap (), deleted: Set[CookieKey] = Set ()) {
+case class CookieJar(cookies: ListMap[CookieKey, CookieValue], deleted: Set[CookieKey] = Set ()) {
+
+  lazy val cookieList: List[Cookie] = {
+    for ((key, value) <- cookies) yield {
+      new Cookie (key, value)
+    }
+  }.toList
 
   /**
    * Allows cookie jars to be merged together. As newJar is merged into this cookie jar, it trumps
@@ -95,8 +101,7 @@ case class CookieJar(cookies: ListMap[CookieKey, CookieValue] = ListMap (), dele
    */
   def filterForRequest(url: URL): Option[Header] = {
     val headers = new ListBuffer[String]
-    for ((key, value) <- cookies) {
-      val cookie = Cookie (key, value)
+    for (cookie <- cookieList) {
       if (cookie.willBeSentTo (url)) {
         headers += cookie.asHeader
       }
@@ -105,14 +110,16 @@ case class CookieJar(cookies: ListMap[CookieKey, CookieValue] = ListMap (), dele
   }
 
   /**
-   * Adds a cookie to this jar, returning a new CookieJar.
+   * Adds a cookie to this jar or alters the value of an existing cookie.
+   * @return a new cookie jar containing the merged cookies.
    */
   def + (key: CookieKey, value: CookieValue): CookieJar = {
     new CookieJar(cookies + (key -> value), deleted - key)
   }
 
   /**
-   * Adds a cookie to this jar, returning a new CookieJar.
+   * Adds a cookie to this jar or alters the value of an existing cookie.
+   * @return a new cookie jar containing the merged cookies.
    */
   def + (cookie: Cookie): CookieJar = {
     new CookieJar(cookies + (cookie.key -> cookie.value), deleted - cookie.key)
@@ -120,6 +127,7 @@ case class CookieJar(cookies: ListMap[CookieKey, CookieValue] = ListMap (), dele
 
   /**
    * Removes a cookie from this jar, returning a new CookieJar.
+   * @return a new cookie jar containing the reduced cookies.
    */
   def - (key: CookieKey): CookieJar = {
     new CookieJar(cookies - key, deleted - key)
@@ -129,10 +137,10 @@ case class CookieJar(cookies: ListMap[CookieKey, CookieValue] = ListMap (), dele
 
 object CookieJar {
   /**Constant empty cookie jar. */
-  val empty = new CookieJar ()
+  val empty = new CookieJar (ListMap())
 
   /**
    * Constructs a new cookie jar containing all the cookies (if any) that are received in the response.
    */
-  def harvestCookies(response: Response): CookieJar = new CookieJar ().updateCookies (response)
+  def harvestCookies(response: Response): CookieJar = empty.updateCookies (response)
 }

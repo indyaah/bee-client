@@ -252,7 +252,14 @@ class CookieJarTest extends FunSuite {
     expect (false)(expandedJar2.deleted.contains(cKey2))
     expect (false)(expandedJar2.deleted.contains(cKey3))
 
-    val reducedJar1 = expandedJar2 - cKey3
+    val alteredJar = expandedJar2 + Cookie(cKey3, cVal2)
+    expect ("a1")(alteredJar.cookies.get (cKey1).get.value)
+    expect ("b2")(alteredJar.cookies.get (cKey2).get.value)
+    expect ("b2")(alteredJar.cookies.get (cKey3).get.value)
+    expect (false)(alteredJar.deleted.contains(cKey2))
+    expect (false)(alteredJar.deleted.contains(cKey3))
+
+    val reducedJar1 = alteredJar - cKey3
     expect (false)(reducedJar1.cookies.contains(cKey3))
     expect (false)(reducedJar1.deleted.contains(cKey3))
     expect (true)(reducedJar1.deleted.contains(cKey4))

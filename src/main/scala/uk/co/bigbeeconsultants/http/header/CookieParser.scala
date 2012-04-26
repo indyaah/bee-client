@@ -32,14 +32,14 @@ package uk.co.bigbeeconsultants.http.header
 // - Uniform Resource Identifiers - http://tools.ietf.org/html/rfc2396
 // - IPv6 addresses - http://tools.ietf.org/html/rfc2732
 
-import uk.co.bigbeeconsultants.http.{HttpDateTimeInstant, Util}
 import java.net.URL
 import collection.mutable.{HashSet, LinkedHashMap}
 import collection.immutable.ListMap
+import uk.co.bigbeeconsultants.http.{Util, HttpDateTimeInstant}
 
 private[header] object CookieParser {
 
-  def parseOneCookie(line: String, scheme: String, host: String, requestPath: String, now: HttpDateTimeInstant): Option[Cookie] = {
+  private[header] def parseOneCookie(line: String, scheme: String, host: String, requestPath: String, now: HttpDateTimeInstant): Option[Cookie] = {
     var name: String = ""
     var value: String = ""
     var path: String = requestPath
