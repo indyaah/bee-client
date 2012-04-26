@@ -25,7 +25,7 @@
 package uk.co.bigbeeconsultants.http.header
 
 import java.util.regex.Pattern
-import java.net.URL
+import java.net.{InetAddress, URL}
 
 case class Domain(domain: String) {
 
@@ -68,4 +68,12 @@ object Domain {
   def apply(url: URL): Domain = new Domain (url.getHost)
 
   //private def extractDomainFrom(url: URL) = Util.divide(url.getAuthority, ':')._1
+
+  val localhost = {
+    new Domain(try {
+      InetAddress.getLocalHost.getHostName
+    } catch {
+      case e: Exception => "127.0.0.1"
+    })
+  }
 }

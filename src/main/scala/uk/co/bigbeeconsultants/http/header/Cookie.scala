@@ -35,13 +35,14 @@ package uk.co.bigbeeconsultants.http.header
 import java.net.URL
 import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 
-case class CookieKey(name: String, domain: Domain, path: String) {
+case class CookieKey(name: String, domain: Domain = Domain.localhost, path: String = "/") {
   require (name.length > 0)
   require (path.endsWith ("/"), path)
 }
 
 object CookieKey {
-  def apply(name: String, domain: String, path: String = "/") = new CookieKey (name, Domain (domain), path)
+  def apply(name: String, domain: String, path: String) = new CookieKey (name, Domain (domain), path)
+  def apply(name: String, domain: String) = new CookieKey (name, Domain (domain))
 }
 
 

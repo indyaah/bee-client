@@ -34,41 +34,46 @@ class DomainTest extends FunSuite {
   val httpsUrl1 = new URL ("https://www.w3.org/login/")
 
 
-  test ("domain_isIpAddress_withName") {
+  test ("domain isIpAddress with name") {
     val d = Domain ("alpha.bravo.charlie")
     expect (false)(d.isIpAddress)
   }
 
 
-  test ("domain_isIpAddress_withDottedQuad") {
+  test ("domain isIpAddress with dotted quad") {
     val d = Domain ("10.1.233.0")
     expect (true)(d.isIpAddress)
   }
 
 
-  test ("domain_matchesSame") {
+  test ("domain matches same") {
     val d = Domain ("www.w3.org")
     expect (true)(d.matches (new URL ("http://www.w3.org:80/standards/")))
   }
 
 
-  test ("domain_matchesParent") {
+  test ("domain matches parent") {
     val d = Domain ("w3.org")
     expect (true)(d.matches (httpUrl1))
   }
 
 
-  test ("longerDomainName_isRejected") {
+  test ("longer domain name is rejected") {
     val d = Domain ("members.w3.org")
     expect (false)(d.matches (httpUrl1))
   }
 
 
-  test ("domainParent") {
+  test ("domain parent") {
     val d = Domain ("www.members.w3.org")
     expect ("www.members.w3.org")(d.domain)
     expect ("members.w3.org")(d.parent.get.domain)
     expect ("w3.org")(d.parent.get.parent.get.domain)
     expect (false)(d.parent.get.parent.get.parent.isDefined)
+  }
+
+
+  test ("localhost") {
+    expect (true)(Domain.localhost.domain.length > 0)
   }
 }
