@@ -35,8 +35,13 @@ package uk.co.bigbeeconsultants.http.header
 import java.net.URL
 import uk.co.bigbeeconsultants.http.response.Response
 import collection.mutable.{HashSet, LinkedHashMap, ListBuffer}
+import collection.immutable.ListMap
 
-case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map (), deleted: Set[CookieKey] = Set ()) {
+/**
+ * CookieJar holds cookies as key/value pairs. It also holds a list of deleted keys to
+ * allow the server to mark cookies for deletion; this is used when jars are merged together.
+ */
+case class CookieJar(cookies: ListMap[CookieKey, CookieValue] = ListMap (), deleted: Set[CookieKey] = Set ()) {
 
   /**
    * Allows cookie jars to be merged together. As newJar is merged into this cookie jar, it trumps
@@ -60,7 +65,7 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map (), deleted: Set
       del.add (key)
     }
 
-    new CookieJar (jar.toMap, del.toSet)
+    new CookieJar (ListMap() ++ jar, del.toSet)
   }
 
   /**
@@ -97,6 +102,27 @@ case class CookieJar(cookies: Map[CookieKey, CookieValue] = Map (), deleted: Set
       }
     }
     if (headers.isEmpty) None else Some (HeaderName.COOKIE -> headers.mkString ("; "))
+  }
+
+  /**
+   * Adds a cookie to this jar, returning a new CookieJar.
+   */
+  def + (key: CookieKey, value: CookieValue): CookieJar = {
+    new CookieJar(cookies + (key -> value), deleted - key)
+  }
+
+  /**
+   * Adds a cookie to this jar, returning a new CookieJar.
+   */
+  def + (cookie: Cookie): CookieJar = {
+    new CookieJar(cookies + (cookie.key -> cookie.value), deleted - cookie.key)
+  }
+
+  /**
+   * Removes a cookie from this jar, returning a new CookieJar.
+   */
+  def - (key: CookieKey): CookieJar = {
+    new CookieJar(cookies - key, deleted - key)
   }
 }
 

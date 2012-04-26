@@ -35,6 +35,7 @@ package uk.co.bigbeeconsultants.http.header
 import uk.co.bigbeeconsultants.http.{HttpDateTimeInstant, Util}
 import java.net.URL
 import collection.mutable.{HashSet, LinkedHashMap}
+import collection.immutable.ListMap
 
 private[header] object CookieParser {
 
@@ -131,6 +132,6 @@ private[header] object CookieParser {
       }
     }
 
-    new CookieJar (jar.toMap, del.toSet)
+    new CookieJar (ListMap() ++ jar, del.toSet)
   }
 }
