@@ -26,11 +26,11 @@ package uk.co.bigbeeconsultants.http.header
 
 import uk.co.bigbeeconsultants.http.{HttpClient, Util}
 
-case class MediaType(`type`: String, subtype: String, charset: Option[String] = None) {
+case class MediaType(contentType: String, subtype: String, charset: Option[String] = None) {
 
   import MediaType._
 
-  def value = `type` + '/' + subtype
+  def value = contentType + '/' + subtype
 
   /**Gets this media type in the form used within QualifiedValue. */
   def toQualifiedPart = {
@@ -54,7 +54,7 @@ case class MediaType(`type`: String, subtype: String, charset: Option[String] = 
    * Checks if the primary type is a wildcard.
    * @return true if the primary type is a wildcard
    */
-  def isWildcardType = `type` == WILDCARD;
+  def isWildcardType = contentType == WILDCARD;
 
   /**
    * Checks if the subtype is a wildcard.
@@ -71,12 +71,12 @@ case class MediaType(`type`: String, subtype: String, charset: Option[String] = 
   def isCompatible(other: MediaType) = {
     if (other == null)
       false
-    else if (`type` == WILDCARD || other.`type` == WILDCARD)
+    else if (contentType == WILDCARD || other.contentType == WILDCARD)
       true
-    else if (`type`.equalsIgnoreCase(other.`type`) && (subtype == WILDCARD || other.subtype == WILDCARD))
+    else if (contentType.equalsIgnoreCase(other.contentType) && (subtype == WILDCARD || other.subtype == WILDCARD))
       true
     else
-      `type`.equalsIgnoreCase(other.`type`) && subtype.equalsIgnoreCase(other.subtype)
+      contentType.equalsIgnoreCase(other.contentType) && subtype.equalsIgnoreCase(other.subtype)
   }
 
   /**
@@ -84,11 +84,11 @@ case class MediaType(`type`: String, subtype: String, charset: Option[String] = 
    */
   def withCharset(newCharset: String) = {
     require(newCharset != null && newCharset.length() > 0)
-    new MediaType(`type`, subtype, Some(newCharset))
+    new MediaType(contentType, subtype, Some(newCharset))
   }
 
   def isTextual = {
-    `type` match {
+    contentType match {
       case "text" => true
       case "application" if (subtype == "json" || subtype == "xml" || subtype.endsWith("+xml")) => true
       case _ => false

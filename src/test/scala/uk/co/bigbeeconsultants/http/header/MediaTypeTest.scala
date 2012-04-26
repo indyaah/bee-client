@@ -42,7 +42,7 @@ class MediaTypeTest extends FunSuite {
   test ("parser") {
     val mt = MediaType ("text/html; charset=ISO-8859-1")
     expect ("text/html;charset=ISO-8859-1")(mt.toString)
-    expect ("text")(mt.`type`)
+    expect ("text")(mt.contentType)
     expect ("html")(mt.subtype)
     expect ("ISO-8859-1")(mt.charset.get)
   }
