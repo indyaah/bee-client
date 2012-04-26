@@ -41,7 +41,7 @@ import collection.immutable.ListMap
  * CookieJar holds cookies as key/value pairs. It also holds a list of deleted keys to
  * allow the server to mark cookies for deletion; this is used when jars are merged together.
  */
-case class CookieJar(cookies: ListMap[CookieKey, CookieValue], deleted: Set[CookieKey] = Set ()) {
+case class CookieJar(cookies: ListMap[CookieKey, CookieValue] = ListMap(), deleted: Set[CookieKey] = Set ()) {
 
   lazy val cookieList: List[Cookie] = {
     for ((key, value) <- cookies) yield {
@@ -137,7 +137,7 @@ case class CookieJar(cookies: ListMap[CookieKey, CookieValue], deleted: Set[Cook
 
 object CookieJar {
   /**Constant empty cookie jar. */
-  val empty = new CookieJar (ListMap())
+  val empty = new CookieJar ()
 
   /**
    * Constructs a new cookie jar containing all the cookies (if any) that are received in the response.
