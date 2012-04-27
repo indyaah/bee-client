@@ -43,7 +43,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
   import HttpClientTestUtils._
 
   val url = "/some/url"
-  val config = Config().copy(connectTimeout = 5000, readTimeout = 10000)
+  val config = Config(connectTimeout = 5000, readTimeout = 10000)
 
   private def convertHeaderList(headers: List[Header]): List[com.pyruby.stubserver.Header] = {
     headers.map {
@@ -283,7 +283,11 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 object HttpClientTestUtils {
 
   lazy val loadsOfText: String = {
-    val is = getClass.getClassLoader.getResourceAsStream ("test-lighthttpclient.php")
+    var is = getClass.getClassLoader.getResourceAsStream ("test-lighthttpclient.php")
+    if (is == null) {
+      is = new FileInputStream("./src/test/resources/test-lighthttpclient.php")
+    }
+    assert (is != null)
     try {
       val br = new BufferedReader (new InputStreamReader (new BufferedInputStream (is), "UTF-8"))
       val sb = new StringBuilder

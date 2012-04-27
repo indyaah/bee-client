@@ -279,7 +279,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   private def skipTestWarning(method: String, url: String, e: Exception) {
-    if (e.getCause.isInstanceOf[ConnectException]) {
+    if (e.isInstanceOf[ConnectException] || e.getCause.isInstanceOf[ConnectException]) {
       System.err.println ("***** Test skipped: " + method + " " + url + " : " + e.getMessage)
     }
     else {
