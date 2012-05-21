@@ -65,6 +65,14 @@ class UtilTest extends FunSuite {
     expect (("aa", "bb:cc"))(Util.divide ("aa:bb:cc", ':'))
   }
 
+  test ("copy no content") {
+    val baos = new ByteArrayOutputStream
+    val count = Util.copyBytes (null, baos)
+    val result = new String (baos.toByteArray)
+    expect (0)(count)
+    expect ("")(result)
+  }
+
   test ("copyBytesShort") {
     val str = "short string"
     val bytes = str.getBytes

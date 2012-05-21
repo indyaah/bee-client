@@ -4,7 +4,7 @@
 #
 # It is also necessary to set up PHP support in your webserver. This script does not do this for you.
 #
-# This is Linux only.
+# This is Linux only and has only been tested on Ubuntu.
 
 if [ "$UID" -ne 0 ]; then
     echo Must be root to run $0.
@@ -13,7 +13,10 @@ else
     cd $(dirname $0)
     TGT=$PWD
 
-    WEBSERVER=$(netstat -ltp | fgrep '*:www')
+    WEBSERVER=$(netstat -ltp | fgrep ' *:http ')
+    if [ -z "$WEBSERVER" ]; then
+        WEBSERVER=$(netstat -ltp | fgrep ' *:www ')
+    fi
 
     # Fallback - error case
     WWWDIR="/NO ROOT DEFINED"
