@@ -72,8 +72,10 @@ private[http] object Util {
   def copyToByteBufferAndClose(inputStream: InputStream): ByteBuffer = {
     val initialSize = 0x10000 // 64K
     val outStream = new ByteArrayOutputStream (initialSize)
-    copyBytes (inputStream, outStream)
-    inputStream.close ()
+    if (inputStream != null) {
+      copyBytes (inputStream, outStream)
+      inputStream.close ()
+    }
     ByteBuffer.wrap (outStream.toByteArray)
   }
 

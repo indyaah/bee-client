@@ -24,22 +24,32 @@
 
 package uk.co.bigbeeconsultants.http.response
 
-import uk.co.bigbeeconsultants.http.header.MediaType
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
-import uk.co.bigbeeconsultants.http.HttpClient
+import uk.co.bigbeeconsultants.http.header.MediaType
 import java.io.ByteArrayInputStream
 
-class ResponseBodyTest extends FunSuite with ShouldMatchers {
 
-  test("StringResponseBody with json body") {
+class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
+
+  test("ByteBufferResponseBody with json body") {
     val s = """[ "Some json message text" ]"""
-    val bytes = s.getBytes(HttpClient.UTF8)
     val mt = MediaType.APPLICATION_JSON
-    val body = new StringResponseBody(mt, s)
+    val bytes = s.getBytes("UTF-8")
+    val bais = new ByteArrayInputStream(bytes)
+    val body = new ByteBufferResponseBody(mt, bais)
 
     body.contentType should be(mt)
     body.asBytes should be(bytes)
     body.toString should be(s)
+  }
+
+  test("ByteBufferResponseBody without a body") {
+    val mt = MediaType.APPLICATION_JSON
+    val body = new ByteBufferResponseBody(mt, null)
+
+    body.contentType should be(mt)
+    body.asBytes should be(new Array[Byte](0))
+    body.toString should be("")
   }
 }
