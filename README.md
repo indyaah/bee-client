@@ -11,19 +11,19 @@ making HTTP requests. It has the following features:
 
 *   Fast performance and low memory footprint.
 
-*   Flexible and efficient handling of content (entity) bodies.
-
 *   Easy handling of headers - both for requests and responses; both with simple values and
     with complex structure.
 
-*   Easy handling of entity bodies along with the media type and character encoding. UTF-8 is used
-    as the default character encoding.
+*   Flexible and efficient handling of content (entity) bodies, along with the media type and
+    character encoding. UTF-8 is used as the default character encoding.
 
 *   Request entity bodies can be streamed in. Response entity bodies can be streamed out.
 
 *   Complete implementation: *all* HTTP methods and headers are supported.
 
 *   Standards-compliance is better than HttpURLConnection.
+
+*   HTTPS is supported - _as yet untested but based upon javax.net.ssl.HttpsURLConnection_
 
 *   Cookies are supported. They are held in immutable cookie jars gleaned from response headers
     (or created programmatically) and then sent back with subsequent requests.
@@ -34,7 +34,7 @@ making HTTP requests. It has the following features:
 
 *   No 'static' variables are used, so multiple configurations can co-exist within a JVM.
 
-*   Tested against a range of servers: Apache2, Nginx, Lighttpd, Cherokee.
+*   Tested against a range of servers: Apache2, Nginx, Lighttpd, Cherokee, Tomcat7.
 
 *   The number of external dependencies is minimised (currently: jcsp, slf4j, slf4s).
 
@@ -43,7 +43,7 @@ It is written in Scala but may be called (a lot less easily) from Java also.
 Known Bugs
 ----------
 
-*   (none)
+*   See the [issue tracker](https://bitbucket.org/rickb777/lighthttpclient/issues?status=new&status=open "BitBucket IssueTracker for LightHttpClient")
 
 Future Plans
 ------------
@@ -56,8 +56,6 @@ for future versions.
 *   HTTP/1.1 chunked encoding.
 
 *   Configurable content caching.
-
-*   HTTPS support.
 
 *   Proxy support enhanced to support conditional switching.
 

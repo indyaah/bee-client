@@ -145,8 +145,6 @@ class HttpClient(val config: Config = Config (),
   private def copyRequestBodyToOutputStream(request: Request, httpURLConnection: HttpURLConnection) {
     if (request.body.isDefined) {
       request.body.get.copyTo (httpURLConnection.getOutputStream)
-    } else {
-      require (request.method != Request.POST && request.method != Request.PUT, "An entity body is required when making a POST/PUT request.")
     }
   }
 
