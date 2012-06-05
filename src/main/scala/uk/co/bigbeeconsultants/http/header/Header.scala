@@ -24,7 +24,8 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import uk.co.bigbeeconsultants.http.{HttpDateTimeInstant, Util}
+import uk.co.bigbeeconsultants.http.util.HttpUtil
+import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 
 /**
  * Provides an HTTP header.
@@ -53,7 +54,7 @@ object Header {
   def apply(tuple: (String, String)): Header = new Header(tuple._1, tuple._2)
 
   def apply(raw: String): Header = {
-    val t = Util.divide (raw, ':')
+    val t = HttpUtil.divide (raw, ':')
     apply (t._1.trim, t._2.trim)
   }
 }

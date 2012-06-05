@@ -67,7 +67,7 @@ case class Domain(domain: String) {
 object Domain {
   def apply(url: URL): Domain = new Domain (url.getHost)
 
-  //private def extractDomainFrom(url: URL) = Util.divide(url.getAuthority, ':')._1
+  //private def extractDomainFrom(url: URL) = HttpUtil$.divide(url.getAuthority, ':')._1
 
   val localhost = {
     new Domain(try {

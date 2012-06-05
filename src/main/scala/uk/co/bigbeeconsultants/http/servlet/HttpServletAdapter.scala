@@ -28,7 +28,7 @@ import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import uk.co.bigbeeconsultants.http.header.{MediaType, Header, Headers}
 import java.io.InputStream
 import uk.co.bigbeeconsultants.http.response.{Status, ResponseFactory}
-import uk.co.bigbeeconsultants.http.Util
+import uk.co.bigbeeconsultants.http.util.HttpUtil
 import uk.co.bigbeeconsultants.http.request.{SplitURL, Request, RequestBody}
 
 /**
@@ -86,10 +86,10 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
     }
 
     if (mediaType.isDefined && condition(mediaType.get)) {
-      Util.copyText (inputStream, resp.getOutputStream, mediaType.get.charsetOrUTF8, rewrite)
+      HttpUtil.copyText (inputStream, resp.getOutputStream, mediaType.get.charsetOrUTF8, rewrite)
     }
     else {
-      Util.copyBytes (inputStream, resp.getOutputStream)
+      HttpUtil.copyBytes (inputStream, resp.getOutputStream)
     }
 
     inputStream.close ()

@@ -35,7 +35,8 @@ package uk.co.bigbeeconsultants.http.header
 import java.net.URL
 import collection.mutable.{HashSet, LinkedHashMap}
 import collection.immutable.ListMap
-import uk.co.bigbeeconsultants.http.{Util, HttpDateTimeInstant}
+import uk.co.bigbeeconsultants.http.util.HttpUtil
+import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 
 private[header] object CookieParser {
 
@@ -51,9 +52,9 @@ private[header] object CookieParser {
     var httpOnly = false
     var hasMaxAge = false
 
-    for (attr <- Util.split (line, ';')) {
+    for (attr <- HttpUtil.split (line, ';')) {
 
-      val t = Util.divide (attr, '=')
+      val t = HttpUtil.divide (attr, '=')
       val a = t._1.trim
       val v = t._2.trim
 
@@ -117,7 +118,7 @@ private[header] object CookieParser {
     del ++= previous.deleted
 
     for (header <- setcookies) {
-      for (line <- Util.split (header.value, '\n')) {
+      for (line <- HttpUtil.split (header.value, '\n')) {
         val optCookie = parseOneCookie (line, from.getProtocol, from.getHost, path, now)
         if (optCookie.isDefined) {
           val cookie = optCookie.get

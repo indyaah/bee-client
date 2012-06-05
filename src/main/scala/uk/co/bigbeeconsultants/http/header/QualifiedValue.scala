@@ -24,7 +24,7 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import uk.co.bigbeeconsultants.http.Util
+import uk.co.bigbeeconsultants.http.util.HttpUtil
 
 /**
  * Specifies a key/value pair used as one of (potentially many) parameters attached to a compound header value.
@@ -37,7 +37,7 @@ case class Qualifier(label: String, value: String) {
 
 object Qualifier {
   def apply(str: String) = {
-    val t = Util.divide (str, '=')
+    val t = HttpUtil.divide (str, '=')
     new Qualifier (t._1, t._2)
   }
 }
@@ -51,7 +51,7 @@ case class QualifiedPart(value: String, qualifier: List[Qualifier] = Nil) {
 
 object QualifiedPart {
   def parse(str: String) = {
-    val t = Util.split (str.trim, ';')
+    val t = HttpUtil.split (str.trim, ';')
     val qualifiers = t.tail.map {
       q => Qualifier (q.trim)
     }
@@ -67,7 +67,7 @@ object QualifiedPart {
 case class QualifiedValue(value: String) {
 
   val parts: List[QualifiedPart] = {
-    Util.split (value, ',').map {
+    HttpUtil.split (value, ',').map {
       v: String => QualifiedPart.parse (v)
     }.toList
   }

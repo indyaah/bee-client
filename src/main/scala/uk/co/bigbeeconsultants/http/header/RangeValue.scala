@@ -24,7 +24,7 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import uk.co.bigbeeconsultants.http.Util
+import uk.co.bigbeeconsultants.http.util.HttpUtil
 import java.util.regex.Pattern
 
 case class Range(first: Option[Int], last: Option[Int]) {
@@ -66,7 +66,7 @@ case class Range(first: Option[Int], last: Option[Int]) {
 
 object Range {
   def apply(str: String) = {
-    val t = Util.divide (str, '-')
+    val t = HttpUtil.divide (str, '-')
     new Range (toOptInt (t._1), toOptInt (t._2))
   }
 
@@ -113,7 +113,7 @@ object RangePart {
 case class RangeValue(value: String) {
 
   val parts: List[RangePart] =
-    Util.split (value, ',').map {
+    HttpUtil.split (value, ',').map {
       v: String => RangePart.parse (v)
     }.toList
 

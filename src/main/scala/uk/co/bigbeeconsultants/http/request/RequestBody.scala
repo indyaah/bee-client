@@ -28,6 +28,7 @@ import java.net.URLEncoder
 import uk.co.bigbeeconsultants.http._
 import header.MediaType
 import java.io.{InputStream, OutputStreamWriter, OutputStream}
+import util.HttpUtil
 
 /**
  * Carries body data on a request. The body data is supplied by a closure using the
@@ -79,7 +80,7 @@ object RequestBody {
    */
   def apply(mediaType: MediaType, inputStream: InputStream): RequestBody = {
     new RequestBody (mediaType, (outputStream) => {
-      Util.copyBytes (inputStream, outputStream)
+      HttpUtil.copyBytes (inputStream, outputStream)
     })
   }
 

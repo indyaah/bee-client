@@ -24,7 +24,8 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import uk.co.bigbeeconsultants.http.{HttpClient, Util}
+import uk.co.bigbeeconsultants.http.util.HttpUtil
+import uk.co.bigbeeconsultants.http.HttpClient
 
 case class MediaType(contentType: String, subtype: String, charset: Option[String] = None) {
 
@@ -124,7 +125,7 @@ object MediaType {
       val q = qp.qualifier(0)
       if (q.label == "charset") Some(q.value) else None
     }
-    val t2 = Util.divide(qp.value, '/')
+    val t2 = HttpUtil.divide(qp.value, '/')
     new MediaType(orWildcard(t2._1), orWildcard(t2._2), qualifier)
   }
 

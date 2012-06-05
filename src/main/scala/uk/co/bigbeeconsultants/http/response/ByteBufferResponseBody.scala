@@ -28,7 +28,8 @@ import uk.co.bigbeeconsultants.http.header.MediaType
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.io.InputStream
-import uk.co.bigbeeconsultants.http.{Util, HttpClient}
+import uk.co.bigbeeconsultants.http.util.HttpUtil
+import uk.co.bigbeeconsultants.http.HttpClient
 
 /**
  * Provides a body implementation that copies the whole response from the response input stream into a ByteBuffer.
@@ -38,7 +39,7 @@ import uk.co.bigbeeconsultants.http.{Util, HttpClient}
  */
 final class ByteBufferResponseBody(val contentType: MediaType, inputStream: InputStream) extends ResponseBody {
 
-  private[this] val byteData: ByteBuffer = Util.copyToByteBufferAndClose(inputStream)
+  private[this] val byteData: ByteBuffer = HttpUtil.copyToByteBufferAndClose(inputStream)
 
   private[this] var converted: String = null
 
