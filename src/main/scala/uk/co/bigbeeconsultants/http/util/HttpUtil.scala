@@ -22,13 +22,14 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.http
+package uk.co.bigbeeconsultants.http.util
 
 import collection.mutable.ListBuffer
 import java.nio.ByteBuffer
 import java.io._
+import uk.co.bigbeeconsultants.http.HttpClient
 
-private[http] object Util {
+object HttpUtil {
   // Dates are always in GMT. The canonical representation is rfc1123DateTimeFormat.
   // leading "EEE, " assumed to have been stripped; trailing "GMT" ignored
   val rfc1123DateTimeFormat = "dd MMM yyyy HH:mm:ss"
@@ -44,21 +45,21 @@ private[http] object Util {
     val part = new StringBuilder
     for (c <- str.toCharArray) {
       if (c == sep) {
-        list += part.toString ()
-        part.setLength (0)
+        list += part.toString()
+        part.setLength(0)
       } else {
         part += c
       }
     }
-    list += part.toString ()
+    list += part.toString()
     list.toList
   }
 
   def divide(str: String, sep: Char) = {
-    val s = str.indexOf (sep)
+    val s = str.indexOf(sep)
     if (s >= 0 && s < str.length) {
-      val a = str.substring (0, s)
-      val b = str.substring (s + 1)
+      val a = str.substring(0, s)
+      val b = str.substring(s + 1)
       (a, b)
     }
     else (str, "")
@@ -71,12 +72,12 @@ private[http] object Util {
    */
   def copyToByteBufferAndClose(inputStream: InputStream): ByteBuffer = {
     val initialSize = 0x10000 // 64K
-    val outStream = new ByteArrayOutputStream (initialSize)
+    val outStream = new ByteArrayOutputStream(initialSize)
     if (inputStream != null) {
-      copyBytes (inputStream, outStream)
-      inputStream.close ()
+      copyBytes(inputStream, outStream)
+      inputStream.close()
     }
-    ByteBuffer.wrap (outStream.toByteArray)
+    ByteBuffer.wrap(outStream.toByteArray)
   }
 
   /**
@@ -89,11 +90,11 @@ private[http] object Util {
     val buffer: Array[Byte] = new Array[Byte](DEFAULT_BUFFER_SIZE)
     var count: Long = 0
     if (input != null) {
-      var n = input.read (buffer)
+      var n = input.read(buffer)
       while (n >= 0) {
-        output.write (buffer, 0, n)
+        output.write(buffer, 0, n)
         count += n
-        n = input.read (buffer)
+        n = input.read(buffer)
       }
     }
     count
@@ -110,13 +111,13 @@ private[http] object Util {
    */
   def copyText(input: InputStream, output: OutputStream, charset: String = HttpClient.UTF8,
                alter: (String) => String = (x) => x) {
-    val in = new BufferedReader (new InputStreamReader (input, charset))
-    val out = new PrintWriter (new OutputStreamWriter (output, charset))
+    val in = new BufferedReader(new InputStreamReader(input, charset))
+    val out = new PrintWriter(new OutputStreamWriter(output, charset))
     var line = in.readLine
     while (line != null) {
-      out.println (alter (line))
+      out.println(alter(line))
       line = in.readLine
     }
-    out.flush ()
+    out.flush()
   }
 }
