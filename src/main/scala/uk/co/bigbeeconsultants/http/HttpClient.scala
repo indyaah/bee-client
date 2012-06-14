@@ -33,6 +33,7 @@ import java.util.zip.GZIPInputStream
 import com.weiglewilczek.slf4s.Logging
 import collection.mutable.ListBuffer
 import collection.immutable.List
+import java.io.IOException
 
 /**
  * Constructs an instance for handling any number of HTTP requests.
@@ -44,6 +45,7 @@ class HttpClient(val config: Config = Config (),
   /**
    * Make a HEAD request.
    */
+  @throws(classOf[IOException])
   def head(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
     val responseFactory = new BufferedResponseFactory
     execute (Request.head (url), requestHeaders, jar, responseFactory)
@@ -53,6 +55,7 @@ class HttpClient(val config: Config = Config (),
   /**
    * Make a TRACE request.
    */
+  @throws(classOf[IOException])
   def trace(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
     val responseFactory = new BufferedResponseFactory
     execute (Request.trace (url), requestHeaders, jar, responseFactory)
@@ -62,6 +65,7 @@ class HttpClient(val config: Config = Config (),
   /**
    * Make a GET request.
    */
+  @throws(classOf[IOException])
   def get(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
     val responseFactory = new BufferedResponseFactory
     execute (Request.get (url), requestHeaders, jar, responseFactory)
@@ -71,6 +75,7 @@ class HttpClient(val config: Config = Config (),
   /**
    * Make a DELETE request.
    */
+  @throws(classOf[IOException])
   def delete(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
     val responseFactory = new BufferedResponseFactory
     execute (Request.delete (url), requestHeaders, jar, responseFactory)
@@ -80,6 +85,7 @@ class HttpClient(val config: Config = Config (),
   /**
    * Make an OPTIONS request.
    */
+  @throws(classOf[IOException])
   def options(url: URL, body: Option[RequestBody], requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
     val responseFactory = new BufferedResponseFactory
     execute (Request.options (url, body), requestHeaders, jar, responseFactory)
@@ -89,6 +95,7 @@ class HttpClient(val config: Config = Config (),
   /**
    * Make a POST request.
    */
+  @throws(classOf[IOException])
   def post(url: URL, body: RequestBody, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
     val responseFactory = new BufferedResponseFactory
     execute (Request.post (url, body), requestHeaders, jar, responseFactory)
@@ -98,6 +105,7 @@ class HttpClient(val config: Config = Config (),
   /**
    * Make a PUT request.
    */
+  @throws(classOf[IOException])
   def put(url: URL, body: RequestBody, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
     val responseFactory = new BufferedResponseFactory
     execute (Request.put (url, body), requestHeaders, jar, responseFactory)
@@ -114,6 +122,7 @@ class HttpClient(val config: Config = Config (),
    * @return the response (for all outcomes including 4xx and 5xx status codes) if
    *         no exception occurred
    */
+  @throws(classOf[IOException])
   def execute(request: Request, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty, responseFactory: ResponseFactory) {
     logger.debug (request.toString)
 
@@ -140,6 +149,7 @@ class HttpClient(val config: Config = Config (),
   }
 
   /**Provides a seam for testing. Not for normal use. */
+  @throws(classOf[IOException])
   protected def openConnection(request: Request) = request.url.openConnection (proxy).asInstanceOf[HttpURLConnection]
 
   private def copyRequestBodyToOutputStream(request: Request, httpURLConnection: HttpURLConnection) {

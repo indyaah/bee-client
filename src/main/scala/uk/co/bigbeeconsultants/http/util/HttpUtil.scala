@@ -70,6 +70,7 @@ object HttpUtil {
    * @param inputStream the input stream
    * @return the new byte buffer
    */
+  @throws(classOf[IOException])
   def copyToByteBufferAndClose(inputStream: InputStream): ByteBuffer = {
     val initialSize = 0x10000 // 64K
     val outStream = new ByteArrayOutputStream(initialSize)
@@ -86,6 +87,7 @@ object HttpUtil {
    * @param output the output stream
    * @return the number of bytes copied
    */
+  @throws(classOf[IOException])
   def copyBytes(input: InputStream, output: OutputStream): Long = {
     val buffer: Array[Byte] = new Array[Byte](DEFAULT_BUFFER_SIZE)
     var count: Long = 0
@@ -109,6 +111,7 @@ object HttpUtil {
    * @param alter an optional function for changing each line of text before writing it out. This is applied
    *              line by line.
    */
+  @throws(classOf[IOException])
   def copyText(input: InputStream, output: OutputStream, charset: String = HttpClient.UTF8,
                alter: (String) => String = (x) => x) {
     val in = new BufferedReader(new InputStreamReader(input, charset))
