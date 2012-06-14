@@ -27,59 +27,54 @@ package uk.co.bigbeeconsultants.http.servlet
 import org.scalatest.FunSuite
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.header.{MediaType, Headers}
-import uk.co.bigbeeconsultants.http.util.StubHttpServletRequest
 import java.{util => ju}
 import uk.co.bigbeeconsultants.http.request.SplitURL
+import org.mockito.Mockito._
+import javax.servlet.http.HttpServletResponse
+import uk.co.bigbeeconsultants.http.util.StubHttpServletRequest
 
 class HttpServletAdapterTest extends FunSuite {
 
-  private def putAll(headers: Headers, map: ju.HashMap[String, ju.List[String]]) {
-    for (h <- headers.list) {
-      var list = map.get(h.name)
-      if (list == null) {
-        list = new ju.ArrayList()
-        map.put(h.name, list)
-      }
-      list.add(h.value)
-    }
-  }
+  test("HttpServletRequestAdapter.url") {
 
-  test("url") {
-    val req = new StubHttpServletRequest
-    req.contentType = MediaType.TEXT_PLAIN.value
     val splitUrl = SplitURL("http", "localhost", -1, "/context/x/y/z", null, "a=1")
-
-    val adapter = new HttpServletRequestAdapter (req)
-    expect(splitUrl) (adapter.url)
-  }
-
-  test("requestBody") {
-    val headers = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT_LANGUAGE -> "en", CONTENT_TYPE -> "text/plain"))
-    val req = new StubHttpServletRequest
+    val req = new StubHttpServletRequest().copyFrom(splitUrl)
     req.contentType = MediaType.TEXT_PLAIN.value
-    putAll(headers, req.headers)
 
-    val adapter = new HttpServletRequestAdapter (req)
-
-    expect(headers) (adapter.headers)
-    expect(MediaType.TEXT_PLAIN) (adapter.requestBody.mediaType)
+    val adapter = new HttpServletRequestAdapter(req)
+    expect(splitUrl)(adapter.url)
   }
 
+  test("HttpServletRequestAdapter.requestBody") {
+    val headers = Headers(List(HOST -> "localhost", ACCEPT -> "foo", ACCEPT_LANGUAGE -> "en", CONTENT_TYPE -> "text/plain"))
+    val req = new StubHttpServletRequest().copyFrom(headers)
+    req.contentType = MediaType.TEXT_PLAIN.value
 
-//  test("CopyStreamResponseBody") {
-//    val s = """So shaken as we are, so wan with care!"""
-//    val baos = new ByteArrayOutputStream
-//    val inputStream = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
-//    val mt = MediaType.TEXT_PLAIN
-//    val body = new CopyStreamResponseBody(baos, mt, inputStream)
-//
-//    body.contentType should be(mt)
-//    val result = new String(baos.toByteArray, HttpClient.UTF8)
-//    result should be (s)
-//  }
+    val adapter = new HttpServletRequestAdapter(req)
+
+    expect(headers)(adapter.headers)
+    expect(MediaType.TEXT_PLAIN)(adapter.requestBody.mediaType)
+  }
+
+  test("HttpServletResponseAdapter") {
+    val res = mock(classOf[HttpServletResponse])
+
+  }
+
+  //  test("CopyStreamResponseBody") {
+  //    val s = """So shaken as we are, so wan with care!"""
+  //    val baos = new ByteArrayOutputStream
+  //    val inputStream = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
+  //    val mt = MediaType.TEXT_PLAIN
+  //    val body = new CopyStreamResponseBody(baos, mt, inputStream)
+  //
+  //    body.contentType should be(mt)
+  //    val result = new String(baos.toByteArray, HttpClient.UTF8)
+  //    result should be (s)
+  //  }
 
 
-  test ("convertRequestHeaders") {
+  test("convertRequestHeaders") {
 
   }
 

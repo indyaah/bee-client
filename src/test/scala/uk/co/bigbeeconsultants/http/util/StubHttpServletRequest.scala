@@ -27,7 +27,14 @@ package uk.co.bigbeeconsultants.http.util
 import javax.servlet.http.HttpServletRequest
 import java.{util => ju}
 import java.util.Locale
+import uk.co.bigbeeconsultants.http.request.SplitURL
+import uk.co.bigbeeconsultants.http.header.Headers
 
+/**
+ * Provides a testing implementation of HttpServletRequest that doesn't suffer from the pre-Java-generics
+ * type-conversion problems that plague Mockito in Scala. Typically, java.util.Enumeration cannot be
+ * created in a way that satisfies the Scala compiler
+ */
 class StubHttpServletRequest extends HttpServletRequest {
   var authType = ""
   var characterEncoding = ""
@@ -59,9 +66,9 @@ class StubHttpServletRequest extends HttpServletRequest {
   val parameters = new ju.LinkedHashMap[String, String]
   val headers = new ju.LinkedHashMap[String, ju.List[String]]
 
-  def getAttribute(p1: String) = attributes.get (p1)
+  def getAttribute(p1: String) = attributes.get(p1)
 
-  def getAttributeNames = ju.Collections.enumeration (attributes.keySet ())
+  def getAttributeNames = ju.Collections.enumeration(attributes.keySet())
 
   def getCharacterEncoding = characterEncoding
 
@@ -75,9 +82,9 @@ class StubHttpServletRequest extends HttpServletRequest {
 
   def getInputStream = null
 
-  def getParameter(key: String) = parameters.get (key)
+  def getParameter(key: String) = parameters.get(key)
 
-  def getParameterNames = ju.Collections.enumeration (parameters.keySet ())
+  def getParameterNames = ju.Collections.enumeration(parameters.keySet())
 
   def getParameterValues(p1: String) = null
 
@@ -98,11 +105,11 @@ class StubHttpServletRequest extends HttpServletRequest {
   def getRemoteHost = remoteHost
 
   def setAttribute(key: String, value: AnyRef) {
-    attributes.put (key, value)
+    attributes.put(key, value)
   }
 
   def removeAttribute(key: String) {
-    attributes.remove (key)
+    attributes.remove(key)
   }
 
   def getLocale = locale
@@ -131,9 +138,9 @@ class StubHttpServletRequest extends HttpServletRequest {
 
   def getHeader(key: String) = headers.get(key).get(0)
 
-  def getHeaders(key: String) = ju.Collections.enumeration (headers.get(key))
+  def getHeaders(key: String) = ju.Collections.enumeration(headers.get(key))
 
-  def getHeaderNames = ju.Collections.enumeration (headers.keySet ())
+  def getHeaderNames = ju.Collections.enumeration(headers.keySet())
 
   def getIntHeader(p1: String) = 0
 
@@ -172,4 +179,25 @@ class StubHttpServletRequest extends HttpServletRequest {
   def isRequestedSessionIdFromURL = false
 
   def isRequestedSessionIdFromUrl = false
+
+  def copyFrom(url: SplitURL) = {
+    scheme = url.scheme
+    serverName = url.host
+    serverPort = url.port.getOrElse(-1)
+    requestURI = url.path
+    queryString = url.query.getOrElse("")
+    this
+  }
+
+  def copyFrom(hdrs: Headers) = {
+    for (h <- hdrs.list) {
+      var list = headers.get(h.name)
+      if (list == null) {
+        list = new ju.ArrayList()
+        headers.put(h.name, list)
+      }
+      list.add(h.value)
+    }
+    this
+  }
 }

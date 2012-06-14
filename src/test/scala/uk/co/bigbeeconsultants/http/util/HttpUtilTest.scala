@@ -108,4 +108,20 @@ class HttpUtilTest extends FunSuite {
     val result = new String(baos.toByteArray)
     expect(str)(result)
   }
+
+  test("copyText with null input stream") {
+    val baos = new ByteArrayOutputStream
+    HttpUtil.copyText(null, baos)
+    val result = new String(baos.toByteArray)
+    expect("")(result)
+  }
+
+  test("copyText with null output stream") {
+    val sb = new StringBuilder
+    for (i <- 1 to 5) sb.append(i + " this is my string of text which will be repeated many times.\n")
+    val str = sb.toString()
+    val bytes = str.getBytes
+    val bais = new ByteArrayInputStream(bytes)
+    HttpUtil.copyText(bais, null)
+  }
 }

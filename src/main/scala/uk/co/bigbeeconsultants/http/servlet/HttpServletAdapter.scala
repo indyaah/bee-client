@@ -43,16 +43,16 @@ class HttpServletRequestAdapter(req: HttpServletRequest) {
 
   def headers: Headers = {
     import scala.collection.JavaConversions.enumerationAsScalaIterator
-    new Headers (enumerationAsScalaIterator (req.getHeaderNames).map {
+    new Headers(enumerationAsScalaIterator(req.getHeaderNames).map {
       headerName: Any =>
-        new Header (headerName.toString, req.getHeader (headerName.toString))
+        new Header(headerName.toString, req.getHeader(headerName.toString))
     }.toList)
   }
 
   def requestBody: RequestBody = {
     val contentType = req.getContentType
-    val mediaType = if (contentType != null) MediaType (contentType) else MediaType.TEXT_PLAIN
-    RequestBody (mediaType, req.getInputStream)
+    val mediaType = if (contentType != null) MediaType(contentType) else MediaType.TEXT_PLAIN
+    RequestBody(mediaType, req.getInputStream)
   }
 }
 
@@ -74,26 +74,29 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
   private[this] var _headers: Headers = _
 
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType], headers: Headers, inputStream: InputStream) {
-    _request = request
-    _status = status
-    _mediaType = mediaType
-    _headers = headers
+    try {
+      _request = request
+      _status = status
+      _mediaType = mediaType
+      _headers = headers
 
-    resp.setStatus (status.code, status.message)
+      resp.setStatus(status.code, status.message)
 
-    for (header <- headers.list) {
-      resp.setHeader (header.name, header.value)
+      for (header <- headers.list) {
+        resp.setHeader(header.name, header.value)
+      }
+
+      if (mediaType.isDefined && condition(mediaType.get)) {
+        HttpUtil.copyText(inputStream, resp.getOutputStream, mediaType.get.charsetOrUTF8, rewrite)
+      }
+      else {
+        HttpUtil.copyBytes(inputStream, resp.getOutputStream)
+      }
+
+    } finally {
+      if (inputStream != null) inputStream.close()
+      resp.getOutputStream.close()
     }
-
-    if (mediaType.isDefined && condition(mediaType.get)) {
-      HttpUtil.copyText (inputStream, resp.getOutputStream, mediaType.get.charsetOrUTF8, rewrite)
-    }
-    else {
-      HttpUtil.copyBytes (inputStream, resp.getOutputStream)
-    }
-
-    inputStream.close ()
-    resp.getOutputStream.close()
   }
 
   def request = _request

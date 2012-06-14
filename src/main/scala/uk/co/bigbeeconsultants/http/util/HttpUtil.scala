@@ -45,21 +45,21 @@ object HttpUtil {
     val part = new StringBuilder
     for (c <- str.toCharArray) {
       if (c == sep) {
-        list += part.toString()
-        part.setLength(0)
+        list += part.toString ()
+        part.setLength (0)
       } else {
         part += c
       }
     }
-    list += part.toString()
+    list += part.toString ()
     list.toList
   }
 
   def divide(str: String, sep: Char) = {
-    val s = str.indexOf(sep)
+    val s = str.indexOf (sep)
     if (s >= 0 && s < str.length) {
-      val a = str.substring(0, s)
-      val b = str.substring(s + 1)
+      val a = str.substring (0, s)
+      val b = str.substring (s + 1)
       (a, b)
     }
     else (str, "")
@@ -70,15 +70,15 @@ object HttpUtil {
    * @param inputStream the input stream
    * @return the new byte buffer
    */
-  @throws(classOf[IOException])
+  @throws (classOf[IOException])
   def copyToByteBufferAndClose(inputStream: InputStream): ByteBuffer = {
     val initialSize = 0x10000 // 64K
-    val outStream = new ByteArrayOutputStream(initialSize)
+    val outStream = new ByteArrayOutputStream (initialSize)
     if (inputStream != null) {
-      copyBytes(inputStream, outStream)
-      inputStream.close()
+      copyBytes (inputStream, outStream)
+      inputStream.close ()
     }
-    ByteBuffer.wrap(outStream.toByteArray)
+    ByteBuffer.wrap (outStream.toByteArray)
   }
 
   /**
@@ -87,16 +87,16 @@ object HttpUtil {
    * @param output the output stream
    * @return the number of bytes copied
    */
-  @throws(classOf[IOException])
+  @throws (classOf[IOException])
   def copyBytes(input: InputStream, output: OutputStream): Long = {
     val buffer: Array[Byte] = new Array[Byte](DEFAULT_BUFFER_SIZE)
     var count: Long = 0
     if (input != null) {
-      var n = input.read(buffer)
+      var n = input.read (buffer)
       while (n >= 0) {
-        output.write(buffer, 0, n)
+        output.write (buffer, 0, n)
         count += n
-        n = input.read(buffer)
+        n = input.read (buffer)
       }
     }
     count
@@ -111,16 +111,18 @@ object HttpUtil {
    * @param alter an optional function for changing each line of text before writing it out. This is applied
    *              line by line.
    */
-  @throws(classOf[IOException])
+  @throws (classOf[IOException])
   def copyText(input: InputStream, output: OutputStream, charset: String = HttpClient.UTF8,
                alter: (String) => String = (x) => x) {
-    val in = new BufferedReader(new InputStreamReader(input, charset))
-    val out = new PrintWriter(new OutputStreamWriter(output, charset))
-    var line = in.readLine
-    while (line != null) {
-      out.println(alter(line))
-      line = in.readLine
+    if (input != null && output != null) {
+      val in = new BufferedReader (new InputStreamReader (input, charset))
+      val out = new PrintWriter (new OutputStreamWriter (output, charset))
+      var line = in.readLine
+      while (line != null) {
+        out.println (alter (line))
+        line = in.readLine
+      }
+      out.flush ()
     }
-    out.flush()
   }
 }

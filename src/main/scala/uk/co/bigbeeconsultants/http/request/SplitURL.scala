@@ -33,19 +33,20 @@ import java.net.URL
 case class SplitURL(scheme: String,
                     host: String,
                     port: Option[Int],
-                    path: List[String],
+                    pathSegments: List[String],
                     fragment: Option[String],
                     query: Option[String]) {
 
   def asURL: URL =
     if (fragment.isEmpty && query.isEmpty)
-      new URL(scheme, host, port.getOrElse(-1), "/" + path.mkString("/"))
+      new URL(scheme, host, port.getOrElse(-1), path)
     else
       new URL(toString)
 
   def hostAndPort = host + port.map(":" + _.toString).getOrElse("")
 
-  def pathString = "/" + path.mkString("/") + fragment.map("#" + _).getOrElse("") + query.map("?" + _).getOrElse("")
+  def path = pathSegments.mkString("/", "/", "")
+  def pathString = path + fragment.map("#" + _).getOrElse("") + query.map("?" + _).getOrElse("")
 
   override def toString = scheme + "://" + hostAndPort + pathString
 }
