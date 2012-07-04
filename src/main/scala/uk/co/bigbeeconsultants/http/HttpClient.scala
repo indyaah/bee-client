@@ -47,7 +47,7 @@ class HttpClient(val config: Config = Config (),
    */
   @throws(classOf[IOException])
   def head(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
-    val responseFactory = new BufferedResponseFactory
+    val responseFactory = new BufferedResponseBuilder
     execute (Request.head (url), requestHeaders, jar, responseFactory)
     responseFactory.response.get
   }
@@ -57,7 +57,7 @@ class HttpClient(val config: Config = Config (),
    */
   @throws(classOf[IOException])
   def trace(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
-    val responseFactory = new BufferedResponseFactory
+    val responseFactory = new BufferedResponseBuilder
     execute (Request.trace (url), requestHeaders, jar, responseFactory)
     responseFactory.response.get
   }
@@ -67,7 +67,7 @@ class HttpClient(val config: Config = Config (),
    */
   @throws(classOf[IOException])
   def get(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
-    val responseFactory = new BufferedResponseFactory
+    val responseFactory = new BufferedResponseBuilder
     execute (Request.get (url), requestHeaders, jar, responseFactory)
     responseFactory.response.get
   }
@@ -77,7 +77,7 @@ class HttpClient(val config: Config = Config (),
    */
   @throws(classOf[IOException])
   def delete(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
-    val responseFactory = new BufferedResponseFactory
+    val responseFactory = new BufferedResponseBuilder
     execute (Request.delete (url), requestHeaders, jar, responseFactory)
     responseFactory.response.get
   }
@@ -87,7 +87,7 @@ class HttpClient(val config: Config = Config (),
    */
   @throws(classOf[IOException])
   def options(url: URL, body: Option[RequestBody], requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
-    val responseFactory = new BufferedResponseFactory
+    val responseFactory = new BufferedResponseBuilder
     execute (Request.options (url, body), requestHeaders, jar, responseFactory)
     responseFactory.response.get
   }
@@ -97,7 +97,7 @@ class HttpClient(val config: Config = Config (),
    */
   @throws(classOf[IOException])
   def post(url: URL, body: RequestBody, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
-    val responseFactory = new BufferedResponseFactory
+    val responseFactory = new BufferedResponseBuilder
     execute (Request.post (url, body), requestHeaders, jar, responseFactory)
     responseFactory.response.get
   }
@@ -107,7 +107,7 @@ class HttpClient(val config: Config = Config (),
    */
   @throws(classOf[IOException])
   def put(url: URL, body: RequestBody, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
-    val responseFactory = new BufferedResponseFactory
+    val responseFactory = new BufferedResponseBuilder
     execute (Request.put (url, body), requestHeaders, jar, responseFactory)
     responseFactory.response.get
   }
@@ -117,13 +117,13 @@ class HttpClient(val config: Config = Config (),
    * @param request the request
    * @param requestHeaders the optional request headers (use Nil if none are required)
    * @param jar the optional cookie jar (use CookieJar.empty if none is required)
-   * @param responseFactory the response factory, e.g. new BufferedResponseFactory
+   * @param responseFactory the response factory, e.g. new BufferedResponseBuilder
    * @throws IOException (or ConnectException subclass) if an IO exception occurred
    * @return the response (for all outcomes including 4xx and 5xx status codes) if
    *         no exception occurred
    */
   @throws(classOf[IOException])
-  def execute(request: Request, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty, responseFactory: ResponseFactory) {
+  def execute(request: Request, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty, responseFactory: ResponseBuilder) {
     logger.debug (request.toString)
 
     val httpURLConnection = openConnection (request)
@@ -201,7 +201,7 @@ class HttpClient(val config: Config = Config (),
     }
   }
 
-  private def handleContent(status: Status, request: Request, responseFactory: ResponseFactory, httpURLConnection: HttpURLConnection) {
+  private def handleContent(status: Status, request: Request, responseFactory: ResponseBuilder, httpURLConnection: HttpURLConnection) {
     val responseHeaders = processResponseHeaders (httpURLConnection)
     val contEnc = responseHeaders.find (CONTENT_ENCODING)
     val contentType = httpURLConnection.getContentType

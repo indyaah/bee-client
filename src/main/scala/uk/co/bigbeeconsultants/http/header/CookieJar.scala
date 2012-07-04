@@ -74,12 +74,15 @@ case class CookieJar(cookies: ListMap[CookieKey, CookieValue] = ListMap(), delet
     new CookieJar (ListMap() ++ jar, del.toSet)
   }
 
+  @deprecated(message="use gleanCookies")
+  def updateCookies(response: Response): CookieJar = gleanCookies(response)
+
   /**
    * Gets a new CookieJar derived from this one as augmented by the headers in a response.
    * @return a new cookie jar containing the merged cookies.
    */
-  def updateCookies(response: Response): CookieJar = {
-    val setcookies = filterCookieHeaders (response)
+  def gleanCookies(response: Response): CookieJar = {
+    val setcookies = filterCookieHeaders (response.headers)
     if (setcookies.isEmpty) {
       this
     }
@@ -88,10 +91,11 @@ case class CookieJar(cookies: ListMap[CookieKey, CookieValue] = ListMap(), delet
     }
   }
 
-  private def filterCookieHeaders(response: Response): List[Header] = {
-    response.headers.list.filter (
+  private def filterCookieHeaders(headers: Headers): List[Header] = {
+    headers.list.filter {
       header => header.name == HeaderName.SET_COOKIE.name ||
-        header.name == HeaderName.OBSOLETE_SET_COOKIE2.name)
+        header.name == HeaderName.OBSOLETE_SET_COOKIE2.name
+    }
   }
 
   /**

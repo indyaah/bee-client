@@ -24,36 +24,45 @@
 
 package uk.co.bigbeeconsultants.http.response
 
-import uk.co.bigbeeconsultants.http.header.Headers
+import uk.co.bigbeeconsultants.http.header.{CookieJar, Headers, MediaType}
 import uk.co.bigbeeconsultants.http.request.Request
-import uk.co.bigbeeconsultants.http.header.MediaType
 import java.io.InputStream
 
 /**
  * Represents a HTTP response. This is essentially immutable, although the implementation of
  * the response body may vary.
  */
-case class Response(request: Request, status: Status, body: ResponseBody, headers: Headers)
+case class Response(request: Request, status: Status, body: ResponseBody, headers: Headers) {
+  /**
+   * Gets all the newly-set cookies from the response headers. Don't use this
+   * for merging into an existing CookieJar; instead use
+   * [[uk.co.bigbeeconsultants.http.header.CookieJar]].gleanCookies(response).
+   */
+  def gleanCookies = CookieJar.empty.gleanCookies(this)
+}
 
 
 /**
- * Defines how responses will be handled. The 'standard' implementation is BufferedResponseFactory,
+ * Defines how responses will be handled. The 'standard' implementation is BufferedResponseBuilder,
  * which returns responses buffered in byte arrays (and also strings).
- * @see BufferedResponseFactory
+ * @see BufferedResponseBuilder
  */
-trait ResponseFactory {
+trait ResponseBuilder {
+  /** Defines the method to be invoked when the response is first received. */
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType], headers: Headers, stream: InputStream)
 
+  /** Gets the response that was captured earlier. */
   def response: Option[Response] = None
 }
 
 
 /**
- * Provides a response factory implementation that returns responses buffered in byte
- * arrays (and also strings), using ByteBufferResponseBody.
+ * Provides a response builder implementation that returns responses buffered in byte
+ * arrays (and also strings), using ByteBufferResponseBody. This is not thread safe so
+ * a new instance is required for every request.
  * @see ByteBufferResponseBody
  */
-class BufferedResponseFactory extends ResponseFactory {
+class BufferedResponseBuilder extends ResponseBuilder {
   // with Logging {
   private var _response: Option[Response] = None
 

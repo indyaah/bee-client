@@ -27,7 +27,7 @@ package uk.co.bigbeeconsultants.http.servlet
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import uk.co.bigbeeconsultants.http.header.{MediaType, Header, Headers}
 import java.io.InputStream
-import uk.co.bigbeeconsultants.http.response.{Status, ResponseFactory}
+import uk.co.bigbeeconsultants.http.response.{Status, ResponseBuilder}
 import uk.co.bigbeeconsultants.http.util.HttpUtil
 import uk.co.bigbeeconsultants.http.request.{SplitURL, Request, RequestBody}
 
@@ -66,7 +66,7 @@ class HttpServletRequestAdapter(req: HttpServletRequest) {
  */
 class HttpServletResponseAdapter(resp: HttpServletResponse,
                                  rewrite: (String) => String = (x) => x,
-                                 condition: (MediaType) => Boolean = (mt) => mt.isTextual) extends ResponseFactory {
+                                 condition: (MediaType) => Boolean = (mt) => mt.isTextual) extends ResponseBuilder {
 
   private[this] var _request: Request = _
   private[this] var _status: Status = _
