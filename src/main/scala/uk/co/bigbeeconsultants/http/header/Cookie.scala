@@ -46,7 +46,7 @@ object CookieKey {
 }
 
 
-case class CookieValue(value: String,
+case class CookieValue(string: String,
                        expires: HttpDateTimeInstant = new HttpDateTimeInstant (),
                        creation: HttpDateTimeInstant = new HttpDateTimeInstant (),
                        lastAccessed: HttpDateTimeInstant = new HttpDateTimeInstant (),
@@ -60,7 +60,7 @@ case class CookieValue(value: String,
 case class Cookie(key: CookieKey, value: CookieValue) {
 
   /**Gets the cookie as a request header value. */
-  def asHeader = key.name + "=" + value.value
+  def asHeader = key.name + "=" + value.string
 
   /**Tests whether this cookie will be sent in the headers of a request to a specified URL. */
   def willBeSentTo(url: URL) = {

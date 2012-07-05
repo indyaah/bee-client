@@ -37,8 +37,8 @@ class CookieTest extends FunSuite {
   test ("cookie_matches_path") {
     val w3root = CookieKey ("n1", "www.w3.org")
     val w3standards = CookieKey ("n1", Domain ("www.w3.org"), "/standards/")
-    val c1 = Cookie (w3root, new CookieValue (value = "v1"))
-    val c2 = Cookie (w3standards, new CookieValue (value = "v2"))
+    val c1 = Cookie (w3root, new CookieValue (string = "v1"))
+    val c2 = Cookie (w3standards, new CookieValue (string = "v2"))
     expect (true)(c1.willBeSentTo (httpUrl1))
     expect (true)(c1.willBeSentTo (httpsUrl1))
     expect (true)(c2.willBeSentTo (httpUrl1))
@@ -48,8 +48,8 @@ class CookieTest extends FunSuite {
 
   test ("cookie_matches_secure") {
     val w3 = CookieKey ("n1", "www.w3.org")
-    val c1 = Cookie (w3, new CookieValue (value = "v1", secure = false))
-    val c2 = Cookie (w3, new CookieValue (value = "v2", secure = true))
+    val c1 = Cookie (w3, new CookieValue (string = "v1", secure = false))
+    val c2 = Cookie (w3, new CookieValue (string = "v2", secure = true))
     expect (true)(c1.willBeSentTo (httpUrl1))
     expect (true)(c1.willBeSentTo (httpsUrl1))
     expect (false)(c2.willBeSentTo (httpUrl1))
@@ -59,8 +59,8 @@ class CookieTest extends FunSuite {
 
   test ("cookie_matches_httpOnly") {
     val w3 = CookieKey ("n1", "www.w3.org")
-    val c1 = Cookie (w3, new CookieValue (value = "v1", httpOnly = false))
-    val c2 = Cookie (w3, new CookieValue (value = "v2", httpOnly = true))
+    val c1 = Cookie (w3, new CookieValue (string = "v1", httpOnly = false))
+    val c2 = Cookie (w3, new CookieValue (string = "v2", httpOnly = true))
     expect (true)(c1.willBeSentTo (ftpUrl1))
     expect (false)(c2.willBeSentTo (ftpUrl1))
     expect (true)(c2.willBeSentTo (httpUrl1))
@@ -73,8 +73,8 @@ class CookieTest extends FunSuite {
   test ("cookie_matches_domain") {
     val w3 = CookieKey ("n1", "www.w3.org")
     val xorg = CookieKey ("n1", "x.org")
-    val c1 = Cookie (w3, new CookieValue (value = "v1"))
-    val c2 = Cookie (xorg, new CookieValue (value = "v2"))
+    val c1 = Cookie (w3, new CookieValue (string = "v1"))
+    val c2 = Cookie (xorg, new CookieValue (string = "v2"))
     expect (true)(c1.willBeSentTo (httpUrl1))
     expect (false)(c2.willBeSentTo (httpUrl1))
     expect (true)(c1.willBeSentTo (httpsUrl1))
