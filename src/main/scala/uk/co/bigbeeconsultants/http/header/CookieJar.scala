@@ -152,7 +152,7 @@ case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), del
   /**
    * Gets all the cookies in one collection.
    */
-  lazy val cookies: Iterable[Cookie] = zipMap(this.cookieMap)
+  lazy val cookies: List[Cookie] = zipMap(this.cookieMap).toList
 }
 
 
@@ -163,5 +163,5 @@ object CookieJar {
   /**
    * Constructs a new cookie jar containing all the cookies (if any) that are received in the response.
    */
-  def harvestCookies(response: Response): CookieJar = empty.updateCookies(response)
+  def gleanCookies(response: Response): CookieJar = empty.gleanCookies(response)
 }
