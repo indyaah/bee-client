@@ -43,17 +43,17 @@ class CookieJarTest extends FunSuite {
   test ("no cookies") {
     val response = Response (httpUrl1, ok, body, Headers (List ()))
     val newJar = CookieJar.harvestCookies (response)
-    expect (0)(newJar.cookies.size)
+    expect (0)(newJar.cookieMap.size)
   }
 
   test ("parse plain cookie") {
     val h1 = HeaderName.SET_COOKIE -> ("lang=en")
     val response = Response (httpUrl1, ok, body, Headers (List (h1)))
     val newJar = CookieJar.harvestCookies (response)
-    expect (1)(newJar.cookies.size)
-    val key1 = newJar.cookies.keys.iterator.next ()
+    expect (1)(newJar.cookieMap.size)
+    val key1 = newJar.cookieMap.keys.iterator.next ()
     expect (CookieKey ("lang", "www.w3.org", "/standards/webdesign/"))(key1)
-    val value1 = newJar.cookies (key1)
+    val value1 = newJar.cookieMap (key1)
     expect ("en")(value1.value)
     expect (false)(value1.persistent)
   }
@@ -62,10 +62,10 @@ class CookieJarTest extends FunSuite {
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; Path=/standards")
     val response = Response (httpUrl1, ok, body, Headers (List (h1)))
     val newJar = CookieJar.harvestCookies (response)
-    expect (1)(newJar.cookies.size)
-    val key1 = newJar.cookies.keys.iterator.next ()
+    expect (1)(newJar.cookieMap.size)
+    val key1 = newJar.cookieMap.keys.iterator.next ()
     expect (CookieKey ("lang", "www.w3.org", "/standards/"))(key1)
-    val value1 = newJar.cookies (key1)
+    val value1 = newJar.cookieMap (key1)
     expect ("en")(value1.value)
   }
 
@@ -73,10 +73,10 @@ class CookieJarTest extends FunSuite {
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; Domain=w3.org")
     val response = Response (httpUrl1, ok, body, Headers (List (h1)))
     val newJar = CookieJar.harvestCookies (response)
-    expect (1)(newJar.cookies.size)
-    val key1 = newJar.cookies.keys.iterator.next ()
+    expect (1)(newJar.cookieMap.size)
+    val key1 = newJar.cookieMap.keys.iterator.next ()
     expect (CookieKey ("lang", "w3.org", "/standards/webdesign/"))(key1)
-    val value1 = newJar.cookies (key1)
+    val value1 = newJar.cookieMap (key1)
     expect ("en")(value1.value)
   }
 
@@ -85,10 +85,10 @@ class CookieJarTest extends FunSuite {
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; Expires=" + tomorrow)
     val response = Response (httpUrl1, ok, body, Headers (List (h1)))
     val newJar = CookieJar.harvestCookies (response)
-    expect (1)(newJar.cookies.size)
-    val key1 = newJar.cookies.keys.iterator.next ()
+    expect (1)(newJar.cookieMap.size)
+    val key1 = newJar.cookieMap.keys.iterator.next ()
     expect (CookieKey ("lang", "www.w3.org", "/standards/webdesign/"))(key1)
-    val value1 = newJar.cookies (key1)
+    val value1 = newJar.cookieMap (key1)
     expect ("en")(value1.value)
     expect (tomorrow.seconds)(value1.expires.seconds)
   }
@@ -99,10 +99,10 @@ class CookieJarTest extends FunSuite {
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; Max-Age=" + day)
     val response = Response (httpUrl1, ok, body, Headers (List (h1)))
     val newJar = CookieJar.harvestCookies (response)
-    expect (1)(newJar.cookies.size)
-    val key1 = newJar.cookies.keys.iterator.next ()
+    expect (1)(newJar.cookieMap.size)
+    val key1 = newJar.cookieMap.keys.iterator.next ()
     expect (CookieKey ("lang", "www.w3.org", "/standards/webdesign/"))(key1)
-    val value1 = newJar.cookies (key1)
+    val value1 = newJar.cookieMap (key1)
     expect ("en")(value1.value)
     expect (tomorrow.seconds)(value1.expires.seconds)
   }
@@ -118,8 +118,8 @@ class CookieJarTest extends FunSuite {
     val value = CookieValue ("en")
     val oldJar = new CookieJar (ListMap (key1 -> value), Set (key2, key3))
     val newJar = oldJar.updateCookies (response)
-    expect (1)(newJar.cookies.size)
-    expect (true)(newJar.cookies.contains (key3))
+    expect (1)(newJar.cookieMap.size)
+    expect (true)(newJar.cookieMap.contains (key3))
     expect (2)(newJar.deleted.size)
     expect (true)(newJar.deleted.contains (key1))
     expect (true)(newJar.deleted.contains (key2))
@@ -133,10 +133,10 @@ class CookieJarTest extends FunSuite {
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; Max-Age=" + day7 + "; Expires=" + tomorrow)
     val response = Response (httpUrl1, ok, body, Headers (List (h1)))
     val newJar = CookieJar.harvestCookies (response)
-    expect (1)(newJar.cookies.size)
-    val key1 = newJar.cookies.keys.iterator.next ()
+    expect (1)(newJar.cookieMap.size)
+    val key1 = newJar.cookieMap.keys.iterator.next ()
     expect (CookieKey ("lang", "www.w3.org", "/standards/webdesign/"))(key1)
-    val value1 = newJar.cookies (key1)
+    val value1 = newJar.cookieMap (key1)
     expect ("en")(value1.value)
     expect (nextWeek.seconds)(value1.expires.seconds)
   }
@@ -145,17 +145,17 @@ class CookieJarTest extends FunSuite {
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; HttpOnly")
     val response = Response (ftpUrl1, ok, body, Headers (List (h1)))
     val newJar = CookieJar.harvestCookies (response)
-    expect (0)(newJar.cookies.size)
+    expect (0)(newJar.cookieMap.size)
   }
 
   test ("parse cookie with secure") {
     val h1 = HeaderName.SET_COOKIE -> ("lang=en; Secure")
     val response = Response (httpUrl1, ok, body, Headers (List (h1)))
     val newJar = CookieJar.harvestCookies (response)
-    expect (1)(newJar.cookies.size)
-    val key1 = newJar.cookies.keys.iterator.next ()
+    expect (1)(newJar.cookieMap.size)
+    val key1 = newJar.cookieMap.keys.iterator.next ()
     expect (CookieKey ("lang", "www.w3.org", "/standards/webdesign/"))(key1)
-    val value1 = newJar.cookies (key1)
+    val value1 = newJar.cookieMap (key1)
     expect ("en")(value1.value)
     expect (true)(value1.secure)
   }
@@ -165,10 +165,10 @@ class CookieJarTest extends FunSuite {
     val h1 = HeaderName.SET_COOKIE -> ("BBC-UID=646f4472; expires=" + tenYears + "; path=/; domain=bbc.co.uk")
     val response = Response (httpUrl2, ok, body, Headers (List (h1)))
     val newJar = CookieJar.harvestCookies (response)
-    expect (1)(newJar.cookies.size)
-    val key1 = newJar.cookies.keys.iterator.next ()
+    expect (1)(newJar.cookieMap.size)
+    val key1 = newJar.cookieMap.keys.iterator.next ()
     expect (CookieKey ("BBC-UID", "bbc.co.uk", "/"))(key1)
-    val value1 = newJar.cookies (key1)
+    val value1 = newJar.cookieMap (key1)
     expect ("646f4472")(value1.value)
     expect (false)(value1.secure)
     expect (false)(value1.httpOnly)
@@ -220,12 +220,12 @@ class CookieJarTest extends FunSuite {
     val newJar = new CookieJar (ListMap (cKey1 -> cVal1b, cKey2b -> cVal2b, cKey4 -> cVal4))
 
     val merged = oldJar.merge (newJar)
-    expect (5)(merged.cookies.size)
-    expect ("12345678")(merged.cookies.get (cKey1).get.value)
-    expect ("en")(merged.cookies.get (cKey2a).get.value)
-    expect ("fr")(merged.cookies.get (cKey2b).get.value)
-    expect ("aaa")(merged.cookies.get (cKey3).get.value)
-    expect ("bbb")(merged.cookies.get (cKey4).get.value)
+    expect (5)(merged.cookieMap.size)
+    expect ("12345678")(merged.cookieMap.get (cKey1).get.value)
+    expect ("en")(merged.cookieMap.get (cKey2a).get.value)
+    expect ("fr")(merged.cookieMap.get (cKey2b).get.value)
+    expect ("aaa")(merged.cookieMap.get (cKey3).get.value)
+    expect ("bbb")(merged.cookieMap.get (cKey4).get.value)
   }
 
   test ("add and remove") {
@@ -240,27 +240,27 @@ class CookieJarTest extends FunSuite {
 
     val oldJar = new CookieJar (ListMap (cKey1 -> cVal1), Set(cKey2, cKey3, cKey4))
     val expandedJar1 = oldJar + (cKey2, cVal2)
-    expect ("a1")(expandedJar1.cookies.get (cKey1).get.value)
-    expect ("b2")(expandedJar1.cookies.get (cKey2).get.value)
+    expect ("a1")(expandedJar1.cookieMap.get (cKey1).get.value)
+    expect ("b2")(expandedJar1.cookieMap.get (cKey2).get.value)
     expect (false)(expandedJar1.deleted.contains(cKey2))
     expect (true)(expandedJar1.deleted.contains(cKey3))
 
     val expandedJar2 = expandedJar1 + Cookie(cKey3, cVal3)
-    expect ("a1")(expandedJar2.cookies.get (cKey1).get.value)
-    expect ("b2")(expandedJar2.cookies.get (cKey2).get.value)
-    expect ("c3")(expandedJar2.cookies.get (cKey3).get.value)
+    expect ("a1")(expandedJar2.cookieMap.get (cKey1).get.value)
+    expect ("b2")(expandedJar2.cookieMap.get (cKey2).get.value)
+    expect ("c3")(expandedJar2.cookieMap.get (cKey3).get.value)
     expect (false)(expandedJar2.deleted.contains(cKey2))
     expect (false)(expandedJar2.deleted.contains(cKey3))
 
     val alteredJar = expandedJar2 + Cookie(cKey3, cVal2)
-    expect ("a1")(alteredJar.cookies.get (cKey1).get.value)
-    expect ("b2")(alteredJar.cookies.get (cKey2).get.value)
-    expect ("b2")(alteredJar.cookies.get (cKey3).get.value)
+    expect ("a1")(alteredJar.cookieMap.get (cKey1).get.value)
+    expect ("b2")(alteredJar.cookieMap.get (cKey2).get.value)
+    expect ("b2")(alteredJar.cookieMap.get (cKey3).get.value)
     expect (false)(alteredJar.deleted.contains(cKey2))
     expect (false)(alteredJar.deleted.contains(cKey3))
 
     val reducedJar1 = alteredJar - cKey3
-    expect (false)(reducedJar1.cookies.contains(cKey3))
+    expect (false)(reducedJar1.cookieMap.contains(cKey3))
     expect (false)(reducedJar1.deleted.contains(cKey3))
     expect (true)(reducedJar1.deleted.contains(cKey4))
 
@@ -290,5 +290,39 @@ class CookieJarTest extends FunSuite {
     expect (null)(url2.getQuery)
     expect (null)(url2.getRef)
     expect (null)(url2.getUserInfo)
+  }
+
+  test ("filter cookies by name") {
+    val tenYears = new HttpDateTimeInstant () + (10 * 365 * 24 * 60 * 60)
+    val cKey1 = CookieKey ("X1", "bbc.co.uk", "/")
+    val cVal1 = CookieValue (value = "root", expires = tenYears)
+
+    val cKey2 = CookieKey ("X1", "bbc.co.uk", "/subdir/")
+    val cVal2 = CookieValue (value = "subdir", expires = tenYears)
+
+    val cKey3 = CookieKey ("X1", "x.org", "/")
+    val cVal3 = CookieValue (value = "zzz", expires = tenYears)
+
+    val cKey4 = CookieKey ("X2", "x.org", "/")
+    val cVal4 = CookieValue (value = "aaa", expires = tenYears)
+
+    val jar = new CookieJar (ListMap (cKey1 -> cVal1, cKey2 -> cVal2, cKey3 -> cVal3, cKey4 -> cVal4))
+
+    val foundX1 = jar.filter (_.name == "X1").toList
+    expect (3)(foundX1.size)
+    expect ("root")(foundX1(0).value.value)
+    expect ("subdir")(foundX1(1).value.value)
+    expect ("zzz")(foundX1(2).value.value)
+
+    val foundX2 = jar.filter (_.name == "X2").toList
+    expect (1)(foundX2.size)
+    expect ("aaa")(foundX2(0).value.value)
+
+    val zipped = jar.cookies.toList
+    expect (4)(zipped.size)
+    expect ("root")(zipped(0).value.value)
+    expect ("subdir")(zipped(1).value.value)
+    expect ("zzz")(zipped(2).value.value)
+    expect ("aaa")(zipped(3).value.value)
   }
 }

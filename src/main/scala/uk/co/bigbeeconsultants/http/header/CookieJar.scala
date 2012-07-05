@@ -36,16 +36,17 @@ import java.net.URL
 import uk.co.bigbeeconsultants.http.response.Response
 import collection.mutable.{HashSet, LinkedHashMap, ListBuffer}
 import collection.immutable.ListMap
+import collection.immutable
 
 /**
  * CookieJar holds cookies as key/value pairs. It also holds a list of deleted keys to
  * allow the server to mark cookies for deletion; this is used when jars are merged together.
  */
-case class CookieJar(cookies: ListMap[CookieKey, CookieValue] = ListMap(), deleted: Set[CookieKey] = Set ()) {
+case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), deleted: Set[CookieKey] = Set()) {
 
   lazy val cookieList: List[Cookie] = {
-    for ((key, value) <- cookies) yield {
-      new Cookie (key, value)
+    for ((key, value) <- cookieMap) yield {
+      new Cookie(key, value)
     }
   }.toList
 
@@ -56,25 +57,25 @@ case class CookieJar(cookies: ListMap[CookieKey, CookieValue] = ListMap(), delet
    */
   def merge(newJar: CookieJar): CookieJar = {
     val jar = new LinkedHashMap[CookieKey, CookieValue]
-    jar ++= cookies
+    jar ++= cookieMap
 
     val del = new HashSet[CookieKey]
     del ++= deleted
 
-    for ((key, value) <- newJar.cookies) {
-      jar.put (key, value)
-      del.remove (key)
+    for ((key, value) <- newJar.cookieMap) {
+      jar.put(key, value)
+      del.remove(key)
     }
 
     for (key <- newJar.deleted) {
-      jar.remove (key)
-      del.add (key)
+      jar.remove(key)
+      del.add(key)
     }
 
-    new CookieJar (ListMap() ++ jar, del.toSet)
+    new CookieJar(ListMap() ++ jar, del.toSet)
   }
 
-  @deprecated(message="use gleanCookies")
+  @deprecated(message = "use gleanCookies")
   def updateCookies(response: Response): CookieJar = gleanCookies(response)
 
   /**
@@ -82,12 +83,12 @@ case class CookieJar(cookies: ListMap[CookieKey, CookieValue] = ListMap(), delet
    * @return a new cookie jar containing the merged cookies.
    */
   def gleanCookies(response: Response): CookieJar = {
-    val setcookies = filterCookieHeaders (response.headers)
+    val setcookies = filterCookieHeaders(response.headers)
     if (setcookies.isEmpty) {
       this
     }
     else {
-      CookieParser.updateCookies (this, response.request.url, setcookies)
+      CookieParser.updateCookies(this, response.request.url, setcookies)
     }
   }
 
@@ -101,50 +102,66 @@ case class CookieJar(cookies: ListMap[CookieKey, CookieValue] = ListMap(), delet
   /**
    * Before making a request, use this method to pull the necessary cookies out of the jar.
    * @return an optional cookie header, which will contain one or more cookie values to be sent
-   * with the request.
+   *         with the request.
    */
   def filterForRequest(url: URL): Option[Header] = {
     val headers = new ListBuffer[String]
     for (cookie <- cookieList) {
-      if (cookie.willBeSentTo (url)) {
+      if (cookie.willBeSentTo(url)) {
         headers += cookie.asHeader
       }
     }
-    if (headers.isEmpty) None else Some (HeaderName.COOKIE -> headers.mkString ("; "))
+    if (headers.isEmpty) None else Some(HeaderName.COOKIE -> headers.mkString("; "))
   }
 
   /**
    * Adds a cookie to this jar or alters the value of an existing cookie.
    * @return a new cookie jar containing the merged cookies.
    */
-  def + (key: CookieKey, value: CookieValue): CookieJar = {
-    new CookieJar(cookies + (key -> value), deleted - key)
+  def +(key: CookieKey, value: CookieValue): CookieJar = {
+    new CookieJar(cookieMap + (key -> value), deleted - key)
   }
 
   /**
    * Adds a cookie to this jar or alters the value of an existing cookie.
    * @return a new cookie jar containing the merged cookies.
    */
-  def + (cookie: Cookie): CookieJar = {
-    new CookieJar(cookies + (cookie.key -> cookie.value), deleted - cookie.key)
+  def +(cookie: Cookie): CookieJar = {
+    new CookieJar(cookieMap + (cookie.key -> cookie.value), deleted - cookie.key)
   }
 
   /**
    * Removes a cookie from this jar, returning a new CookieJar.
    * @return a new cookie jar containing the reduced cookies.
    */
-  def - (key: CookieKey): CookieJar = {
-    new CookieJar(cookies - key, deleted - key)
+  def -(key: CookieKey): CookieJar = {
+    new CookieJar(cookieMap - key, deleted - key)
   }
+
+  private def zipMap(cookies: ListMap[CookieKey, CookieValue]) = {
+    cookies.map((kv) => Cookie(kv._1, kv._2))
+  }
+
+  /**
+   * Gets a filtered collection of cookies from this jar that match a certain predicate.
+   */
+  def filter(f: (CookieKey) => Boolean): Iterable[Cookie] = {
+    zipMap(cookieMap.filter((kv) => f(kv._1)))
+  }
+
+  /**
+   * Gets all the cookies in one collection.
+   */
+  lazy val cookies: Iterable[Cookie] = zipMap(this.cookieMap)
 }
 
 
 object CookieJar {
   /**Constant empty cookie jar. */
-  val empty = new CookieJar ()
+  val empty = new CookieJar()
 
   /**
    * Constructs a new cookie jar containing all the cookies (if any) that are received in the response.
    */
-  def harvestCookies(response: Response): CookieJar = empty.updateCookies (response)
+  def harvestCookies(response: Response): CookieJar = empty.updateCookies(response)
 }

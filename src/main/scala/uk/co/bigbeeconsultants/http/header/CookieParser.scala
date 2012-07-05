@@ -112,7 +112,7 @@ private[header] object CookieParser {
     val now = new HttpDateTimeInstant ()
 
     val jar = new LinkedHashMap[CookieKey, CookieValue]
-    jar ++= previous.cookies
+    jar ++= previous.cookieMap
 
     val del = new HashSet[CookieKey]
     del ++= previous.deleted
