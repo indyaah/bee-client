@@ -180,7 +180,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
   }
 
 
-  test ("post should return 204-OK") {
+  test ("post should return 204-NoContent with text response") {
     val http = new HttpClient (config)
     val stubbedMethod = StubMethod.post (url)
     server.expect (stubbedMethod).thenReturn (204, APPLICATION_JSON, "ignore me")
@@ -188,6 +188,18 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     val response = http.post (new URL (baseUrl + url), request.RequestBody (APPLICATION_JSON, Map ("a" -> "b")))
     server.verify ()
     expect (APPLICATION_JSON)(response.body.contentType)
+    expect ("")(response.body.asString)
+  }
+
+
+  test ("put should return 204-NoContent with binary response") {
+    val http = new HttpClient (config)
+    val stubbedMethod = StubMethod.put (url)
+    server.expect (stubbedMethod).thenReturn (204, APPLICATION_OCTET_STREAM, "")
+
+    val response = http.put (new URL (baseUrl + url), request.RequestBody (APPLICATION_JSON, Map ("a" -> "b")))
+    server.verify ()
+    expect (APPLICATION_OCTET_STREAM)(response.body.contentType)
     expect ("")(response.body.asString)
   }
 

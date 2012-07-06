@@ -44,8 +44,17 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.toString should be(s)
   }
 
-  test("ByteBufferResponseBody without a body") {
+  test("ByteBufferResponseBody with text but without a body") {
     val mt = MediaType.APPLICATION_JSON
+    val body = new ByteBufferResponseBody(mt, null)
+
+    body.contentType should be(mt)
+    body.asBytes should be(new Array[Byte](0))
+    body.toString should be("")
+  }
+
+  test("ByteBufferResponseBody with binary but without a body") {
+    val mt = MediaType.APPLICATION_OCTET_STREAM
     val body = new ByteBufferResponseBody(mt, null)
 
     body.contentType should be(mt)

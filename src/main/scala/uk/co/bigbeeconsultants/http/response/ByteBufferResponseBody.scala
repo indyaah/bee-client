@@ -50,6 +50,9 @@ final class ByteBufferResponseBody(val contentType: MediaType, inputStream: Inpu
       byteData.rewind
       string
     }
+    else if (byteData.limit() == 0) {
+      ""
+    }
     else {
       "Binary data (" + contentType + ")"
     }

@@ -38,6 +38,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   private val testHtmlFile = "test-lighthttpclient.html"
   private val testTxtFile = "test-lighthttpclient.txt"
   private val testPhpFile = "test-lighthttpclient.php"
+  private val test204File = "test-lighthttpclient-204.php"
   private val testImageFile = "B.png"
   private val testPhotoFile = "plataria-sunset.jpg"
 
