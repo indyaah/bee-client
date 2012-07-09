@@ -63,9 +63,9 @@ object Request {
   // method with an optional entity body
   def options(url: URL, body: Option[RequestBody] = None): Request = Request (OPTIONS, url, body)
 
-  // methods requiring an entity body
-  def post(url: URL, body: RequestBody): Request = Request (POST, url, Some (body))
+  def post(url: URL, body: Option[RequestBody]): Request = Request (POST, url, body)
 
+  // methods requiring an entity body
   def put(url: URL, body: RequestBody): Request = Request (PUT, url, Some (body))
 
   implicit def toURL(url: String) = new URL(url)

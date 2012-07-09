@@ -108,7 +108,7 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
       case "HEAD" => http.head (url, headers)
       case "TRACE" => http.trace (url, headers)
       case "DELETE" => http.delete (url, headers)
-      case "POST" => http.post (url, RequestBody(MediaType.TEXT_HTML), headers)
+      case "POST" => http.post (url, Some(RequestBody(MediaType.TEXT_HTML)), headers)
     }
 
     verifyConfig(Config())
@@ -144,7 +144,7 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     val http = newHttpClient ()
 
     val headers = Headers (List (ACCEPT_LANGUAGE -> "en"))
-    val response = http.post (url, RequestBody(MediaType.TEXT_HTML), headers)
+    val response = http.post (url, Some(RequestBody(MediaType.TEXT_HTML)), headers)
 
     verifyConfig(Config())
     verifyRequestSettings ("POST", List(HOST -> "server", ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8", ACCEPT_LANGUAGE -> "en"))
@@ -174,7 +174,7 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
 
     val headers = Headers (List (ACCEPT_LANGUAGE -> "en"))
     val response = method match {
-      case "POST" => http.post (url, RequestBody(TEXT_PLAIN, Map("foo" -> "bar", "a" -> "z")), headers)
+      case "POST" => http.post (url, Some(RequestBody(TEXT_PLAIN, Map("foo" -> "bar", "a" -> "z"))), headers)
       case "PUT" => http.put (url, RequestBody(TEXT_PLAIN, "hello world"), headers)
       case "OPTIONS" => http.options (url, Some(RequestBody(TEXT_PLAIN, "hello world")), headers)    }
 

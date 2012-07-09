@@ -170,7 +170,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   test ("php text/plain post x1") {
     val url = testPhpUrl + "?CT=text/plain"
     try {
-      val response = http.post (new URL (url), jsonBody, gzipHeaders)
+      val response = http.post (new URL (url), Some(jsonBody), gzipHeaders)
       expect (302)(response.status.code)
       val body = response.body
       expect (MediaType.TEXT_HTML)(body.contentType)

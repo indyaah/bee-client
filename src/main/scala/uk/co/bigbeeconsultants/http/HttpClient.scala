@@ -96,7 +96,7 @@ class HttpClient(val config: Config = Config (),
    * Make a POST request.
    */
   @throws(classOf[IOException])
-  def post(url: URL, body: RequestBody, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
+  def post(url: URL, body: Option[RequestBody], requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
     val responseFactory = new BufferedResponseBuilder
     execute (Request.post (url, body), requestHeaders, jar, responseFactory)
     responseFactory.response.get
