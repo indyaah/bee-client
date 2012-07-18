@@ -32,7 +32,3 @@ case class Config(connectTimeout: Int = 2000,
                   followRedirects: Boolean = true,
                   useCaches: Boolean = true,
                   sendHostHeader: Boolean = true)
-
-// These features are planned to be included when a less-buggy networking layer is available.
-//keepAlive: Boolean = true,
-//                  chunkSizeInKB: Int = -1)

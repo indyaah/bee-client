@@ -117,7 +117,7 @@ class CookieJarTest extends FunSuite {
     val key3 = CookieKey ("foo", "www.w3.org", "/standards/webdesign/")
     val value = CookieValue ("en")
     val oldJar = new CookieJar (ListMap (key1 -> value), Set (key2, key3))
-    val newJar = oldJar.updateCookies (response)
+    val newJar = oldJar.gleanCookies (response)
     expect (1)(newJar.cookieMap.size)
     expect (true)(newJar.cookieMap.contains (key3))
     expect (2)(newJar.deleted.size)

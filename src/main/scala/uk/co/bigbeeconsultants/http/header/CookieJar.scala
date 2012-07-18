@@ -75,9 +75,6 @@ case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), del
     new CookieJar(ListMap() ++ jar, del.toSet)
   }
 
-  @deprecated(message = "use gleanCookies")
-  def updateCookies(response: Response): CookieJar = gleanCookies(response)
-
   /**
    * Gets a new CookieJar derived from this one as augmented by the headers in a response.
    * @return a new cookie jar containing the merged cookies.

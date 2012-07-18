@@ -35,21 +35,25 @@ package uk.co.bigbeeconsultants.http.header
 import java.net.URL
 import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 
+/**
+ * Cookies consist of keys and values; CookieKey is the key part and is itself
+ */
 case class CookieKey(name: String, domain: Domain = Domain.localhost, path: String = "/") {
-  require (name.length > 0)
-  require (path.endsWith ("/"), path)
+  require(name.length > 0)
+  require(path.endsWith("/"), path)
 }
 
 object CookieKey {
-  def apply(name: String, domain: String, path: String) = new CookieKey (name, Domain (domain), path)
-  def apply(name: String, domain: String) = new CookieKey (name, Domain (domain))
+  def apply(name: String, domain: String, path: String) = new CookieKey(name, Domain(domain), path)
+
+  def apply(name: String, domain: String) = new CookieKey(name, Domain(domain))
 }
 
 
 case class CookieValue(string: String,
-                       expires: HttpDateTimeInstant = new HttpDateTimeInstant (),
-                       creation: HttpDateTimeInstant = new HttpDateTimeInstant (),
-                       lastAccessed: HttpDateTimeInstant = new HttpDateTimeInstant (),
+                       expires: HttpDateTimeInstant = new HttpDateTimeInstant(),
+                       creation: HttpDateTimeInstant = new HttpDateTimeInstant(),
+                       lastAccessed: HttpDateTimeInstant = new HttpDateTimeInstant(),
                        persistent: Boolean = false,
                        hostOnly: Boolean = false,
                        secure: Boolean = false,
@@ -66,9 +70,28 @@ case class Cookie(key: CookieKey, value: CookieValue) {
   def willBeSentTo(url: URL) = {
     val p = url.getProtocol
     val qSecure = !value.secure || p == "https"
-    val qHttpOnly = !value.httpOnly || p.startsWith ("http")
-    val qDomain = key.domain.matches (url)
-    val qPath = key.path.isEmpty || url.getPath.startsWith (key.path)
+    val qHttpOnly = !value.httpOnly || p.startsWith("http")
+    val qDomain = key.domain.matches(url)
+    val qPath = key.path.isEmpty || url.getPath.startsWith(key.path)
     qSecure && qHttpOnly && qDomain && qPath
   }
+}
+
+object Cookie {
+  /** Creates a new cookie. */
+  def apply(name: String,
+            string: String,
+            domain: Domain = Domain.localhost,
+            path: String = "/",
+            expires: HttpDateTimeInstant = new HttpDateTimeInstant(),
+            creation: HttpDateTimeInstant = new HttpDateTimeInstant(),
+            lastAccessed: HttpDateTimeInstant = new HttpDateTimeInstant(),
+            persistent: Boolean = false,
+            hostOnly: Boolean = false,
+            secure: Boolean = false,
+            httpOnly: Boolean = false,
+            serverProtocol: String = "http")
+  = new Cookie(
+    new CookieKey(name, domain, path),
+    new CookieValue(string, expires, creation, lastAccessed, persistent, hostOnly, secure, httpOnly, serverProtocol))
 }
