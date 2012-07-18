@@ -205,7 +205,7 @@ class HttpClient(val config: Config = Config (),
 
   private def handleContent(status: Status, request: Request, responseFactory: ResponseBuilder, httpURLConnection: HttpURLConnection) {
     val responseHeaders = processResponseHeaders (httpURLConnection)
-    val contEnc = responseHeaders.find (CONTENT_ENCODING)
+    val contEnc = responseHeaders.get (CONTENT_ENCODING)
     val contentType = httpURLConnection.getContentType
     val mediaType = if (contentType != null) Some (MediaType (contentType)) else None
 
@@ -220,10 +220,10 @@ class HttpClient(val config: Config = Config (),
     }
   }
 
-  private def getBodyStream(contEnc: List[Header], httpURLConnection: HttpURLConnection) = {
+  private def getBodyStream(contEnc: Option[Header], httpURLConnection: HttpURLConnection) = {
     val iStream = selectStream (httpURLConnection)
     if (!contEnc.isEmpty) {
-      val enc = contEnc (0).toQualifiedValue
+      val enc = contEnc.get.toQualifiedValue
       if (enc.parts.exists (_.value == HttpClient.GZIP)) {
         new GZIPInputStream (iStream)
         //TODO deflate

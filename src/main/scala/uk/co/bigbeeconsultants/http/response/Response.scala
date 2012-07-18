@@ -41,36 +41,3 @@ case class Response(request: Request, status: Status, body: ResponseBody, header
   def gleanCookies = CookieJar.empty.gleanCookies(this)
 }
 
-
-/**
- * Defines how responses will be handled. The 'standard' implementation is BufferedResponseBuilder,
- * which returns responses buffered in byte arrays (and also strings).
- * @see BufferedResponseBuilder
- */
-trait ResponseBuilder {
-  /** Defines the method to be invoked when the response is first received. */
-  def captureResponse(request: Request, status: Status, mediaType: Option[MediaType], headers: Headers, stream: InputStream)
-
-  /** Gets the response that was captured earlier. */
-  def response: Option[Response] = None
-}
-
-
-/**
- * Provides a response builder implementation that returns responses buffered in byte
- * arrays (and also strings), using ByteBufferResponseBody. This is not thread safe so
- * a new instance is required for every request.
- * @see ByteBufferResponseBody
- */
-class BufferedResponseBuilder extends ResponseBuilder {
-  // with Logging {
-  private var _response: Option[Response] = None
-
-  def captureResponse(request: Request, status: Status, mediaType: Option[MediaType], headers: Headers, stream: InputStream) {
-    val body = new ByteBufferResponseBody (mediaType.getOrElse (MediaType.APPLICATION_OCTET_STREAM), stream)
-    _response = Some (new Response (request, status, body, headers))
-    //    logger.debug((_response.get.toString))
-  }
-
-  override def response = _response
-}

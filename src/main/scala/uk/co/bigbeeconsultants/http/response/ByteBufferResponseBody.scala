@@ -37,9 +37,11 @@ import uk.co.bigbeeconsultants.http.HttpClient
  * <p>
  * Take care because the memory footprint will be large when dealing with large volumes of response data.
  */
-final class ByteBufferResponseBody(val contentType: MediaType, inputStream: InputStream) extends ResponseBody {
+final class ByteBufferResponseBody(val contentType: MediaType,
+                                   inputStream: InputStream,
+                                   initialSize: Int = 0x10000) extends ResponseBody {
 
-  private[this] val byteData: ByteBuffer = HttpUtil.copyToByteBufferAndClose(inputStream)
+  private[this] val byteData: ByteBuffer = HttpUtil.copyToByteBufferAndClose(inputStream, initialSize)
 
   private[this] var converted: String = null
 
@@ -75,4 +77,6 @@ final class ByteBufferResponseBody(val contentType: MediaType, inputStream: Inpu
   }
 
   override def toString = asString
+
+  override lazy val contentLength = asBytes.length
 }

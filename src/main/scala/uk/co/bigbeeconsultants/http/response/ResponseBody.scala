@@ -40,6 +40,11 @@ trait ResponseBody {
   def contentType: MediaType
 
   /**
+   * Gets the length of the content as the number of bytes received.
+   */
+  def contentLength = 0
+
+  /**
    * Gets the body as an array of raw bytes if available. By default, this merely returns an empty array,
    * which may not be much use.
    */
@@ -84,4 +89,6 @@ final class StringResponseBody(val contentType: MediaType, bodyText: String) ext
   override def asString: String = bodyText
 
   override def toString = asString
+
+  override lazy val contentLength = asBytes.length
 }

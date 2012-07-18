@@ -106,7 +106,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       expect (MediaType.TEXT_HTML)(body.contentType)
       val string = body.toString
       expect (true)(string.startsWith ("<!DOCTYPE html>"))
-      expect ("gzip")(response.headers.get (CONTENT_ENCODING).value)
+      expect ("gzip")(response.headers(CONTENT_ENCODING).value)
       //expect (size)(response.headers.get (CONTENT_LENGTH).toInt)
       val bodyLines = string.split ("\n")
       expect ("<!DOCTYPE html>")(bodyLines (0))
@@ -175,7 +175,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val body = response.body
       expect (MediaType.TEXT_HTML)(body.contentType)
       expect (0)(body.toString.length)
-      val location = response.headers.get (LOCATION).value
+      val location = response.headers(LOCATION).value
       expect (true, location)(location.startsWith (serverUrl))
     } catch {
       case e: Exception =>
@@ -262,7 +262,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   private def expectHeaderIfPresent(expected: Any)(headers: Headers, name: HeaderName) {
-    val hdrs = headers.find (name.name)
+    val hdrs = headers.filter (name.name)
     if (!hdrs.isEmpty) {
       expect (expected)(hdrs (0).value)
     }

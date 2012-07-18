@@ -32,6 +32,16 @@ import java.io.ByteArrayInputStream
 
 class ResponseBodyTest extends FunSuite with ShouldMatchers {
 
+  test("EmptyResponseBody") {
+    val mt = MediaType.APPLICATION_JSON
+    val body = new EmptyResponseBody(mt)
+
+    body.contentType should be(mt)
+    body.contentLength should be(0)
+    body.asBytes should be(new Array[Byte](0))
+    body.toString should be("")
+  }
+
   test("StringResponseBody with json body") {
     val s = """[ "Some json message text" ]"""
     val bytes = s.getBytes(HttpClient.UTF8)
@@ -39,6 +49,7 @@ class ResponseBodyTest extends FunSuite with ShouldMatchers {
     val body = new StringResponseBody(mt, s)
 
     body.contentType should be(mt)
+    body.contentLength should be(bytes.length)
     body.asBytes should be(bytes)
     body.toString should be(s)
   }

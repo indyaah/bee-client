@@ -62,7 +62,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     val response = http.get (new URL (baseUrl + url))
     server.verify ()
     expect (APPLICATION_JSON)(response.body.contentType)
-    expect (APPLICATION_JSON.toString)(response.headers.get (CONTENT_TYPE).value)
+    expect (APPLICATION_JSON.toString)(response.headers(CONTENT_TYPE).value)
     expect (json)(response.body.toString)
   }
 
@@ -75,7 +75,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     val response = http.get (new URL (baseUrl + url))
     server.verify ()
     expect (APPLICATION_JSON)(response.body.contentType)
-    expect (APPLICATION_JSON.toString)(response.headers.get (CONTENT_TYPE).value)
+    expect (APPLICATION_JSON.toString)(response.headers(CONTENT_TYPE).value)
     expect ("")(response.body.asString)
   }
 

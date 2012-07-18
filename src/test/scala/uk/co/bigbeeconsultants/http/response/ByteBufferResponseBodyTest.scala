@@ -40,6 +40,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val body = new ByteBufferResponseBody(mt, bais)
 
     body.contentType should be(mt)
+    body.contentLength should be(bytes.length)
     body.asBytes should be(bytes)
     body.toString should be(s)
   }
@@ -49,6 +50,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val body = new ByteBufferResponseBody(mt, null)
 
     body.contentType should be(mt)
+    body.contentLength should be(0)
     body.asBytes should be(new Array[Byte](0))
     body.toString should be("")
   }
@@ -58,6 +60,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val body = new ByteBufferResponseBody(mt, null)
 
     body.contentType should be(mt)
+    body.contentLength should be(0)
     body.asBytes should be(new Array[Byte](0))
     body.toString should be("")
   }

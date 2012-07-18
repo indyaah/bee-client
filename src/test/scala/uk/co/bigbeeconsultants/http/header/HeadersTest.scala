@@ -36,14 +36,14 @@ class HeadersTest extends FunSuite {
 
   test ("find") {
     val n = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar"))
-    expect (List (HOST -> "localhost"))(n.find (HOST.name))
-    expect (List (ACCEPT -> "foo", ACCEPT -> "bar"))(n.find (ACCEPT.name))
+    expect (List (HOST -> "localhost"))(n.filter (HOST.name))
+    expect (List (ACCEPT -> "foo", ACCEPT -> "bar"))(n.filter (ACCEPT.name))
   }
 
   test ("get") {
     val n = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar"))
-    expect (HOST -> "localhost")(n.get (HOST.name))
-    expect (ACCEPT -> "foo")(n.get (ACCEPT.name))
+    expect (HOST -> "localhost")(n(HOST.name))
+    expect (Some(ACCEPT -> "foo"))(n.get (ACCEPT.name))
   }
 
   test ("remove and add") {
@@ -51,15 +51,15 @@ class HeadersTest extends FunSuite {
     val n2 = n1.remove(HOST)
     expect (2)(n2.size)
     expect (false)(n2.contains(HOST))
-    expect (ACCEPT -> "foo")(n2.get (ACCEPT.name))
+    expect (ACCEPT -> "foo")(n2(ACCEPT.name))
 
     val n3 = n2.add(HOST -> "server:8080")
     expect (3)(n3.size)
-    expect (HOST -> "server:8080")(n3.get (HOST.name))
+    expect (HOST -> "server:8080")(n3(HOST.name))
 
     val n4 = n1.remove(ACCEPT)
     expect (1)(n4.size)
-    expect (HOST -> "localhost")(n4.get (HOST.name))
+    expect (HOST -> "localhost")(n4(HOST.name))
     expect (false)(n4.contains(ACCEPT))
   }
 

@@ -73,6 +73,18 @@ object HttpUtil {
   @throws (classOf[IOException])
   def copyToByteBufferAndClose(inputStream: InputStream): ByteBuffer = {
     val initialSize = 0x10000 // 64K
+    copyToByteBufferAndClose(inputStream, initialSize)
+  }
+
+  /**
+   * Copies the bytes from an input stream into a new byte buffer, then closes the input stream.
+   * @param inputStream the input stream
+   * @param initialSize the initial size of the buffer
+   * @return the new byte buffer
+   */
+  @throws (classOf[IOException])
+  def copyToByteBufferAndClose(inputStream: InputStream, initialSize: Int): ByteBuffer = {
+    require(initialSize > 0)
     val outStream = new ByteArrayOutputStream (initialSize)
     if (inputStream != null) {
       copyBytes (inputStream, outStream)

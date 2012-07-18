@@ -39,19 +39,31 @@ case class Headers(list: List[Header]) {
 
   def names: List[String] = list.map(_.name)
 
-  def contains(name: HeaderName) = !list.filter(_.name equalsIgnoreCase name.name).isEmpty
+  /**
+   * Tests whether a given header is present.
+   * @param name the required header name. Uppercase or lowercase doesn't matter.
+   */
+  def contains(name: HeaderName) = list.find(_.name equalsIgnoreCase name.name).isDefined
 
   /**
    * Finds all the headers that have a given name.
    * @param name the required header name. Uppercase or lowercase doesn't matter.
    */
-  def find(name: String): List[Header] = list.filter(_.name equalsIgnoreCase name)
+  def filter(name: String): List[Header] = list.filter(_.name equalsIgnoreCase name)
 
   /**
-   * Finds the one header that has a given name. If none exists, an exception will be thrown.
-   * If more than one match exists, only the first will be returned.
+   * Finds the header that has a given name. If more than one match exists, only the first
+   * will be returned.
+   * @param name the required header name. Uppercase or lowercase doesn't matter.
    */
-  def get(name: String): Header = find(name)(0)
+  def get(name: String): Option[Header] = list.find(_.name equalsIgnoreCase name)
+
+  /**
+   * Finds the header that has a given name. If none exists, an exception will be thrown.
+   * If more than one match exists, only the first will be returned.
+   * @param name the required header name. Uppercase or lowercase doesn't matter.
+   */
+  def apply(name: String): Header = list.find(_.name equalsIgnoreCase name).get
 
   def remove(name: HeaderName): Headers = {
     Headers(list.filter(!_.name.equalsIgnoreCase(name.name)))
