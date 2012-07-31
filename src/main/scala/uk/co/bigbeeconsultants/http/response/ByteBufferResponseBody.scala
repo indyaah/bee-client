@@ -39,9 +39,9 @@ import uk.co.bigbeeconsultants.http.HttpClient
  */
 final class ByteBufferResponseBody(val contentType: MediaType,
                                    inputStream: InputStream,
-                                   initialSize: Int = 0x10000) extends ResponseBody {
+                                   suppliedContentLength: Int = 0x10000) extends ResponseBody {
 
-  private[this] val byteData: ByteBuffer = HttpUtil.copyToByteBufferAndClose(inputStream, initialSize)
+  private[this] val byteData: ByteBuffer = HttpUtil.copyToByteBufferAndClose(inputStream, suppliedContentLength)
 
   private[this] var converted: String = null
 

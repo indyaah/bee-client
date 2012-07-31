@@ -36,7 +36,7 @@ making HTTP requests. It has the following features:
 
 *   Tested against a range of servers: Apache2, Nginx, Lighttpd, Cherokee, Tomcat7.
 
-*   The number of external dependencies is minimised (currently: jcsp, slf4j, slf4s).
+*   The number of external dependencies is minimised (currently: slf4j, slf4s, servlet-api).
 
 It is written in Scala but may be called (a lot less easily) from Java also.
 

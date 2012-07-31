@@ -239,7 +239,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
       case be: BufferUnderflowException =>
     }
     try {
-      emptyBuffer.putInt (0);
+      emptyBuffer.putInt (0)
       fail ()
     }
     catch {
@@ -279,7 +279,6 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
   after {
     server.clearExpectations ()
-    HttpClient.closeConnections ()
     server.stop ()
 
     //    if (CleanupThread.isRunning) {

@@ -43,7 +43,7 @@ object Dependencies {
   //  val jodaTime         = "joda-time"          % "joda-time"         % "2.+" withJavadoc()
   //  val jodaConvert      = "joda-time"          % "joda-convert"      % "1.+" withJavadoc()
 
-  val jcsp = "org.codehaus.jcsp" % "jcsp" % "1.1-rc5"
+//  val jcsp = "org.codehaus.jcsp" % "jcsp" % "1.1-rc5"
 
   val servletApi = "org.mortbay.jetty" % "servlet-api" % "2.5.+" withSources()
 //  val servlet = "javax.servlet" % "servlet-api" % "2.5" withSources()

@@ -32,7 +32,6 @@ import java.net._
 import java.util.zip.GZIPInputStream
 import com.weiglewilczek.slf4s.Logging
 import collection.mutable.ListBuffer
-import collection.immutable.List
 import java.io.IOException
 
 /**
@@ -146,7 +145,7 @@ class HttpClient(val config: Config = Config (),
       handleContent (status, request, responseFactory, httpURLConnection)
 
     } finally {
-      markConnectionForClosure (httpURLConnection)
+      httpURLConnection.disconnect ()
     }
   }
 
@@ -158,13 +157,6 @@ class HttpClient(val config: Config = Config (),
     if (request.body.isDefined) {
       request.body.get.copyTo (httpURLConnection.getOutputStream)
     }
-  }
-
-  private def markConnectionForClosure(httpURLConnection: HttpURLConnection) {
-    //    if (!config.keepAlive) {
-    httpURLConnection.disconnect ()
-    //    }
-    //    else CleanupThread.futureClose(httpURLConnection)
   }
 
   private def setRequestHeaders(request: Request, requestHeaders: Headers, jar: CookieJar, httpURLConnection: HttpURLConnection) {
@@ -282,16 +274,5 @@ object HttpClient {
     ACCEPT_CHARSET -> UTF8
   )
 
-  /**
-   * Closes all the keep-alive connections still pending.
-   */
-  def closeConnections() {
-    CleanupThread.closeConnections ()
-  }
-
-  // Shuts down the background cleanup thread. Do not call this more than once.
-  def terminate() {
-    CleanupThread.terminate ()
-  }
 }
 

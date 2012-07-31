@@ -53,7 +53,7 @@ class BufferedResponseBuilder extends ResponseBuilder {
   private var _response: Option[Response] = None
 
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType], headers: Headers, stream: InputStream) {
-    val bufferSize = headers.get(HeaderName.CONTENT_LENGTH).map(_.toInt).getOrElse(0x1000) // default size is 4K
+    val bufferSize = headers.get(HeaderName.CONTENT_LENGTH).map(_.toInt).getOrElse(1024)
     val body = new ByteBufferResponseBody(mediaType.getOrElse(MediaType.APPLICATION_OCTET_STREAM), stream, bufferSize)
     _response = Some(new Response(request, status, body, headers))
     //    logger.debug((_response.get.toString))
