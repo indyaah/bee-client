@@ -51,15 +51,11 @@ Future Plans
 The following features are not supported yet, but are under consideration
 for future versions.
 
-*   HTTP/1.1 keep-alive connections.
-
-*   HTTP/1.1 chunked encoding.
-
 *   Configurable content caching.
 
 *   Proxy support enhanced to support conditional switching.
 
-*   Tested against a very wide range of servers.
+*   Tested against a wider range of servers.
 
 Footnotes
 ---------
