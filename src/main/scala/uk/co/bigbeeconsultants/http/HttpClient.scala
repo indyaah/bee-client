@@ -253,26 +253,19 @@ class HttpClient(val config: Config = Config (),
     }
     Headers (result.toList)
   }
-
-  /**
-   * Closes any remaining connections in this HttpClient instance. Use this to clean up. It is possible to continue
-   * to make further connections after each invocation of this method.
-   */
-  def closeConnections() {
-    //    if (config.keepAlive) CleanupThread.closeConnections()
-  }
 }
 
 object HttpClient {
   val UTF8 = "UTF-8"
   val GZIP = "gzip"
-  val DEFLATE = "deflate"
+  //val DEFLATE = "deflate"
 
   val defaultRequestHeaders = Headers (
     ACCEPT_ENCODING -> GZIP,
-    // CONNECTION -> "Close",
     ACCEPT_CHARSET -> UTF8
   )
 
+  @throws(classOf[MalformedURLException])
+  implicit def toURL(url: String) = new URL(url)
 }
 

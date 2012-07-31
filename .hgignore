@@ -16,6 +16,7 @@ syntax: glob
 build/**
 eclipsebin/**
 lib_managed/**
+log/**
 project/boot/**
 project/target/**
 target/**

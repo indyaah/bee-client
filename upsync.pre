@@ -1,0 +1,6 @@
+#USERNAME=
+HOME=/home/websites/bigbeeconsultants/docs/lighthttpclient
+DIR=$PWD
+SOURCES="api"
+cd target/scala-2.9.1
+

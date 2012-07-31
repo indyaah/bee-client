@@ -149,7 +149,6 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     val after = System.currentTimeMillis ()
     server.verify ()
     println ((after - before) + "ms")
-    http.closeConnections ()
   }
 
 

@@ -69,10 +69,6 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
     http = new HttpClient (config = Config (followRedirects = false), commonRequestHeaders = basicHeaders, proxy = proxy)
   }
 
-  after {
-    http.closeConnections ()
-  }
-
   test ("setupOK") {
     //    assertFalse(http.config.keepAlive)
   }

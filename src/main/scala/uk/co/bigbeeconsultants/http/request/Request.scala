@@ -67,6 +67,4 @@ object Request {
 
   // methods requiring an entity body
   def put(url: URL, body: RequestBody): Request = Request (PUT, url, Some (body))
-
-  implicit def toURL(url: String) = new URL(url)
 }
