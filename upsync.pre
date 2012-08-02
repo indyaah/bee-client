@@ -1,6 +1,13 @@
 #USERNAME=
-HOME=/home/websites/bigbeeconsultants/docs/lighthttpclient
+PROJECT=lighthttpclient
+VNUM=$(grep version build.sbt | sed 's/.*:= *//' | tr -d '"')
+HOME=/home/websites/bigbeeconsultants/docs/$PROJECT
 DIR=$PWD
-SOURCES="api"
+SOURCES="$VNUM latest.html"
 cd target/scala-2.9.1
+mv api $VNUM
+
+echo "<html><head>" >latest.html
+echo "<meta http-equiv='refresh' content='0;url=http://www.bigbeeconsultants.co.uk/docs/$PROJECT/$VNUM/'/>" >> latest.html 
+echo "</head><body></body></html>" >>latest.html
 
