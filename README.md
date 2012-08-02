@@ -40,6 +40,11 @@ making HTTP requests. It has the following features:
 
 It is written in Scala but may be called (a lot less easily) from Java also.
 
+Documentation
+-------------
+
+*   See the [wiki](https://bitbucket.org/rickb777/lighthttpclient/wiki/Home)
+
 Known Bugs
 ----------
 
