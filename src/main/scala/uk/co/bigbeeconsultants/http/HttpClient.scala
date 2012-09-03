@@ -27,7 +27,7 @@ package uk.co.bigbeeconsultants.http
 import header.HeaderName._
 import header.{CookieJar, Headers, Header, MediaType}
 import response._
-import request.{Config, RequestBody, Request}
+import request.{RequestBody, Request}
 import java.net._
 import java.util.zip.GZIPInputStream
 import com.weiglewilczek.slf4s.Logging
@@ -38,8 +38,7 @@ import java.io.IOException
  * Constructs an instance for handling any number of HTTP requests.
  */
 class HttpClient(val config: Config = Config (),
-                 val commonRequestHeaders: Headers = HttpClient.defaultRequestHeaders,
-                 val proxy: Proxy = Proxy.NO_PROXY) extends Logging {
+                 val commonRequestHeaders: Headers = HttpClient.defaultRequestHeaders) extends Logging {
 
   /**
    * Make a HEAD request.
@@ -151,7 +150,7 @@ class HttpClient(val config: Config = Config (),
 
   /**Provides a seam for testing. Not for normal use. */
   @throws(classOf[IOException])
-  protected def openConnection(request: Request) = request.url.openConnection (proxy).asInstanceOf[HttpURLConnection]
+  protected def openConnection(request: Request) = request.url.openConnection (config.proxy).asInstanceOf[HttpURLConnection]
 
   private def copyRequestBodyToOutputStream(request: Request, httpURLConnection: HttpURLConnection) {
     if (request.body.isDefined) {
@@ -160,7 +159,7 @@ class HttpClient(val config: Config = Config (),
   }
 
   private def setRequestHeaders(request: Request, requestHeaders: Headers, jar: CookieJar, httpURLConnection: HttpURLConnection) {
-    val method = if (request.method == null) Request.GET else request.method.toUpperCase
+    val method = request.method.toUpperCase
     httpURLConnection.setRequestMethod (method)
 
     if (config.sendHostHeader) {
@@ -173,12 +172,17 @@ class HttpClient(val config: Config = Config (),
       logger.debug ((CONTENT_TYPE -> request.body.get.mediaType).toString)
     }
 
-    for (hdr <- commonRequestHeaders.list) {
+    for (hdr <- config.configHeaders) {
       httpURLConnection.setRequestProperty (hdr.name, hdr.value)
       logger.debug (hdr.toString)
     }
 
-    for (hdr <- requestHeaders.list) {
+    for (hdr <- commonRequestHeaders) {
+      httpURLConnection.setRequestProperty (hdr.name, hdr.value)
+      logger.debug (hdr.toString)
+    }
+
+    for (hdr <- requestHeaders) {
       httpURLConnection.setRequestProperty (hdr.name, hdr.value)
       logger.debug (hdr.toString)
     }

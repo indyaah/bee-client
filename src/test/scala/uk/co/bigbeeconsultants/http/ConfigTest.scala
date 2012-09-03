@@ -22,16 +22,23 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http
 
-version := "0.9.0"
+import header.HeaderName
+import org.scalatest.{BeforeAndAfter, FunSuite}
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+class ConfigTest extends FunSuite with BeforeAndAfter {
 
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
+  test("configHeaders with keepAlive") {
+    val c1 = Config(keepAlive = true)
+    expect(0)(c1.configHeaders.size)
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+    val c2 = Config(keepAlive = false)
+    expect("close")(c2.configHeaders(HeaderName.CONNECTION).value)
+  }
+
+  test("configHeaders with userAgentString") {
+    val c = Config(userAgentString = Some("FooBar"))
+    expect("FooBar")(c.configHeaders(HeaderName.USER_AGENT).value)
+  }
+}

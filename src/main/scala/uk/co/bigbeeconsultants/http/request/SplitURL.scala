@@ -24,7 +24,8 @@
 
 package uk.co.bigbeeconsultants.http.request
 
-import java.net.URL
+import java.net.{URLEncoder, URL}
+import uk.co.bigbeeconsultants.http.HttpClient
 
 /**
  * Provides a utility wrapper for URLs that splits them into their component parts and allows alteration and reassembly
@@ -32,10 +33,10 @@ import java.net.URL
  */
 case class SplitURL(scheme: String,
                     host: String,
-                    port: Option[Int],
-                    pathSegments: List[String],
-                    fragment: Option[String],
-                    query: Option[String]) {
+                    port: Option[Int] = None,
+                    pathSegments: List[String] = Nil,
+                    fragment: Option[String] = None,
+                    query: Option[String] = None) {
 
   def asURL: URL =
     if (fragment.isEmpty && query.isEmpty)
@@ -46,18 +47,27 @@ case class SplitURL(scheme: String,
   def hostAndPort = host + port.map(":" + _.toString).getOrElse("")
 
   def path = pathSegments.mkString("/", "/", "")
+
   def pathString = path + fragment.map("#" + _).getOrElse("") + query.map("?" + _).getOrElse("")
 
   override def toString = scheme + "://" + hostAndPort + pathString
+
+  def withQuery(params: Map[String, String]) = {
+    copy(query = Some(SplitURL.assembleQueryString(params)))
+  }
 }
 
 
 object SplitURL {
-  /**Factory method creates an instance from a URL. */
+  /**
+   * Factory method creates an instance from a URL.
+   */
   def apply(url: URL) = new SplitURL(url.getProtocol, url.getHost, portAsOption(url.getPort),
     trimAndSplitPath(url.getFile), strAsOption(url.getRef), strAsOption(url.getQuery))
 
-  /**Factory method creates an instance from a string containing a URL. */
+  /**
+   * Factory method creates an instance from a string containing a URL.
+   */
   def apply(url: String) = {
     val p1 = url.indexOf("://")
     require(p1 > 0, "Malformed URL: no scheme part.")
@@ -131,4 +141,17 @@ object SplitURL {
   implicit def convertFromURL(url: URL): SplitURL = apply(url)
 
   implicit def convertFromString(url: String): SplitURL = apply(url)
+
+  private def assembleQueryString(queryParams: Map[String, String]) = {
+    val w = new StringBuilder
+    var amp = ""
+    for ((key, value) <- queryParams) {
+      w.append(amp)
+      w.append(URLEncoder.encode(key, HttpClient.UTF8))
+      w.append('=')
+      w.append(URLEncoder.encode(value, HttpClient.UTF8))
+      amp = "&"
+    }
+    w.toString()
+  }
 }

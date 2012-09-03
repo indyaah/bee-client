@@ -30,7 +30,7 @@ import MediaType._
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import java.net.{HttpURLConnection, Proxy, URL}
 import org.mockito.Mockito._
-import request.{RequestBody, Request, Config}
+import request.{RequestBody, Request}
 import response.Status
 import collection.immutable.ListMap
 import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
@@ -87,9 +87,8 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
   }
 
   private def newHttpClient(config: Config = Config (),
-                            commonRequestHeaders: Headers = HttpClient.defaultRequestHeaders,
-                            proxy: Proxy = Proxy.NO_PROXY) = {
-    new HttpClient (config, commonRequestHeaders, proxy) {
+                            commonRequestHeaders: Headers = HttpClient.defaultRequestHeaders) = {
+    new HttpClient (config, commonRequestHeaders) {
       override def openConnection(request: Request) = httpURLConnection
     }
   }

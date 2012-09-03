@@ -115,6 +115,7 @@ object HttpUtil {
         count += n
         n = input.read(buffer)
       }
+      output.flush()
     }
     count
   }

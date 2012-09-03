@@ -22,13 +22,21 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.http.request
+package uk.co.bigbeeconsultants.http
 
-/**
- * Specifies configuration options that will be used across many requests.
- */
-case class Config(connectTimeout: Int = 2000,
-                  readTimeout: Int = 5000,
-                  followRedirects: Boolean = true,
-                  useCaches: Boolean = true,
-                  sendHostHeader: Boolean = true)
+import org.scalatest.{BeforeAndAfter, FunSuite}
+
+class HttpGlobalSettingsTest extends FunSuite with BeforeAndAfter {
+
+  test("maxConnections") {
+    expect(5)(HttpGlobalSettings.maxConnections)
+    HttpGlobalSettings.maxConnections = 10
+    expect(10)(HttpGlobalSettings.maxConnections)
+  }
+
+//  test("maxRedirects") {
+//    expect(20)(HttpGlobalSettings.maxRedirects)
+//    HttpGlobalSettings.maxRedirects = 10
+//    expect(10)(HttpGlobalSettings.maxRedirects)
+//  }
+}

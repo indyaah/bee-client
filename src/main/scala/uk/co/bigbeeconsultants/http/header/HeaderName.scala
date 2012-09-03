@@ -56,6 +56,7 @@ object HeaderName {
   val AUTHORIZATION = HeaderName ("Authorization")
   val COOKIE = HeaderName ("Cookie")
   val OBSOLETE_COOKIE2 = HeaderName ("Cookie2")
+  val DO_NOT_TRACK = HeaderName ("DNT") // Int
   val EXPECT = HeaderName ("Expect")
   val FROM = HeaderName ("From") // String
   val HOST = HeaderName ("Host") // String

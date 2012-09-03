@@ -48,16 +48,16 @@ class HeadersTest extends FunSuite {
 
   test ("remove and add") {
     val n1 = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar"))
-    val n2 = n1.remove(HOST)
+    val n2 = n1 - HOST
     expect (2)(n2.size)
     expect (false)(n2.contains(HOST))
     expect (ACCEPT -> "foo")(n2(ACCEPT.name))
 
-    val n3 = n2.add(HOST -> "server:8080")
+    val n3 = n2 + (HOST -> "server:8080")
     expect (3)(n3.size)
     expect (HOST -> "server:8080")(n3(HOST.name))
 
-    val n4 = n1.remove(ACCEPT)
+    val n4 = n1 - ACCEPT
     expect (1)(n4.size)
     expect (HOST -> "localhost")(n4(HOST.name))
     expect (false)(n4.contains(ACCEPT))

@@ -30,7 +30,6 @@ import header._
 import java.nio.{BufferUnderflowException, BufferOverflowException, ByteBuffer}
 import HeaderName._
 import MediaType._
-import request.Config
 import scala.collection.JavaConversions._
 import java.io._
 import java.util.zip.GZIPOutputStream

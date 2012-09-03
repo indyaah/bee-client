@@ -22,16 +22,29 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http
 
-version := "0.9.0"
+import uk.co.bigbeeconsultants.http.header.Headers
+import uk.co.bigbeeconsultants.http.header.HeaderName._
+import java.net.Proxy
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+/**
+ * Specifies configuration options that will be used across many requests.
+ */
+case class Config(connectTimeout: Int = 2000,
+                  readTimeout: Int = 5000,
+                  followRedirects: Boolean = true,
+                  useCaches: Boolean = true,
+                  sendHostHeader: Boolean = true,
+                  keepAlive: Boolean = true,
+                  userAgentString: Option[String] = None,
+                  proxy: Proxy = Proxy.NO_PROXY) {
 
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
+  lazy val configHeaders: Headers = {
+    var hdrs = Headers()
+    if (!keepAlive) hdrs = hdrs + (CONNECTION -> "close")
+    if (userAgentString.isDefined) hdrs = hdrs + (USER_AGENT -> userAgentString.get)
+    hdrs
+  }
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+}

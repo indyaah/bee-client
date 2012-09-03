@@ -1,13 +1,27 @@
 #USERNAME=
 PROJECT=lighthttpclient
+SCALA=2.9.1
 VNUM=$(grep version build.sbt | sed 's/.*:= *//' | tr -d '"')
-HOME=/home/websites/bigbeeconsultants/docs/$PROJECT
+DEST=/home/websites/bigbeeconsultants
 DIR=$PWD
-SOURCES="$VNUM latest.html"
-cd target/scala-2.9.1
-mv api $VNUM
+SOURCES="docs repo"
 
-echo "<html><head>" >latest.html
-echo "<meta http-equiv='refresh' content='0;url=http://www.bigbeeconsultants.co.uk/docs/$PROJECT/$VNUM/'/>" >> latest.html 
-echo "</head><body></body></html>" >>latest.html
+cd target
+mkdir -p $DEST/docs/${PROJECT}
+rsync -av scala-${SCALA}/api/ $DEST/docs/${PROJECT}/${VNUM}
+
+cd $DEST
+rsync -av $HOME/.ivy2/local/${PROJECT} repo
+cd repo/${PROJECT}/${PROJECT}_${SCALA}/${VNUM} && ln -fs */${PROJECT}* .
+
+function writeLatest
+{
+  echo "<html><head><title>${PROJECT}</title>" >$1
+  echo "<meta http-equiv='refresh' content='1;url=$2'/>" >> $1
+  echo "</head><body><a href='$2'>Latest</a></body></html>" >>$1
+}
+
+cd $DEST
+writeLatest docs/${PROJECT}/latest.html "http://www.bigbeeconsultants.co.uk/docs/${PROJECT}/${VNUM}/"
+writeLatest repo/${PROJECT}/latest.html "http://www.bigbeeconsultants.co.uk/repo/${PROJECT}/${PROJECT}_${SCALA}/${VNUM}/"
 

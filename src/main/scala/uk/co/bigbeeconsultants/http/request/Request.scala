@@ -26,13 +26,17 @@ package uk.co.bigbeeconsultants.http.request
 
 import java.net.URL
 
+//TODO: need to support chunked streaming out of the request
 /**
  * Represents the requirements for an HTTP request. Immutable.
  * Normally, this class will not be instantiated directly but via the Request object methods.
  */
 final case class Request(method: String,
                          url: URL,
-                         body: Option[RequestBody] = None)
+                         body: Option[RequestBody] = None) {
+  require(method != null)
+  require(url != null)
+}
 
 /**
  * Provides factory methods for creating request objects of various types. These include

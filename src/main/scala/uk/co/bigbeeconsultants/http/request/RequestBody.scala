@@ -37,7 +37,14 @@ import util.HttpUtil
  * <p>
  * The companion object provides apply methods for common sources of body data.
  */
-final class RequestBody(val mediaType: MediaType, val copyTo: OutputStream => Unit)
+final class RequestBody(val mediaType: MediaType, val copyTo: OutputStream => Unit) {
+
+//  def asQueryString = {
+//    val baos = new ByteArrayOutputStream
+//    copyTo(baos)
+//    baos.toString(mediaType.charsetOrElse (HttpClient.UTF8))
+//  }
+}
 
 
 /**
@@ -52,6 +59,7 @@ object RequestBody {
     new RequestBody (mediaType, (outputStream) => {
       val encoding = mediaType.charsetOrElse (HttpClient.UTF8)
       outputStream.write (string.getBytes (encoding))
+      outputStream.flush()
     })
   }
 
@@ -62,15 +70,15 @@ object RequestBody {
     new RequestBody (mediaType, (outputStream) => {
       val encoding = mediaType.charsetOrElse (HttpClient.UTF8)
       val w = new OutputStreamWriter (outputStream, encoding)
-      var first = true
+      var amp = ""
       for ((key, value) <- data) {
-        if (!first) w.append ('&')
-        else first = false
+        w.append(amp)
         w.write (URLEncoder.encode (key, encoding))
         w.write ('=')
         w.write (URLEncoder.encode (value, encoding))
+        amp = "&"
       }
-      w.close ()
+      w.flush ()
     })
   }
 

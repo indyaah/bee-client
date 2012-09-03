@@ -33,6 +33,10 @@ import collection.immutable.List
  */
 case class Headers(list: List[Header]) {
 
+  def iterator = list.iterator
+
+  def foreach[U](f: Header => U) { iterator.foreach(f) }
+
   def isEmpty = list.isEmpty
 
   def size = list.size
@@ -66,16 +70,26 @@ case class Headers(list: List[Header]) {
   def apply(name: String): Header = list.find(_.name equalsIgnoreCase name).get
 
   def remove(name: HeaderName): Headers = {
-    Headers(list.filter(!_.name.equalsIgnoreCase(name.name)))
+    Headers(list.filterNot(_.name.equalsIgnoreCase(name.name)))
+  }
+
+  def -(name: HeaderName): Headers = {
+    remove(name)
   }
 
   def add(newHeader: Header): Headers = {
     new Headers(newHeader :: list)
   }
+
+  def +(newHeader: Header): Headers = {
+    add(newHeader)
+  }
 }
 
 object Headers {
   def apply(headers: Header*): Headers = new Headers(headers.toList)
+
+  val empty = Headers(Nil)
 
   implicit def createHeaders(list: List[Header]): Headers = new Headers(list)
 }
