@@ -5,7 +5,6 @@ import uk.co.bigbeeconsultants.http.HttpClient._
 import uk.co.bigbeeconsultants.http.header.HeaderName
 
 object Example1b extends App {
-
   // create a Config different from the default values
   val config = Config(connectTimeout = 10000,
     readTimeout = 1000,

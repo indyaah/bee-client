@@ -4,7 +4,6 @@ import uk.co.bigbeeconsultants.http.HttpClient
 import uk.co.bigbeeconsultants.http.HttpClient._
 
 object Example1c extends App {
-
   val httpClient = new HttpClient
   val response = httpClient.get("http://www.google.com/")
 

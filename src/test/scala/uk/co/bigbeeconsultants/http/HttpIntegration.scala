@@ -65,6 +65,7 @@ object HttpIntegration {
 
 
 class HttpIntegration extends FunSuite with BeforeAndAfter {
+
   import HttpIntegration._
 
   private val jsonBody = RequestBody(MediaType.APPLICATION_JSON, """{ "x": 1, "y": true }""")
@@ -188,8 +189,9 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("php text/html delete x1") {
+    val url = testPhpUrl + "?D=1"
     try {
-      val response = http.delete(new URL(testPhpUrl + "?D=1"), gzipHeaders)
+      val response = http.delete(new URL(url), gzipHeaders)
       expect(200)(response.status.code)
       val body = response.body
       expect(MediaType.TEXT_HTML)(body.contentType)
@@ -198,7 +200,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       expect("DELETE")(extractLineFromResponse("REQUEST_METHOD", bodyLines))
     } catch {
       case e: Exception =>
-        skipTestWarning("DELETE", testPhpUrl, e)
+        skipTestWarning("DELETE", url, e)
     }
   }
 

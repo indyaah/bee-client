@@ -9,10 +9,14 @@ SOURCES="docs repo"
 cd target
 mkdir -p $DEST/docs/${PROJECT}
 rsync -av scala-${SCALA}/api/ $DEST/docs/${PROJECT}/${VNUM}
+cd $DEST/docs/${PROJECT}
+ln -fs ${VNUM} latest
 
 cd $DEST
 rsync -av $HOME/.ivy2/local/${PROJECT} repo
-cd repo/${PROJECT}/${PROJECT}_${SCALA}/${VNUM} && ln -fs */${PROJECT}* .
+cd repo/${PROJECT}/${PROJECT}_${SCALA}
+ln -fs ${VNUM} latest
+cd ${VNUM} && ln -fs */${PROJECT}* .
 
 function writeLatest
 {
