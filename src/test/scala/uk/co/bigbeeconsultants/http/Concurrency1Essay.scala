@@ -30,9 +30,11 @@ import uk.co.bigbeeconsultants.http.HttpIntegration._
 
 object Concurrency1Essay {
   //  HttpGlobalSettings.maxConnections = 10
-  val nIterations = 5
+  val nIterations = 100000
   val nThreads = 1
   val nIterationsEach = nIterations / nThreads
+//  val url = testPhotoUrl
+  val url = testTxtUrl
 
   //  val proxyAddress = new InetSocketAddress("localhost", 8888)
   //  val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
@@ -50,7 +52,7 @@ object Concurrency1Essay {
     println((end - start) + "ms")
   }
 
-  val http = new HttpClient(config, basicHeaders)
+  val http = new HttpClient(config)
 }
 
 class Concurrency1Thread(id: Int) extends Thread {
@@ -60,23 +62,26 @@ class Concurrency1Thread(id: Int) extends Thread {
 
   override def run() {
     require(nIterationsEach > 0)
-    val url = testPhotoUrl + "?t" + id
+    val u = url + "?t" + id
     try {
       for (i <- 1 to nIterationsEach) {
-        htmlGet(url + "&i=" + i)
+        htmlGet(u + "&i=" + i)
       }
     } catch {
       case e: Exception =>
-        skipTestWarning("GET", url, e)
+        skipTestWarning("GET", u, e)
     }
   }
 
   private def htmlGet(url: String) {
     val response = http.get(new URL(url), gzipHeaders)
     assert(response.status.code == 200, url + " " + response.status.code.toString)
-    assert(response.body.contentType == MediaType.IMAGE_JPG, response.body.contentType)
-    val bytes = response.body.asBytes
-    assert(bytes.length == testPhotoSize, bytes.length)
+    assert(response.body.contentType == MediaType.TEXT_PLAIN, response.body.contentType)
+    val bytes = response.body.toString
+    assert(bytes.length == testTxtSize, bytes.length)
+    //assert(response.body.contentType == MediaType.IMAGE_JPG, response.body.contentType)
+    //val bytes = response.body.asBytes
+    //assert(bytes.length == testPhotoSize, bytes.length)
   }
 
   private def skipTestWarning(method: String, url: String, e: Exception) {

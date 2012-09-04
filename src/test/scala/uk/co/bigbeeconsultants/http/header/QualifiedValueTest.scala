@@ -48,8 +48,8 @@ class QualifiedValueTest extends FunSuite {
   }
 
 
-  test ("two-part string with one qualifier") {
-    val v = QualifiedValue("audio/*;q=0.2, audio/basic")
+  test ("two-part string with one qualifier including spaces and zeros") {
+    val v = QualifiedValue("audio/*; q=0.2, audio/basic")
     expect (2)(v.parts.size)
     expect ("audio/*")(v(0))
     expect ("audio/*")(v.parts (0).value)
@@ -57,6 +57,18 @@ class QualifiedValueTest extends FunSuite {
     expect ("0.2")(v.parts (0).qualifier (0).value)
     expect ("audio/basic")(v(1))
     expect ("audio/*;q=0.2, audio/basic")(v.toString)
+  }
+
+
+  test ("two-part string with one qualifier without spaces or zeros") {
+    val v = QualifiedValue("audio/*;q=.2, audio/basic")
+    expect (2)(v.parts.size)
+    expect ("audio/*")(v(0))
+    expect ("audio/*")(v.parts (0).value)
+    expect ("q")(v.parts (0).qualifier (0).label)
+    expect (".2")(v.parts (0).qualifier (0).value)
+    expect ("audio/basic")(v(1))
+    expect ("audio/*;q=.2, audio/basic")(v.toString)
   }
 
 

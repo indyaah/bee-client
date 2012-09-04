@@ -265,8 +265,9 @@ object HttpClient {
   //val DEFLATE = "deflate"
 
   val defaultRequestHeaders = Headers (
+    ACCEPT -> "*/*",
     ACCEPT_ENCODING -> GZIP,
-    ACCEPT_CHARSET -> UTF8
+    ACCEPT_CHARSET -> (UTF8 + ",*;q=.1")
   )
 
   @throws(classOf[MalformedURLException])

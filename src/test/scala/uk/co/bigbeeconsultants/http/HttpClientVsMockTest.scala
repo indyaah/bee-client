@@ -111,7 +111,8 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     }
 
     verifyConfig(Config())
-    verifyRequestSettings (method, List(HOST -> "server", ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8", ACCEPT_LANGUAGE -> "en"))
+    verifyRequestSettings (method, List(HOST -> "server", ACCEPT -> "*/*",
+      ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8,*;q=.1", ACCEPT_LANGUAGE -> "en"))
     verify (httpURLConnection).getContentType
     verify (httpURLConnection, times (2)).getResponseCode
     verify (httpURLConnection).getResponseMessage
@@ -146,7 +147,8 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     val response = http.post (url, Some(RequestBody(MediaType.TEXT_HTML)), headers)
 
     verifyConfig(Config())
-    verifyRequestSettings ("POST", List(HOST -> "server", ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8", ACCEPT_LANGUAGE -> "en"))
+    verifyRequestSettings ("POST", List(HOST -> "server", ACCEPT -> "*/*",
+      ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8,*;q=.1", ACCEPT_LANGUAGE -> "en"))
     verify (httpURLConnection).getContentType
     verify (httpURLConnection, times (3)).getResponseCode
     verify (httpURLConnection).getResponseMessage
@@ -178,7 +180,8 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
       case "OPTIONS" => http.options (url, Some(RequestBody(TEXT_PLAIN, "hello world")), headers)    }
 
     verifyConfig(Config())
-    verifyRequestSettings (method, List(HOST -> "server", ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8", ACCEPT_LANGUAGE -> "en", CONTENT_TYPE -> "text/plain"))
+    verifyRequestSettings (method, List(HOST -> "server", ACCEPT -> "*/*",
+      ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8,*;q=.1", ACCEPT_LANGUAGE -> "en", CONTENT_TYPE -> "text/plain"))
     verify (httpURLConnection).setDoOutput (true)
     verify (httpURLConnection).getContentType
     verify (httpURLConnection, times (2)).getResponseCode

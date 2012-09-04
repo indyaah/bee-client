@@ -50,8 +50,8 @@ object HeaderName {
 
   // Request headers
   val ACCEPT = HeaderName ("Accept") // QualifiedValue
-  val ACCEPT_CHARSET = HeaderName ("Accept-Charset") // QualifiedValue
-  val ACCEPT_ENCODING = HeaderName ("Accept-Encoding") // QualifiedValue
+  val ACCEPT_CHARSET = HeaderName ("Accept-Charset") // QualifiedValue (case-insensitive)
+  val ACCEPT_ENCODING = HeaderName ("Accept-Encoding") // QualifiedValue ("gzip", "compress", "deflate" etc)
   val ACCEPT_LANGUAGE = HeaderName ("Accept-Language") // QualifiedValue
   val AUTHORIZATION = HeaderName ("Authorization")
   val COOKIE = HeaderName ("Cookie")

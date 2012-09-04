@@ -53,7 +53,6 @@ object HttpIntegration {
   //  val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
   val proxy = Proxy.NO_PROXY
 
-  val basicHeaders = Headers(ACCEPT_CHARSET -> UTF8)
   val gzipHeaders = Headers(ACCEPT_ENCODING -> GZIP)
 
   val dir = new File("src/test/resources")
@@ -68,13 +67,14 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   import HttpIntegration._
 
-  private val jsonBody = RequestBody(MediaType.APPLICATION_JSON, """{ "x": 1, "y": true }""")
+  private val jsonSample = """{ "x": 1, "y": true }"""
+  private val jsonBody = RequestBody(MediaType.APPLICATION_JSON, jsonSample)
 
   val config = Config(followRedirects = false, proxy = proxy)
   var http: HttpClient = _
 
   before {
-    http = new HttpClient(config, basicHeaders)
+    http = new HttpClient(config)
   }
 
   test("setupOK") {
@@ -151,8 +151,6 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val body = response.body
       expect(MediaType.TEXT_PLAIN)(body.contentType)
       expect(true)(body.toString.startsWith("Lorem "))
-      //      val bodyLines = response.body.toString.split ("\n").toSeq
-      //expect ("GET")(extractLineFromResponse ("REQUEST_METHOD", bodyLines))
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
@@ -173,31 +171,61 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("php text/plain post x1") {
-    val url = testPhpUrl + "?CT=text/plain"
+    val url = testPhpUrl + "?D=1&CT=text/plain"
     try {
       val response = http.post(new URL(url), Some(jsonBody), gzipHeaders)
-      expect(302)(response.status.code)
+      expect(200)(response.status.code)
       val body = response.body
-      expect(MediaType.TEXT_HTML)(body.contentType)
-      expect(0)(body.toString.length)
-      val location = response.headers(LOCATION).value
-      expect(true, location)(location.startsWith(serverUrl))
+      expect(MediaType.TEXT_PLAIN)(body.contentType)
+      val bodyLines = response.body.toString.split("\n").toSeq
+      expect(jsonSample.length.toString)(extractLineFromResponse("CONTENT_LENGTH", bodyLines))
+      expect(MediaType.APPLICATION_JSON.value)(extractLineFromResponse("CONTENT_TYPE", bodyLines))
     } catch {
       case e: Exception =>
-        skipTestWarning("GET", url, e)
+        skipTestWarning("POST", url, e)
+    }
+  }
+
+  test("php text/plain put x1") {
+    val url = testPhpUrl + "?D=1&CT=text/plain"
+    try {
+      val response = http.put(new URL(url), jsonBody, gzipHeaders)
+      expect(200)(response.status.code)
+      val body = response.body
+      expect(MediaType.TEXT_PLAIN)(body.contentType)
+      val bodyLines = response.body.toString.split("\n").toSeq
+      expect(jsonSample.length.toString)(extractLineFromResponse("CONTENT_LENGTH", bodyLines))
+      expect(MediaType.APPLICATION_JSON.value)(extractLineFromResponse("CONTENT_TYPE", bodyLines))
+    } catch {
+      case e: Exception =>
+        skipTestWarning("PUT", url, e)
     }
   }
 
   test("php text/html delete x1") {
-    val url = testPhpUrl + "?D=1"
+    val url = testPhpUrl + "?D=1&CT=text/plain"
     try {
       val response = http.delete(new URL(url), gzipHeaders)
       expect(200)(response.status.code)
       val body = response.body
-      expect(MediaType.TEXT_HTML)(body.contentType)
-      expect(true)(body.toString.startsWith("<html>"))
+      expect(MediaType.TEXT_PLAIN)(body.contentType)
       val bodyLines = response.body.toString.split("\n").toSeq
       expect("DELETE")(extractLineFromResponse("REQUEST_METHOD", bodyLines))
+    } catch {
+      case e: Exception =>
+        skipTestWarning("DELETE", url, e)
+    }
+  }
+
+  test("php text/html options x1") {
+    val url = testPhpUrl + "?D=1&CT=text/plain"
+    try {
+      val response = http.options(new URL(url), None)
+      expect(200)(response.status.code)
+      val body = response.body
+      expect(MediaType.TEXT_PLAIN)(body.contentType)
+      val bodyLines = response.body.toString.split("\n").toSeq
+      expect("OPTIONS")(extractLineFromResponse("REQUEST_METHOD", bodyLines))
     } catch {
       case e: Exception =>
         skipTestWarning("DELETE", url, e)
