@@ -43,7 +43,7 @@ final class ByteBufferResponseBody(val contentType: MediaType,
 
   private[this] val byteData: ByteBuffer = HttpUtil.copyToByteBufferAndClose(inputStream, suppliedContentLength)
 
-  private[this] var converted: String = null
+  private[this] var converted: Option[String] = None
 
   private def convertToString = {
     if (contentType.isTextual) {
@@ -52,13 +52,15 @@ final class ByteBufferResponseBody(val contentType: MediaType,
       byteData.rewind
       string
     }
-    else if (byteData.limit() == 0) {
+    else {
       ""
     }
-    else {
-      "Binary data (" + contentType + ")"
-    }
   }
+
+  /**
+   * Tests whether this response body can be represented as text, or whether the data is binary.
+   */
+  override def isTextual = contentType.isTextual
 
   /**
    * Get the body of the response as an array of bytes.
@@ -68,12 +70,13 @@ final class ByteBufferResponseBody(val contentType: MediaType,
   /**
    * Get the body of the response as a string.
    * This uses the character encoding of the contentType, or UTF-8 as a default.
+   * If the data is binary, this method always returns a blank string.
    */
   override def asString: String = {
-    if (converted == null) {
-      converted = convertToString
+    if (converted.isEmpty) {
+      converted = Some(convertToString)
     }
-    converted
+    converted.get
   }
 
   override def toString = asString

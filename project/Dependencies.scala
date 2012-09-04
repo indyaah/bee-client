@@ -26,8 +26,9 @@ import sbt._
 
 object Resolvers {
   //val localhost = URLRepository("local-nexus", Patterns("http://localhost:8081/nexus/"))
+  val bigbeeRepo = URLRepository("bigbee", Patterns("http://bigbeeconsultants.co.uk/repo/"))
   val resolvers = Seq(//localhost,
-    ScalaToolsReleases, DefaultMavenRepository)
+    bigbeeRepo, ScalaToolsReleases, DefaultMavenRepository)
 }
 
 object Dependencies {
@@ -47,6 +48,8 @@ object Dependencies {
 
   val servletApi = "org.mortbay.jetty" % "servlet-api" % "2.5.+" withSources()
 //  val servlet = "javax.servlet" % "servlet-api" % "2.5" withSources()
+
+  val beeConfig = "bee-config" % "bee-config_2.9.1" % "0.8.+" withSources() withJavadoc()
 
   // ========== Test ==========
 

@@ -42,6 +42,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentType should be(mt)
     body.contentLength should be(bytes.length)
     body.asBytes should be(bytes)
+    body.isTextual should be(true)
     body.toString should be(s)
   }
 
@@ -52,6 +53,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentType should be(mt)
     body.contentLength should be(0)
     body.asBytes should be(new Array[Byte](0))
+    body.isTextual should be(true)
     body.toString should be("")
   }
 
@@ -62,6 +64,20 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentType should be(mt)
     body.contentLength should be(0)
     body.asBytes should be(new Array[Byte](0))
+    body.isTextual should be(false)
+    body.toString should be("")
+  }
+
+  test("ByteBufferResponseBody with binary and a body") {
+    val mt = MediaType.APPLICATION_OCTET_STREAM
+    val bytes = Array[Byte](' ')
+    val bais = new ByteArrayInputStream(bytes)
+    val body = new ByteBufferResponseBody(mt, bais)
+
+    body.contentType should be(mt)
+    body.contentLength should be(1)
+    body.asBytes should be(bytes)
+    body.isTextual should be(false)
     body.toString should be("")
   }
 }

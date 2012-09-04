@@ -40,7 +40,8 @@ trait ResponseBody {
   def contentType: MediaType
 
   /**
-   * Gets the length of the content as the number of bytes received.
+   * Gets the length of the content as the number of bytes received. If compressed on the wire,
+   * this will be a smaller length than the length of the resultant body.
    */
   def contentLength = 0
 
@@ -55,6 +56,11 @@ trait ResponseBody {
    * much use.
    */
   def asString: String = ""
+
+  /**
+   * Tests whether this response body can be represented as text, or whether the data is binary.
+   */
+  def isTextual = true
 }
 
 

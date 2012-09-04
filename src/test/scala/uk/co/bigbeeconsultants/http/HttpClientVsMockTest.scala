@@ -135,34 +135,6 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
   }
 
 
-  // TODO
-  ignore ("mock methods without a content type and without a body should confirm all interations") {
-    val expectedContent = "hello world"
-    createMock (null, expectedContent, Status (204, "No content"))
-    expectHeaders (ListMap ())
-
-    val http = newHttpClient ()
-
-    val headers = Headers (List (ACCEPT_LANGUAGE -> "en"))
-    val response = http.post (url, Some(RequestBody(MediaType.TEXT_HTML)), headers)
-
-    verifyConfig(Config())
-    verifyRequestSettings ("POST", List(HOST -> "server", ACCEPT -> "*/*",
-      ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8,*;q=.1", ACCEPT_LANGUAGE -> "en"))
-    verify (httpURLConnection).getContentType
-    verify (httpURLConnection, times (3)).getResponseCode
-    verify (httpURLConnection).getResponseMessage
-    verify (httpURLConnection).getInputStream
-    verify (httpURLConnection).connect ()
-    verify (httpURLConnection).disconnect ()
-    verifyHeaders (0)
-    verifyNoMoreInteractions (httpURLConnection)
-
-    expect (TEXT_PLAIN)(response.body.contentType)
-    expect (expectedContent)(response.body.toString)
-  }
-
-
   def executeBasicSettingsWithBody(method: String) = {
     val expectedContent = "hello world"
     createMock ("text/plain", expectedContent, Status (200, "OK"))

@@ -198,19 +198,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     val response = http.put (new URL (baseUrl + url), request.RequestBody (APPLICATION_JSON, Map ("a" -> "b")))
     server.verify ()
     expect (APPLICATION_OCTET_STREAM)(response.body.contentType)
-    expect ("")(response.body.asString)
-  }
-
-
-  // chunked data not yet implemented and HttpURLConnection may be too buggy anyway
-  ignore ("post with chunk size should set chunk header") {
-    val http = new HttpClient (config)
-    val stubbedMethod = StubMethod.post (url)
-    server.expect (stubbedMethod).thenReturn (200, APPLICATION_JSON, "")
-    http.post (new URL (baseUrl + url), Some(request.RequestBody (APPLICATION_JSON, Map ("a" -> "b"))))
-    server.verify ()
-    val transferEncoding = stubbedMethod.requestHeaders.get (TRANSFER_ENCODING)
-    expect ("")(transferEncoding)
+    expect (false)(response.body.isTextual)
   }
 
 
