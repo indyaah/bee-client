@@ -19,7 +19,7 @@ ln -fs ${VNUM} latest
 cd ${VNUM} && ln -fs */${PROJECT}* .
 cd ..
 for e in '' '-sources' '-javadoc'; do
-  ln -fs ${VNUM}/${PROJECT}-${SCALA}${e}.jar ${PROJECT}-${SCALA}-${VNUM}${e}.jar
+  ln -fs ${VNUM}/${PROJECT}_${SCALA}${e}.jar ${PROJECT}_${SCALA}-${VNUM}${e}.jar
 done
 
 function writeLatest
