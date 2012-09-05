@@ -24,8 +24,9 @@
 
 package uk.co.bigbeeconsultants.http
 
-import header.{HeaderName, Headers, MediaType}
 import HttpClient._
+import header.{HeaderName, Headers}
+import header.MediaType._
 import header.HeaderName._
 import java.lang.AssertionError
 import request.RequestBody
@@ -68,7 +69,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   import HttpIntegration._
 
   private val jsonSample = """{ "x": 1, "y": true }"""
-  private val jsonBody = RequestBody(MediaType.APPLICATION_JSON, jsonSample)
+  private val jsonBody = RequestBody(jsonSample, APPLICATION_JSON)
 
   val config = Config(followRedirects = false, proxy = proxy)
   var http: HttpClient = _
@@ -86,7 +87,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.head(new URL(url), gzipHeaders)
       expect(200, url)(response.status.code)
       val body = response.body
-      expect(MediaType.TEXT_HTML)(body.contentType)
+      expect(TEXT_HTML)(body.contentType)
       expectHeaderIfPresent("gzip")(response.headers, CONTENT_ENCODING)
       //      expectHeaderIfPresent (size)(response.headers, CONTENT_LENGTH)
       expect(true)(body.toString == "")
@@ -107,7 +108,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.get(new URL(url), gzipHeaders)
       expect(200, url)(response.status.code)
       val body = response.body
-      expect(MediaType.TEXT_HTML)(body.contentType)
+      expect(TEXT_HTML)(body.contentType)
       val string = body.toString
       expect(true)(string.startsWith("<!DOCTYPE html>"))
       expect("gzip")(response.headers(CONTENT_ENCODING).value)
@@ -131,7 +132,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
     try {
       val response = http.get(new URL(url), gzipHeaders)
       expect(200)(response.status.code)
-      expect(MediaType.IMAGE_PNG)(response.body.contentType)
+      expect(IMAGE_PNG)(response.body.contentType)
       val bytes = response.body.asBytes
       expect(testImageSize)(bytes.length)
       expect('P')(bytes(1))
@@ -149,8 +150,25 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.get(new URL(url), gzipHeaders)
       expect(200)(response.status.code)
       val body = response.body
-      expect(MediaType.TEXT_PLAIN)(body.contentType)
+      expect(TEXT_PLAIN)(body.contentType)
       expect(true)(body.toString.startsWith("Lorem "))
+    } catch {
+      case e: Exception =>
+        skipTestWarning("GET", url, e)
+    }
+  }
+
+  test("txt text/plain get qith query string x1") {
+    val url = testPhpUrl + "?D=1&CT=text/plain"
+    try {
+      val response = http.get(new URL(url), gzipHeaders)
+      expect(200)(response.status.code)
+      val body = response.body
+      expect(TEXT_PLAIN)(body.contentType)
+      val bodyLines = response.body.toString.split("\n").toSeq
+      expect("", response.body)(extractLineFromResponse("CONTENT_LENGTH", bodyLines)(0))
+      expect("", response.body)(extractLineFromResponse("CONTENT_TYPE", bodyLines)(0))
+      expect(Set("D: 1", "CT: text/plain"), response.body)(extractLineFromResponse("GET", bodyLines).toSet)
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
@@ -176,10 +194,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.post(new URL(url), Some(jsonBody), gzipHeaders)
       expect(200)(response.status.code)
       val body = response.body
-      expect(MediaType.TEXT_PLAIN)(body.contentType)
+      expect(TEXT_PLAIN)(body.contentType)
       val bodyLines = response.body.toString.split("\n").toSeq
-      expect(jsonSample.length.toString)(extractLineFromResponse("CONTENT_LENGTH", bodyLines))
-      expect(MediaType.APPLICATION_JSON.value)(extractLineFromResponse("CONTENT_TYPE", bodyLines))
+      expect(jsonSample.length.toString)(extractLineFromResponse("CONTENT_LENGTH", bodyLines)(0))
+      expect(APPLICATION_JSON.value)(extractLineFromResponse("CONTENT_TYPE", bodyLines)(0))
+      expect(jsonSample)(extractLineFromResponse("PUT", bodyLines)(0))
     } catch {
       case e: Exception =>
         skipTestWarning("POST", url, e)
@@ -192,10 +211,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.put(new URL(url), jsonBody, gzipHeaders)
       expect(200)(response.status.code)
       val body = response.body
-      expect(MediaType.TEXT_PLAIN)(body.contentType)
+      expect(TEXT_PLAIN)(body.contentType)
       val bodyLines = response.body.toString.split("\n").toSeq
-      expect(jsonSample.length.toString)(extractLineFromResponse("CONTENT_LENGTH", bodyLines))
-      expect(MediaType.APPLICATION_JSON.value)(extractLineFromResponse("CONTENT_TYPE", bodyLines))
+      expect(jsonSample.length.toString)(extractLineFromResponse("CONTENT_LENGTH", bodyLines)(0))
+      expect(APPLICATION_JSON.value)(extractLineFromResponse("CONTENT_TYPE", bodyLines)(0))
+      expect(jsonSample)(extractLineFromResponse("PUT", bodyLines)(0))
     } catch {
       case e: Exception =>
         skipTestWarning("PUT", url, e)
@@ -208,9 +228,9 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.delete(new URL(url), gzipHeaders)
       expect(200)(response.status.code)
       val body = response.body
-      expect(MediaType.TEXT_PLAIN)(body.contentType)
+      expect(TEXT_PLAIN)(body.contentType)
       val bodyLines = response.body.toString.split("\n").toSeq
-      expect("DELETE")(extractLineFromResponse("REQUEST_METHOD", bodyLines))
+      expect("DELETE")(extractLineFromResponse("REQUEST_METHOD", bodyLines)(0))
     } catch {
       case e: Exception =>
         skipTestWarning("DELETE", url, e)
@@ -223,9 +243,9 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.options(new URL(url), None)
       expect(200)(response.status.code)
       val body = response.body
-      expect(MediaType.TEXT_PLAIN)(body.contentType)
+      expect(TEXT_PLAIN)(body.contentType)
       val bodyLines = response.body.toString.split("\n").toSeq
-      expect("OPTIONS")(extractLineFromResponse("REQUEST_METHOD", bodyLines))
+      expect("OPTIONS")(extractLineFromResponse("REQUEST_METHOD", bodyLines)(0))
     } catch {
       case e: Exception =>
         skipTestWarning("DELETE", url, e)
@@ -239,7 +259,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       for (i <- 1 to loops) {
         val response = http.get(new URL(testPhotoUrl + "?n=" + i), gzipHeaders)
         expect(200)(response.status.code)
-        expect(MediaType.IMAGE_JPG)(response.body.contentType)
+        expect(IMAGE_JPG)(response.body.contentType)
         val bytes = response.body.asBytes
         expect(testPhotoSize)(bytes.length)
       }
@@ -267,7 +287,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
             val response = http.get(new URL(testPhpUrl + "?STUM=1"), gzipHeaders)
             expect(200)(response.status.code)
             val body = response.body
-            expect(MediaType.TEXT_HTML)(body.contentType)
+            expect(TEXT_HTML)(body.contentType)
             val string = body.toString
             expect(true, is)(string.startsWith("<html>"))
             if (size < 0) {
@@ -302,14 +322,12 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
     }
   }
 
-  private def extractLineFromResponse(expectedHeader: String, bodyLines: Seq[String]): String = {
+  private def extractLineFromResponse(expectedHeader: String, bodyLines: Seq[String]): Seq[String] = {
     val expectedHeaderColon = expectedHeader + ':'
-    for (line <- bodyLines) {
-      if (line.startsWith(expectedHeaderColon)) {
-        return line.substring(line.indexOf(':') + 1).trim()
-      }
-    }
-    throw new AssertionError("Expect response to contain\n" + expectedHeader)
+    val seq = bodyLines.filter(_.startsWith(expectedHeaderColon)).map(line => line.substring(line.indexOf(':') + 1).trim())
+    if (seq.isEmpty)
+      throw new AssertionError("Expect response to contain " + expectedHeader + "\n" + bodyLines.mkString("\n"))
+    seq
   }
 
   private def skipTestWarning(method: String, url: String, e: Exception) {

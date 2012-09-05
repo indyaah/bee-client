@@ -2,7 +2,7 @@ package examples
 
 import uk.co.bigbeeconsultants.http._
 
-object Example2b extends App {
+object Example3a extends App {
 
   val httpClient = new HttpClient
   val response = httpClient.head("http://www.google.com/")

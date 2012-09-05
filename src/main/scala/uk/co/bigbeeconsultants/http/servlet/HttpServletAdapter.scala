@@ -52,7 +52,7 @@ class HttpServletRequestAdapter(req: HttpServletRequest) {
   def requestBody: RequestBody = {
     val contentType = req.getContentType
     val mediaType = if (contentType != null) MediaType(contentType) else MediaType.TEXT_PLAIN
-    RequestBody(mediaType, req.getInputStream)
+    RequestBody(req.getInputStream, mediaType)
   }
 }
 

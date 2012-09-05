@@ -52,10 +52,13 @@ final class RequestBody(val mediaType: MediaType, val copyTo: OutputStream => Un
  */
 object RequestBody {
 
+  @deprecated("Please swap the parameter order")
+  def apply(mediaType: MediaType, string: String): RequestBody = apply(string, mediaType)
+
   /**
    * Factory for request bodies sourced from strings.
    */
-  def apply(mediaType: MediaType, string: String): RequestBody = {
+  def apply(string: String, mediaType: MediaType): RequestBody = {
     new RequestBody (mediaType, (outputStream) => {
       val encoding = mediaType.charsetOrElse (HttpClient.UTF8)
       outputStream.write (string.getBytes (encoding))
@@ -63,10 +66,13 @@ object RequestBody {
     })
   }
 
+  @deprecated("Please swap the parameter order")
+  def apply(mediaType: MediaType, data: Map[String, String]): RequestBody = apply(data, mediaType)
+
   /**
    * Factory for request bodies sourced from key-value pairs, typical for POST requests.
    */
-  def apply(mediaType: MediaType = MediaType.APPLICATION_FORM_URLENCODED, data: Map[String, String]): RequestBody = {
+  def apply(data: Map[String, String], mediaType: MediaType = MediaType.APPLICATION_FORM_URLENCODED): RequestBody = {
     new RequestBody (mediaType, (outputStream) => {
       val encoding = mediaType.charsetOrElse (HttpClient.UTF8)
       val w = new OutputStreamWriter (outputStream, encoding)
@@ -82,11 +88,14 @@ object RequestBody {
     })
   }
 
+  @deprecated("Please swap the parameter order")
+  def apply(mediaType: MediaType, inputStream: InputStream): RequestBody = apply(inputStream, mediaType)
+
   /**
    * Factory for request bodies sourced from input streams. This copies the content from the input stream,
    * which it leaves unclosed.
    */
-  def apply(mediaType: MediaType, inputStream: InputStream): RequestBody = {
+  def apply(inputStream: InputStream, mediaType: MediaType): RequestBody = {
     new RequestBody (mediaType, (outputStream) => {
       HttpUtil.copyBytes (inputStream, outputStream)
     })

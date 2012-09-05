@@ -147,9 +147,9 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
 
     val headers = Headers (List (ACCEPT_LANGUAGE -> "en"))
     val response = method match {
-      case "POST" => http.post (url, Some(RequestBody(TEXT_PLAIN, Map("foo" -> "bar", "a" -> "z"))), headers)
-      case "PUT" => http.put (url, RequestBody(TEXT_PLAIN, "hello world"), headers)
-      case "OPTIONS" => http.options (url, Some(RequestBody(TEXT_PLAIN, "hello world")), headers)    }
+      case "POST" => http.post (url, Some(RequestBody(Map("foo" -> "bar", "a" -> "z"), TEXT_PLAIN)), headers)
+      case "PUT" => http.put (url, RequestBody("hello world", TEXT_PLAIN), headers)
+      case "OPTIONS" => http.options (url, Some(RequestBody("hello world", TEXT_PLAIN)), headers)    }
 
     verifyConfig(Config())
     verifyRequestSettings (method, List(HOST -> "server", ACCEPT -> "*/*",

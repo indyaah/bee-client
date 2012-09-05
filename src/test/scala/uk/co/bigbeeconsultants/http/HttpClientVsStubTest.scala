@@ -158,7 +158,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     val jsonRes = """{"astring" : "the response" }"""
     server.expect (stubbedMethod).thenReturn (200, APPLICATION_JSON.toString, jsonRes)
 
-    val response = http.put (new URL (baseUrl + url), request.RequestBody (APPLICATION_JSON, jsonReq))
+    val response = http.put (new URL (baseUrl + url), request.RequestBody (jsonReq, APPLICATION_JSON))
     server.verify ()
     expect (APPLICATION_JSON)(response.body.contentType)
     expect (jsonRes)(response.body.toString)
@@ -171,7 +171,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     val jsonRes = """{"astring" : "the response" }"""
     server.expect (stubbedMethod).thenReturn (200, APPLICATION_JSON, jsonRes)
 
-    val response = http.post (new URL (baseUrl + url), Some(request.RequestBody (APPLICATION_JSON, Map ("a" -> "b"))))
+    val response = http.post (new URL (baseUrl + url), Some(request.RequestBody (Map ("a" -> "b"), APPLICATION_JSON)))
     server.verify ()
     expect (APPLICATION_JSON)(response.body.contentType)
     expect (jsonRes)(response.body.toString)
@@ -183,7 +183,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     val stubbedMethod = StubMethod.post (url)
     server.expect (stubbedMethod).thenReturn (204, APPLICATION_JSON, "ignore me")
 
-    val response = http.post (new URL (baseUrl + url), Some(request.RequestBody (APPLICATION_JSON, Map ("a" -> "b"))))
+    val response = http.post (new URL (baseUrl + url), Some(request.RequestBody (Map ("a" -> "b"), APPLICATION_JSON)))
     server.verify ()
     expect (APPLICATION_JSON)(response.body.contentType)
     expect ("")(response.body.asString)
@@ -195,7 +195,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     val stubbedMethod = StubMethod.put (url)
     server.expect (stubbedMethod).thenReturn (204, APPLICATION_OCTET_STREAM, "")
 
-    val response = http.put (new URL (baseUrl + url), request.RequestBody (APPLICATION_JSON, Map ("a" -> "b")))
+    val response = http.put (new URL (baseUrl + url), request.RequestBody (Map ("a" -> "b"), APPLICATION_JSON))
     server.verify ()
     expect (APPLICATION_OCTET_STREAM)(response.body.contentType)
     expect (false)(response.body.isTextual)

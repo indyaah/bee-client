@@ -38,7 +38,7 @@ class RequestBodyTest extends FunSuite {
 
   test ("body with string") {
     val mt = MediaType.APPLICATION_JSON
-    val b = RequestBody (mt, "[1, 2, 3]")
+    val b = RequestBody ("[1, 2, 3]", mt)
     expect (mt)(b.mediaType)
     val baos = new ByteArrayOutputStream
     b.copyTo (baos)
@@ -51,7 +51,7 @@ class RequestBodyTest extends FunSuite {
     val s = "So shaken as we are, so wan with care!"
     val inputStream = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
     val mt = MediaType.TEXT_PLAIN
-    val b = RequestBody (mt, inputStream)
+    val b = RequestBody (inputStream, mt)
     expect (mt)(b.mediaType)
     val baos = new ByteArrayOutputStream
     b.copyTo (baos)
@@ -62,7 +62,7 @@ class RequestBodyTest extends FunSuite {
 
   test ("body with keyVal p airs") {
     val mt = MediaType.APPLICATION_JSON
-    val b = RequestBody (mt, ListMap ("a" -> "1", "b" -> "2", "c" -> "3"))
+    val b = RequestBody (ListMap ("a" -> "1", "b" -> "2", "c" -> "3"), mt)
     expect (mt)(b.mediaType)
     val baos = new ByteArrayOutputStream
     b.copyTo (baos)

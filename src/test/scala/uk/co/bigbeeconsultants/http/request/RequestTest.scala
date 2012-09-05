@@ -48,7 +48,7 @@ class RequestTest extends FunSuite {
 
   test ("RequestWithBody") {
     val mt = MediaType.APPLICATION_JSON
-    val b = RequestBody (mt, "[1, 2, 3]")
+    val b = RequestBody ("[1, 2, 3]", mt)
     val r = Request.put (url1, b)
     expect (url1)(r.url)
     expect ("PUT")(r.method)

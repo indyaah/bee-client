@@ -46,6 +46,19 @@ function dumpInterestingServerVars($assign, $separator) {
         $val = $_SERVER[$key];
         $s .= "$key$assign$val$separator";
     }
+    foreach ($_GET as $key => $val) {
+        $s .= "GET: $key$assign$val$separator";
+    }
+    foreach ($_POST as $key => $val) {
+        $s .= "POST: $key$assign$val$separator";
+    }
+    /* PUT data comes in on the stdin stream */
+    $putdata = fopen("php://input", "r");
+    if ($putdata !== FALSE) {
+        $s .= "PUT: ";
+        while ($data = fread($putdata, 1024)) $s .= $data;
+        fclose($putdata);
+    }
     return $s;
 }
 
