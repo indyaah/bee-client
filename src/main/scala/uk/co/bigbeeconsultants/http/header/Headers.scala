@@ -35,7 +35,9 @@ case class Headers(list: List[Header]) {
 
   def iterator = list.iterator
 
-  def foreach[U](f: Header => U) { iterator.foreach(f) }
+  def foreach[U](f: Header => U) {
+    iterator.foreach(f)
+  }
 
   def isEmpty = list.isEmpty
 
@@ -45,44 +47,62 @@ case class Headers(list: List[Header]) {
 
   /**
    * Tests whether a given header is present.
-   * @param name the required header name. Uppercase or lowercase doesn't matter.
+   * @param name the required header name. Uppercase or lowercase doesn't matter. Via an implicit
+   *             conversion, a String can be used here.
    */
-  def contains(name: HeaderName) = list.find(_.name equalsIgnoreCase name.name).isDefined
+  def contains(name: HeaderName) = list.find(_.name equalsIgnoreCase name).isDefined
 
   /**
    * Finds all the headers that have a given name.
-   * @param name the required header name. Uppercase or lowercase doesn't matter.
+   * @param name the required header name. Uppercase or lowercase doesn't matter. Via an implicit
+   *             conversion, a String can be used here.
    */
-  def filter(name: String): List[Header] = list.filter(_.name equalsIgnoreCase name)
+  def filter(name: HeaderName): Headers = new Headers(list.filter(_.name equalsIgnoreCase name))
+
+  /**
+   * Finds all the headers that do not have a given name.
+   * @param name the required header name. Uppercase or lowercase doesn't matter. Via an implicit
+   *             conversion, a String can be used here.
+   */
+  def filterNot(name: HeaderName): Headers = new Headers(list.filterNot(_.name equalsIgnoreCase name))
 
   /**
    * Finds the header that has a given name. If more than one match exists, only the first
    * will be returned.
-   * @param name the required header name. Uppercase or lowercase doesn't matter.
+   * @param name the required header name. Uppercase or lowercase doesn't matter. Via an implicit
+   *             conversion, a String can be used here.
    */
-  def get(name: String): Option[Header] = list.find(_.name equalsIgnoreCase name)
+  def get(name: HeaderName): Option[Header] = list.find(_.name equalsIgnoreCase name)
 
   /**
    * Finds the header that has a given name. If none exists, an exception will be thrown.
    * If more than one match exists, only the first will be returned.
-   * @param name the required header name. Uppercase or lowercase doesn't matter.
+   * @param name the required header name. Uppercase or lowercase doesn't matter. Via an implicit
+   *             conversion, a String can be used here.
    */
-  def apply(name: String): Header = list.find(_.name equalsIgnoreCase name).get
+  def apply(name: HeaderName): Header = list.find(_.name equalsIgnoreCase name).get
 
-  def remove(name: HeaderName): Headers = {
-    Headers(list.filterNot(_.name.equalsIgnoreCase(name.name)))
-  }
+  /**
+   * Gets the header at a specified index.
+   */
+  def apply(index: Int): Header = list(index)
 
-  def -(name: HeaderName): Headers = {
-    remove(name)
-  }
-
+  /**
+   * Creates a new Headers with an extra header prepended.
+   */
   def add(newHeader: Header): Headers = {
     new Headers(newHeader :: list)
   }
 
+  /**
+   * An alias for add.
+   */
   def +(newHeader: Header): Headers = {
     add(newHeader)
+  }
+
+  def ++(newHeaders: Headers): Headers = {
+    new Headers(this.list ++ newHeaders.list)
   }
 }
 
@@ -92,4 +112,6 @@ object Headers {
   val empty = Headers(Nil)
 
   implicit def createHeaders(list: List[Header]): Headers = new Headers(list)
+
+  implicit def stringToHeaderName(hn: String) = HeaderName(hn)
 }

@@ -316,7 +316,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   private def expectHeaderIfPresent(expected: Any)(headers: Headers, name: HeaderName) {
-    val hdrs = headers.filter(name.name)
+    val hdrs = headers filter name
     if (!hdrs.isEmpty) {
       expect(expected)(hdrs(0).value)
     }
