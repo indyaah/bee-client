@@ -1,7 +1,6 @@
 package examples
 
-import uk.co.bigbeeconsultants.http.HttpClient
-import uk.co.bigbeeconsultants.http.HttpClient._
+import uk.co.bigbeeconsultants.http._
 import uk.co.bigbeeconsultants.http.header.Headers
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 

@@ -22,16 +22,11 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http.request
 
-version := "0.9.4"
+import java.net.{URL, MalformedURLException}
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
-
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
-
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+object `package` {
+  @throws(classOf[MalformedURLException])
+  implicit def toURL(url: String) = new URL(url)
+}

@@ -41,3 +41,9 @@ case class Response(request: Request, status: Status, body: ResponseBody, header
   def gleanCookies = CookieJar.empty.gleanCookies(this)
 }
 
+
+object Response {
+  def apply(request: Request, status: Status, contentType: MediaType, bodyText: String, headers: Headers) {
+    new Response(request, status, new StringResponseBody(contentType, bodyText), headers)
+  }
+}

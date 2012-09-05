@@ -269,8 +269,5 @@ object HttpClient {
     ACCEPT_ENCODING -> GZIP,
     ACCEPT_CHARSET -> (UTF8 + ",*;q=.1")
   )
-
-  @throws(classOf[MalformedURLException])
-  implicit def toURL(url: String) = new URL(url)
 }
 

@@ -32,9 +32,16 @@ class RequestTest extends FunSuite {
 
   val url1 = new URL ("http://localhost/")
 
-  test ("requestNoBody") {
+  test ("request without body") {
     val r = Request.get (url1)
     expect (url1)(r.url)
+    expect ("GET")(r.method)
+    expect (true)(r.body.isEmpty)
+  }
+
+  test ("request with string url") {
+    val r = Request("GET", "http://somewhere.com/")
+    expect (new URL("http://somewhere.com/"))(r.url)
     expect ("GET")(r.method)
     expect (true)(r.body.isEmpty)
   }

@@ -1,8 +1,7 @@
 package examples
 
-import uk.co.bigbeeconsultants.http.{Config, HttpClient}
-import uk.co.bigbeeconsultants.http.HttpClient._
-import uk.co.bigbeeconsultants.http.header.HeaderName
+import uk.co.bigbeeconsultants.http._
+import uk.co.bigbeeconsultants.http.header.HeaderName._
 
 object Example1b extends App {
   // create a Config different from the default values
@@ -14,5 +13,5 @@ object Example1b extends App {
   val response = httpClient.get("http://www.x.org/")
 
   println(response.status.code) // prints "302"
-  println(response.headers(HeaderName.LOCATION).value) // prints "/wiki/"
+  println(response.headers(LOCATION).value) // prints "/wiki/"
 }

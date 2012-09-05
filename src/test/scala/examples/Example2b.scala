@@ -1,7 +1,6 @@
 package examples
 
-import uk.co.bigbeeconsultants.http.HttpClient
-import uk.co.bigbeeconsultants.http.HttpClient._
+import uk.co.bigbeeconsultants.http._
 
 object Example2b extends App {
 
