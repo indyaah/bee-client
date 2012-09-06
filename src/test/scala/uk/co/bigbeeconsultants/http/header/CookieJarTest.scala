@@ -55,9 +55,9 @@ class CookieJarTest extends FunSuite {
     val newJar = CookieJar (c1, c2, c3)
     expect (0)(newJar.deleted.size)
     expect (3)(newJar.cookieMap.size)
-    expect (c1)(newJar.cookieList(0))
-    expect (c2)(newJar.cookieList(1))
-    expect (c3)(newJar.cookieList(2))
+    expect (c1)(newJar.cookies(0))
+    expect (c2)(newJar.cookies(1))
+    expect (c3)(newJar.cookies(2))
   }
 
   test ("parse plain cookie") {
@@ -322,15 +322,19 @@ class CookieJarTest extends FunSuite {
 
     val jar = new CookieJar (ListMap (cKey1 -> cVal1, cKey2 -> cVal2, cKey3 -> cVal3, cKey4 -> cVal4))
 
-    val foundX1 = jar.filter (_.name == "X1").toList
-    expect (3)(foundX1.size)
-    expect ("root")(foundX1(0).value.string)
-    expect ("subdir")(foundX1(1).value.string)
-    expect ("zzz")(foundX1(2).value.string)
+    val foundX1 = jar.find (_.name == "X1")
+    expect (true)(foundX1.isDefined)
+    expect ("root")(foundX1.get.value.string)
 
-    val foundX2 = jar.filter (_.name == "X2").toList
-    expect (1)(foundX2.size)
-    expect ("aaa")(foundX2(0).value.string)
+    val filteredX1 = jar.filter (_.name == "X1").toList
+    expect (3)(filteredX1.size)
+    expect ("root")(filteredX1(0).value.string)
+    expect ("subdir")(filteredX1(1).value.string)
+    expect ("zzz")(filteredX1(2).value.string)
+
+    val filteredX2 = jar.filter (_.name == "X2").toList
+    expect (1)(filteredX2.size)
+    expect ("aaa")(filteredX2(0).value.string)
 
     val zipped = jar.cookies.toList
     expect (4)(zipped.size)

@@ -48,12 +48,6 @@ import collection.immutable
  */
 case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), deleted: Set[CookieKey] = Set()) {
 
-  lazy val cookieList: List[Cookie] = {
-    for ((key, value) <- cookieMap) yield {
-      new Cookie(key, value)
-    }
-  }.toList
-
   /**
    * Allows cookie jars to be merged together. As newJar is merged into this cookie jar, it trumps
    * any matching cookies already in this jar.
@@ -108,7 +102,7 @@ case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), del
    */
   def filterForRequest(url: URL): Option[Header] = {
     val headers = new ListBuffer[String]
-    for (cookie <- cookieList) {
+    for (cookie <- cookies) {
       if (cookie.willBeSentTo(url)) {
         headers += cookie.asHeader
       }
@@ -141,7 +135,7 @@ case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), del
   }
 
   private def zipMap(cookies: ListMap[CookieKey, CookieValue]) = {
-    cookies.map((kv) => Cookie(kv._1, kv._2))
+    cookies.map((kv) => new Cookie(kv._1, kv._2))
   }
 
   /**
@@ -149,6 +143,13 @@ case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), del
    */
   def filter(f: (CookieKey) => Boolean): Iterable[Cookie] = {
     zipMap(cookieMap.filter((kv) => f(kv._1)))
+  }
+
+  /**
+   * Gets the first cookie from this jar that matches a certain predicate.
+   */
+  def find(f: (CookieKey) => Boolean): Option[Cookie] = {
+    cookieMap.find((kv) => f(kv._1)).map((kv) => new Cookie(kv._1, kv._2))
   }
 
   /**
