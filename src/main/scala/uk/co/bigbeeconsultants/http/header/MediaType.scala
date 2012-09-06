@@ -24,9 +24,12 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import uk.co.bigbeeconsultants.http.util.HttpUtil
 import uk.co.bigbeeconsultants.http.HttpClient
+import uk.co.bigbeeconsultants.http.util.HttpUtil
 
+/**
+ * Provides a media type. Also known as a MIME type or content type.
+ */
 case class MediaType(contentType: String, subtype: String, charset: Option[String] = None) {
 
   import MediaType._
@@ -97,6 +100,9 @@ case class MediaType(contentType: String, subtype: String, charset: Option[Strin
   }
 }
 
+/**
+ * Provides some commonly-used MediaType instances and a factory constructor for new instances.
+ */
 object MediaType {
   /**The value of a type or subtype wildcard: "*" */
   val WILDCARD = "*"
@@ -117,7 +123,10 @@ object MediaType {
   val IMAGE_PNG = MediaType("image", "png")
   val IMAGE_JPG = MediaType("image", "jpeg")
 
-  def apply(str: String) = {
+  /**
+   * Constructs a new MediaType instance from a string typically as found in HTTP header values.
+   */
+  def apply(str: String): MediaType = {
     val qp = QualifiedPart.parse(str)
     val qualifier = if (qp.qualifier.isEmpty) {
       None

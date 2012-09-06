@@ -116,7 +116,14 @@ case class Headers(list: List[Header]) {
 }
 
 object Headers {
+  /** Constructs a new Headers instance from a list of headers. */
   def apply(headers: Header*): Headers = new Headers(headers.toList)
+
+  /**
+   * Constructs a new Headers instance from a map of strings. Bear in mind that the map keys are case-insensitive,
+   * but you are advised to stick to the canonical capitalisation, which is as given by HeaderName.
+   */
+  def apply(map: Map[String, String]): Headers = new Headers(map.map(kv => HeaderName(kv._1) -> kv._2).toList)
 
   val empty = Headers(Nil)
 

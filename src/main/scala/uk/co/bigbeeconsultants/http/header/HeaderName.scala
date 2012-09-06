@@ -24,13 +24,24 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-
+/**
+ * Constructs a new HeaderName instance from a string. Bear in mind that header names are case-insensitive,
+ * but you are advised to stick to the canonical capitalisation, which is as given by the HeaderName object values.
+ */
 case class HeaderName(name: String) {
+  /** Constructs a new header from this header name and a specified value. */
   def ->(newValue: String) = new Header (name, newValue)
+
+  /** Constructs a new header from this header name and a specified value. */
+  def →(newValue: String) = new Header (name, newValue)
 
   override def toString = name
 }
 
+/**
+ * Provides the header names in RFC2616 (inter alia) using the canonical capitalisation. These values are
+ * type-safe and therefore a better choice than arbitrarily using strings to create headers.
+ */
 object HeaderName {
   implicit def headerNameToString(hn: HeaderName) = hn.name
 

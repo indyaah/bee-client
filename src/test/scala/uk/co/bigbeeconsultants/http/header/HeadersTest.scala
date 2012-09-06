@@ -29,6 +29,21 @@ import org.scalatest.FunSuite
 
 class HeadersTest extends FunSuite {
 
+  test ("construction using list") {
+    val n = Headers (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar")
+    expect (3)(n.size)
+    expect (HOST -> "localhost")(n(0))
+    expect (ACCEPT -> "foo")(n(1))
+    expect (ACCEPT -> "bar")(n(2))
+  }
+
+  test ("construction using map") {
+    val n = Headers (Map("Host" -> "localhost", "Accept" -> "foo"))
+    expect (2)(n.size)
+    expect (HOST-> "localhost")(n(0))
+    expect (ACCEPT -> "foo")(n(1))
+  }
+
   test ("names") {
     val n = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar"))
     expect (List (HOST.name, ACCEPT.name, ACCEPT.name))(n.names)

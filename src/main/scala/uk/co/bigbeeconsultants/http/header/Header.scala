@@ -28,20 +28,27 @@ import uk.co.bigbeeconsultants.http.util.HttpUtil
 import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 
 /**
- * Provides an HTTP header.
+ * Provides an HTTP header. Bear in mind that header names are case-insensitive, but you are advised to stick to
+ * the canonical capitalisation, which is as given by the HeaderName object values.
  */
 case class Header(name: String, value: String) {
 
+  /** Converts the value to an integer. */
   def toInt: Int = value.toInt
 
+  /** Converts the value to a long. */
   def toLong: Long = value.toLong
 
+  /** Converts the value to an HttpDateTimeInstant. */
   def toDate(defaultValue: HttpDateTimeInstant = HttpDateTimeInstant.zero): HttpDateTimeInstant = HttpDateTimeInstant.parse (value, defaultValue)
 
+  /** Converts the value to a qualified value. */
   def toQualifiedValue = QualifiedValue (value)
 
+  /** Converts the value to a range value. */
   def toRangeValue = RangeValue (value)
 
+  /** Converts the value to a media type. */
   def toMediaType = MediaType (value)
 
   override def toString = name + ": " + value
@@ -51,8 +58,12 @@ case class Header(name: String, value: String) {
 
 
 object Header {
+  @deprecated
   def apply(tuple: (String, String)): Header = new Header(tuple._1, tuple._2)
 
+  /**
+   * Constructs a header by splitting a raw string at the first ':'.
+   */
   def apply(raw: String): Header = {
     val t = HttpUtil.divide (raw, ':')
     apply (t._1.trim, t._2.trim)
