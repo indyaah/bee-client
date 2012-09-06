@@ -24,9 +24,12 @@
 
 package uk.co.bigbeeconsultants.http
 
+import header.Domain
 import java.net.{URL, MalformedURLException}
 
 object `package` {
   @throws(classOf[MalformedURLException])
   implicit def toURL(url: String) = new URL(url)
+
+  implicit def toDomain(domain: String) = new Domain(domain)
 }

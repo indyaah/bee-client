@@ -41,6 +41,10 @@ import collection.immutable
 /**
  * CookieJar holds cookies as key/value pairs. It also holds a list of deleted keys to
  * allow the server to mark cookies for deletion; this is used when jars are merged together.
+ *
+ * Cookie jars are immutable. The primary means to update them is via the 'gleanCookies' method after
+ * a request has completed; this method creates a new instance based on the current cookies and any new ones
+ * that were set by the server.
  */
 case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), deleted: Set[CookieKey] = Set()) {
 
@@ -76,7 +80,8 @@ case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), del
   }
 
   /**
-   * Gets a new CookieJar derived from this one as augmented by the headers in a response.
+   * Gets a new CookieJar derived from this one as augmented by the headers in a response. This is the primary
+   * means for updating your cookie jar after each request.
    * @return a new cookie jar containing the merged cookies.
    */
   def gleanCookies(response: Response): CookieJar = {
@@ -158,7 +163,19 @@ object CookieJar {
   val empty = new CookieJar()
 
   /**
-   * Constructs a new cookie jar containing all the cookies (if any) that are received in the response.
+   * Constructs a new cookie jar containing all the cookies (if any) that are received in the response. If you
+   * already have a cookie jar from an earlier HTTP request, you should use its 'gleanCookies' method instead,
+   * so that the new cookies are merged into the existing ones.
    */
   def gleanCookies(response: Response): CookieJar = empty.gleanCookies(response)
+
+  /**
+   * Constructs a new cookie jar from an arbitrary collection of cookies. Note that in a normal sequence of HTTP
+   * requests, you will not need to use this method. Instead, glean the cookies sent by the server using
+   * the two 'gleanCookies' methods.
+   */
+  def apply(cookies: Cookie*): CookieJar = {
+    val mapped = ListMap[CookieKey, CookieValue]() ++ cookies.map(c => c.key -> c.value)
+    new CookieJar(mapped, Set.empty)
+  }
 }

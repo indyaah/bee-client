@@ -1,3 +1,4 @@
+<?php
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -21,17 +22,52 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
+//print_r($_REQUEST);
+//print_r($_COOKIE);
 
-name := "lighthttpclient"
+function getInterestingServerVars() {
+    $svrKeys = array();
+    foreach ($_SERVER as $key=>$val) {
+        if (strpos($key, "REQUEST_") === 0 ||
+            strpos($key, "CONTENT_") === 0 ||
+            strpos($key, "QUERY_") === 0 ||
+            strpos($key, "SERVER_") === 0 ||
+            strpos($key, "HTTP_") === 0) {
+            array_push($svrKeys, $key);
+        }
+    }
+    sort($svrKeys);
+    return $svrKeys;
+}
 
-version := "0.9.7"
+function dumpInterestingServerVars($assign, $separator) {
+    $s = '';
+    foreach (getInterestingServerVars() as $key) {
+        $val = $_SERVER[$key];
+        $s .= "$key$assign$val$separator";
+    }
+    foreach ($_COOKIE as $key => $val) {
+        $s .= "COOKIE: $key$assign$val$separator";
+    }
+    foreach ($_GET as $key => $val) {
+        $s .= "GET: $key$assign$val$separator";
+    }
+    foreach ($_POST as $key => $val) {
+        $s .= "POST: $key$assign$val$separator";
+    }
+    return $s;
+}
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+$method = strip_tags($_SERVER['REQUEST_METHOD']);
+header("Content-Type: text/plain");
+echo dumpInterestingServerVars(': ', "\n");
 
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
-
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+/* PUT data comes in on the stdin stream */
+$putdata = fopen("php://input", "r");
+if ($putdata !== FALSE) {
+    while ($data = fread($putdata, 1024)) {
+        echo "PUT: " . $data;
+    }
+    fclose($putdata);
+}
+?>

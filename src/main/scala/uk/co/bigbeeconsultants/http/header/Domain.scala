@@ -69,11 +69,15 @@ object Domain {
 
   //private def extractDomainFrom(url: URL) = HttpUtil$.divide(url.getAuthority, ':')._1
 
-  val localhost = {
+  /** Just "localhost" */
+  val localhost = Domain("localhost")
+
+  /** The hostname of the local machine */
+  lazy val hostname = {
     new Domain(try {
       InetAddress.getLocalHost.getHostName
     } catch {
-      case e: Exception => "127.0.0.1"
+      case e: Exception => "localhost"
     })
   }
 }

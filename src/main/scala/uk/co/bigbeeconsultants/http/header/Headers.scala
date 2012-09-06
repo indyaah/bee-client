@@ -88,10 +88,19 @@ case class Headers(list: List[Header]) {
   def apply(index: Int): Header = list(index)
 
   /**
-   * Creates a new Headers with an extra header prepended.
+   * Creates a new Headers with an extra header prepended. If this header is already present,
+   * this method has the effect of adding another header with the same name.
    */
   def add(newHeader: Header): Headers = {
     new Headers(newHeader :: list)
+  }
+
+  /**
+   * Creates a new Headers augmented with a specified header. If this header is already present, it is removed,
+   * so this method has the effect of replacing the existing value(s). Otherwise it adds a new header.
+   */
+  def set(newHeader: Header): Headers = {
+    new Headers(newHeader :: list.filterNot(_.name equalsIgnoreCase newHeader.name))
   }
 
   /**

@@ -46,6 +46,20 @@ class CookieJarTest extends FunSuite {
     expect (0)(newJar.cookieMap.size)
   }
 
+  test ("simple construction") {
+    val tenYears = new HttpDateTimeInstant () + (10 * 365 * 24 * 60 * 60)
+    val c1 = Cookie (name = "UID", domain = "bbc.co.uk", path = "/", string = "646f4472", expires = tenYears)
+    val c2 = Cookie (name = "LANG", domain = "www.bbc.co.uk", path = "/", string = "en", expires = tenYears)
+    val c3 = Cookie (name = "XYZ", domain = "x.org", path = "/", string = "zzz", expires = tenYears)
+
+    val newJar = CookieJar (c1, c2, c3)
+    expect (0)(newJar.deleted.size)
+    expect (3)(newJar.cookieMap.size)
+    expect (c1)(newJar.cookieList(0))
+    expect (c2)(newJar.cookieList(1))
+    expect (c3)(newJar.cookieList(2))
+  }
+
   test ("parse plain cookie") {
     val h1 = HeaderName.SET_COOKIE -> ("lang=en")
     val response = Response (httpUrl1, ok, body, Headers (List (h1)))

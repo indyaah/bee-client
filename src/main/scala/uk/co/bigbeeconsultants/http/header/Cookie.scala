@@ -81,7 +81,7 @@ object Cookie {
   /** Creates a new cookie. */
   def apply(name: String,
             string: String,
-            domain: Domain = Domain.localhost,
+            domain: Domain,
             path: String = "/",
             expires: HttpDateTimeInstant = new HttpDateTimeInstant(),
             creation: HttpDateTimeInstant = new HttpDateTimeInstant(),
