@@ -309,7 +309,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
       val duration = System.currentTimeMillis() - before
       val bytes = BigDecimal(size * loops)
-      val rate = (bytes / duration)
+      val rate = if (duration > 0) (bytes / duration) else 0
       println(bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
     } catch {
       case e: Exception =>

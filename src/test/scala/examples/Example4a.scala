@@ -10,7 +10,6 @@ object Example4a extends App {
   val httpClient = new HttpClient
   val response = httpClient.get(url, Nil, originalCookieJar)
   println(response.body)
-  // grab all new 'Set-Cookie' headers from the response and merge them
-  val augmentedCookieJar = originalCookieJar.gleanCookies(response)
+  val augmentedCookieJar = response.cookies.get
   println(augmentedCookieJar)
 }

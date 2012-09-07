@@ -1,3 +1,4 @@
+set -e
 #USERNAME=
 PROJECT=lighthttpclient
 SCALA=2.9.1
@@ -16,7 +17,8 @@ cd $DEST
 rsync -av $HOME/.ivy2/local/${PROJECT} repo
 cd repo/${PROJECT}/${PROJECT}_${SCALA}
 ln -fs ${VNUM} latest
-cd ${VNUM} && ln -fs */${PROJECT}* .
+cd ${VNUM}
+ln -fs */${PROJECT}* .
 cd ..
 for e in '' '-sources' '-javadoc'; do
   ln -fs ${VNUM}/${PROJECT}_${SCALA}${e}.jar ${PROJECT}_${SCALA}-${VNUM}${e}.jar

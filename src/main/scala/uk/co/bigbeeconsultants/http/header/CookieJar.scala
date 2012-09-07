@@ -81,14 +81,9 @@ case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), del
    * means for updating your cookie jar after each request.
    * @return a new cookie jar containing the merged cookies.
    */
-  def gleanCookies(response: Response): CookieJar = {
-    val setcookies = filterCookieHeaders(response.headers)
-    if (setcookies.isEmpty) {
-      this
-    }
-    else {
-      CookieParser.updateCookies(this, response.request.url, setcookies)
-    }
+  private[http] def gleanCookies(url: URL, headers: Headers): CookieJar = {
+    val setcookies = filterCookieHeaders(headers)
+    if (setcookies.isEmpty) this else CookieParser.updateCookies(this, url, setcookies)
   }
 
   private def filterCookieHeaders(headers: Headers): List[Header] = {
@@ -103,7 +98,7 @@ case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), del
    * @return an optional cookie header, which will contain one or more cookie values to be sent
    *         with the request.
    */
-  def filterForRequest(url: URL): Option[Header] = {
+  private[http] def filterForRequest(url: URL): Option[Header] = {
     val headers = new ListBuffer[String]
     for (cookie <- cookies) {
       if (cookie.willBeSentTo(url)) {
@@ -165,13 +160,6 @@ case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), del
 object CookieJar {
   /**Constant empty cookie jar. */
   val empty = new CookieJar()
-
-  /**
-   * Constructs a new cookie jar containing all the cookies (if any) that are received in the response. If you
-   * already have a cookie jar from an earlier HTTP request, you should use its 'gleanCookies' method instead,
-   * so that the new cookies are merged into the existing ones.
-   */
-  def gleanCookies(response: Response): CookieJar = empty.gleanCookies(response)
 
   /**
    * Constructs a new cookie jar from an arbitrary collection of cookies. Note that in a normal sequence of HTTP

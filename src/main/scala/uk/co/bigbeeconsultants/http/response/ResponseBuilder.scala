@@ -35,7 +35,8 @@ import java.io.InputStream
  */
 trait ResponseBuilder {
   /**Defines the method to be invoked when the response is first received. */
-  def captureResponse(request: Request, status: Status, mediaType: Option[MediaType], headers: Headers, stream: InputStream)
+  def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
+                      headers: Headers, cookies: Option[CookieJar], stream: InputStream)
 
   /**Gets the response that was captured earlier. */
   def response: Option[Response] = None
@@ -52,10 +53,11 @@ class BufferedResponseBuilder extends ResponseBuilder {
   // with Logging {
   private var _response: Option[Response] = None
 
-  def captureResponse(request: Request, status: Status, mediaType: Option[MediaType], headers: Headers, stream: InputStream) {
+  def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
+                      headers: Headers, cookies: Option[CookieJar], stream: InputStream) {
     val bufferSize = headers.get(HeaderName.CONTENT_LENGTH).map(_.toInt).getOrElse(1024)
     val body = new ByteBufferResponseBody(mediaType.getOrElse(MediaType.APPLICATION_OCTET_STREAM), stream, bufferSize)
-    _response = Some(new Response(request, status, body, headers))
+    _response = Some(new Response(request, status, body, headers, cookies))
     //    logger.debug((_response.get.toString))
   }
 

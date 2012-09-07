@@ -25,7 +25,7 @@
 package uk.co.bigbeeconsultants.http.servlet
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
-import uk.co.bigbeeconsultants.http.header.{MediaType, Header, Headers}
+import uk.co.bigbeeconsultants.http.header.{CookieJar, MediaType, Header, Headers}
 import java.io.InputStream
 import uk.co.bigbeeconsultants.http.response.{Status, ResponseBuilder}
 import uk.co.bigbeeconsultants.http.util.HttpUtil
@@ -73,7 +73,8 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
   private[this] var _mediaType: Option[MediaType] = _
   private[this] var _headers: Headers = _
 
-  def captureResponse(request: Request, status: Status, mediaType: Option[MediaType], headers: Headers, inputStream: InputStream) {
+  def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
+                      headers: Headers, cookies: Option[CookieJar], inputStream: InputStream) {
     try {
       _request = request
       _status = status

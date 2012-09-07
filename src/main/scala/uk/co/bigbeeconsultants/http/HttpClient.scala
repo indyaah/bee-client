@@ -41,74 +41,115 @@ class HttpClient(val config: Config = Config (),
                  val commonRequestHeaders: Headers = HttpClient.defaultRequestHeaders) extends Logging {
 
   /**
-   * Make a HEAD request.
+   * Make a HEAD request. No cookies are used and none are returned.
    */
   @throws(classOf[IOException])
-  def head(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
-    execute (Request.head (url), requestHeaders, jar)
+  def head(url: URL, requestHeaders: Headers = Nil): Response = {
+    execute (Request.head (url) + requestHeaders)
   }
 
   /**
-   * Make a TRACE request.
+   * Make a HEAD request with cookies.
    */
   @throws(classOf[IOException])
-  def trace(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
-    execute (Request.trace (url), requestHeaders, jar)
+  def head(url: URL, requestHeaders: Headers, jar: CookieJar): Response = {
+    execute (Request.head (url) + requestHeaders using jar)
   }
 
   /**
-   * Make a GET request.
+   * Make a TRACE request. No cookies are used and none are returned.
    */
   @throws(classOf[IOException])
-  def get(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
-    execute (Request.get (url), requestHeaders, jar)
+  def trace(url: URL, requestHeaders: Headers = Nil): Response = {
+    execute (Request.trace (url) + requestHeaders)
   }
 
   /**
-   * Make a DELETE request.
+   * Make a TRACE request with cookies.
    */
   @throws(classOf[IOException])
-  def delete(url: URL, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
-    execute (Request.delete (url), requestHeaders, jar)
+  def trace(url: URL, requestHeaders: Headers, jar: CookieJar): Response = {
+    execute (Request.trace (url) + requestHeaders using jar)
   }
 
   /**
-   * Make an OPTIONS request.
+   * Make a GET request. No cookies are used and none are returned.
    */
   @throws(classOf[IOException])
-  def options(url: URL, body: Option[RequestBody], requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
-    execute (Request.options (url, body), requestHeaders, jar)
+  def get(url: URL, requestHeaders: Headers = Nil): Response = {
+    execute (Request.get (url) + requestHeaders)
   }
 
   /**
-   * Make a POST request.
+   * Make a GET request with cookies.
    */
   @throws(classOf[IOException])
-  def post(url: URL, body: Option[RequestBody], requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
-    execute (Request.post (url, body), requestHeaders, jar)
+  def get(url: URL, requestHeaders: Headers, jar: CookieJar): Response = {
+    execute (Request.get (url) + requestHeaders using jar)
   }
 
   /**
-   * Make a PUT request.
+   * Make a DELETE request. No cookies are used and none are returned.
    */
   @throws(classOf[IOException])
-  def put(url: URL, body: RequestBody, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
-    execute (Request.put (url, body), requestHeaders, jar)
+  def delete(url: URL, requestHeaders: Headers = Nil): Response = {
+    execute (Request.delete (url) + requestHeaders)
   }
 
   /**
-   * Makes an arbitrary request and returns the response. The entire response body is read into memory.
-   * @param request the request
-   * @param requestHeaders the optional request headers (use Nil if none are required)
-   * @param jar the optional cookie jar (use CookieJar.empty if none is required)
-   * @throws IOException (or ConnectException subclass) if an IO exception occurred
-   * @return the response (for all outcomes including 4xx and 5xx status codes) if
-   *         no exception occurred
+   * Make a DELETE request with cookies.
    */
   @throws(classOf[IOException])
-  @deprecated("Use the form 'execute(request + requestHeaders using jar)'")
-  def execute(request: Request, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
-    execute(request + requestHeaders using jar)
+  def delete(url: URL, requestHeaders: Headers, jar: CookieJar): Response = {
+    execute (Request.delete (url) + requestHeaders using jar)
+  }
+
+  /**
+   * Make an OPTIONS request. No cookies are used and none are returned.
+   */
+  @throws(classOf[IOException])
+  def options(url: URL, body: Option[RequestBody], requestHeaders: Headers = Nil): Response = {
+    execute (Request.options (url, body) + requestHeaders)
+  }
+
+  /**
+   * Make an OPTIONS request with cookies.
+   */
+  @throws(classOf[IOException])
+  def options(url: URL, body: Option[RequestBody], requestHeaders: Headers, jar: CookieJar): Response = {
+    execute (Request.options (url, body) + requestHeaders using jar)
+  }
+
+  /**
+   * Make a POST request. No cookies are used and none are returned.
+   */
+  @throws(classOf[IOException])
+  def post(url: URL, body: Option[RequestBody], requestHeaders: Headers = Nil): Response = {
+    execute (Request.post (url, body) + requestHeaders)
+  }
+
+  /**
+   * Make a POST request with cookies.
+   */
+  @throws(classOf[IOException])
+  def post(url: URL, body: Option[RequestBody], requestHeaders: Headers, jar: CookieJar): Response = {
+    execute (Request.post (url, body) + requestHeaders using jar)
+  }
+
+  /**
+   * Make a PUT request. No cookies are used and none are returned.
+   */
+  @throws(classOf[IOException])
+  def put(url: URL, body: RequestBody, requestHeaders: Headers = Nil): Response = {
+    execute (Request.put (url, body) + requestHeaders)
+  }
+
+  /**
+   * Make a PUT request with cookies.
+   */
+  @throws(classOf[IOException])
+  def put(url: URL, body: RequestBody, requestHeaders: Headers, jar: CookieJar): Response = {
+    execute (Request.put (url, body) + requestHeaders using jar)
   }
 
   /**
@@ -212,21 +253,21 @@ class HttpClient(val config: Config = Config (),
     }
   }
 
-  private def handleContent(status: Status, request: Request, responseFactory: ResponseBuilder, httpURLConnection: HttpURLConnection) {
+  private def handleContent(status: Status, request: Request,
+                            responseFactory: ResponseBuilder, httpURLConnection: HttpURLConnection) {
     val responseHeaders = processResponseHeaders (httpURLConnection)
+    val responseCookies = request.cookies.map(_.gleanCookies(request.url, responseHeaders))
     val contEnc = responseHeaders.get (CONTENT_ENCODING)
     val contentType = httpURLConnection.getContentType
     val mediaType = if (contentType != null) Some (MediaType (contentType)) else None
 
-    if (request.method == Request.HEAD || status.category == 1 ||
+    val stream = if (request.method == Request.HEAD || status.category == 1 ||
       status.code == Status.S204_NoContent.code || status.code == Status.S304_NotModified.code) {
-      val iStream = selectStream (httpURLConnection)
-      responseFactory.captureResponse (request, status, mediaType, responseHeaders, iStream)
-
+      selectStream (httpURLConnection)
     } else {
-      val stream = getBodyStream (contEnc, httpURLConnection)
-      responseFactory.captureResponse (request, status, mediaType, responseHeaders, stream)
+      getBodyStream (contEnc, httpURLConnection)
     }
+    responseFactory.captureResponse (request, status, mediaType, responseHeaders, responseCookies, stream)
   }
 
   private def getBodyStream(contEnc: Option[Header], httpURLConnection: HttpURLConnection) = {

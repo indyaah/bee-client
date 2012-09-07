@@ -32,19 +32,16 @@ import java.io.InputStream
  * Represents a HTTP response. This is essentially immutable, although the implementation of
  * the response body may vary.
  */
-case class Response(request: Request, status: Status, body: ResponseBody, headers: Headers) {
-  /**
-   * Gets all the newly-set cookies from the response headers. Don't use this
-   * for merging into an existing CookieJar; instead use
-   * [[uk.co.bigbeeconsultants.http.header.CookieJar]].gleanCookies(response).
-   */
-  def gleanCookies = CookieJar.empty.gleanCookies(this)
-}
-
+case class Response(request: Request,
+                    status: Status,
+                    body: ResponseBody,
+                    headers: Headers,
+                    cookies: Option[CookieJar])
 
 object Response {
   /** Constructs a response instance containing a string body. */
-  def apply(request: Request, status: Status, contentType: MediaType, bodyText: String, headers: Headers = Headers.empty) = {
-    new Response(request, status, new StringResponseBody(contentType, bodyText), headers)
+  def apply(request: Request, status: Status, contentType: MediaType, bodyText: String,
+            headers: Headers = Headers.empty, cookies: Option[CookieJar] = None) = {
+    new Response(request, status, new StringResponseBody(contentType, bodyText), headers, cookies)
   }
 }
