@@ -24,27 +24,20 @@
 
 package uk.co.bigbeeconsultants.http.response
 
-import uk.co.bigbeeconsultants.http.header.{CookieJar, Headers, MediaType}
-import uk.co.bigbeeconsultants.http.request.Request
-import java.io.InputStream
+import org.scalatest.FunSuite
+import org.scalatest.matchers.ShouldMatchers
+import uk.co.bigbeeconsultants.http.request._
+import uk.co.bigbeeconsultants.http.header.Headers
+import uk.co.bigbeeconsultants.http.header.MediaType._
+import uk.co.bigbeeconsultants.http.header.HeaderName._
 
-/**
- * Represents a HTTP response. This is essentially immutable, although the implementation of
- * the response body may vary.
- */
-case class Response(request: Request, status: Status, body: ResponseBody, headers: Headers) {
-  /**
-   * Gets all the newly-set cookies from the response headers. Don't use this
-   * for merging into an existing CookieJar; instead use
-   * [[uk.co.bigbeeconsultants.http.header.CookieJar]].gleanCookies(response).
-   */
-  def gleanCookies = CookieJar.empty.gleanCookies(this)
-}
+class ResponseTest extends FunSuite with ShouldMatchers {
 
-
-object Response {
-  /** Constructs a response instance containing a string body. */
-  def apply(request: Request, status: Status, contentType: MediaType, bodyText: String, headers: Headers = Headers.empty) = {
-    new Response(request, status, new StringResponseBody(contentType, bodyText), headers)
+  test("Response.apply should create a new response correctly") {
+    val request = Request.get("http://localhost/foo/bar")
+    val response = Response(request, Status.S200_OK, TEXT_PLAIN, "hello", Headers(HOST->"localhost"))
+    response.request should be (request)
+    response.status should be(Status.S200_OK)
   }
+
 }

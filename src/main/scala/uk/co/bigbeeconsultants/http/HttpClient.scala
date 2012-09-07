@@ -107,9 +107,9 @@ class HttpClient(val config: Config = Config (),
    */
   @throws(classOf[IOException])
   def execute(request: Request, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
-    val responseFactory = new BufferedResponseBuilder
-    execute (request, requestHeaders, jar, responseFactory)
-    responseFactory.response.get
+    val responseBuilder = new BufferedResponseBuilder
+    execute (request, requestHeaders, jar, responseBuilder)
+    responseBuilder.response.get
   }
 
   /**
@@ -129,7 +129,7 @@ class HttpClient(val config: Config = Config (),
     val httpURLConnection = openConnection (request)
     httpURLConnection.setAllowUserInteraction (false)
     httpURLConnection.setConnectTimeout (config.connectTimeout)
-    httpURLConnection.setReadTimeout (config.readTimeout);
+    httpURLConnection.setReadTimeout (config.readTimeout)
     httpURLConnection.setInstanceFollowRedirects (config.followRedirects)
     httpURLConnection.setUseCaches (config.useCaches)
 
@@ -206,7 +206,7 @@ class HttpClient(val config: Config = Config (),
     val mediaType = if (contentType != null) Some (MediaType (contentType)) else None
 
     if (request.method == Request.HEAD || status.category == 1 ||
-      status.code == Status.S2_NO_CONTENT || status.code == Status.S3_NOT_MODIFIED) {
+      status.code == Status.S204_NoContent.code || status.code == Status.S304_NotModified.code) {
       val iStream = selectStream (httpURLConnection)
       responseFactory.captureResponse (request, status, mediaType, responseHeaders, iStream)
 

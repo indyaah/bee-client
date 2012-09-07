@@ -48,52 +48,54 @@ case class Status(code: Int, message: String) {
  * in some cases.
  */
 object Status {
-  val S1_CONTINUE = 100
-  val S1_SWITCHING_PROTOCOLS = 101
+
+  /*----- 1XX: informational -----*/
+  val S100_Continue = Status(100, "Continue")
+  val S101_SwitchingProtocols = Status(101, "Switching protocols")
 
   /*----- 2XX: success -----*/
-  val S2_OK = 200
-  val S2_CREATED = 201
-  val S2_ACCEPTED = 202
-  val S2_NOT_AUTHORITATIVE = 203
-  val S2_NO_CONTENT = 204
-  val S2_RESET = 205
-  val S2_PARTIAL = 206
+  val S200_OK = Status(200, "OK")
+  val S201_Created = Status(201, "Created")
+  val S202_Accepted = Status(202, "Accepted")
+  val S203_NotAuthoritative = Status(203, "Not authoritative")
+  val S204_NoContent = Status(204, "No content")
+  val S205_ResetContent = Status(205, "Reset content")
+  val S206_PartialContent = Status(206, "Partial content")
 
   /*----- 3XX: relocation/redirect -----*/
-  val S3_MULT_CHOICE = 300
-  val S3_MOVED_PERM = 301
-  val S3_FOUND = 302
-  val S3_SEE_OTHER = 303
-  val S3_NOT_MODIFIED = 304
-  val S3_USE_PROXY = 305
-  val S3_MOVED_TEMP = 307
+  val S300_MultipleChoice = Status(300, "Multiple choice")
+  val S301_MovedPermanently = Status(301, "Moved permanently")
+  val S302_Found = Status(302, "Found")
+  val S303_SeeOther = Status(303, "See other")
+  val S304_NotModified = Status(304, "Not modified")
+  val S305_UseProxy = Status(305, "Use proxy")
+  val S307_MovedTemporarily = Status(307, "Moved temporarily")
 
   /*----- 4XX: client error -----*/
-  val S4_BAD_REQUEST = 400
-  val S4_UNAUTHORIZED = 401
-  val S4_PAYMENT_REQUIRED = 402
-  val S4_FORBIDDEN = 403
-  val S4_NOT_FOUND = 404
-  val S4_BAD_METHOD = 405
-  val S4_NOT_ACCEPTABLE = 406
-  val S4_PROXY_AUTH = 407
-  val S4_CLIENT_TIMEOUT = 408
-  val S4_CONFLICT = 409
-  val S4_GONE = 410
-  val S4_LENGTH_REQUIRED = 411
-  val S4_PRECON_FAILED = 412
-  val S4_ENTITY_TOO_LARGE = 413
-  val S4_REQ_URI_TOO_LONG = 414
-  val S4_UNSUPPORTED_TYPE = 415
-  val S4_RANGE_NOT_SATISFIABLE = 416
-  val S4_EXPECTATION_FAILED = 417
+  val S400_BadRequest = Status(400, "Bad request")
+  val S401_Unauthorized = Status(401, "Unauthorized")
+  val S402_PaymentRequired = Status(402, "Payment required")
+  val S403_Forbidden = Status(403, "Forbidden")
+  val S404_NotFound = Status(404, "Not found")
+  val S405_BadMethod = Status(405, "Bad method")
+  val S406_NotAcceptable = Status(406, "Not acceptable")
+  val S407_ProxyAuthRequired = Status(407, "Proxy authentication required")
+  val S408_ClientTimeout = Status(408, "Client timeout")
+  val S409_Conflict = Status(409, "Conflict")
+  val S410_Gone = Status(410, "Gone")
+  val S411_LengthRequired = Status(411, "Length required")
+  val S412_PreconditionFailed = Status(412, "Precondition failed")
+  val S413_EntityTooLarge = Status(413, "Entity too large")
+  val S414_RequestURITooLong = Status(414, "Request URI too long")
+  val S415_UnsupportedType = Status(415, "Unsupported type")
+  val S416_RangeNotSatisfiable = Status(416, "Range not satisfiable")
+  val S417_ExpectationFailed = Status(417, "Expectation failed")
 
   /*----- 5XX: server error -----*/
-  val S5_INTERNAL_ERROR = 500
-  val S5_NOT_IMPLEMENTED = 501
-  val S5_BAD_GATEWAY = 502
-  val S5_SERVICE_UNAVAILABLE = 503
-  val S5_GATEWAY_TIMEOUT = 504
-  val S5_UNSUPPORTED_VERSION = 505
+  val S500_InternalServerError = Status(500, "Internal server error")
+  val S501_NotImplemented = Status(501, "Not implemented")
+  val S502_BadGateway = Status(502, "Bad gateway")
+  val S503_ServiceUnavailable = Status(503, "Service unavailable")
+  val S504_GatewayTimeout = Status(504, "Gateway timeout")
+  val S505_UnsupportedVersion = Status(505, "Unsupported version")
 }
