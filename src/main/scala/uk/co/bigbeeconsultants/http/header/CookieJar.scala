@@ -48,6 +48,9 @@ import collection.immutable
  */
 case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), deleted: Set[CookieKey] = Set()) {
 
+  /** The number of cookies in this jar. */
+  def size = cookieMap.size
+
   /**
    * Allows cookie jars to be merged together. As newJar is merged into this cookie jar, it trumps
    * any matching cookies already in this jar.

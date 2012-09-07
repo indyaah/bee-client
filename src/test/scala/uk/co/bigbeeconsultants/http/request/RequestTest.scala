@@ -25,8 +25,10 @@
 package uk.co.bigbeeconsultants.http.request
 
 import java.net.URL
-import uk.co.bigbeeconsultants.http.header.MediaType
+import uk.co.bigbeeconsultants.http.header.MediaType._
+import uk.co.bigbeeconsultants.http.header.HeaderName._
 import org.scalatest.FunSuite
+import uk.co.bigbeeconsultants.http.header.{Domain, CookieJar, Cookie}
 
 class RequestTest extends FunSuite {
 
@@ -46,8 +48,8 @@ class RequestTest extends FunSuite {
     expect (true)(r.body.isEmpty)
   }
 
-  test ("RequestWithBody") {
-    val mt = MediaType.APPLICATION_JSON
+  test ("Request with body") {
+    val mt = APPLICATION_JSON
     val b = RequestBody ("[1, 2, 3]", mt)
     val r = Request.put (url1, b)
     expect (url1)(r.url)
@@ -55,4 +57,25 @@ class RequestTest extends FunSuite {
     expect (b)(r.body.get)
     expect ("UTF-8")(r.body.get.mediaType.charsetOrElse ("UTF-8"))
   }
+
+  test ("request with headers") {
+    val r0 = Request.get (url1)
+    expect (0)(r0.headers.size)
+    val r1 = r0 + (HOST -> "fred")
+    expect (1)(r1.headers.size)
+    expect ("fred")(r1.headers(HOST).value)
+    val r2 = r1.withoutHeaders
+    expect (0)(r2.headers.size)
+  }
+
+  test ("request with cookies") {
+    val r0 = Request.get (url1)
+    expect (None)(r0.cookies)
+    val r1 = r0 using CookieJar(Cookie("x", "hello", Domain.localhost))
+    expect (1)(r1.cookies.get.size)
+    expect ("hello")(r1.cookies.get.find(_.name == "x").get.value.string)
+    val r2 = r1.withoutCookies
+    expect (None)(r2.cookies)
+  }
+
 }

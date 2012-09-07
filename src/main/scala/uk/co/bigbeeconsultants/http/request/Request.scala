@@ -25,6 +25,7 @@
 package uk.co.bigbeeconsultants.http.request
 
 import java.net.URL
+import uk.co.bigbeeconsultants.http.header.{CookieJar, Header, Headers}
 
 //TODO: need to support chunked streaming out of the request
 /**
@@ -33,17 +34,35 @@ import java.net.URL
  */
 final case class Request(method: String,
                          url: URL,
-                         body: Option[RequestBody] = None) {
+                         body: Option[RequestBody] = None,
+                         headers: Headers = Headers.empty,
+                         cookies: Option[CookieJar] = None) {
   require(method != null)
   require(url != null)
+  require(headers != null)
+
+  /** Gets the request without any headers. */
+  def withoutHeaders = this.copy(headers = Headers.empty)
+
+  /** Gets the request without any cookies. */
+  def withoutCookies = this.copy(cookies = None)
+
+  /** Adds another header to the collection of request headers. */
+  def +(header: Header) = this.copy(headers = this.headers + header)
+
+  /** Adds more headers to the collection of request headers. */
+  def +(moreHeaders: Headers) = this.copy(headers = this.headers ++ moreHeaders)
+
+  /** Provides the cookie jar to be used with this request. This replaces any previous setting. */
+  def using(cookies: CookieJar) = this.copy(cookies = Some(cookies))
 }
 
 /**
  * Provides factory methods for creating request objects of various types. These include
  * <ul>
- *   <li>methods without an entity body: get, head, delete, trace</li>
- *   <li>method with an optional entity body: options</li>
- *   <li>methods requiring an entity body: post, put</li>
+ * <li>methods without an entity body: get, head, delete, trace</li>
+ * <li>method with an optional entity body: options</li>
+ * <li>methods requiring an entity body: post, put</li>
  * </ul>
  */
 object Request {
@@ -56,19 +75,19 @@ object Request {
   val TRACE = "TRACE"
 
   // methods without an entity body
-  def get(url: URL): Request = Request (GET, url, None)
+  def get(url: URL): Request = Request(GET, url, None)
 
-  def head(url: URL): Request = Request (HEAD, url, None)
+  def head(url: URL): Request = Request(HEAD, url, None)
 
-  def delete(url: URL): Request = Request (DELETE, url, None)
+  def delete(url: URL): Request = Request(DELETE, url, None)
 
-  def trace(url: URL): Request = Request (TRACE, url, None)
+  def trace(url: URL): Request = Request(TRACE, url, None)
 
   // method with an optional entity body
-  def options(url: URL, body: Option[RequestBody] = None): Request = Request (OPTIONS, url, body)
+  def options(url: URL, body: Option[RequestBody] = None): Request = Request(OPTIONS, url, body)
 
-  def post(url: URL, body: Option[RequestBody]): Request = Request (POST, url, body)
+  def post(url: URL, body: Option[RequestBody]): Request = Request(POST, url, body)
 
   // methods requiring an entity body
-  def put(url: URL, body: RequestBody): Request = Request (PUT, url, Some (body))
+  def put(url: URL, body: RequestBody): Request = Request(PUT, url, Some(body))
 }

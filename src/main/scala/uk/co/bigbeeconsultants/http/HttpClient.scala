@@ -106,24 +106,35 @@ class HttpClient(val config: Config = Config (),
    *         no exception occurred
    */
   @throws(classOf[IOException])
+  @deprecated("Use the form 'execute(request + requestHeaders using jar)'")
   def execute(request: Request, requestHeaders: Headers = Nil, jar: CookieJar = CookieJar.empty): Response = {
+    execute(request + requestHeaders using jar)
+  }
+
+  /**
+   * Makes an arbitrary request and returns the response. The entire response body is read into memory.
+   * @param request the request
+   * @throws IOException (or ConnectException subclass) if an IO exception occurred
+   * @return the response (for all outcomes including 4xx and 5xx status codes) if
+   *         no exception occurred
+   */
+  @throws(classOf[IOException])
+  def execute(request: Request): Response = {
     val responseBuilder = new BufferedResponseBuilder
-    execute (request, requestHeaders, jar, responseBuilder)
+    execute (request, responseBuilder)
     responseBuilder.response.get
   }
 
   /**
    * Makes an arbitrary request using a response builder.
    * @param request the request
-   * @param requestHeaders the optional request headers (use Nil if none are required)
-   * @param jar the optional cookie jar (use CookieJar.empty if none is required)
    * @param responseFactory the response factory, e.g. new BufferedResponseBuilder
    * @throws IOException (or ConnectException subclass) if an IO exception occurred
    * @return the response (for all outcomes including 4xx and 5xx status codes) if
    *         no exception occurred
    */
   @throws(classOf[IOException])
-  def execute(request: Request, requestHeaders: Headers, jar: CookieJar, responseFactory: ResponseBuilder) {
+  def execute(request: Request, responseFactory: ResponseBuilder) {
     logger.debug (request.toString)
 
     val httpURLConnection = openConnection (request)
@@ -134,7 +145,7 @@ class HttpClient(val config: Config = Config (),
     httpURLConnection.setUseCaches (config.useCaches)
 
     try {
-      setRequestHeaders (request, requestHeaders, jar, httpURLConnection)
+      setRequestHeaders (request, httpURLConnection)
 
       httpURLConnection.connect ()
 
@@ -158,7 +169,7 @@ class HttpClient(val config: Config = Config (),
     }
   }
 
-  private def setRequestHeaders(request: Request, requestHeaders: Headers, jar: CookieJar, httpURLConnection: HttpURLConnection) {
+  private def setRequestHeaders(request: Request, httpURLConnection: HttpURLConnection) {
     val method = request.method.toUpperCase
     httpURLConnection.setRequestMethod (method)
 
@@ -182,16 +193,18 @@ class HttpClient(val config: Config = Config (),
       logger.debug (hdr.toString)
     }
 
-    for (hdr <- requestHeaders) {
+    for (hdr <- request.headers) {
       httpURLConnection.setRequestProperty (hdr.name, hdr.value)
       logger.debug (hdr.toString)
     }
 
-    jar.filterForRequest (request.url) match {
-      case Some (hdr) =>
-        httpURLConnection.setRequestProperty (hdr.name, hdr.value)
-        logger.debug (hdr.toString)
-      case _ =>
+    if (request.cookies.isDefined) {
+      request.cookies.get.filterForRequest (request.url) match {
+        case Some (hdr) =>
+          httpURLConnection.setRequestProperty (hdr.name, hdr.value)
+          logger.debug (hdr.toString)
+        case _ =>
+      }
     }
 
     if (request.body.isDefined) {

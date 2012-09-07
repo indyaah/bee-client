@@ -24,7 +24,7 @@
 
 name := "lighthttpclient"
 
-version := "0.9.8"
+version := "0.9.9"
 
 // append several options to the list of options passed to the Java compiler
 //javacOptions += "-g:none"
