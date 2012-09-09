@@ -41,7 +41,8 @@ trait ResponseBody {
 
   /**
    * Gets the length of the content as the number of bytes received. If compressed on the wire,
-   * this will be a smaller length than the length of the resultant body.
+   * this will be the uncompressed length so will differ from the 'Content-Length' header. Because
+   * 'contentLength' represents the byte array size, 'asString.length' will probably compute a different value.
    */
   def contentLength = 0
 

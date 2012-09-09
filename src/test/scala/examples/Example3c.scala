@@ -7,7 +7,7 @@ import uk.co.bigbeeconsultants.http.header.MediaType._
 object Example3c extends App {
   val jsonBody = RequestBody("""{ "x": 1, "y": true }""", APPLICATION_JSON)
   val url = "http://localhost/lighthttpclient/test-echo-back.php"
-  val httpClient = new HttpClient(config = Config(followRedirects = false))
+  val httpClient = new HttpClient
   val response = httpClient.put(url, jsonBody)
   println(response.status)
   println(response.body)

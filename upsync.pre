@@ -11,17 +11,20 @@ cd target
 mkdir -p $DEST/docs/${PROJECT}
 rsync -av scala-${SCALA}/api/ $DEST/docs/${PROJECT}/${VNUM}
 cd $DEST/docs/${PROJECT}
-ln -fs ${VNUM} latest
+rm -f latest
+ln -s ${VNUM} latest
 
 cd $DEST
 rsync -av $HOME/.ivy2/local/${PROJECT} repo
 cd repo/${PROJECT}/${PROJECT}_${SCALA}
-ln -fs ${VNUM} latest
+rm -f latest
+ln -s ${VNUM} latest
 cd ${VNUM}
 ln -fs */${PROJECT}* .
 cd ..
 for e in '' '-sources' '-javadoc'; do
-  ln -fs ${VNUM}/${PROJECT}_${SCALA}${e}.jar ${PROJECT}_${SCALA}-${VNUM}${e}.jar
+  rm -f ${PROJECT}_${SCALA}-${VNUM}${e}.jar
+  ln -s ${VNUM}/${PROJECT}_${SCALA}${e}.jar ${PROJECT}_${SCALA}-${VNUM}${e}.jar
 done
 
 function writeLatest

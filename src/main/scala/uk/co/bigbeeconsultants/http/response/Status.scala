@@ -44,8 +44,7 @@ case class Status(code: Int, message: String) {
  * Lists the official status codes as defined in RFC2616.
  * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.1
  * <p>
- * Note that java.net.HttpURLConnection has non-standard status codes
- * in some cases.
+ * Note that java.net.HttpURLConnection has non-standard status codes in some cases.
  */
 object Status {
 

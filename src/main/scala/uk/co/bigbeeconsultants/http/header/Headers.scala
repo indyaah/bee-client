@@ -27,9 +27,8 @@ package uk.co.bigbeeconsultants.http.header
 import collection.immutable.List
 
 /**
- * Holds a list of headers.
- * <p>
- * Remember that header names are case-insensitive. The get and find methods take this into account.
+ * Holds a list of headers. Remember that header names are case-insensitive; the get, find, etc methods take
+ * this into account.
  */
 case class Headers(list: List[Header]) {
 
@@ -110,6 +109,9 @@ case class Headers(list: List[Header]) {
     add(newHeader)
   }
 
+  /**
+   * Conjoins two instances to produce a new instance that includes all the headers from both.
+   */
   def ++(newHeaders: Headers): Headers = {
     new Headers(this.list ++ newHeaders.list)
   }
