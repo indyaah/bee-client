@@ -24,45 +24,23 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import uk.co.bigbeeconsultants.http.util.HttpUtil
+import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
+import java.text.ParseException
+import com.weiglewilczek.slf4s.Logging
 
-trait Value {
-  def isValid: Boolean
-}
+case class DateValue(value: String) extends Value with Logging {
 
-/**
- * Provides an HTTP header. Bear in mind that header names are case-insensitive, but you are advised to stick to
- * the canonical capitalisation, which is as given by the HeaderName object values.
- */
-case class Header(name: String, value: String) {
-
-  /** Converts the value to an integer number. */
-  def toNumber = NumberValue (value)
-
-  /** Converts the value to an HttpDateTimeInstant. */
-  def toDate: DateValue = DateValue (value)
-
-  /** Converts the value to a qualified value. */
-  def toQualifiedValue = QualifiedValue (value)
-
-  /** Converts the value to a range value. */
-  def toRangeValue = RangeValue (value)
-
-  /** Converts the value to a media type. */
-  def toMediaType = MediaType (value)
-
-  override def toString = name + ": " + value
-
-  lazy val hasListValue = HeaderName.headersWithListValues.contains (name)
-}
-
-
-object Header {
-  /**
-   * Constructs a header by splitting a raw string at the first ':'.
-   */
-  def apply(raw: String): Header = {
-    val t = HttpUtil.divide (raw, ':')
-    apply (t._1.trim, t._2.trim)
+  private var valid = false
+  private var _date = HttpDateTimeInstant.zero
+  try {
+    _date = HttpDateTimeInstant.parse(value)
+    valid = true
+  } catch {
+    case pe: ParseException =>
+      logger.error(value + ": failed to parse date. " + pe.getMessage)
   }
+
+  val isValid = valid
+
+  val date = _date
 }

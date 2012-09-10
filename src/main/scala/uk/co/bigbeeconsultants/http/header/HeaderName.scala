@@ -48,7 +48,7 @@ sealed trait GeneralHeaderName {
   val PRAGMA = HeaderName ("Pragma") // ListValue
   val UPGRADE = HeaderName ("Upgrade") // ListValue
   val VIA = HeaderName ("Via") // ListValue
-  val WARNING = HeaderName ("Warning") // ListValue (in ISO8859-1)
+  val WARNING = HeaderName ("Warning") // String value (in ISO8859-1)
 }
 
 /** Header names used only for requests. */

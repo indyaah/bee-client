@@ -27,6 +27,9 @@ package uk.co.bigbeeconsultants.http.header
 import uk.co.bigbeeconsultants.http.util.HttpUtil
 import java.util.regex.Pattern
 
+/**
+ * Defines an integer range, according to HTTP usage. E.g. "5-17" represents the range 5 to 17.
+ */
 case class Range(first: Option[Int], last: Option[Int]) {
 
   require (first.getOrElse (0) >= 0, first.toString)
@@ -73,7 +76,9 @@ object Range {
   private def toOptInt(num: String) = if (num.length == 0) None else Some (num.toInt)
 }
 
-
+/**
+ * Provides a single component of a range value. This is either a Range or "bytes" or "none".
+ */
 case class RangePart(prefix: String, value: Either[Range, String]) {
   def isValid = if (value.isLeft)
     value.left.get.isValid
@@ -107,10 +112,13 @@ object RangePart {
 
 
 /**
- * Defines an HTTP header with a list of ranges. Typically, such values are
- * used for the Accept-Ranges and Content-Ranges headers.
+ * Defines an HTTP header value for a list of ranges. Typically, such values are
+ * used for the Accept-Ranges and Content-Ranges headers. Example value:
+ {{{
+ bytes=500-599,700-799
+ }}}
  */
-case class RangeValue(value: String) {
+case class RangeValue(value: String) extends Value {
 
   val parts: List[RangePart] =
     HttpUtil.split (value, ',').map {

@@ -30,13 +30,16 @@ import uk.co.bigbeeconsultants.http.util.HttpUtil
 /**
  * Provides a media type. Also known as a MIME type or content type.
  */
-case class MediaType(contentType: String, subtype: String, charset: Option[String] = None) {
+case class MediaType(contentType: String, subtype: String, charset: Option[String] = None) extends Value {
 
   import MediaType._
 
-  def value = contentType + '/' + subtype
+  def isValid = !contentType.isEmpty && !subtype.isEmpty
 
-  /**Gets this media type in the form used within QualifiedValue. */
+  /** Gets the content type / subtype string, without charset. */
+  lazy val value = contentType + '/' + subtype
+
+  /**Gets this media type as a QualifiedPart, which is the form used within QualifiedValue. */
   def toQualifiedPart = {
     val qual = if (charset.isEmpty) Nil else List(Qualifier("charset", charset.get))
     QualifiedPart(value, qual)

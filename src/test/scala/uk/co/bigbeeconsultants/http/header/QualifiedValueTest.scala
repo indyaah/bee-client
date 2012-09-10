@@ -1,5 +1,3 @@
-package uk.co.bigbeeconsultants.http.header
-
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -23,6 +21,8 @@ package uk.co.bigbeeconsultants.http.header
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
+
+package uk.co.bigbeeconsultants.http.header
 
 import org.scalatest.FunSuite
 
@@ -48,6 +48,15 @@ class QualifiedValueTest extends FunSuite {
   }
 
 
+  test ("two-part string ") {
+    val v = QualifiedValue("audio/basic")
+    expect (1)(v.parts.size)
+    expect ("audio/basic")(v(0))
+    expect ("audio/basic")(v.toString)
+    assert(v.isValid)
+  }
+
+
   test ("two-part string with one qualifier including spaces and zeros") {
     val v = QualifiedValue("audio/*; q=0.2, audio/basic")
     expect (2)(v.parts.size)
@@ -57,6 +66,7 @@ class QualifiedValueTest extends FunSuite {
     expect ("0.2")(v.parts (0).qualifier (0).value)
     expect ("audio/basic")(v(1))
     expect ("audio/*;q=0.2, audio/basic")(v.toString)
+    assert(v.isValid)
   }
 
 
@@ -69,6 +79,7 @@ class QualifiedValueTest extends FunSuite {
     expect (".2")(v.parts (0).qualifier (0).value)
     expect ("audio/basic")(v(1))
     expect ("audio/*;q=.2, audio/basic")(v.toString)
+    assert(v.isValid)
   }
 
 
@@ -84,6 +95,13 @@ class QualifiedValueTest extends FunSuite {
     expect ("q")(v.parts (3).qualifier (1).label)
     expect ("0.4")(v.parts (3).qualifier (1).value)
     expect ("text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5")(v.toString)
+    assert(v.isValid)
+  }
+
+
+  test ("invalid strings") {
+    assert(!QualifiedValue ("q=0.3").isValid)
+    assert(!QualifiedValue (";q=0.3").isValid)
   }
 
 }

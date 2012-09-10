@@ -42,6 +42,10 @@ object HttpUtil {
 
   val DEFAULT_BUFFER_SIZE = 1024 * 16
 
+  /**
+   * Efficiently splits a string at all occurrences of a given character. The returned list always contains at least
+   * one item, even if it is blank.
+   */
   def split(str: String, sep: Char): List[String] = {
     val list = new ListBuffer[String]
     val part = new StringBuilder
@@ -57,6 +61,10 @@ object HttpUtil {
     list.toList
   }
 
+  /**
+   * Efficiently divides a string at the first occurrence of a separator character.
+   * @return a tuple of the string before and the string after the separator
+   */
   def divide(str: String, sep: Char) = {
     val s = str.indexOf(sep)
     if (s >= 0 && s < str.length) {

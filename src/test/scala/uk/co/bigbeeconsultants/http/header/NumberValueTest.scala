@@ -24,45 +24,25 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import uk.co.bigbeeconsultants.http.util.HttpUtil
+import org.scalatest.FunSuite
 
-trait Value {
-  def isValid: Boolean
-}
+class NumberValueTest extends FunSuite {
 
-/**
- * Provides an HTTP header. Bear in mind that header names are case-insensitive, but you are advised to stick to
- * the canonical capitalisation, which is as given by the HeaderName object values.
- */
-case class Header(name: String, value: String) {
+  test("valid integer") {
+    val v = NumberValue("12345")
+    assert(v.isValid)
+    expect(12345)(v.toInt)
+  }
 
-  /** Converts the value to an integer number. */
-  def toNumber = NumberValue (value)
+  test("valid long") {
+    val v = NumberValue("123456789012345")
+    assert(v.isValid)
+    expect(123456789012345L)(v.toLong)
+  }
 
-  /** Converts the value to an HttpDateTimeInstant. */
-  def toDate: DateValue = DateValue (value)
-
-  /** Converts the value to a qualified value. */
-  def toQualifiedValue = QualifiedValue (value)
-
-  /** Converts the value to a range value. */
-  def toRangeValue = RangeValue (value)
-
-  /** Converts the value to a media type. */
-  def toMediaType = MediaType (value)
-
-  override def toString = name + ": " + value
-
-  lazy val hasListValue = HeaderName.headersWithListValues.contains (name)
-}
-
-
-object Header {
-  /**
-   * Constructs a header by splitting a raw string at the first ':'.
-   */
-  def apply(raw: String): Header = {
-    val t = HttpUtil.divide (raw, ':')
-    apply (t._1.trim, t._2.trim)
+  test("invalid number") {
+    assert(!NumberValue("cheese").isValid)
+    assert(!NumberValue(" 123").isValid)
+    assert(!NumberValue("123 ").isValid)
   }
 }

@@ -30,7 +30,7 @@ import org.scalatest.FunSuite
 class HttpDateTimeInstantTest extends FunSuite {
 
   test ("parse silly") {
-    val d = HttpDateTimeInstant.parse ("some silly rubbish")
+    val d = HttpDateTimeInstant.parse ("some silly rubbish", HttpDateTimeInstant.zero)
     expect (HttpDateTimeInstant.zero)(d)
   }
 

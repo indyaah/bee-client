@@ -55,14 +55,14 @@ class HeaderTest extends FunSuite {
   test ("value_toInt") {
     val h = Header ("Content-Length: 123")
     expect ("Content-Length")(h.name)
-    expect (123)(h.toInt)
+    expect (123)(h.toNumber.toInt)
   }
 
 
   test ("value_toLong") {
     val h = Header ("Content-Length: 123")
     expect ("Content-Length")(h.name)
-    expect (123)(h.toLong)
+    expect (123)(h.toNumber.toLong)
   }
 
 
@@ -105,7 +105,7 @@ class HeaderTest extends FunSuite {
     val time = DatatypeConverter.parseDateTime ("1994-11-06T08:49:37Z").getTime
     val h = Header ("Date: Sun, 06 Nov 1994 08:49:37 GMT")
     expect ("Date")(h.name)
-    expect (time)(h.toDate ().date)
+    expect (time)(h.toDate.date.date)
   }
 
 }

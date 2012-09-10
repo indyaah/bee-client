@@ -31,8 +31,10 @@ import uk.co.bigbeeconsultants.http.util.HttpUtil
  */
 case class Qualifier(label: String, value: String) {
   override def toString =
-    if (value.length () > 0) label + "=" + value
+    if (value.length > 0) label + "=" + value
     else label
+
+  def isValid = !label.isEmpty
 }
 
 object Qualifier {
@@ -47,6 +49,8 @@ case class QualifiedPart(value: String, qualifier: List[Qualifier] = Nil) {
   override def toString =
     if (qualifier.isEmpty) value
     else value + ";" + qualifier.mkString (";")
+
+  def isValid = !value.isEmpty && value.indexOf('=') < 0 && qualifier.forall(_.isValid)
 }
 
 object QualifiedPart {
@@ -61,16 +65,23 @@ object QualifiedPart {
 
 
 /**
- * Defines an HTTP header with a list of qualifiers. Typically, such values are
- * used for the 'accept' category of headers.
+ * Defines an HTTP header with a list of qualifiers. Typically, such values are used for the 'accept' category of
+ * headers. These are some of the most complex of HTTP headers, consisting of a comma-separated list of
+ * qualified parts. Each qualified part is a value and a list of qualifiers. Each qualifier is a key=value pair.
+ * Example value:
+ {{{
+ text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5
+ }}}
  */
-case class QualifiedValue(value: String) {
+case class QualifiedValue(value: String) extends Value {
 
   val parts: List[QualifiedPart] = {
     HttpUtil.split (value, ',').map {
       v: String => QualifiedPart.parse (v)
     }.toList
   }
+
+  lazy val isValid = parts.forall(_.isValid)
 
   def apply(i: Int) = parts (i).value
 
