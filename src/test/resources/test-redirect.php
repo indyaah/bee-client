@@ -1,3 +1,4 @@
+<?php
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -22,29 +23,21 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.http
+$code = '303';
+$target = 'test-lighthttpclient.txt';
 
-import header.{ExpertHeaderName, Headers}
-import header.HeaderName._
-import java.net.Proxy
+if (isset($_REQUEST['ST'])) { $code = strip_tags($_REQUEST['ST']); }
+if (isset($_REQUEST['TO'])) { $target = strip_tags($_REQUEST['TO']); }
 
-/**
- * Specifies configuration options that will be used across many requests.
- */
-case class Config(connectTimeout: Int = 2000,
-                  readTimeout: Int = 5000,
-                  followRedirects: Boolean = true,
-                  useCaches: Boolean = true,
-                  sendHostHeader: Boolean = true,
-                  keepAlive: Boolean = true,
-                  userAgentString: Option[String] = None,
-                  proxy: Proxy = Proxy.NO_PROXY) {
-
-  lazy val configHeaders: Headers = {
-    var hdrs = Headers()
-    if (!keepAlive) hdrs = hdrs + (ExpertHeaderName.CONNECTION -> "close")
-    if (userAgentString.isDefined) hdrs = hdrs + (USER_AGENT -> userAgentString.get)
-    hdrs
-  }
-
+if (isset($_SERVER['HTTP_HOST']))
+{
+    $host = $_SERVER['HTTP_HOST'];
 }
+else
+{
+    $host = $_SERVER['SERVER_ADDR'];
+}
+
+header("Status: $code Artificial redirect");
+header('Location: http://' . $host . '/lighthttpclient/' . $target);
+?>

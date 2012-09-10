@@ -27,7 +27,7 @@ package uk.co.bigbeeconsultants.http.response
 /**Expresses an HTTP status line. */
 case class Status(code: Int, message: String) {
   /**The category is 1=informational, 2=success, 3=redirect, 4=client error, 5=server error. */
-  lazy val category = code / 100
+  val category = code / 100
 
   def isInformational = category == 1
 
@@ -38,6 +38,14 @@ case class Status(code: Int, message: String) {
   def isClientError = category == 4
 
   def isServerError = category == 5
+
+  /**
+   * Specifies whether a body is allowed in the response to which this status is attached.
+   * @return true if the body may possibly have content; false if the body cannot have content.
+   */
+  def isBodyAllowed: Boolean = !isInformational && !bodyForbidden
+
+  private def bodyForbidden = code == 204 || code == 205 || code == 304
 }
 
 /**
@@ -55,7 +63,7 @@ object Status {
   /*----- 2XX: success -----*/
   val S200_OK = Status(200, "OK")
   val S201_Created = Status(201, "Created")
-  val S202_Accepted = Status(202, "Accepted")
+  val S202_Accepted = Status(202, "Accepted") // result of non-committal asynchronous request
   val S203_NotAuthoritative = Status(203, "Not authoritative")
   val S204_NoContent = Status(204, "No content")
   val S205_ResetContent = Status(205, "Reset content")

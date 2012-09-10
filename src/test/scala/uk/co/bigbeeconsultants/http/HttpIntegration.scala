@@ -40,17 +40,12 @@ object HttpIntegration {
   val testTxtFile = "test-lighthttpclient.txt"
   val testPhpFile = "test-lighthttpclient.php"
   val testEchoFile = "test-echo-back.php"
-  val test204File = "test-lighthttpclient-204.php"
+  val test204File = "test-204-no-content.php"
+  val testRedirectFile = "test-redirect.php"
   val testImageFile = "B.png"
   val testPhotoFile = "plataria-sunset.jpg"
 
   val serverUrl = "http://localhost/lighthttpclient/"
-  val testHtmlUrl = serverUrl + testHtmlFile
-  val testTxtUrl = serverUrl + testTxtFile
-  val testPhpUrl = serverUrl + testPhpFile
-  val testEchoUrl = serverUrl + testEchoFile
-  val testImageUrl = serverUrl + testImageFile
-  val testPhotoUrl = serverUrl + testPhotoFile
 
   //  val proxyAddress = new InetSocketAddress("localhost", 8888)
   //  val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
@@ -63,6 +58,65 @@ object HttpIntegration {
   val testTxtSize = new File(dir, testTxtFile).length
   val testImageSize = 497
   val testPhotoSize = 1605218
+
+  def headTest(http: HttpClient, url: String, size: Long) {
+    try {
+      val response = http.head(new URL(url), gzipHeaders)
+      assert(response.status.code == 200, url)
+      val body = response.body
+      assert(body.contentType == TEXT_HTML)
+      expectHeaderIfPresent("gzip")(response.headers, CONTENT_ENCODING)
+      //      expectHeaderIfPresent (size)(response.headers, CONTENT_LENGTH)
+      assert(body.toString == "")
+    } catch {
+      case e: Exception =>
+        skipTestWarning("HEAD", url, e)
+    }
+  }
+
+  private def htmlGet(http: HttpClient, url: String, size: Long) {
+    try {
+      val response = http.get(new URL(url), gzipHeaders)
+      assert(response.status.code == 200, url)
+      val body = response.body
+      assert(body.contentType == TEXT_HTML)
+      val string = body.toString
+      assert(string startsWith "<!DOCTYPE html>")
+      assert(response.headers(CONTENT_ENCODING).value == "gzip", response.headers(CONTENT_ENCODING))
+      //expect (size)(response.headers.get (CONTENT_LENGTH).toInt)
+      val bodyLines = string.split("\n")
+      assert(bodyLines(0) startsWith "<!DOCTYPE html>")
+    } catch {
+      case e: Exception =>
+        skipTestWarning("GET", url, e)
+    }
+  }
+
+  private def expectHeaderIfPresent(expected: Any)(headers: Headers, name: HeaderName) {
+    val hdrs = headers filter name
+    if (!hdrs.isEmpty) {
+      assert(hdrs(0).value == expected, hdrs(0))
+    }
+  }
+
+  private def extractLineFromResponse(expectedHeader: String, bodyLines: Seq[String]): String = {
+    val expectedHeaderColon = expectedHeader + ':'
+    for (line <- bodyLines) {
+      if (line.startsWith(expectedHeaderColon)) {
+        return line.substring(line.indexOf(':') + 1).trim()
+      }
+    }
+    throw new AssertionError("Expect response to contain\n" + expectedHeader)
+  }
+
+  private def skipTestWarning(method: String, url: String, e: Exception) {
+    if (e.isInstanceOf[ConnectException] || e.getCause.isInstanceOf[ConnectException]) {
+      System.err.println("***** Test skipped: " + method + " " + url + " : " + e.getMessage)
+    }
+    else {
+      throw e
+    }
+  }
 }
 
 
@@ -84,53 +138,35 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
     //    assertFalse(http.config.keepAlive)
   }
 
-  def headTest(url: String, size: Long) {
-    try {
-      val response = http.head(new URL(url), gzipHeaders)
-      expect(200, url)(response.status.code)
-      val body = response.body
-      expect(TEXT_HTML)(body.contentType)
-      expectHeaderIfPresent("gzip")(response.headers, CONTENT_ENCODING)
-      //      expectHeaderIfPresent (size)(response.headers, CONTENT_LENGTH)
-      expect(true)(body.toString == "")
-    } catch {
-      case e: Exception =>
-        skipTestWarning("HEAD", url, e)
-    }
-  }
-
   test("html text/html head x100") {
     for (i <- 1 to 100) {
-      headTest(testHtmlUrl + "?LOREM=" + i, testHtmlSize)
+      headTest(http, serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
     }
   }
 
-  private def htmlGet(url: String, size: Long) {
+  test("html text/html get x100") {
+    for (i <- 1 to 100) {
+      htmlGet(http, serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
+    }
+  }
+
+  test("html text/html get giving 204 x100") {
+    val url = serverUrl + test204File
     try {
       val response = http.get(new URL(url), gzipHeaders)
-      expect(200, url)(response.status.code)
+      expect(204, url)(response.status.code)
       val body = response.body
+      expect(false, response.status)(response.status.isBodyAllowed)
       expect(TEXT_HTML)(body.contentType)
-      val string = body.toString
-      expect(true)(string.startsWith("<!DOCTYPE html>"))
-      expect("gzip")(response.headers(CONTENT_ENCODING).value)
-      //expect (size)(response.headers.get (CONTENT_LENGTH).toInt)
-      val bodyLines = string.split("\n")
-      expect("<!DOCTYPE html>")(bodyLines(0))
+      expect("")(body.toString)
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
     }
   }
 
-  test("html text/html get x100") {
-    for (i <- 1 to 100) {
-      htmlGet(testHtmlUrl + "?LOREM=" + i, testHtmlSize)
-    }
-  }
-
   test("image/png get x1") {
-    val url = testImageUrl
+    val url = serverUrl + testImageFile
     try {
       val response = http.get(new URL(url), gzipHeaders)
       expect(200)(response.status.code)
@@ -147,7 +183,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("txt text/plain get x1") {
-    val url = testTxtUrl
+    val url = serverUrl + testTxtFile
     try {
       val response = http.get(new URL(url), gzipHeaders)
       expect(200)(response.status.code)
@@ -161,7 +197,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("txt text/plain get qith query string x1") {
-    val url = testEchoUrl + "?A=1&B=2"
+    val url = serverUrl + testEchoFile + "?A=1&B=2"
     try {
       val response = http.get(new URL(url), gzipHeaders)
       expect(200)(response.status.code)
@@ -178,7 +214,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("php text/plain options x1") {
-    val url = testPhpUrl + "?CT=text/plain"
+    val url = serverUrl + testPhpFile + "?CT=text/plain"
     try {
       val response = http.options(new URL(url), None)
       expect(302)(response.status.code)
@@ -191,7 +227,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("php text/plain post x1") {
-    val url = testEchoUrl
+    val url = serverUrl + testEchoFile
     try {
       val response = http.post(new URL(url), Some(jsonBody), gzipHeaders)
       expect(200)(response.status.code)
@@ -208,7 +244,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("php text/plain put x1") {
-    val url = testEchoUrl
+    val url = serverUrl + testEchoFile
     try {
       val response = http.put(new URL(url), jsonBody, gzipHeaders)
       expect(200)(response.status.code)
@@ -225,7 +261,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("php text/html delete x1") {
-    val url = testEchoUrl
+    val url = serverUrl + testEchoFile
     try {
       val response = http.delete(new URL(url), gzipHeaders)
       expect(200)(response.status.code)
@@ -240,7 +276,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("php text/html options x1") {
-    val url = testEchoUrl
+    val url = serverUrl + testEchoFile
     try {
       val response = http.options(new URL(url), None)
       expect(200)(response.status.code)
@@ -255,11 +291,12 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("jpg image/jpg get x100") {
+    val url = serverUrl + testPhotoFile
     try {
       val loops = 100
       val before = System.currentTimeMillis()
       for (i <- 1 to loops) {
-        val response = http.get(new URL(testPhotoUrl + "?n=" + i), gzipHeaders)
+        val response = http.get(new URL(url + "?n=" + i), gzipHeaders)
         expect(200)(response.status.code)
         expect(IMAGE_JPG)(response.body.contentType)
         val bytes = response.body.asBytes
@@ -271,11 +308,12 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       println(bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
     } catch {
       case e: Exception =>
-        skipTestWarning("GET", testPhotoUrl, e)
+        skipTestWarning("GET", url, e)
     }
   }
 
   test("php text/html get x100") {
+    val url = serverUrl + testPhpFile
     try {
       var size = -1
       var first = "NOT SET"
@@ -286,7 +324,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
         if (ok) {
           try {
             val is = i.toString
-            val response = http.get(new URL(testPhpUrl + "?STUM=1"), gzipHeaders)
+            val response = http.get(new URL(url + "?STUM=1"), gzipHeaders)
             expect(200)(response.status.code)
             val body = response.body
             expect(TEXT_HTML)(body.contentType)
@@ -313,33 +351,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       println(bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
     } catch {
       case e: Exception =>
-        skipTestWarning("GET", testPhotoUrl, e)
-    }
-  }
-
-  private def expectHeaderIfPresent(expected: Any)(headers: Headers, name: HeaderName) {
-    val hdrs = headers filter name
-    if (!hdrs.isEmpty) {
-      expect(expected)(hdrs(0).value)
-    }
-  }
-
-  private def extractLineFromResponse(expectedHeader: String, bodyLines: Seq[String]): String = {
-    val expectedHeaderColon = expectedHeader + ':'
-    for (line <- bodyLines) {
-      if (line.startsWith(expectedHeaderColon)) {
-        return line.substring(line.indexOf(':') + 1).trim()
-      }
-    }
-    throw new AssertionError("Expect response to contain\n" + expectedHeader)
-  }
-
-  private def skipTestWarning(method: String, url: String, e: Exception) {
-    if (e.isInstanceOf[ConnectException] || e.getCause.isInstanceOf[ConnectException]) {
-      System.err.println("***** Test skipped: " + method + " " + url + " : " + e.getMessage)
-    }
-    else {
-      throw e
+        skipTestWarning("GET", url, e)
     }
   }
 }

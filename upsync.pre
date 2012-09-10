@@ -6,26 +6,39 @@ VNUM=$(grep version build.sbt | sed 's/.*:= *//' | tr -d '"')
 DEST=/home/websites/bigbeeconsultants
 DIR=$PWD
 SOURCES="docs repo"
-
-cd target
 mkdir -p $DEST/docs/${PROJECT}
-rsync -av scala-${SCALA}/api/ $DEST/docs/${PROJECT}/${VNUM}
-cd $DEST/docs/${PROJECT}
-rm -f latest
-ln -s ${VNUM} latest
+mkdir -p $DEST/repo/${PROJECT}
 
-cd $DEST
-rsync -av $HOME/.ivy2/local/${PROJECT} repo
-cd repo/${PROJECT}/${PROJECT}_${SCALA}
-rm -f latest
-ln -s ${VNUM} latest
-cd ${VNUM}
-ln -fs */${PROJECT}* .
-cd ..
-for e in '' '-sources' '-javadoc'; do
-  rm -f ${PROJECT}_${SCALA}-${VNUM}${e}.jar
-  ln -s ${VNUM}/${PROJECT}_${SCALA}${e}.jar ${PROJECT}_${SCALA}-${VNUM}${e}.jar
-done
+function symlink
+{
+    rm -f $2
+    ln -s $1 $2
+}
+
+function do_docs
+{
+  if [ -d DIR/target/scala-${SCALA} ]; then
+    rsync -av $DIR/target/scala-${SCALA}/api/ $DEST/docs/${PROJECT}/${VNUM}
+    cd $DEST/docs/${PROJECT}
+    symlink ${VNUM} latest
+  fi
+}
+
+function do_repo
+{
+  if [ -d DIR/target/scala-${SCALA} ]; then
+    cd $DEST
+    rsync -av $HOME/.ivy2/local/${PROJECT} repo
+    cd repo/${PROJECT}/${PROJECT}_${SCALA}
+    symlink ${VNUM} latest
+    cd ${VNUM}
+    ln -fs */${PROJECT}* .
+    cd ..
+    for e in '' '-sources' '-javadoc'; do
+      symlink ${VNUM}/${PROJECT}_${SCALA}${e}.jar ${PROJECT}_${SCALA}-${VNUM}${e}.jar
+    done
+  fi
+}
 
 function writeLatest
 {
@@ -34,7 +47,9 @@ function writeLatest
   echo "</head><body><a href='$2'>Latest</a></body></html>" >>$1
 }
 
+do_docs
+do_repo
+
 cd $DEST
 writeLatest docs/${PROJECT}/latest.html "http://www.bigbeeconsultants.co.uk/docs/${PROJECT}/${VNUM}/"
 writeLatest repo/${PROJECT}/latest.html "http://www.bigbeeconsultants.co.uk/repo/${PROJECT}/${PROJECT}_${SCALA}/${VNUM}/"
-

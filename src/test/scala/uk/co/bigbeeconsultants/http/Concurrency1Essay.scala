@@ -34,7 +34,7 @@ object Concurrency1Essay {
   val nThreads = 1
   val nIterationsEach = nIterations / nThreads
 //  val url = testPhotoUrl
-  val url = testTxtUrl
+  val url = serverUrl + testTxtFile
 
   //  val proxyAddress = new InetSocketAddress("localhost", 8888)
   //  val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)

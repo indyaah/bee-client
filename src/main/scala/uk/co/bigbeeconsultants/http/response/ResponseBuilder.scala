@@ -49,14 +49,15 @@ trait ResponseBuilder {
  * a new instance is required for every request.
  * @see ByteBufferResponseBody
  */
-class BufferedResponseBuilder extends ResponseBuilder {
+final class BufferedResponseBuilder extends ResponseBuilder {
   // with Logging {
   private var _response: Option[Response] = None
 
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
                       headers: Headers, cookies: Option[CookieJar], stream: InputStream) {
     val bufferSize = headers.get(HeaderName.CONTENT_LENGTH).map(_.toInt).getOrElse(1024)
-    val body = new ByteBufferResponseBody(mediaType.getOrElse(MediaType.APPLICATION_OCTET_STREAM), stream, bufferSize)
+    val contentType = mediaType.getOrElse(MediaType.APPLICATION_OCTET_STREAM)
+    val body = new ByteBufferResponseBody(contentType, stream, bufferSize)
     _response = Some(new Response(request, status, body, headers, cookies))
     //    logger.debug((_response.get.toString))
   }

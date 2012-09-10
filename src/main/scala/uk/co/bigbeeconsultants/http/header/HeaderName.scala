@@ -24,6 +24,8 @@
 
 package uk.co.bigbeeconsultants.http.header
 
+import reflect.Type
+
 /**
  * Constructs a new HeaderName instance from a string. Bear in mind that header names are case-insensitive,
  * but you are advised to stick to the canonical capitalisation, which is as given by the HeaderName object values.
@@ -38,28 +40,19 @@ case class HeaderName(name: String) {
   override def toString = name
 }
 
-/**
- * Provides the header names in RFC2616 (inter alia) using the canonical capitalisation. These values are
- * type-safe and therefore a better choice than arbitrarily using strings to create headers.
- */
-object HeaderName {
-  implicit def headerNameToString(hn: HeaderName) = hn.name
-
-  // General headers
+/** General header names; also those used for both requests and responses. */
+sealed trait GeneralHeaderName {
+  val ACCEPT_RANGES = HeaderName ("Accept-Ranges")
   val CACHE_CONTROL = HeaderName ("Cache-Control")
-  val CONNECTION = HeaderName ("Connection") // ListValue
   val DATE = HeaderName ("Date") // HttpDateTimeInstant
   val PRAGMA = HeaderName ("Pragma") // ListValue
-  val TRAILER = HeaderName ("Trailer") // ListValue
-  val TRANSFER_ENCODING = HeaderName ("Transfer-Encoding") // ListValue
   val UPGRADE = HeaderName ("Upgrade") // ListValue
   val VIA = HeaderName ("Via") // ListValue
   val WARNING = HeaderName ("Warning") // ListValue (in ISO8859-1)
+}
 
-  // Request & response headers
-  val ACCEPT_RANGES = HeaderName ("Accept-Ranges") // RangeValue
-
-  // Request headers
+/** Header names used only for requests. */
+sealed trait RequestHeaderName {
   val ACCEPT = HeaderName ("Accept") // QualifiedValue
   val ACCEPT_CHARSET = HeaderName ("Accept-Charset") // QualifiedValue (case-insensitive)
   val ACCEPT_ENCODING = HeaderName ("Accept-Encoding") // QualifiedValue ("gzip", "compress", "deflate" etc)
@@ -80,10 +73,11 @@ object HeaderName {
   val PROXY_AUTHORIZATION = HeaderName ("Proxy-Authorization")
   val RANGE = HeaderName ("Range") // RangePart
   val REFERER = HeaderName ("Referer") // String
-  val TE = HeaderName ("TE") // QualifiedValue
   val USER_AGENT = HeaderName ("User-Agent") // String
+}
 
-  // Response headers
+/** Header names used only for responses. */
+sealed trait ResponseHeaderName {
   val AGE = HeaderName ("Age") // Int
   val ETAG = HeaderName ("ETag") // String
   val LOCATION = HeaderName ("Location") // String
@@ -94,8 +88,10 @@ object HeaderName {
   val SERVER = HeaderName ("Server") // String
   val VARY = HeaderName ("Vary") // ListValue
   val WWW_AUTHENTICATE = HeaderName ("WWW-Authenticate") // ListValue
+}
 
-  // Entity headers
+/** Header names used only for entity metadata. */
+sealed trait EntityHeaderName {
   val ALLOW = HeaderName ("Allow") // ListValue
   val CONTENT_ENCODING = HeaderName ("Content-Encoding") // ListValue
   val CONTENT_LANGUAGE = HeaderName ("Content-Language") // ListValue
@@ -106,7 +102,14 @@ object HeaderName {
   val CONTENT_TYPE = HeaderName ("Content-Type") // MediaType
   val EXPIRES = HeaderName ("Expires") // HttpDateTimeInstant
   val LAST_MODIFIED = HeaderName ("Last-Modified") // HttpDateTimeInstant
+}
 
+/**
+ * Provides the header names in RFC2616 (inter alia) using the canonical capitalisation. These values are
+ * type-safe and therefore a better choice than arbitrarily using strings to create headers.
+ */
+object HeaderName extends GeneralHeaderName with RequestHeaderName with ResponseHeaderName with EntityHeaderName {
+  implicit def headerNameToString(hn: HeaderName) = hn.name
 
   val headersWithListValues: Set[String] = Set (ACCEPT.name,
     ACCEPT_CHARSET.name,
@@ -118,7 +121,17 @@ object HeaderName {
     EXPECT.name,
     PRAGMA.name,
     RANGE.name,
-    TE.name,
     UPGRADE.name,
     VIA.name)
+}
+
+/**
+ * These headers are used internally by HttpURLConnection and should not normally appear in client applications.
+ * They are for expert use only.
+ */
+object ExpertHeaderName {
+  val CONNECTION = HeaderName ("Connection") // ListValue
+  val TE = HeaderName ("TE") // QualifiedValue
+  val TRAILER = HeaderName ("Trailer") // ListValue
+  val TRANSFER_ENCODING = HeaderName ("Transfer-Encoding") // ListValue
 }

@@ -24,7 +24,7 @@
 
 package uk.co.bigbeeconsultants.http
 
-import header.HeaderName
+import header.{ExpertHeaderName, HeaderName}
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 class ConfigTest extends FunSuite with BeforeAndAfter {
@@ -34,7 +34,7 @@ class ConfigTest extends FunSuite with BeforeAndAfter {
     expect(0)(c1.configHeaders.size)
 
     val c2 = Config(keepAlive = false)
-    expect("close")(c2.configHeaders(HeaderName.CONNECTION).value)
+    expect("close")(c2.configHeaders(ExpertHeaderName.CONNECTION).value)
   }
 
   test("configHeaders with userAgentString") {

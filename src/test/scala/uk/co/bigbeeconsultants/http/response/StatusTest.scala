@@ -24,30 +24,46 @@
 
 package uk.co.bigbeeconsultants.http.response
 
-import uk.co.bigbeeconsultants.http.header.{CookieJar, Headers, MediaType}
-import uk.co.bigbeeconsultants.http.request.Request
-import java.io.InputStream
+import org.scalatest.FunSuite
+import org.scalatest.matchers.ShouldMatchers
+import uk.co.bigbeeconsultants.http.request._
+import uk.co.bigbeeconsultants.http.header.{Domain, Cookie, CookieJar, Headers}
+import uk.co.bigbeeconsultants.http.header.MediaType._
+import uk.co.bigbeeconsultants.http.header.HeaderName._
 
-/**
- * Represents a HTTP response. This is essentially immutable, although the implementation of
- * the response body may vary.
- *
- * Note that the body may represent one of three cases: in the two obvious cases,
- * there was real data supplied by the server, that may or may not have been empty. The third case is a special
- * case in which the body is empty because the HTTP standard does not permit a body under those circumstances.
- * This is true for HEAD requests and all those status codes such as 204 or 304 for which the status bodyAllowed
- * field is false.
- */
-case class Response(request: Request,
-                    status: Status,
-                    body: ResponseBody,
-                    headers: Headers,
-                    cookies: Option[CookieJar])
+class StatusTest extends FunSuite with ShouldMatchers {
 
-object Response {
-  /** Constructs a response instance containing a string body. */
-  def apply(request: Request, status: Status, contentType: MediaType, bodyText: String,
-            headers: Headers = Headers.empty, cookies: Option[CookieJar] = None) = {
-    new Response(request, status, new StringResponseBody(contentType, bodyText), headers, cookies)
+  test("isInformational") {
+    assert(Status.S100_Continue.isInformational)
+    assert(!Status.S200_OK.isInformational)
+  }
+
+  test("isSuccess") {
+    assert(!Status.S100_Continue.isSuccess)
+    assert(Status.S200_OK.isSuccess)
+  }
+
+  test("isRedirection") {
+    assert(!Status.S100_Continue.isRedirection)
+    assert(Status.S301_MovedPermanently.isRedirection)
+  }
+
+  test("isClientError") {
+    assert(!Status.S100_Continue.isClientError)
+    assert(Status.S400_BadRequest.isClientError)
+  }
+
+  test("isServerError") {
+    assert(!Status.S100_Continue.isServerError)
+    assert(Status.S500_InternalServerError.isServerError)
+  }
+
+  test("isBodyAllowed") {
+    assert(!Status.S100_Continue.isBodyAllowed)
+    assert(!Status.S204_NoContent.isBodyAllowed)
+    assert(!Status.S205_ResetContent.isBodyAllowed)
+    assert(!Status.S304_NotModified.isBodyAllowed)
+    assert(Status.S200_OK.isBodyAllowed)
+    assert(Status.S500_InternalServerError.isBodyAllowed)
   }
 }

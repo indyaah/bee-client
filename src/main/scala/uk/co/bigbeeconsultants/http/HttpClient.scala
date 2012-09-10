@@ -254,20 +254,19 @@ class HttpClient(val config: Config = Config (),
   }
 
   private def handleContent(status: Status, request: Request,
-                            responseFactory: ResponseBuilder, httpURLConnection: HttpURLConnection) {
+                            responseBuilder: ResponseBuilder, httpURLConnection: HttpURLConnection) {
     val responseHeaders = processResponseHeaders (httpURLConnection)
     val responseCookies = request.cookies.map(_.gleanCookies(request.url, responseHeaders))
     val contEnc = responseHeaders.get (CONTENT_ENCODING)
     val contentType = httpURLConnection.getContentType
     val mediaType = if (contentType != null) Some (MediaType (contentType)) else None
 
-    val stream = if (request.method == Request.HEAD || status.category == 1 ||
-      status.code == Status.S204_NoContent.code || status.code == Status.S304_NotModified.code) {
+    val stream = if (request.method == Request.HEAD || !status.isBodyAllowed) {
       selectStream (httpURLConnection)
     } else {
       getBodyStream (contEnc, httpURLConnection)
     }
-    responseFactory.captureResponse (request, status, mediaType, responseHeaders, responseCookies, stream)
+    responseBuilder.captureResponse (request, status, mediaType, responseHeaders, responseCookies, stream)
   }
 
   private def getBodyStream(contEnc: Option[Header], httpURLConnection: HttpURLConnection) = {
