@@ -17,7 +17,7 @@ function symlink
 
 function do_docs
 {
-  if [ -d DIR/target/scala-${SCALA} ]; then
+  if [ -d $DIR/target/scala-${SCALA} ]; then
     rsync -av $DIR/target/scala-${SCALA}/api/ $DEST/docs/${PROJECT}/${VNUM}
     cd $DEST/docs/${PROJECT}
     symlink ${VNUM} latest
@@ -26,7 +26,7 @@ function do_docs
 
 function do_repo
 {
-  if [ -d DIR/target/scala-${SCALA} ]; then
+  if [ -d $DIR/target/scala-${SCALA} ]; then
     cd $DEST
     rsync -av $HOME/.ivy2/local/${PROJECT} repo
     cd repo/${PROJECT}/${PROJECT}_${SCALA}
