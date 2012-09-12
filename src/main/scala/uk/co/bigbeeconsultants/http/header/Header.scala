@@ -56,7 +56,9 @@ case class Header(name: String, value: String) {
   lazy val hasListValue = HeaderName.headersWithListValues.contains (name)
 }
 
-
+/**
+ * Provides a factory constructor for headers based on the strings typical in HTTP traffic.
+ */
 object Header {
   /**
    * Constructs a header by splitting a raw string at the first ':'.

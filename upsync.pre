@@ -43,7 +43,10 @@ function do_repo
 function writeLatest
 {
   echo "<html><head><title>${PROJECT}</title>" >$1
-  echo "<meta http-equiv='refresh' content='1;url=$2'/>" >> $1
+  echo "<meta http=equiv='Pragma' content='no-cache'/>" >> $1
+  echo "<meta http=equiv='Cache-Control' content='no-cache'/>" >> $1
+  echo "<meta http=equiv='Expires' content='0'/>" >> $1
+  echo "<meta http-equiv='Refresh' content='0;url=$2'/>" >> $1
   echo "</head><body><a href='$2'>Latest</a></body></html>" >>$1
 }
 

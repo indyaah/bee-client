@@ -42,9 +42,9 @@ import collection.immutable
  * CookieJar holds cookies as key/value pairs. It also holds a list of deleted keys to
  * allow the server to mark cookies for deletion; this is used when jars are merged together.
  *
- * Cookie jars are immutable. The primary means to update them is via the 'gleanCookies' method after
- * a request has completed; this method creates a new instance based on the current cookies and any new ones
- * that were set by the server.
+ * Cookie jars are immutable. They are created either programmatically or by processin an HTTP response.
+ * In the latter case, once a request has completed, a new instance is created based on the prior cookies and any
+ * new ones that were set by the server.
  */
 case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), deleted: Set[CookieKey] = Set()) {
 
@@ -77,8 +77,8 @@ case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), del
   }
 
   /**
-   * Gets a new CookieJar derived from this one as augmented by the headers in a response. This is the primary
-   * means for updating your cookie jar after each request.
+   * Gets a new `CookieJar` derived from this one as augmented by the headers in a response. This is the primary
+   * means for updating a cookie jar after each request.
    * @return a new cookie jar containing the merged cookies.
    */
   private[http] def gleanCookies(url: URL, headers: Headers): CookieJar = {
@@ -157,6 +157,7 @@ case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), del
 }
 
 
+/** Provides an easy way to create cookie jars and a constant empty instance. */
 object CookieJar {
   /**Constant empty cookie jar. */
   val empty = new CookieJar()

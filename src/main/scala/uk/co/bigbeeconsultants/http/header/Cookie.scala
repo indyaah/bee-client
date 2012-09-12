@@ -36,20 +36,26 @@ import java.net.URL
 import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 
 /**
- * Cookies consist of keys and values; CookieKey is the key part and is itself
+ * Cookies consist of keys and values; CookieKey is the key part and is composed of the name, domain and path.
  */
 case class CookieKey(name: String, domain: Domain = Domain.localhost, path: String = "/") {
   require(name.length > 0)
   require(path.endsWith("/"), path)
 }
 
+/**
+ * Provides factories for cookie keys.
+ */
 object CookieKey {
   def apply(name: String, domain: String, path: String) = new CookieKey(name, Domain(domain), path)
 
   def apply(name: String, domain: String) = new CookieKey(name, Domain(domain))
 }
 
-
+/**
+ * CookieValue is the data-bearing part of a cookie. Its string is the only required part. The expires date
+ * is also typically used in many cases.
+ */
 case class CookieValue(string: String,
                        expires: HttpDateTimeInstant = new HttpDateTimeInstant(),
                        creation: HttpDateTimeInstant = new HttpDateTimeInstant(),
@@ -61,6 +67,9 @@ case class CookieValue(string: String,
                        serverProtocol: String = "http")
 
 
+/**
+ * Combines a cookie key and value as a single object.
+ */
 case class Cookie(key: CookieKey, value: CookieValue) {
 
   /**Gets the cookie as a request header value. */
@@ -77,6 +86,9 @@ case class Cookie(key: CookieKey, value: CookieValue) {
   }
 }
 
+/**
+ * Provides a handy factory for constructing cookie key/value pairs.
+ */
 object Cookie {
   /** Creates a new cookie. */
   def apply(name: String,

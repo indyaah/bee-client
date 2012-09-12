@@ -27,6 +27,9 @@ package uk.co.bigbeeconsultants.http.header
 import java.util.regex.Pattern
 import java.net.{InetAddress, URL}
 
+/**
+ * Models a domain name as used in cookies.
+ */
 case class Domain(domain: String) {
 
   require (domain.length > 0)
@@ -64,7 +67,11 @@ case class Domain(domain: String) {
   }
 }
 
+/**
+ * Provides support methods for managing domains.
+ */
 object Domain {
+  /** Constructs a new domain based on the host in an URL. */
   def apply(url: URL): Domain = new Domain (url.getHost)
 
   //private def extractDomainFrom(url: URL) = HttpUtil$.divide(url.getAuthority, ':')._1

@@ -42,6 +42,7 @@ case class Headers(list: List[Header]) {
 
   def size = list.size
 
+  /** Gets the list of header names. */
   def names: List[String] = list.map(_.name)
 
   /**
@@ -117,6 +118,9 @@ case class Headers(list: List[Header]) {
   }
 }
 
+/**
+ * Provides support for creating `Headers` instances.
+ */
 object Headers {
   /** Constructs a new Headers instance from a list of headers. */
   def apply(headers: Header*): Headers = new Headers(headers.toList)

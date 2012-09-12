@@ -29,6 +29,7 @@ import java.util.regex.Pattern
 
 /**
  * Defines an integer range, according to HTTP usage. E.g. "5-17" represents the range 5 to 17.
+ * These are used in [[uk.co.bigbeeconsultants.http.header.RangePart]]s.
  */
 case class Range(first: Option[Int], last: Option[Int]) {
 
@@ -77,7 +78,10 @@ object Range {
 }
 
 /**
- * Provides a single component of a range value. This is either a Range or "bytes" or "none".
+ * Provides a single component of a range value. This is either a
+ * uk.co.bigbeeconsultants.http.header.Range]] or "bytes" or "none". It may
+ * have a prefix, such as "bytes=", or the prefix may be blank. `RangePart`s form a comma-separated list in
+ * a [[uk.co.bigbeeconsultants.http.header.RangeValue]],
  */
 case class RangePart(prefix: String, value: Either[Range, String]) {
   def isValid = if (value.isLeft)

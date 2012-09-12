@@ -94,6 +94,10 @@ case class MediaType(contentType: String, subtype: String, charset: Option[Strin
     new MediaType(contentType, subtype, Some(newCharset))
   }
 
+  /**
+   * Tests whether a media type represents textual traffic. This is true for all content with the `contentType` of
+   * "text" and also for various "application" types with json or xml subtypes.
+   */
   def isTextual = {
     contentType match {
       case "text" => true
@@ -104,7 +108,7 @@ case class MediaType(contentType: String, subtype: String, charset: Option[Strin
 }
 
 /**
- * Provides some commonly-used MediaType instances and a factory constructor for new instances.
+ * Provides some commonly-used `MediaType` instances and a factory constructor for new instances.
  */
 object MediaType {
   /**The value of a type or subtype wildcard: "*" */
@@ -125,6 +129,7 @@ object MediaType {
   val TEXT_HTML = MediaType("text", "html")
   val IMAGE_PNG = MediaType("image", "png")
   val IMAGE_JPG = MediaType("image", "jpeg")
+  val IMAGE_GIF = MediaType("image", "gif")
 
   /**
    * Constructs a new MediaType instance from a string typically as found in HTTP header values.

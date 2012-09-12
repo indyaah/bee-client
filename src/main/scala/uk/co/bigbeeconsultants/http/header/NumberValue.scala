@@ -24,6 +24,10 @@
 
 package uk.co.bigbeeconsultants.http.header
 
+/**
+ * Holds a number as typically used in an HTTP header. Such numbers are normally positive integers and may or may not
+ * fit into a 32-bit representation.
+ */
 case class NumberValue(value: String) extends Value {
 
   // Number values are always positive integral numbers in HTTP headers.

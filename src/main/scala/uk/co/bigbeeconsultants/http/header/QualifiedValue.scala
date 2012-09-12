@@ -28,6 +28,7 @@ import uk.co.bigbeeconsultants.http.util.HttpUtil
 
 /**
  * Specifies a key/value pair used as one of (potentially many) parameters attached to a compound header value.
+ * These are used within [[uk.co.bigbeeconsultants.http.header.QualifiedPart]].
  */
 case class Qualifier(label: String, value: String) {
   override def toString =
@@ -45,6 +46,11 @@ object Qualifier {
 }
 
 
+/**
+ * A qualified part is one list element in a [[uk.co.bigbeeconsultants.http.header.QualifiedValue]], the list
+ * being delimited by commas. Besides having a value, it may itself have a semi-colon delimited list of
+ * [[uk.co.bigbeeconsultants.http.header.Qualifier]]s.
+ */
 case class QualifiedPart(value: String, qualifier: List[Qualifier] = Nil) {
   override def toString =
     if (qualifier.isEmpty) value
@@ -67,7 +73,8 @@ object QualifiedPart {
 /**
  * Defines an HTTP header with a list of qualifiers. Typically, such values are used for the 'accept' category of
  * headers. These are some of the most complex of HTTP headers, consisting of a comma-separated list of
- * qualified parts. Each qualified part is a value and a list of qualifiers. Each qualifier is a key=value pair.
+ * [[uk.co.bigbeeconsultants.http.header.QualifiedPart]]s.
+ * Each qualified part is a value and a list of qualifiers. Each qualifier is a key=value pair.
  * Example value:
  {{{
  text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5
