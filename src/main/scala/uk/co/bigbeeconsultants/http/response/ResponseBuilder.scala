@@ -50,7 +50,6 @@ trait ResponseBuilder {
  * @see ByteBufferResponseBody
  */
 final class BufferedResponseBuilder extends ResponseBuilder {
-  // with Logging {
   private var _response: Option[Response] = None
 
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
@@ -58,7 +57,6 @@ final class BufferedResponseBuilder extends ResponseBuilder {
     val bufferSize = headers.get(HeaderName.CONTENT_LENGTH).map(_.toNumber.toInt).getOrElse(1024)
     val body = new ByteBufferResponseBody(mediaType, stream, bufferSize)
     _response = Some(new Response(request, status, body, headers, cookies))
-    //    logger.debug((_response.get.toString))
   }
 
   override def response = _response
