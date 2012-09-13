@@ -22,16 +22,15 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http.response
 
-version := "0.11.1"
+import org.scalatest.FunSuite
+import org.scalatest.matchers.ShouldMatchers
+import uk.co.bigbeeconsultants.http.header.MediaType._
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+class MimeTypesTest extends FunSuite with ShouldMatchers {
+  test("loader") {
+    MimeTypes.table("txt") should be(TEXT_PLAIN)
+  }
 
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
-
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+}

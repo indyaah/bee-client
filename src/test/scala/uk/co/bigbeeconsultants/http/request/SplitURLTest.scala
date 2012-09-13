@@ -39,6 +39,8 @@ class SplitURLTest extends FunSuite {
     expect(Nil)(surl.pathSegments)
     expect(None)(surl.fragment)
     expect(None)(surl.query)
+    expect(None)(surl.file)
+    expect(None)(surl.extension)
     expect(s)(surl.toString)
   }
 
@@ -52,6 +54,8 @@ class SplitURLTest extends FunSuite {
     expect(List("Addressing", "URL", "5_BNF.html"))(surl.pathSegments)
     expect(None)(surl.fragment)
     expect(None)(surl.query)
+    expect(Some("5_BNF.html"))(surl.file)
+    expect(Some("html"))(surl.extension)
     expect(s)(surl.toString)
   }
 
@@ -65,6 +69,8 @@ class SplitURLTest extends FunSuite {
     expect(List("Addressing", "URL", "5_BNF.html"))(surl.pathSegments)
     expect(Some("z12"))(surl.fragment)
     expect(None)(surl.query)
+    expect(Some("5_BNF.html"))(surl.file)
+    expect(Some("html"))(surl.extension)
     expect(s)(surl.toString)
   }
 
@@ -78,6 +84,8 @@ class SplitURLTest extends FunSuite {
     expect(List("Addressing", "URL", "5_BNF.html"))(surl.pathSegments)
     expect(None)(surl.fragment)
     expect(Some("red=yes"))(surl.query)
+    expect(Some("5_BNF.html"))(surl.file)
+    expect(Some("html"))(surl.extension)
     expect(s)(surl.toString)
   }
 
@@ -90,6 +98,8 @@ class SplitURLTest extends FunSuite {
     expect(List("Addressing", "URL", "5_BNF.html"))(surl.pathSegments)
     expect(Some("z12"))(surl.fragment)
     expect(Some("red=yes"))(surl.query)
+    expect(Some("5_BNF.html"))(surl.file)
+    expect(Some("html"))(surl.extension)
     expect(s)(surl.toString)
   }
 

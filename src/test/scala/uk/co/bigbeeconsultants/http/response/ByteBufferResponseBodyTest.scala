@@ -28,6 +28,7 @@ import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import uk.co.bigbeeconsultants.http.header.MediaType
 import java.io.ByteArrayInputStream
+import java.net.URL
 
 
 class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
@@ -37,7 +38,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val mt = MediaType.APPLICATION_JSON
     val bytes = s.getBytes("UTF-8")
     val bais = new ByteArrayInputStream(bytes)
-    val body = new ByteBufferResponseBody(Some(mt), bais)
+    val body = new ByteBufferResponseBody(None, Some(mt), bais)
 
     body.contentType should be(mt)
     body.contentLength should be(bytes.length)
@@ -48,7 +49,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
 
   test("ByteBufferResponseBody with text but without a body") {
     val mt = MediaType.APPLICATION_JSON
-    val body = new ByteBufferResponseBody(Some(mt), null)
+    val body = new ByteBufferResponseBody(None, Some(mt), null)
 
     body.contentType should be(mt)
     body.contentLength should be(0)
@@ -59,7 +60,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
 
   test("ByteBufferResponseBody with binary but without a body") {
     val mt = MediaType.APPLICATION_OCTET_STREAM
-    val body = new ByteBufferResponseBody(Some(mt), null)
+    val body = new ByteBufferResponseBody(None, Some(mt), null)
 
     body.contentType should be(mt)
     body.contentLength should be(0)
@@ -72,7 +73,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val mt = MediaType.APPLICATION_OCTET_STREAM
     val bytes = Array[Byte](' ')
     val bais = new ByteArrayInputStream(bytes)
-    val body = new ByteBufferResponseBody(Some(mt), bais)
+    val body = new ByteBufferResponseBody(None, Some(mt), bais)
 
     body.contentType should be(mt)
     body.contentLength should be(1)
@@ -85,7 +86,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val s = "Some text"
     val bytes = s.getBytes("UTF-8")
     val bais = new ByteArrayInputStream(bytes)
-    val body = new ByteBufferResponseBody(None, bais)
+    val body = new ByteBufferResponseBody(None, None, bais)
 
     body.contentType should be(MediaType.TEXT_PLAIN)
     body.contentLength should be(bytes.length)
@@ -98,7 +99,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val s = "<html><body>Blah</body></html>"
     val bytes = s.getBytes("UTF-8")
     val bais = new ByteArrayInputStream(bytes)
-    val body = new ByteBufferResponseBody(None, bais)
+    val body = new ByteBufferResponseBody(None, None, bais)
 
     body.contentType should be(MediaType.TEXT_HTML)
     body.contentLength should be(bytes.length)
@@ -111,7 +112,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val bytes: Array[Byte] = new Array[Byte](256)
     for (i <- 0 until 256) { bytes(i) = i.toByte }
     val bais = new ByteArrayInputStream(bytes)
-    val body = new ByteBufferResponseBody(None, bais)
+    val body = new ByteBufferResponseBody(None, None, bais)
 
     body.contentType should be(MediaType.APPLICATION_OCTET_STREAM)
     body.contentLength should be(256)
@@ -121,9 +122,19 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
   }
 
   test("ByteBufferResponseBody with binary but without a body or media type") {
-    val body = new ByteBufferResponseBody(None, null)
+    val body = new ByteBufferResponseBody(None, None, null)
 
     body.contentType should be(MediaType.APPLICATION_OCTET_STREAM)
+    body.contentLength should be(0)
+    body.asBytes should be(new Array[Byte](0))
+    body.isTextual should be(false)
+    body.toString should be("")
+  }
+
+  test("ByteBufferResponseBody with PNG but without a body or media type") {
+    val body = new ByteBufferResponseBody(Some(new URL("http://localhost/x.png")), None, null)
+
+    body.contentType should be(MediaType.IMAGE_PNG)
     body.contentLength should be(0)
     body.asBytes should be(new Array[Byte](0))
     body.isTextual should be(false)

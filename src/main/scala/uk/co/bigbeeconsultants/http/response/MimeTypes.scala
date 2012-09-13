@@ -22,16 +22,23 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http.response
 
-version := "0.11.1"
+import uk.co.bigbeeconsultants.http.header.MediaType
+import uk.co.bigbeeconsultants.bconfig.{Parser, Config}
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+object MimeTypes {
 
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
-
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+  lazy val table: Map[String, MediaType] = {
+    val parser = Parser.readStream(getClass.getClassLoader.getResourceAsStream("mime-types.txt"), "mime-types.txt", ' ')
+    val config = Config(parser)
+    config.flatMap {
+      (kv1) =>
+        val mime = MediaType(kv1._1.trim)
+        val extensions = kv1._2.split(' ')
+        extensions.map {
+          (ext) => ext -> mime
+        }
+    }
+  }
+}

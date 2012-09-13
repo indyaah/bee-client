@@ -44,11 +44,22 @@ case class SplitURL(scheme: String,
     else
       new URL(toString)
 
-  def hostAndPort = host + port.map(":" + _.toString).getOrElse("")
+  def hostAndPort: String = host + port.map(":" + _.toString).getOrElse("")
 
-  def path = pathSegments.mkString("/", "/", "")
+  def path: String = pathSegments.mkString("/", "/", "")
 
-  def pathString = path + fragment.map("#" + _).getOrElse("") + query.map("?" + _).getOrElse("")
+  def file: Option[String] = if (pathSegments.isEmpty) None else Some(pathSegments.last)
+
+  def extension: Option[String] = {
+    val f = file
+    if (f.isEmpty) None
+    else {
+      val dot = f.get.lastIndexOf('.')
+      if (dot < 0) None else Some(f.get.substring(dot + 1))
+    }
+  }
+
+  def pathString: String = path + fragment.map("#" + _).getOrElse("") + query.map("?" + _).getOrElse("")
 
   override def toString = scheme + "://" + hostAndPort + pathString
 

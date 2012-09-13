@@ -27,10 +27,12 @@ package uk.co.bigbeeconsultants.http.response
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.io.InputStream
+import java.net.URL
 import uk.co.bigbeeconsultants.http.header.MediaType
 import uk.co.bigbeeconsultants.http.header.MediaType._
 import uk.co.bigbeeconsultants.http.util.HttpUtil
 import uk.co.bigbeeconsultants.http.HttpClient
+import uk.co.bigbeeconsultants.http.request.SplitURL
 
 /**
  * Provides a body implementation that copies the whole response from the response input stream into a ByteBuffer.
@@ -42,7 +44,8 @@ import uk.co.bigbeeconsultants.http.HttpClient
  *
  * Take care because the memory footprint will be large when dealing with large volumes of response data.
  */
-final class ByteBufferResponseBody(optionalContentType: Option[MediaType],
+final class ByteBufferResponseBody(getUrl: Option[URL],
+                                   optionalContentType: Option[MediaType],
                                    inputStream: InputStream,
                                    suppliedContentLength: Int = 0x10000) extends ResponseBody {
 
@@ -62,14 +65,18 @@ final class ByteBufferResponseBody(optionalContentType: Option[MediaType],
     }
   }
 
-  lazy val contentType: MediaType = {
-    if (optionalContentType.isDefined) {
-      optionalContentType.get
+  lazy val contentType: MediaType = optionalContentType.getOrElse(guessMediaTypeFromContent)
+
+  // edge case for undefined content type
+  private def guessMediaTypeFromContent: MediaType = {
+    val extension = getUrl.flatMap(SplitURL(_).extension)
+    if (extension.isDefined) {
+      MimeTypes.table.get(extension.get).getOrElse(APPLICATION_OCTET_STREAM)
 
     } else if (byteData.limit() == 0) {
       APPLICATION_OCTET_STREAM
 
-    } else { // edge case for undefined content type
+    } else {
       var maybeHtml = byteData.get(0) == '<'
       var maybeText = true
       var i = 0
