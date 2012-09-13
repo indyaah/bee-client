@@ -1,3 +1,4 @@
+<?php
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -22,16 +23,7 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
-
-version := "0.11.0"
-
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
-
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
-
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+header("Status: 404 Not found");
+?><html><head><title>Example no-content page</title></head>
+<body><p>Something wasn't found.</p></body>
+</html>

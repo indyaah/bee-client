@@ -56,8 +56,7 @@ final class BufferedResponseBuilder extends ResponseBuilder {
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
                       headers: Headers, cookies: Option[CookieJar], stream: InputStream) {
     val bufferSize = headers.get(HeaderName.CONTENT_LENGTH).map(_.toNumber.toInt).getOrElse(1024)
-    val contentType = mediaType.getOrElse(MediaType.APPLICATION_OCTET_STREAM)
-    val body = new ByteBufferResponseBody(contentType, stream, bufferSize)
+    val body = new ByteBufferResponseBody(mediaType, stream, bufferSize)
     _response = Some(new Response(request, status, body, headers, cookies))
     //    logger.debug((_response.get.toString))
   }

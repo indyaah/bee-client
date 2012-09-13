@@ -24,20 +24,25 @@
 
 package uk.co.bigbeeconsultants.http.response
 
-import uk.co.bigbeeconsultants.http.header.MediaType
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.io.InputStream
+import uk.co.bigbeeconsultants.http.header.MediaType
+import uk.co.bigbeeconsultants.http.header.MediaType._
 import uk.co.bigbeeconsultants.http.util.HttpUtil
 import uk.co.bigbeeconsultants.http.HttpClient
 
 /**
  * Provides a body implementation that copies the whole response from the response input stream into a ByteBuffer.
  * This is also available as a string without much performance penalty.
- * <p>
+ *
+ * If no media type was specified in the response from the server, this class attempts to guess a sensible fallback.
+ * This works via the following steps: 1. Empty data is application/octet-stream. 2. Data containing control codes is
+ * application/octet-stream. 3. Data starting with '<' is text/html. 4. Otherwise text/plain is assumed.
+ *
  * Take care because the memory footprint will be large when dealing with large volumes of response data.
  */
-final class ByteBufferResponseBody(val contentType: MediaType,
+final class ByteBufferResponseBody(optionalContentType: Option[MediaType],
                                    inputStream: InputStream,
                                    suppliedContentLength: Int = 0x10000) extends ResponseBody {
 
@@ -57,6 +62,30 @@ final class ByteBufferResponseBody(val contentType: MediaType,
     }
   }
 
+  lazy val contentType: MediaType = {
+    if (optionalContentType.isDefined) {
+      optionalContentType.get
+
+    } else if (byteData.limit() == 0) {
+      APPLICATION_OCTET_STREAM
+
+    } else { // edge case for undefined content type
+      var maybeHtml = byteData.get(0) == '<'
+      var maybeText = true
+      var i = 0
+      while (i < byteData.limit()) {
+        val bi = byteData.get(i).toInt
+        if (Character.isISOControl(bi) && !Character.isWhitespace(bi)) {
+          maybeText = false
+          maybeHtml = false
+          i = byteData.limit() // break
+        }
+        i += 1
+      }
+      if (maybeHtml) TEXT_HTML else if (maybeText) TEXT_PLAIN else APPLICATION_OCTET_STREAM
+    }
+  }
+
   /**
    * Tests whether this response body can be represented as text, or whether the data is binary.
    */
@@ -65,7 +94,10 @@ final class ByteBufferResponseBody(val contentType: MediaType,
   /**
    * Get the body of the response as an array of bytes.
    */
-  override def asBytes: Array[Byte] = byteData.array()
+  override def asBytes: Array[Byte] = {
+    assert(byteData.hasArray)
+    byteData.array()
+  }
 
   /**
    * Get the body of the response as a string.

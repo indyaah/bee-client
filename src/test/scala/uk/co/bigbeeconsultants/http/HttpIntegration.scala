@@ -41,6 +41,7 @@ object HttpIntegration {
   val testPhpFile = "test-lighthttpclient.php"
   val testEchoFile = "test-echo-back.php"
   val test204File = "test-204-no-content.php"
+  val test404File = "test-404-with-content.php"
   val testRedirectFile = "test-redirect.php"
   val testImageFile = "B.png"
   val testPhotoFile = "plataria-sunset.jpg"
