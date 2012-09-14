@@ -24,13 +24,21 @@
 
 package uk.co.bigbeeconsultants.http.response
 
-import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
-import uk.co.bigbeeconsultants.http.header.MediaType._
+import uk.co.bigbeeconsultants.http.header.MediaType
+import uk.co.bigbeeconsultants.bconfig.{Parser, Config}
 
-class MimeTypesTest extends FunSuite with ShouldMatchers {
-  test("loader") {
-    MimeTypes.table("txt") should be(TEXT_PLAIN)
+object MimeTypeRegistry {
+
+  lazy val table: Map[String, MediaType] = {
+    val parser = Parser.readStream(getClass.getClassLoader.getResourceAsStream("mime-types.txt"), "mime-types.txt", ' ')
+    val config = Config(parser)
+    config.flatMap {
+      (kv1) =>
+        val mime = MediaType(kv1._1.trim)
+        val extensions = kv1._2.split(' ')
+        extensions.map {
+          (ext) => ext -> mime
+        }
+    }
   }
-
 }

@@ -141,4 +141,16 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.toString should be("")
   }
 
+  test("ByteBufferResponseBody with ABC text but without a media type") {
+    val s = "Some text"
+    val bytes = s.getBytes("UTF-8")
+    val bais = new ByteArrayInputStream(bytes)
+    val body = new ByteBufferResponseBody(Some(new URL("http://localhost/x.abc")), None, bais)
+
+    body.contentType should be(MediaType.TEXT_PLAIN)
+    body.contentLength should be(bytes.length)
+    body.isTextual should be(true)
+    body.toString should be(s)
+  }
+
 }

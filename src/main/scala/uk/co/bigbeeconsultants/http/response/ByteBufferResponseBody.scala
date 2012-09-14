@@ -71,9 +71,14 @@ final class ByteBufferResponseBody(getUrl: Option[URL],
   private def guessMediaTypeFromContent: MediaType = {
     val extension = getUrl.flatMap(SplitURL(_).extension)
     if (extension.isDefined) {
-      MimeTypes.table.get(extension.get).getOrElse(APPLICATION_OCTET_STREAM)
+      MimeTypeRegistry.table.get(extension.get).getOrElse(guessMediaTypeFromBodyData)
+    } else {
+      guessMediaTypeFromBodyData
+    }
+  }
 
-    } else if (byteData.limit() == 0) {
+  def guessMediaTypeFromBodyData: MediaType = {
+    if (byteData.limit() == 0) {
       APPLICATION_OCTET_STREAM
 
     } else {
