@@ -48,6 +48,18 @@ class RequestTest extends FunSuite {
     expect (true)(r.body.isEmpty)
   }
 
+  test ("request with lowercase method") {
+    intercept[IllegalArgumentException] {
+      new Request("get", "http://somewhere.com/")
+    }
+  }
+
+  test ("request with null URL") {
+    intercept[IllegalArgumentException] {
+      new Request("GET", null)
+    }
+  }
+
   test ("Request with body") {
     val mt = APPLICATION_JSON
     val b = RequestBody ("[1, 2, 3]", mt)

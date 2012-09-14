@@ -27,6 +27,7 @@ package uk.co.bigbeeconsultants.http.response
 import uk.co.bigbeeconsultants.http.header.{HeaderName, CookieJar, Headers, MediaType}
 import uk.co.bigbeeconsultants.http.request.Request
 import java.io.InputStream
+import java.net.URL
 
 /**
  * Defines how responses will be handled. The 'standard' implementation is BufferedResponseBuilder,
@@ -54,11 +55,21 @@ final class BufferedResponseBuilder extends ResponseBuilder {
 
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
                       headers: Headers, cookies: Option[CookieJar], stream: InputStream) {
-    val bufferSize = headers.get(HeaderName.CONTENT_LENGTH).map(_.toNumber.toInt).getOrElse(1024)
-    val reqUrl = if (request.method == "GET") Some(request.url) else None
-    val body = new ByteBufferResponseBody(reqUrl, mediaType, stream, bufferSize)
+    val body = new ByteBufferResponseBody(conditionalUrl(request, status), mediaType, stream, bufferSize(headers))
     _response = Some(new Response(request, status, body, headers, cookies))
   }
 
   override def response = _response
+
+  private[response] def bufferSize(headers: Headers) = {
+    headers.get(HeaderName.CONTENT_LENGTH).map(_.toNumber.toInt).getOrElse(BufferedResponseBuilder.DefaultBufferSize)
+  }
+
+  private[response] def conditionalUrl(request: Request, status: Status): Option[URL] = {
+    if (status.isSuccess && request.isGet) Some(request.url) else None
+  }
+}
+
+object BufferedResponseBuilder {
+  val DefaultBufferSize = 1024
 }

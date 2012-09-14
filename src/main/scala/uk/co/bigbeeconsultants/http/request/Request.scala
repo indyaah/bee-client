@@ -37,9 +37,9 @@ final case class Request(method: String,
                          body: Option[RequestBody] = None,
                          headers: Headers = Headers.empty,
                          cookies: Option[CookieJar] = None) {
-  require(method != null)
-  require(url != null)
-  require(headers != null)
+  require(method == method.toUpperCase, method + " must be uppercase.")
+  require(url != null, "URL cannot be null.")
+  require(headers != null, "Headers cannot be null.")
 
   /** Gets the request without any headers. */
   def withoutHeaders = this.copy(headers = Headers.empty)
@@ -58,6 +58,14 @@ final case class Request(method: String,
 
   /** Provides the cookie jar to be used with this request. This replaces any previous setting. */
   def using(cookies: Option[CookieJar]): Request = this.copy(cookies = cookies)
+
+  def isDelete = method == Request.DELETE
+  def isGet = method == Request.GET
+  def isHead = method == Request.HEAD
+  def isOptions = method == Request.OPTIONS
+  def isPost = method == Request.POST
+  def isPut = method == Request.PUT
+  def isTrace = method == Request.TRACE
 }
 
 /**
