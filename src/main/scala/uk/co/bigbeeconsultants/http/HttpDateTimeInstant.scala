@@ -67,6 +67,9 @@ object HttpDateTimeInstant extends Logging {
   // leading "EEE, " assumed to have been stripped; trailing "GMT" ignored
   private val rfc1123DateTimeFormat = "dd MMM yyyy HH:mm:ss"
 
+  // Some servers seem to get RFC1123 wrong and use dashes instead, so we have this.
+  private val altRfc1123DateTimeFormat = "dd-MMM-yyyy HH:mm:ss"
+
   private val fullRfc1123DateTimeFormat = "EEE, " + rfc1123DateTimeFormat
 
   // leading "EEEE, " assumed to have been stripped; trailing "GMT" ignored
@@ -101,7 +104,8 @@ object HttpDateTimeInstant extends Logging {
   def parse(dateString: String): HttpDateTimeInstant = {
     val discriminant = dateString.charAt(3)
     if (discriminant == ',') {
-      val df = new SimpleDateFormat(rfc1123DateTimeFormat)
+      val fmt = if (dateString.charAt(7) == '-') altRfc1123DateTimeFormat else rfc1123DateTimeFormat
+      val df = new SimpleDateFormat(fmt)
       new HttpDateTimeInstant(df.parse(dateString.substring(5)))
     }
     else if (discriminant == ' ') {

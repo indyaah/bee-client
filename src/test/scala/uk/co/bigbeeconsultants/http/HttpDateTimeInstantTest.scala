@@ -34,12 +34,19 @@ class HttpDateTimeInstantTest extends FunSuite {
     expect (HttpDateTimeInstant.zero)(d)
   }
 
-  test ("parse rfc1123DateTimeFormat") {
+  test ("parse rfc1123DateTimeFormat (with spaces)") {
     val exp = new HttpDateTimeInstant (DatatypeConverter.parseDateTime ("2005-11-16T08:49:37Z"))
     val dateString = "Wed, 16 Nov 2005 08:49:37 GMT"
     val d = HttpDateTimeInstant.parse (dateString)
     expect (exp)(d)
     expect (dateString)(d.toString)
+  }
+
+  test ("parse rfc1123DateTimeFormat-like but with dashes instead") {
+    val exp = new HttpDateTimeInstant (DatatypeConverter.parseDateTime ("2005-11-16T08:49:37Z"))
+    val d = HttpDateTimeInstant.parse("Wed, 16-Nov-2005 08:49:37 GMT")
+    expect (exp)(d)
+    expect ("Wed, 16 Nov 2005 08:49:37 GMT")(d.toString)
   }
 
   test ("parse rfc850DateTimeFormat") {

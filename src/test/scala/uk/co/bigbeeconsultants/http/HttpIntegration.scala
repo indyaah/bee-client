@@ -25,7 +25,7 @@
 package uk.co.bigbeeconsultants.http
 
 import HttpClient._
-import header.{HeaderName, Headers}
+import header._
 import header.MediaType._
 import header.HeaderName._
 import java.lang.AssertionError
@@ -33,6 +33,8 @@ import request.RequestBody
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import java.net.{ConnectException, Proxy, URL}
 import java.io.File
+import uk.co.bigbeeconsultants.http.Config
+import scala.Some
 
 object HttpIntegration {
 
@@ -191,6 +193,23 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val body = response.body
       expect(TEXT_PLAIN)(body.contentType)
       expect(true)(body.toString.startsWith("Lorem "))
+    } catch {
+      case e: Exception =>
+        skipTestWarning("GET", url, e)
+    }
+  }
+
+  test("txt text/plain get following redirect") {
+    val url = serverUrl + testRedirectFile
+    try {
+      val cookie = Cookie("c1", "v1", Domain.localhost)
+      val http2 = new HttpClient
+      val response = http2.get(new URL(url), gzipHeaders, CookieJar(cookie))
+      expect(200)(response.status.code)
+      val body = response.body
+      expect(TEXT_PLAIN)(body.contentType)
+      expect(true)(body.toString.startsWith("Lorem "))
+      expect(cookie)(response.cookies.get.find(_.name == "c1").get)
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)

@@ -48,6 +48,15 @@ import collection.immutable
  */
 case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), deleted: Set[CookieKey] = Set()) {
 
+  /**
+   * Gets all the cookies in one collection.
+   */
+  lazy val cookies: List[Cookie] = {
+    cookieMap.map(keyVal => new Cookie(keyVal._1, keyVal._2)).toList
+  }
+
+  def isEmpty = cookieMap.isEmpty
+
   /** The number of cookies in this jar. */
   def size = cookieMap.size
 
@@ -132,15 +141,11 @@ case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), del
     new CookieJar(cookieMap - key, deleted - key)
   }
 
-  private def zipMap(cookies: ListMap[CookieKey, CookieValue]) = {
-    cookies.map((kv) => new Cookie(kv._1, kv._2))
-  }
-
   /**
    * Gets a filtered collection of cookies from this jar that match a certain predicate.
    */
   def filter(f: (CookieKey) => Boolean): Iterable[Cookie] = {
-    zipMap(cookieMap.filter((kv) => f(kv._1)))
+    cookies.filter(cookie => f(cookie.key))
   }
 
   /**
@@ -149,11 +154,6 @@ case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), del
   def find(f: (CookieKey) => Boolean): Option[Cookie] = {
     cookieMap.find((kv) => f(kv._1)).map((kv) => new Cookie(kv._1, kv._2))
   }
-
-  /**
-   * Gets all the cookies in one collection.
-   */
-  lazy val cookies: List[Cookie] = zipMap(this.cookieMap).toList
 }
 
 

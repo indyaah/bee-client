@@ -163,7 +163,7 @@ class CookieJarTest extends FunSuite {
     expect (true)(value1.secure)
   }
 
-  test ("parse realistic cookie") {
+  test ("parse one realistic cookie") {
     val tenYears = new HttpDateTimeInstant () + (10 * 365 * 24 * 60 * 60)
     val h1 = HeaderName.SET_COOKIE -> ("BBC-UID=646f4472; expires=" + tenYears + "; path=/; domain=bbc.co.uk")
     val newJar = CookieJar.empty.gleanCookies (httpUrl2, Headers (h1))
@@ -177,6 +177,29 @@ class CookieJarTest extends FunSuite {
     expect (false)(value1.hostOnly)
     expect (true)(value1.persistent)
     expect (tenYears.seconds)(value1.expires.seconds)
+  }
+
+  test ("parse realistic cookie list") {
+    val tenYears = new HttpDateTimeInstant () + (10 * 365 * 24 * 60 * 60)
+    val h1 = HeaderName.SET_COOKIE -> ("c1=v1; path=/; domain=.z.com\n" +
+      "cc2=vv2; path=/; domain=.z.com; expires=Sun, 12-May-2013 11:21:33 GMT\n" +
+      "ccc3=f1=5; path=/; domain=.z.com; expires=Mon, 12-Sep-2022 11:21:33 GMT")
+
+    val newJar = CookieJar.empty.gleanCookies (httpUrl2, Headers (h1))
+    expect (3)(newJar.cookieMap.size)
+    val keyIterator = newJar.cookieMap.keys.iterator
+    val key1 = keyIterator.next ()
+    val key2 = keyIterator.next ()
+    val key3 = keyIterator.next ()
+    expect (CookieKey ("c1", ".z.com", "/"))(key1)
+    expect (CookieKey ("cc2", ".z.com", "/"))(key2)
+    expect (CookieKey ("ccc3", ".z.com", "/"))(key3)
+    val value1 = newJar.cookieMap (key1)
+    val value2 = newJar.cookieMap (key2)
+    val value3 = newJar.cookieMap (key3)
+    expect ("v1")(value1.string)
+    expect ("vv2")(value2.string)
+    expect ("f1=5")(value3.string)
   }
 
   test ("filter for request with two cookies") {

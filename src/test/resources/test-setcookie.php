@@ -1,3 +1,4 @@
+<?php
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -22,16 +23,7 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
-
-version := "0.11.3"
-
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
-
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
-
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+header('Set-Cookie: c1=v1; path=/;');
+?><html><head><title>Example no-content page</title></head>
+<body><p>I set a cookie!</p></body>
+</html>
