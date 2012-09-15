@@ -29,7 +29,7 @@ import org.scalatest.FunSuite
 class MediaTypeTest extends FunSuite {
 
 
-  test ("mediaType_constructionVariants") {
+  test ("mediaType construction variants") {
     expect ("application/json")(MediaType.APPLICATION_JSON.toString)
     expect ("text/plain")(MediaType ("text/plain").toString)
     expect (true)(MediaType.STAR_STAR.isWildcardType)
@@ -42,13 +42,14 @@ class MediaTypeTest extends FunSuite {
   test ("parser") {
     val mt = MediaType ("text/html; charset=ISO-8859-1")
     expect ("text/html;charset=ISO-8859-1")(mt.toString)
+    expect ("text/html;charset=ISO-8859-1")(mt.toQualifiers.toString)
     expect ("text")(mt.contentType)
     expect ("html")(mt.subtype)
     expect ("ISO-8859-1")(mt.charset.get)
   }
 
 
-  test ("edgeCases") {
+  test ("edge cases") {
     expect ("text/*")(MediaType ("text/").toString)
     expect ("*/x")(MediaType ("/x").toString)
     expect ("*/*")(MediaType ("/").toString)

@@ -30,15 +30,15 @@ import org.scalatest.FunSuite
 class HeaderTest extends FunSuite {
 
 
-  test ("qualifier_toString") {
-    val q = Qualifier ("a", "b")
+  test ("qualifier toString") {
+    val q = NameVal ("a", Some("b"))
     expect ("a=b")(q.toString)
   }
 
 
-  test ("value_toString") {
-    expect ("v")(QualifiedPart ("v").toString)
-    val v1 = QualifiedPart ("v", List (Qualifier ("a", "b")))
+  test ("value toString") {
+    expect ("v")(Qualifiers ("v").toString)
+    val v1 = Qualifiers (List (NameVal("v", None), NameVal ("a", Some("b"))))
     expect ("v;a=b")(v1.toString)
   }
 
@@ -52,14 +52,14 @@ class HeaderTest extends FunSuite {
   }
 
 
-  test ("value_toInt") {
+  test ("value toInt") {
     val h = Header ("Content-Length: 123")
     expect ("Content-Length")(h.name)
     expect (123)(h.toNumber.toInt)
   }
 
 
-  test ("value_toLong") {
+  test ("value toLong") {
     val h = Header ("Content-Length: 123")
     expect ("Content-Length")(h.name)
     expect (123)(h.toNumber.toLong)
@@ -83,8 +83,8 @@ class HeaderTest extends FunSuite {
     expect ("Accept")(h.name)
     expect (2)(v.parts.size)
     expect ("audio/*")(v.parts (0).value)
-    expect ("q")(v.parts (0).qualifier (0).label)
-    expect ("0.2")(v.parts (0).qualifier (0).value)
+    expect ("q")(v.parts (0).qualifiers (1).name)
+    expect ("0.2")(v.parts (0).qualifiers (1).value.get)
     expect ("audio/basic")(v.parts (1).value)
     expect ("Accept: audio/*;q=0.2, audio/basic")(h.toString)
     expect ("audio/*;q=0.2, audio/basic")(v.toString)

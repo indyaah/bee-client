@@ -39,13 +39,12 @@ case class MediaType(contentType: String, subtype: String, charset: Option[Strin
   /** Gets the content type / subtype string, without charset. */
   lazy val value = contentType + '/' + subtype
 
-  /**Gets this media type as a QualifiedPart, which is the form used within QualifiedValue. */
-  def toQualifiedPart = {
-    val qual = if (charset.isEmpty) Nil else List(Qualifier("charset", charset.get))
-    QualifiedPart(value, qual)
-  }
+  /** Gets this media type as a Qualifiers, which is the form used within QualifiedValue. */
+  def toQualifiers = Qualifiers(toString)
 
-  override lazy val toString = toQualifiedPart.toString
+  override lazy val toString =
+    if (charset.isEmpty) value
+    else value + ";charset=" + charset.get
 
   /**
    * Gets the character set, or returns a default value.
@@ -111,7 +110,7 @@ case class MediaType(contentType: String, subtype: String, charset: Option[Strin
  * Provides some commonly-used `MediaType` instances and a factory constructor for new instances.
  */
 object MediaType {
-  /**The value of a type or subtype wildcard: "*" */
+  /** The value of a type or subtype wildcard: "*" */
   val WILDCARD = "*"
 
   val STAR_STAR = MediaType(WILDCARD, WILDCARD)
@@ -135,15 +134,15 @@ object MediaType {
    * Constructs a new MediaType instance from a string typically as found in HTTP header values.
    */
   def apply(str: String): MediaType = {
-    val qp = QualifiedPart.parse(str)
-    val qualifier = if (qp.qualifier.isEmpty) {
-      None
+    val qp = Qualifiers(str)
+    val t2 = HttpUtil.divide(qp(0).name, '/')
+    if (qp.qualifiers.size == 1) {
+      new MediaType(orWildcard(t2._1), orWildcard(t2._2), None)
     } else {
-      val q = qp.qualifier(0)
-      if (q.label == "charset") Some(q.value) else None
+      val q = qp.qualifiers(1)
+      val charset = if (q.name == "charset") q.value else None
+      new MediaType(orWildcard(t2._1), orWildcard(t2._2), charset)
     }
-    val t2 = HttpUtil.divide(qp.value, '/')
-    new MediaType(orWildcard(t2._1), orWildcard(t2._2), qualifier)
   }
 
   private def orWildcard(s: String) = if (s.length > 0) s else WILDCARD
