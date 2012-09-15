@@ -25,20 +25,31 @@
 package uk.co.bigbeeconsultants.http.response
 
 import uk.co.bigbeeconsultants.http.header.MediaType
-import uk.co.bigbeeconsultants.bconfig.{Parser, Config}
+import scala.io.Source
+import collection.mutable
 
 object MimeTypeRegistry {
 
   lazy val table: Map[String, MediaType] = {
-    val parser = Parser.readStream(getClass.getClassLoader.getResourceAsStream("mime-types.txt"), "mime-types.txt", ' ')
-    val config = Config(parser)
-    config.flatMap {
-      (kv1) =>
-        val mime = MediaType(kv1._1.trim)
-        val extensions = kv1._2.split(' ')
-        extensions.map {
-          (ext) => ext -> mime
+    val map = new mutable.HashMap[String, MediaType]
+    val is = getClass.getClassLoader.getResourceAsStream("mime-types.txt")
+    require(is != null)
+    try {
+      val source = Source.fromInputStream(is, "utf-8")
+      for (line <- source.getLines()) {
+        val trimmed = line.trim
+        if (trimmed.length > 0) {
+          val sp = line.indexOf(' ')
+          if (sp > 0) {
+            val mime = MediaType(line.substring(0, sp))
+            line.substring(sp).trim.split(' ').foreach(map.put(_, mime))
+          }
         }
+      }
+
+    } finally {
+      is.close()
     }
+    map.toMap
   }
 }

@@ -89,8 +89,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     val response1 = http.get (new URL (baseUrl + url), Nil, CookieJar.empty)
     server.verify ()
     val jar1 = response1.cookies.get
-    expect (1)(jar1.cookieMap.size)
-    expect (1)(jar1.deleted.size)
+    expect (1)(jar1.size)
 
     val stubbedMethod2 = stubbedMethod1.ifHeader (COOKIE.name, "foo=bar")
     server.expect (stubbedMethod2).thenReturn (200, APPLICATION_JSON, json)

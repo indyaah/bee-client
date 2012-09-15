@@ -84,7 +84,7 @@ class ResponseBuilderTest extends FunSuite with ShouldMatchers {
 
     val request = Request.get("http://localhost/foo/bar")
     val headers = Headers(HOST -> "localhost")
-    val cookies = Some(CookieJar(Cookie("n", "v", Domain.localhost)))
+    val cookies = Some(CookieJar(Cookie("n", "v")))
     builder.captureResponse(request, Status.S200_OK, Some(TEXT_PLAIN), headers, cookies, bais)
 
     val response = builder.response.get

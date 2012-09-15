@@ -36,7 +36,7 @@ class ResponseTest extends FunSuite with ShouldMatchers {
   test("Response.apply should create a new response correctly") {
     val request = Request.get("http://localhost/foo/bar")
     val headers = Headers(HOST -> "localhost")
-    val cookies = Some(CookieJar(Cookie("n", "v", Domain.localhost)))
+    val cookies = Some(CookieJar(Cookie("n", "v")))
     val response = Response(request, Status.S200_OK, TEXT_PLAIN, "hello", headers, cookies)
     response.request should be (request)
     response.status should be(Status.S200_OK)

@@ -83,9 +83,9 @@ class RequestTest extends FunSuite {
   test ("request with cookies") {
     val r0 = Request.get (url1)
     expect (None)(r0.cookies)
-    val r1 = r0 using CookieJar(Cookie("x", "hello", Domain.localhost))
+    val r1 = r0 using CookieJar(Cookie("x", "hello"))
     expect (1)(r1.cookies.get.size)
-    expect ("hello")(r1.cookies.get.find(_.name == "x").get.value.string)
+    expect ("hello")(r1.cookies.get.find(_.name == "x").get.value)
     val r2 = r1.withoutCookies
     expect (None)(r2.cookies)
   }

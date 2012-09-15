@@ -95,14 +95,14 @@ private[header] object CookieParser {
       path += "/"
     }
 
-    val k = CookieKey (name, domain, path)
-    val v = CookieValue (value, expires, now, now, persistent, hostOnly, secure, httpOnly, scheme)
-    Some (Cookie (k, v))
+    Some (Cookie (name, value, domain, path, expires, now, now, persistent, hostOnly, secure, httpOnly, scheme))
   }
 
 
   /**Gets a new CookieJar derived from this one as augmented by the headers in a response. */
   def updateCookies(previous: CookieJar, from: URL, setcookies: List[Header]): CookieJar = {
+
+    var newJar = previous
 
     val fPath = from.getPath
     val lastSlash = fPath.lastIndexOf ('/')
@@ -111,28 +111,20 @@ private[header] object CookieParser {
     // Construct the date only once - avoids rollover problems (which would be a bit like race conditions)
     val now = new HttpDateTimeInstant ()
 
-    val jar = new LinkedHashMap[CookieKey, CookieValue]
-    jar ++= previous.cookieMap
-
-    val del = new HashSet[CookieKey]
-    del ++= previous.deleted
-
     for (header <- setcookies) {
       for (line <- HttpUtil.split (header.value, '\n')) {
         val optCookie = parseOneCookie (line, from.getProtocol, from.getHost, path, now)
         if (optCookie.isDefined) {
           val cookie = optCookie.get
-          if (cookie.value.expires < now) {
-            jar.remove (cookie.key)
-            del.add (cookie.key)
+          if (cookie.expires < now) {
+            newJar -= cookie
           } else {
-            jar.put (cookie.key, cookie.value)
-            del.remove (cookie.key)
+            newJar += cookie
           }
         }
       }
     }
 
-    new CookieJar (ListMap() ++ jar, del.toSet)
+    newJar
   }
 }

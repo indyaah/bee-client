@@ -29,55 +29,55 @@ import org.scalatest.FunSuite
 
 class CookieTest extends FunSuite {
 
-  val ftpUrl1 = new URL ("ftp://www.w3.org/standards/webdesign/htmlcss")
-  val httpUrl1 = new URL ("http://www.w3.org/standards/webdesign/htmlcss")
-  val httpsUrl1 = new URL ("https://www.w3.org/login/")
+  val ftpUrl1 = new URL("ftp://www.w3.org/standards/webdesign/htmlcss")
+  val httpUrl1 = new URL("http://www.w3.org/standards/webdesign/htmlcss")
+  val httpsUrl1 = new URL("https://www.w3.org/login/")
 
 
-  test ("cookie_matches_path") {
-    val w3root = CookieKey ("n1", "www.w3.org")
-    val w3standards = CookieKey ("n1", Domain ("www.w3.org"), "/standards/")
-    val c1 = Cookie (w3root, new CookieValue (string = "v1"))
-    val c2 = Cookie (w3standards, new CookieValue (string = "v2"))
-    expect (true)(c1.willBeSentTo (httpUrl1))
-    expect (true)(c1.willBeSentTo (httpsUrl1))
-    expect (true)(c2.willBeSentTo (httpUrl1))
-    expect (false)(c2.willBeSentTo (httpsUrl1))
+  test("cookie_matches_path") {
+    val w3root = CookieKey("n1", "www.w3.org")
+    val w3standards = CookieKey("n1", Domain("www.w3.org"), "/standards/")
+    val c1 = w3root -> ("v1")
+    val c2 = w3standards -> ("v2")
+    expect(true)(c1.willBeSentTo(httpUrl1))
+    expect(true)(c1.willBeSentTo(httpsUrl1))
+    expect(true)(c2.willBeSentTo(httpUrl1))
+    expect(false)(c2.willBeSentTo(httpsUrl1))
   }
 
 
-  test ("cookie_matches_secure") {
-    val w3 = CookieKey ("n1", "www.w3.org")
-    val c1 = Cookie (w3, new CookieValue (string = "v1", secure = false))
-    val c2 = Cookie (w3, new CookieValue (string = "v2", secure = true))
-    expect (true)(c1.willBeSentTo (httpUrl1))
-    expect (true)(c1.willBeSentTo (httpsUrl1))
-    expect (false)(c2.willBeSentTo (httpUrl1))
-    expect (true)(c2.willBeSentTo (httpsUrl1))
+  test("cookie_matches_secure") {
+    val w3 = CookieKey("n1", "www.w3.org")
+    val c1 = (w3 -> ("v1")).copy(secure = false)
+    val c2 = (w3 -> ("v2")).copy(secure = true)
+    expect(true)(c1.willBeSentTo(httpUrl1))
+    expect(true)(c1.willBeSentTo(httpsUrl1))
+    expect(false)(c2.willBeSentTo(httpUrl1))
+    expect(true)(c2.willBeSentTo(httpsUrl1))
   }
 
 
-  test ("cookie_matches_httpOnly") {
-    val w3 = CookieKey ("n1", "www.w3.org")
-    val c1 = Cookie (w3, new CookieValue (string = "v1", httpOnly = false))
-    val c2 = Cookie (w3, new CookieValue (string = "v2", httpOnly = true))
-    expect (true)(c1.willBeSentTo (ftpUrl1))
-    expect (false)(c2.willBeSentTo (ftpUrl1))
-    expect (true)(c2.willBeSentTo (httpUrl1))
-    expect (true)(c2.willBeSentTo (httpUrl1))
-    expect (true)(c2.willBeSentTo (httpsUrl1))
-    expect (true)(c2.willBeSentTo (httpsUrl1))
+  test("cookie_matches_httpOnly") {
+    val w3 = CookieKey("n1", "www.w3.org")
+    val c1 = (w3 -> ("v1")).copy(httpOnly = false)
+    val c2 = (w3 -> ("v2")).copy(httpOnly = true)
+    expect(true)(c1.willBeSentTo(ftpUrl1))
+    expect(false)(c2.willBeSentTo(ftpUrl1))
+    expect(true)(c2.willBeSentTo(httpUrl1))
+    expect(true)(c2.willBeSentTo(httpUrl1))
+    expect(true)(c2.willBeSentTo(httpsUrl1))
+    expect(true)(c2.willBeSentTo(httpsUrl1))
   }
 
 
-  test ("cookie_matches_domain") {
-    val w3 = CookieKey ("n1", "www.w3.org")
-    val xorg = CookieKey ("n1", "x.org")
-    val c1 = Cookie (w3, new CookieValue (string = "v1"))
-    val c2 = Cookie (xorg, new CookieValue (string = "v2"))
-    expect (true)(c1.willBeSentTo (httpUrl1))
-    expect (false)(c2.willBeSentTo (httpUrl1))
-    expect (true)(c1.willBeSentTo (httpsUrl1))
-    expect (false)(c2.willBeSentTo (httpsUrl1))
+  test("cookie_matches_domain") {
+    val w3 = CookieKey("n1", "www.w3.org")
+    val xorg = CookieKey("n1", "x.org")
+    val c1 = w3 -> ("v1")
+    val c2 = xorg -> ("v2")
+    expect(true)(c1.willBeSentTo(httpUrl1))
+    expect(false)(c2.willBeSentTo(httpUrl1))
+    expect(true)(c1.willBeSentTo(httpsUrl1))
+    expect(false)(c2.willBeSentTo(httpsUrl1))
   }
 }

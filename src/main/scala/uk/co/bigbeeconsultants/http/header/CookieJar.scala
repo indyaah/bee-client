@@ -33,10 +33,7 @@ package uk.co.bigbeeconsultants.http.header
 // - IPv6 addresses - http://tools.ietf.org/html/rfc2732
 
 import java.net.URL
-import uk.co.bigbeeconsultants.http.response.Response
-import collection.mutable.{HashSet, LinkedHashMap, ListBuffer}
-import collection.immutable.ListMap
-import collection.immutable
+import collection.mutable.ListBuffer
 
 /**
  * CookieJar holds cookies as key/value pairs. It also holds a list of deleted keys to
@@ -46,44 +43,12 @@ import collection.immutable
  * In the latter case, once a request has completed, a new instance is created based on the prior cookies and any
  * new ones that were set by the server.
  */
-case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), deleted: Set[CookieKey] = Set()) {
+case class CookieJar(cookies: List[Cookie]) {
 
-  /**
-   * Gets all the cookies in one collection.
-   */
-  lazy val cookies: List[Cookie] = {
-    cookieMap.map(keyVal => new Cookie(keyVal._1, keyVal._2)).toList
-  }
-
-  def isEmpty = cookieMap.isEmpty
+  def isEmpty = cookies.isEmpty
 
   /** The number of cookies in this jar. */
-  def size = cookieMap.size
-
-  /**
-   * Allows cookie jars to be merged together. As newJar is merged into this cookie jar, it trumps
-   * any matching cookies already in this jar.
-   * @return a new cookie jar containing the merged cookies.
-   */
-  def merge(newJar: CookieJar): CookieJar = {
-    val jar = new LinkedHashMap[CookieKey, CookieValue]
-    jar ++= cookieMap
-
-    val del = new HashSet[CookieKey]
-    del ++= deleted
-
-    for ((key, value) <- newJar.cookieMap) {
-      jar.put(key, value)
-      del.remove(key)
-    }
-
-    for (key <- newJar.deleted) {
-      jar.remove(key)
-      del.add(key)
-    }
-
-    new CookieJar(ListMap() ++ jar, del.toSet)
-  }
+  def size = cookies.size
 
   /**
    * Gets a new `CookieJar` derived from this one as augmented by the headers in a response. This is the primary
@@ -121,46 +86,79 @@ case class CookieJar(cookieMap: ListMap[CookieKey, CookieValue] = ListMap(), del
    * Adds a cookie to this jar or alters the value of an existing cookie.
    * @return a new cookie jar containing the merged cookies.
    */
-  def +(key: CookieKey, value: CookieValue): CookieJar = {
-    new CookieJar(cookieMap + (key -> value), deleted - key)
-  }
-
-  /**
-   * Adds a cookie to this jar or alters the value of an existing cookie.
-   * @return a new cookie jar containing the merged cookies.
-   */
   def +(cookie: Cookie): CookieJar = {
-    new CookieJar(cookieMap + (cookie.key -> cookie.value), deleted - cookie.key)
+    val truncated = filterNot(cookie)
+    new CookieJar(List(cookie) ++ truncated)
   }
 
   /**
    * Removes a cookie from this jar, returning a new CookieJar.
    * @return a new cookie jar containing the reduced cookies.
    */
-  def -(key: CookieKey): CookieJar = {
-    new CookieJar(cookieMap - key, deleted - key)
+  def -(key: CookieIdentity): CookieJar = {
+    new CookieJar(filterNot(key).toList)
   }
 
   /**
    * Gets a filtered collection of cookies from this jar that match a certain predicate.
    */
-  def filter(f: (CookieKey) => Boolean): Iterable[Cookie] = {
-    cookies.filter(cookie => f(cookie.key))
+  def filter(f: (CookieIdentity) => Boolean): Iterable[Cookie] = {
+    cookies.filter(cookie => f(cookie))
+  }
+
+  /**
+   * Gets a filtered collection of cookies from this jar that match a certain predicate.
+   */
+  def filter(cookie: CookieIdentity): Iterable[Cookie] = {
+    cookies.filter(_ matches cookie)
+  }
+
+  /**
+   * Gets a filtered collection of cookies from this jar that do not match a certain predicate.
+   */
+  def filterNot(f: (CookieIdentity) => Boolean): Iterable[Cookie] = {
+    cookies.filterNot(cookie => f(cookie))
+  }
+
+  /**
+   * Gets a filtered collection of cookies from this jar that do not match a certain predicate.
+   */
+  def filterNot(cookie: CookieIdentity): Iterable[Cookie] = {
+    cookies.filterNot(_ matches cookie)
   }
 
   /**
    * Gets the first cookie from this jar that matches a certain predicate.
    */
-  def find(f: (CookieKey) => Boolean): Option[Cookie] = {
-    cookieMap.find((kv) => f(kv._1)).map((kv) => new Cookie(kv._1, kv._2))
+  def find(f: (CookieIdentity) => Boolean): Option[Cookie] = {
+    cookies.find(cookie => f(cookie))
   }
+
+  /**
+   * Gets the first cookie from this jar that has a given name. The domain and path matching terms are ignored
+   * in this case.
+   */
+  def get(name: String): Option[Cookie] = find(_.name == name)
+
+  /**
+   * Gets the first cookie from this jar that has a given name/domain/path.
+   */
+  def get(c: CookieIdentity): Option[Cookie] = find(_ matches c)
+
+  /**
+   * Determines whether there is a cookie that matches a certain name/domain/path. This is a shortcut for
+   *{{{
+   *   find(_ matches c).isDefined
+   *}}}
+   */
+  def contains(c: CookieIdentity): Boolean = find(_ matches c).isDefined
 }
 
 
 /** Provides an easy way to create cookie jars and a constant empty instance. */
 object CookieJar {
-  /**Constant empty cookie jar. */
-  val empty = new CookieJar()
+  /** Constant empty cookie jar. */
+  val empty = new CookieJar(List())
 
   /**
    * Constructs a new cookie jar from an arbitrary collection of cookies. Note that in a normal sequence of HTTP
@@ -168,7 +166,6 @@ object CookieJar {
    * the two 'gleanCookies' methods.
    */
   def apply(cookies: Cookie*): CookieJar = {
-    val mapped = ListMap[CookieKey, CookieValue]() ++ cookies.map(c => c.key -> c.value)
-    new CookieJar(mapped, Set.empty)
+    new CookieJar(List() ++ cookies)
   }
 }

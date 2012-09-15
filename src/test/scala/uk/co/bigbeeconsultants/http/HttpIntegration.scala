@@ -33,7 +33,6 @@ import request.RequestBody
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import java.net.{ConnectException, Proxy, URL}
 import java.io.File
-import uk.co.bigbeeconsultants.http.Config
 import scala.Some
 
 object HttpIntegration {
@@ -45,6 +44,7 @@ object HttpIntegration {
   val test204File = "test-204-no-content.php"
   val test404File = "test-404-with-content.php"
   val testRedirectFile = "test-redirect.php"
+  val testCookieFile = "test-setcookie.php"
   val testImageFile = "B.png"
   val testPhotoFile = "plataria-sunset.jpg"
 
@@ -227,6 +227,22 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       expect("", response.body)(extractLineFromResponse("CONTENT_LENGTH", bodyLines))
       expect("", response.body)(extractLineFromResponse("CONTENT_TYPE", bodyLines))
       expect(Set("A: 1", "B: 2"), response.body)(bodyLines.filter(_.startsWith("GET:")).map(_.substring(5)).toSet)
+    } catch {
+      case e: Exception =>
+        skipTestWarning("GET", url, e)
+    }
+  }
+
+  test("txt text/plain get acquiring a cookie") {
+    val url = serverUrl + testCookieFile
+    try {
+      val response = http.get(new URL(url), gzipHeaders, CookieJar.empty)
+      expect(200)(response.status.code)
+      val body = response.body
+      expect(TEXT_PLAIN)(body.contentType)
+      val cookies = response.cookies.get
+      expect(1)(cookies.size)
+      expect("v1")(cookies.get("c1").get.value)
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)

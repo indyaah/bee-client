@@ -36,74 +36,77 @@ import java.net.URL
 import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 
 /**
- * Cookies consist of keys and values; CookieKey is the key part and is composed of the name, domain and path.
+ * Defines the elements necessary to distinguish one cookie from another.
  */
-case class CookieKey(name: String, domain: Domain = Domain.localhost, path: String = "/") {
-  require(name.length > 0)
-  require(path.endsWith("/"), path)
-}
+trait CookieIdentity {
+  def name: String
 
-/**
- * Provides factories for cookie keys.
- */
-object CookieKey {
-  def apply(name: String, domain: String, path: String) = new CookieKey(name, Domain(domain), path)
+  def domain: Domain
 
-  def apply(name: String, domain: String) = new CookieKey(name, Domain(domain))
-}
+  def path: String
 
-/**
- * CookieValue is the data-bearing part of a cookie. Its string is the only required part. The expires date
- * is also typically used in many cases.
- */
-case class CookieValue(string: String,
-                       expires: HttpDateTimeInstant = new HttpDateTimeInstant(),
-                       creation: HttpDateTimeInstant = new HttpDateTimeInstant(),
-                       lastAccessed: HttpDateTimeInstant = new HttpDateTimeInstant(),
-                       persistent: Boolean = false,
-                       hostOnly: Boolean = false,
-                       secure: Boolean = false,
-                       httpOnly: Boolean = false,
-                       serverProtocol: String = "http")
-
-
-/**
- * Combines a cookie key and value as a single object.
- */
-case class Cookie(key: CookieKey, value: CookieValue) {
-
-  /**Gets the cookie as a request header value. */
-  def asHeader = key.name + "=" + value.string
-
-  /**Tests whether this cookie will be sent in the headers of a request to a specified URL. */
-  def willBeSentTo(url: URL) = {
-    val p = url.getProtocol
-    val qSecure = !value.secure || p == "https"
-    val qHttpOnly = !value.httpOnly || p.startsWith("http")
-    val qDomain = key.domain.matches(url)
-    val qPath = key.path.isEmpty || url.getPath.startsWith(key.path)
-    qSecure && qHttpOnly && qDomain && qPath
+  def matches(cookie: CookieIdentity) = {
+    name == cookie.name &&
+      domain == cookie.domain &&
+      path == cookie.path
   }
 }
 
 /**
- * Provides a handy factory for constructing cookie key/value pairs.
+ * Provides an implementation of [[uk.co.bigbeeconsultants.http.header.CookieIdentity]] without any
+ * particular value information.
  */
-object Cookie {
-  /** Creates a new cookie. */
-  def apply(name: String,
-            string: String,
-            domain: Domain,
-            path: String = "/",
-            expires: HttpDateTimeInstant = new HttpDateTimeInstant(),
-            creation: HttpDateTimeInstant = new HttpDateTimeInstant(),
-            lastAccessed: HttpDateTimeInstant = new HttpDateTimeInstant(),
-            persistent: Boolean = false,
-            hostOnly: Boolean = false,
-            secure: Boolean = false,
-            httpOnly: Boolean = false,
-            serverProtocol: String = "http")
-  = new Cookie(
-    new CookieKey(name, domain, path),
-    new CookieValue(string, expires, creation, lastAccessed, persistent, hostOnly, secure, httpOnly, serverProtocol))
+case class CookieKey(name: String,
+                     domain: Domain = Domain.localhost,
+                     path: String = "/") extends CookieIdentity {
+  require(name.length > 0)
+  require(path.endsWith("/"), path)
+
+  /**
+   * Constructs a [[uk.co.bigbeeconsultants.http.header.Cookie]] by providing a value for this key.
+   */
+  def ->(value: String,
+         expires: HttpDateTimeInstant = new HttpDateTimeInstant(),
+         creation: HttpDateTimeInstant = new HttpDateTimeInstant(),
+         lastAccessed: HttpDateTimeInstant = new HttpDateTimeInstant(),
+         persistent: Boolean = false,
+         hostOnly: Boolean = false,
+         secure: Boolean = false,
+         httpOnly: Boolean = false,
+         serverProtocol: String = "http") =
+    new Cookie(name, value, domain, path, expires, creation, lastAccessed, persistent, hostOnly,
+      secure, httpOnly, serverProtocol)
+}
+
+
+/**
+ * Defines a complete cookie in terms of its identity and its value.
+ */
+case class Cookie(name: String,
+                  value: String,
+                  domain: Domain = Domain.localhost,
+                  path: String = "/",
+                  expires: HttpDateTimeInstant = new HttpDateTimeInstant(),
+                  creation: HttpDateTimeInstant = new HttpDateTimeInstant(),
+                  lastAccessed: HttpDateTimeInstant = new HttpDateTimeInstant(),
+                  persistent: Boolean = false,
+                  hostOnly: Boolean = false,
+                  secure: Boolean = false,
+                  httpOnly: Boolean = false,
+                  serverProtocol: String = "http") extends CookieIdentity {
+  require(name.length > 0)
+  require(path.endsWith("/"), path)
+
+  /** Gets the cookie as a request header value. */
+  def asHeader = name + "=" + value
+
+  /** Tests whether this cookie will be sent in the headers of a request to a specified URL. */
+  def willBeSentTo(url: URL) = {
+    val p = url.getProtocol
+    val qSecure = !secure || p == "https"
+    val qHttpOnly = !httpOnly || p.startsWith("http")
+    val qDomain = domain.matches(url)
+    val qPath = path.isEmpty || url.getPath.startsWith(path)
+    qSecure && qHttpOnly && qDomain && qPath
+  }
 }
