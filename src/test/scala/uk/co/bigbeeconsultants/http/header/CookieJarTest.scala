@@ -44,7 +44,7 @@ class CookieJarTest extends FunSuite {
   }
 
   test("simple construction") {
-    val tenYears = new HttpDateTimeInstant() + (10 * 365 * 24 * 60 * 60)
+    val tenYears = Some(new HttpDateTimeInstant() + (10 * 365 * 24 * 60 * 60))
     val c1 = Cookie(name = "UID", value = "646f4472", domain = "bbc.co.uk", path = "/", expires = tenYears)
     val c2 = Cookie(name = "LANG", value = "en", domain = "www.bbc.co.uk", path = "/", expires = tenYears)
     val c3 = Cookie(name = "XYZ", value = "zzz", domain = "x.org", path = "/", expires = tenYears)
@@ -92,7 +92,7 @@ class CookieJarTest extends FunSuite {
     val c1 = newJar.cookies.iterator.next()
     assert(CookieKey("lang", "www.w3.org", "/standards/webdesign/") matches c1)
     expect("en")(c1.value)
-    expect(tomorrow.seconds)(c1.expires.seconds)
+    expect(tomorrow.seconds)(c1.expires.get.seconds)
   }
 
   test("parse cookie with max age") {
@@ -104,7 +104,7 @@ class CookieJarTest extends FunSuite {
     val c1 = newJar.cookies.iterator.next()
     assert(CookieKey("lang", "www.w3.org", "/standards/webdesign/") matches c1)
     expect("en")(c1.value)
-    expect(tomorrow.seconds)(c1.expires.seconds)
+    expect(tomorrow.seconds)(c1.expires.get.seconds)
   }
 
   test("parse cookie deletion") {
@@ -130,7 +130,7 @@ class CookieJarTest extends FunSuite {
     val c1 = newJar.cookies.iterator.next()
     assert(CookieKey("lang", "www.w3.org", "/standards/webdesign/") matches c1)
     expect("en")(c1.value)
-    expect(nextWeek.seconds)(c1.expires.seconds)
+    expect(nextWeek.seconds)(c1.expires.get.seconds)
   }
 
   test("parse cookie with http only") {
@@ -161,20 +161,20 @@ class CookieJarTest extends FunSuite {
     expect(false)(c1.httpOnly)
     expect(false)(c1.hostOnly)
     assert(c1.persistent)
-    expect(tenYears.seconds)(c1.expires.seconds)
+    expect(tenYears.seconds)(c1.expires.get.seconds)
   }
 
   test("parse realistic cookie list") {
-    val h1 = HeaderName.SET_COOKIE -> ("c1=v1; path=/; domain=.z.com\n" +
-      "cc2=vv2; path=/; domain=.z.com; expires=Sun, 12-May-2013 11:21:33 GMT\n" +
-      "ccc3=f1=5; path=/; domain=.z.com; expires=Mon, 12-Sep-2022 11:21:33 GMT")
+    val c1Str = "c1=v1; path=/; domain=.z.com"
+    val c2Str = "cc2=vv2; path=/; domain=.z.com; expires=Sun, 12-May-2013 11:21:33 GMT"
+    val c3Str = "ccc3=f1=5; path=/; domain=.z.com; expires=Mon, 12-Sep-2022 11:21:33 GMT"
+    val h1 = HeaderName.SET_COOKIE -> (c1Str + "\n" + c2Str + "\n" + c3Str)
 
     val newJar = CookieJar.empty.gleanCookies(httpUrl2, Headers(h1))
     expect(3)(newJar.size)
-    val cIterator = newJar.cookies.iterator
-    val k1 = CookieKey("c1", ".z.com", "/")
-    val k2 = CookieKey("cc2", ".z.com", "/")
-    val k3 = CookieKey("ccc3", ".z.com", "/")
+    val k1 = CookieKey("c1", "z.com", "/")
+    val k2 = CookieKey("cc2", "z.com", "/")
+    val k3 = CookieKey("ccc3", "z.com", "/")
     assert(newJar contains k1)
     assert(newJar contains k2)
     assert(newJar contains k3)
@@ -187,7 +187,7 @@ class CookieJarTest extends FunSuite {
   }
 
   test("filter for request with two cookies") {
-    val tenYears = new HttpDateTimeInstant() + (10 * 365 * 24 * 60 * 60)
+    val tenYears = Some(new HttpDateTimeInstant() + (10 * 365 * 24 * 60 * 60))
     val cKey1 = CookieKey("UID", "bbc.co.uk", "/")
     val cVal1 = cKey1 ->("646f4472", tenYears)
 
@@ -295,7 +295,7 @@ class CookieJarTest extends FunSuite {
   }
 
   test("filter cookies by name") {
-    val tenYears = new HttpDateTimeInstant() + (10 * 365 * 24 * 60 * 60)
+    val tenYears = Some(new HttpDateTimeInstant() + (10 * 365 * 24 * 60 * 60))
     val cKey1 = CookieKey("X1", "bbc.co.uk", "/")
     val cVal1 = cKey1 ->("root", tenYears)
 

@@ -66,15 +66,14 @@ case class CookieKey(name: String,
    * Constructs a [[uk.co.bigbeeconsultants.http.header.Cookie]] by providing a value for this key.
    */
   def ->(value: String,
-         expires: HttpDateTimeInstant = new HttpDateTimeInstant(),
+         expires: Option[HttpDateTimeInstant] = None,
          creation: HttpDateTimeInstant = new HttpDateTimeInstant(),
-         lastAccessed: HttpDateTimeInstant = new HttpDateTimeInstant(),
          persistent: Boolean = false,
          hostOnly: Boolean = false,
          secure: Boolean = false,
          httpOnly: Boolean = false,
          serverProtocol: String = "http") =
-    new Cookie(name, value, domain, path, expires, creation, lastAccessed, persistent, hostOnly,
+    new Cookie(name, value, domain, path, expires, creation, persistent, hostOnly,
       secure, httpOnly, serverProtocol)
 }
 
@@ -86,9 +85,8 @@ case class Cookie(name: String,
                   value: String,
                   domain: Domain = Domain.localhost,
                   path: String = "/",
-                  expires: HttpDateTimeInstant = new HttpDateTimeInstant(),
+                  expires: Option[HttpDateTimeInstant] = None,
                   creation: HttpDateTimeInstant = new HttpDateTimeInstant(),
-                  lastAccessed: HttpDateTimeInstant = new HttpDateTimeInstant(),
                   persistent: Boolean = false,
                   hostOnly: Boolean = false,
                   secure: Boolean = false,
@@ -105,7 +103,7 @@ case class Cookie(name: String,
     val p = url.getProtocol
     val qSecure = !secure || p == "https"
     val qHttpOnly = !httpOnly || p.startsWith("http")
-    val qDomain = domain.matches(url)
+    val qDomain = domain matches url
     val qPath = path.isEmpty || url.getPath.startsWith(path)
     qSecure && qHttpOnly && qDomain && qPath
   }

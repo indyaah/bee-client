@@ -87,8 +87,8 @@ case class CookieJar(cookies: List[Cookie]) {
    * @return a new cookie jar containing the merged cookies.
    */
   def +(cookie: Cookie): CookieJar = {
-    val truncated = filterNot(cookie)
-    new CookieJar(List(cookie) ++ truncated)
+    val truncated = filterNot(cookie).toList
+    new CookieJar(cookie :: truncated)
   }
 
   /**

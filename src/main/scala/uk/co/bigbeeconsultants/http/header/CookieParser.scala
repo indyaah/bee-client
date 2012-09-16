@@ -33,28 +33,32 @@ package uk.co.bigbeeconsultants.http.header
 // - IPv6 addresses - http://tools.ietf.org/html/rfc2732
 
 import java.net.URL
-import collection.mutable.{HashSet, LinkedHashMap}
-import collection.immutable.ListMap
 import uk.co.bigbeeconsultants.http.util.HttpUtil
 import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 
 private[header] object CookieParser {
+  val DOMAIN = "Domain"
+  val SECURE = "Secure"
+  val HTTPONLY = "HttpOnly"
+  val MAX_AGE = "Max-Age"
+  val EXPIRES = "Expires"
+  val PATH = "Path"
 
-  private[header] def parseOneCookie(line: String, scheme: String, host: String, requestPath: String, now: HttpDateTimeInstant): Option[Cookie] = {
+  private[header] def parseOneCookie(line: String, from: URL, requestPath: String, now: HttpDateTimeInstant): Option[Cookie] = {
     var name: String = ""
     var value: String = ""
     var path: String = requestPath
-    var expires = now
-    var domain: Domain = Domain (host)
+    var expires: Option[HttpDateTimeInstant] = None
+    var domain: Domain = Domain(from.getHost)
     var hostOnly = true
     var persistent = false
     var secure = false
     var httpOnly = false
     var hasMaxAge = false
 
-    for (attr <- HttpUtil.split (line, ';')) {
+    for (attr <- HttpUtil.split(line, ';')) {
 
-      val t = HttpUtil.divide (attr, '=')
+      val t = HttpUtil.divide(attr, '=')
       val a = t._1.trim
       val v = t._2.trim
 
@@ -62,61 +66,62 @@ private[header] object CookieParser {
         name = a
         value = v
       }
-      else if (a.equalsIgnoreCase ("Domain")) {
+      else if (a.equalsIgnoreCase(DOMAIN)) {
         // TODO reject cookies in the public suffix list http://publicsuffix.org/list/
-        domain = Domain (v)
+        domain = Domain(v)
         hostOnly = false
       }
-      else if (a.equalsIgnoreCase ("Secure") && v == "") {
+      else if (a.equalsIgnoreCase(SECURE) && v == "") {
         secure = true
       }
-      else if (a.equalsIgnoreCase ("HttpOnly") && v == "") {
+      else if (a.equalsIgnoreCase(HTTPONLY) && v == "") {
         httpOnly = true
-        if (!scheme.startsWith ("http"))
+        if (!from.getProtocol.startsWith("http"))
           return None
       }
-      else if (a.equalsIgnoreCase ("Max-Age")) {
+      else if (a.equalsIgnoreCase(MAX_AGE)) {
         persistent = true
         hasMaxAge = true
         val seconds = v.toLong
         val secDelta = if (seconds > 0) seconds else 0
-        expires = now + secDelta
+        expires = Some(now + secDelta)
       }
-      else if (a.equalsIgnoreCase ("Expires") && !hasMaxAge) {
+      else if (a.equalsIgnoreCase(EXPIRES) && !hasMaxAge) {
         persistent = true
-        expires = HttpDateTimeInstant.parse (v)
+        expires = Some(HttpDateTimeInstant.parse(v))
       }
-      else if (a.equalsIgnoreCase ("Path")) {
+      else if (a.equalsIgnoreCase(PATH)) {
         path = v
       }
     }
 
-    if (!path.endsWith ("/")) {
+    if (!path.endsWith("/")) {
       path += "/"
     }
 
-    Some (Cookie (name, value, domain, path, expires, now, now, persistent, hostOnly, secure, httpOnly, scheme))
+    Some(Cookie(name, value, domain, path,
+      expires, now, persistent, hostOnly, secure, httpOnly, from.getProtocol))
   }
 
 
-  /**Gets a new CookieJar derived from this one as augmented by the headers in a response. */
+  /** Gets a new CookieJar derived from this one as augmented by the headers in a response. */
   def updateCookies(previous: CookieJar, from: URL, setcookies: List[Header]): CookieJar = {
 
     var newJar = previous
 
     val fPath = from.getPath
-    val lastSlash = fPath.lastIndexOf ('/')
-    val path = if (lastSlash < 0) "/" else fPath.substring (0, lastSlash + 1)
+    val lastSlash = fPath.lastIndexOf('/')
+    val path = if (lastSlash < 0) "/" else fPath.substring(0, lastSlash + 1)
 
     // Construct the date only once - avoids rollover problems (which would be a bit like race conditions)
-    val now = new HttpDateTimeInstant ()
+    val now = new HttpDateTimeInstant()
 
     for (header <- setcookies) {
-      for (line <- HttpUtil.split (header.value, '\n')) {
-        val optCookie = parseOneCookie (line, from.getProtocol, from.getHost, path, now)
+      for (line <- HttpUtil.split(header.value, '\n')) {
+        val optCookie = parseOneCookie(line, from, path, now)
         if (optCookie.isDefined) {
           val cookie = optCookie.get
-          if (cookie.expires < now) {
+          if (cookie.expires.isDefined && cookie.expires.get < now) {
             newJar -= cookie
           } else {
             newJar += cookie
@@ -126,5 +131,16 @@ private[header] object CookieParser {
     }
 
     newJar
+  }
+
+  /**
+   * Converts a cookie to its 'Set-Cookie' string.
+   */
+  def asSetHeader(cookie: Cookie) = {
+    val exp = cookie.expires.map("; " + EXPIRES + '=' + _).getOrElse("")
+    cookie.name + '=' + cookie.value + "; " +
+      PATH + '=' + cookie.path + "; " +
+      DOMAIN + '=' + cookie.domain.domain +
+      exp
   }
 }

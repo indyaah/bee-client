@@ -29,51 +29,64 @@ import org.scalatest.FunSuite
 
 class DomainTest extends FunSuite {
 
-  val ftpUrl1 = new URL ("ftp://www.w3.org/standards/webdesign/htmlcss")
-  val httpUrl1 = new URL ("http://www.w3.org/standards/webdesign/htmlcss")
-  val httpsUrl1 = new URL ("https://www.w3.org/login/")
+  val ftpUrl1 = new URL("ftp://www.w3.org/standards/webdesign/htmlcss")
+  val httpUrl1 = new URL("http://www.w3.org/standards/webdesign/htmlcss")
+  val httpsUrl1 = new URL("https://www.w3.org/login/")
 
 
-  test ("domain isIpAddress with name") {
-    val d = Domain ("alpha.bravo.charlie")
-    expect (false)(d.isIpAddress)
+  test("domain isIpAddress with name") {
+    val d = Domain("alpha.bravo.charlie")
+    assert(!d.isIpAddress)
   }
 
 
-  test ("domain isIpAddress with dotted quad") {
-    val d = Domain ("10.1.233.0")
-    expect (true)(d.isIpAddress)
+  test("domain isIpAddress with dotted quad") {
+    val d = Domain("10.1.233.0")
+    assert(d.isIpAddress)
   }
 
 
-  test ("domain matches same") {
-    val d = Domain ("www.w3.org")
-    expect (true)(d.matches (new URL ("http://www.w3.org:80/standards/")))
+  test("domain isIpAddress matches") {
+    val d = Domain("10.1.233.0")
+    assert(d.matches(new URL("http://10.1.233.0/foobar")))
+    assert(!d.matches(new URL("http://192.168.1.1/foobar")))
   }
 
 
-  test ("domain matches parent") {
-    val d = Domain ("w3.org")
-    expect (true)(d.matches (httpUrl1))
+  test("domain matches same") {
+    val d = Domain("www.w3.org")
+    assert(d.matches(new URL("http://www.w3.org:80/standards/")))
   }
 
 
-  test ("longer domain name is rejected") {
-    val d = Domain ("members.w3.org")
-    expect (false)(d.matches (httpUrl1))
+  test("domain matches parent") {
+    val d = Domain("w3.org")
+    assert(d.matches(httpUrl1))
   }
 
 
-  test ("domain parent") {
-    val d = Domain ("www.members.w3.org")
-    expect ("www.members.w3.org")(d.domain)
-    expect ("members.w3.org")(d.parent.get.domain)
-    expect ("w3.org")(d.parent.get.parent.get.domain)
-    expect (false)(d.parent.get.parent.get.parent.isDefined)
+  test("domain matches parent with dot") {
+    val d = Domain(".w3.org")
+    assert(d.matches(httpUrl1))
   }
 
 
-  test ("localhost") {
-    expect (true)(Domain.localhost.domain.length > 0)
+  test("longer domain name is rejected") {
+    val d = Domain("members.w3.org")
+    assert(!d.matches(httpUrl1))
+  }
+
+
+  test("domain parent") {
+    val d = Domain("www.members.w3.org")
+    expect("www.members.w3.org")(d.domain)
+    expect("members.w3.org")(d.parent.get.domain)
+    expect("w3.org")(d.parent.get.parent.get.domain)
+    assert(!d.parent.get.parent.get.parent.isDefined)
+  }
+
+
+  test("localhost") {
+    assert(Domain.localhost.domain.length > 0)
   }
 }

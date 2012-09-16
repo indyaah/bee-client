@@ -25,5 +25,5 @@
 package uk.co.bigbeeconsultants.http.header
 
 object `package` {
-  implicit def toDomain(domain: String) = new Domain(domain)
+  implicit def toDomain(domain: String) = Domain(domain)
 }

@@ -30,11 +30,10 @@ import java.net.{InetAddress, URL}
 /**
  * Models a domain name as used in cookies.
  */
-case class Domain(domain: String) {
+class Domain(val domain: String) {
 
   require (domain.length > 0)
-
-  private val ipV4 = Pattern.compile ("[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+")
+  require (!domain.startsWith("."))
 
   lazy val parent: Option[Domain] = {
     if (isIpAddress) {
@@ -50,7 +49,7 @@ case class Domain(domain: String) {
     }
   }
 
-  def isIpAddress: Boolean = ipV4.matcher (domain).matches ()
+  def isIpAddress: Boolean = Domain.ipV4.matcher (domain).matches ()
 
   /**Tests whether this domain matches some URL. */
   def matches(url: URL) = {
@@ -65,6 +64,15 @@ case class Domain(domain: String) {
       false
     }
   }
+
+  override def hashCode() = domain.hashCode()
+
+  override def equals(obj: Any): Boolean = {
+    if (obj == null) false
+    else (obj.isInstanceOf[Domain] && this.domain == obj.asInstanceOf[Domain].domain)
+  }
+
+  override def toString = domain
 }
 
 /**
@@ -73,6 +81,9 @@ case class Domain(domain: String) {
 object Domain {
   /** Constructs a new domain based on the host in an URL. */
   def apply(url: URL): Domain = new Domain (url.getHost)
+
+  /** Constructs a new domain based on a string, which may or may not start with '.'. */
+  def apply(dom: String): Domain = if (dom.startsWith(".")) new Domain (dom.substring(1)) else new Domain(dom)
 
   //private def extractDomainFrom(url: URL) = HttpUtil$.divide(url.getAuthority, ':')._1
 
@@ -87,4 +98,6 @@ object Domain {
       case e: Exception => "localhost"
     })
   }
+
+  private val ipV4 = Pattern.compile ("[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+")
 }
