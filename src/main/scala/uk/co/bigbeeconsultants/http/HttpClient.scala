@@ -35,7 +35,13 @@ import collection.mutable.ListBuffer
 import java.io.IOException
 
 /**
- * Constructs an instance for handling any number of HTTP requests.
+ * Constructs an instance for handling any number of HTTP requests with any level of concurrency.
+ *
+ * Using this class, cookies must be managed programmatically. If you provide cookie jars, the responses will
+ * include cookie jars,which may or may not have been altered by the server. If you do not provide cookie jars,
+ * none will come back either.
+ *
+ * [[uk.co.bigbeeconsultants.http.HttpBrowser]] provides an alternative that handles cookies for you.
  */
 class HttpClient(val config: Config = Config(),
                  val commonRequestHeaders: Headers = HttpClient.defaultRequestHeaders) extends Logging {

@@ -219,6 +219,28 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
     }
   }
 
+  test("txt text/plain get following redirect using HttpBrowser") {
+    val url = serverUrl + testRedirect1File + "?TO=" + testRedirect2File
+    try {
+      val cookie = Cookie("c1", "v1", Domain.localhost)
+      val httpBrowser = new HttpBrowser(Config(followRedirects = true), initialCookieJar = CookieJar(cookie))
+      val response = httpBrowser.get(new URL(url), gzipHeaders)
+      expect(200)(response.status.code)
+      val body = response.body
+      expect(TEXT_PLAIN)(body.contentType)
+      expect(true)(body.toString.startsWith("Lorem "))
+      expect(cookie)(response.cookies.get.find(_.name == "c1").get)
+      expect("ok")(response.cookies.get.find(_.name == "redirect1").get.value)
+      expect("ok")(response.cookies.get.find(_.name == "redirect2").get.value)
+      expect(3)(httpBrowser.cookies.size)
+      expect("ok")(httpBrowser.cookies.find(_.name == "redirect1").get.value)
+      expect("ok")(httpBrowser.cookies.find(_.name == "redirect2").get.value)
+    } catch {
+      case e: Exception =>
+        skipTestWarning("GET", url, e)
+    }
+  }
+
   test("txt text/plain get qith query string x1") {
     val url = serverUrl + testEchoFile + "?A=1&B=2"
     try {
