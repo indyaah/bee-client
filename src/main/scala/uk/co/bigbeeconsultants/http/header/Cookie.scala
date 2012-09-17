@@ -38,7 +38,7 @@ import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 /**
  * Defines the elements necessary to distinguish one cookie from another.
  */
-trait CookieIdentity {
+sealed trait CookieIdentity {
   def name: String
 
   def domain: Domain

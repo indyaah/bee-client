@@ -43,12 +43,14 @@ import collection.mutable.ListBuffer
  * In the latter case, once a request has completed, a new instance is created based on the prior cookies and any
  * new ones that were set by the server.
  */
-case class CookieJar(cookies: List[Cookie]) {
+case class CookieJar(cookies: List[Cookie]) extends Iterable[CookieIdentity] {
 
-  def isEmpty = cookies.isEmpty
+  override def isEmpty = cookies.isEmpty
 
   /** The number of cookies in this jar. */
-  def size = cookies.size
+  override def size = cookies.size
+
+  override def iterator = cookies.iterator
 
   /**
    * Gets a new `CookieJar` derived from this one as augmented by the headers in a response. This is the primary
@@ -102,7 +104,7 @@ case class CookieJar(cookies: List[Cookie]) {
   /**
    * Gets a filtered collection of cookies from this jar that match a certain predicate.
    */
-  def filter(f: (CookieIdentity) => Boolean): Iterable[Cookie] = {
+  override def filter(f: (CookieIdentity) => Boolean): Iterable[Cookie] = {
     cookies.filter(cookie => f(cookie))
   }
 
@@ -116,7 +118,7 @@ case class CookieJar(cookies: List[Cookie]) {
   /**
    * Gets a filtered collection of cookies from this jar that do not match a certain predicate.
    */
-  def filterNot(f: (CookieIdentity) => Boolean): Iterable[Cookie] = {
+  override def filterNot(f: (CookieIdentity) => Boolean): Iterable[Cookie] = {
     cookies.filterNot(cookie => f(cookie))
   }
 
@@ -130,7 +132,7 @@ case class CookieJar(cookies: List[Cookie]) {
   /**
    * Gets the first cookie from this jar that matches a certain predicate.
    */
-  def find(f: (CookieIdentity) => Boolean): Option[Cookie] = {
+  override def find(f: (CookieIdentity) => Boolean): Option[Cookie] = {
     cookies.find(cookie => f(cookie))
   }
 

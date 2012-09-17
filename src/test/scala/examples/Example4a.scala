@@ -12,4 +12,5 @@ object Example4a extends App {
   println(response.body)
   val augmentedCookieJar = response.cookies.get
   println(augmentedCookieJar)
+  println(augmentedCookieJar.get("XYZ").get.value) // prints "zzz"
 }
