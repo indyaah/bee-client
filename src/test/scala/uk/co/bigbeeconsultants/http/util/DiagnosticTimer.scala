@@ -22,16 +22,23 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http.util
 
-version := "0.12.3"
+class DiagnosticTimer {
+  val thousand = 1000
+  val million = thousand * thousand
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+  val start = now
 
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
+  private def now = System.nanoTime() / thousand
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+  def duration = now - start
+
+  override def toString =
+    if (duration >= 100 * million)
+      (duration / million) + "s"
+    else if (duration >= 100 * thousand)
+      (duration / thousand) + "ms"
+    else
+      duration + "μs"
+}

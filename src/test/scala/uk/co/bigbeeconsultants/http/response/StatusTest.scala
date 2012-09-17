@@ -66,4 +66,9 @@ class StatusTest extends FunSuite with ShouldMatchers {
     assert(Status.S200_OK.isBodyAllowed)
     assert(Status.S500_InternalServerError.isBodyAllowed)
   }
+
+  test("Single-arg apply method") {
+    assert(Status(200) eq Status.S200_OK)
+    assert(Status(500) eq Status.S500_InternalServerError)
+  }
 }

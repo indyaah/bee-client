@@ -56,53 +56,69 @@ case class Status(code: Int, message: String) {
  */
 object Status {
 
+  private var lookupTable = new scala.collection.immutable.HashMap[Int, Status]()
+
   /*----- 1XX: informational -----*/
-  val S100_Continue = Status(100, "Continue")
-  val S101_SwitchingProtocols = Status(101, "Switching protocols")
+  val S100_Continue = create(100, "Continue")
+  val S101_SwitchingProtocols = create(101, "Switching protocols")
 
   /*----- 2XX: success -----*/
-  val S200_OK = Status(200, "OK")
-  val S201_Created = Status(201, "Created")
-  val S202_Accepted = Status(202, "Accepted") // result of non-committal asynchronous request
-  val S203_NotAuthoritative = Status(203, "Not authoritative")
-  val S204_NoContent = Status(204, "No content")
-  val S205_ResetContent = Status(205, "Reset content")
-  val S206_PartialContent = Status(206, "Partial content")
+  val S200_OK = create(200, "OK")
+  val S201_Created = create(201, "Created")
+  val S202_Accepted = create(202, "Accepted") // result of non-committal asynchronous request
+  val S203_NotAuthoritative = create(203, "Not authoritative")
+  val S204_NoContent = create(204, "No content")
+  val S205_ResetContent = create(205, "Reset content")
+  val S206_PartialContent = create(206, "Partial content")
 
   /*----- 3XX: relocation/redirect -----*/
-  val S300_MultipleChoice = Status(300, "Multiple choice")
-  val S301_MovedPermanently = Status(301, "Moved permanently")
-  val S302_Found = Status(302, "Found")
-  val S303_SeeOther = Status(303, "See other")
-  val S304_NotModified = Status(304, "Not modified")
-  val S305_UseProxy = Status(305, "Use proxy")
-  val S307_MovedTemporarily = Status(307, "Moved temporarily")
+  val S300_MultipleChoice = create(300, "Multiple choice")
+  val S301_MovedPermanently = create(301, "Moved permanently")
+  val S302_Found = create(302, "Found")
+  val S303_SeeOther = create(303, "See other")
+  val S304_NotModified = create(304, "Not modified")
+  val S305_UseProxy = create(305, "Use proxy")
+  val S307_MovedTemporarily = create(307, "Moved temporarily")
 
   /*----- 4XX: client error -----*/
-  val S400_BadRequest = Status(400, "Bad request")
-  val S401_Unauthorized = Status(401, "Unauthorized")
-  val S402_PaymentRequired = Status(402, "Payment required")
-  val S403_Forbidden = Status(403, "Forbidden")
-  val S404_NotFound = Status(404, "Not found")
-  val S405_BadMethod = Status(405, "Bad method")
-  val S406_NotAcceptable = Status(406, "Not acceptable")
-  val S407_ProxyAuthRequired = Status(407, "Proxy authentication required")
-  val S408_ClientTimeout = Status(408, "Client timeout")
-  val S409_Conflict = Status(409, "Conflict")
-  val S410_Gone = Status(410, "Gone")
-  val S411_LengthRequired = Status(411, "Length required")
-  val S412_PreconditionFailed = Status(412, "Precondition failed")
-  val S413_EntityTooLarge = Status(413, "Entity too large")
-  val S414_RequestURITooLong = Status(414, "Request URI too long")
-  val S415_UnsupportedType = Status(415, "Unsupported type")
-  val S416_RangeNotSatisfiable = Status(416, "Range not satisfiable")
-  val S417_ExpectationFailed = Status(417, "Expectation failed")
+  val S400_BadRequest = create(400, "Bad request")
+  val S401_Unauthorized = create(401, "Unauthorized")
+  val S402_PaymentRequired = create(402, "Payment required")
+  val S403_Forbidden = create(403, "Forbidden")
+  val S404_NotFound = create(404, "Not found")
+  val S405_BadMethod = create(405, "Bad method")
+  val S406_NotAcceptable = create(406, "Not acceptable")
+  val S407_ProxyAuthRequired = create(407, "Proxy authentication required")
+  val S408_ClientTimeout = create(408, "Client timeout")
+  val S409_Conflict = create(409, "Conflict")
+  val S410_Gone = create(410, "Gone")
+  val S411_LengthRequired = create(411, "Length required")
+  val S412_PreconditionFailed = create(412, "Precondition failed")
+  val S413_EntityTooLarge = create(413, "Entity too large")
+  val S414_RequestURITooLong = create(414, "Request URI too long")
+  val S415_UnsupportedType = create(415, "Unsupported type")
+  val S416_RangeNotSatisfiable = create(416, "Range not satisfiable")
+  val S417_ExpectationFailed = create(417, "Expectation failed")
 
   /*----- 5XX: server error -----*/
-  val S500_InternalServerError = Status(500, "Internal server error")
-  val S501_NotImplemented = Status(501, "Not implemented")
-  val S502_BadGateway = Status(502, "Bad gateway")
-  val S503_ServiceUnavailable = Status(503, "Service unavailable")
-  val S504_GatewayTimeout = Status(504, "Gateway timeout")
-  val S505_UnsupportedVersion = Status(505, "Unsupported version")
+  val S500_InternalServerError = create(500, "Internal server error")
+  val S501_NotImplemented = create(501, "Not implemented")
+  val S502_BadGateway = create(502, "Bad gateway")
+  val S503_ServiceUnavailable = create(503, "Service unavailable")
+  val S504_GatewayTimeout = create(504, "Gateway timeout")
+  val S505_UnsupportedVersion = create(505, "Unsupported version")
+
+  /**
+   * Gets a standard status or creates a new status with a given code.
+   */
+  def apply(code: Int) = {
+    val existing = lookupTable.get(code)
+    existing.getOrElse(new Status(code, "Status " + code))
+  }
+
+  private def create(code: Int, message: String) = {
+    val s = new Status(code, message)
+    lookupTable += (code -> s)
+    s
+  }
 }
