@@ -27,6 +27,7 @@ package uk.co.bigbeeconsultants.http.request
 import java.net.URLEncoder
 import uk.co.bigbeeconsultants.http._
 import header.MediaType
+import header.MediaType._
 import java.io.{InputStream, OutputStreamWriter, OutputStream}
 import util.HttpUtil
 
@@ -37,13 +38,9 @@ import util.HttpUtil
  * <p>
  * The companion object provides apply methods for common sources of body data.
  */
-final class RequestBody(val mediaType: MediaType, val copyTo: OutputStream => Unit) {
+final class RequestBody(val mediaType: MediaType, val copyTo: OutputStream => Unit, source: => Any = "...") {
 
-//  def asQueryString = {
-//    val baos = new ByteArrayOutputStream
-//    copyTo(baos)
-//    baos.toString(mediaType.charsetOrElse (HttpClient.UTF8))
-//  }
+  override def toString = "RequestBody(" + mediaType + "," + source.toString + ")"
 }
 
 
@@ -51,9 +48,6 @@ final class RequestBody(val mediaType: MediaType, val copyTo: OutputStream => Un
  * Factory for request bodies.
  */
 object RequestBody {
-
-  @deprecated("Please swap the parameter order")
-  def apply(mediaType: MediaType, string: String): RequestBody = apply(string, mediaType)
 
   /**
    * Factory for request bodies sourced from strings.
@@ -63,16 +57,13 @@ object RequestBody {
       val encoding = mediaType.charsetOrElse (HttpClient.UTF8)
       outputStream.write (string.getBytes (encoding))
       outputStream.flush()
-    })
+    }, string)
   }
-
-  @deprecated("Please swap the parameter order")
-  def apply(mediaType: MediaType, data: Map[String, String]): RequestBody = apply(data, mediaType)
 
   /**
    * Factory for request bodies sourced from key-value pairs, typical for POST requests.
    */
-  def apply(data: Map[String, String], mediaType: MediaType = MediaType.APPLICATION_FORM_URLENCODED): RequestBody = {
+  def apply(data: Map[String, String], mediaType: MediaType = APPLICATION_FORM_URLENCODED): RequestBody = {
     new RequestBody (mediaType, (outputStream) => {
       val encoding = mediaType.charsetOrElse (HttpClient.UTF8)
       val w = new OutputStreamWriter (outputStream, encoding)
@@ -85,11 +76,8 @@ object RequestBody {
         amp = "&"
       }
       w.flush ()
-    })
+    }, data)
   }
-
-  @deprecated("Please swap the parameter order")
-  def apply(mediaType: MediaType, inputStream: InputStream): RequestBody = apply(inputStream, mediaType)
 
   /**
    * Factory for request bodies sourced from input streams. This copies the content from the input stream,
@@ -104,5 +92,5 @@ object RequestBody {
   /**
    * Factory for empty request bodies. An empty body differs from no body at all because it has a media type.
    */
-  def apply(mediaType: MediaType): RequestBody = new RequestBody (mediaType, (outputStream) => {})
+  def apply(mediaType: MediaType): RequestBody = new RequestBody (mediaType, (outputStream) => {}, "")
 }

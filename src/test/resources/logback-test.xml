@@ -1,5 +1,11 @@
 <!-- see http://logback.qos.ch/manual/configuration.html -->
 <configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <file>target/logs/logback.log</file>
         <encoder>
@@ -13,7 +19,8 @@
     <logger name="org" level="WARN"/>
 
     <!-- NB the root uber-level further restricts the logger and appender levels listed above -->
-    <root level="ERROR">
+    <root level="INFO">
         <appender-ref ref="FILE"/>
+        <!--<appender-ref ref="STDOUT"/>-->
     </root>
 </configuration>

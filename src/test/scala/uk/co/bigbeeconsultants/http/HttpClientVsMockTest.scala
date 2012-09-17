@@ -81,7 +81,7 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
   private def verifyConfig(config: Config) {
     verify (httpURLConnection).setConnectTimeout (config.connectTimeout)
     verify (httpURLConnection).setReadTimeout (config.readTimeout)
-    verify (httpURLConnection).setInstanceFollowRedirects (config.followRedirects)
+    verify (httpURLConnection).setInstanceFollowRedirects (false)
     verify (httpURLConnection).setUseCaches (config.useCaches)
     verify (httpURLConnection).setAllowUserInteraction (false)
   }

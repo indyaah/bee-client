@@ -34,11 +34,14 @@ import java.net.Proxy
 case class Config(connectTimeout: Int = 2000,
                   readTimeout: Int = 5000,
                   followRedirects: Boolean = true,
+                  maxRedirects: Int = 20,
                   useCaches: Boolean = true,
                   sendHostHeader: Boolean = true,
                   keepAlive: Boolean = true,
                   userAgentString: Option[String] = None,
                   proxy: Proxy = Proxy.NO_PROXY) {
+
+  require(maxRedirects > 1, maxRedirects + ": too few maxRedirects")
 
   lazy val configHeaders: Headers = {
     var hdrs = Headers()
@@ -46,5 +49,4 @@ case class Config(connectTimeout: Int = 2000,
     if (userAgentString.isDefined) hdrs = hdrs + (USER_AGENT -> userAgentString.get)
     hdrs
   }
-
 }

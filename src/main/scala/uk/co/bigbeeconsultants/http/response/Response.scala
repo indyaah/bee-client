@@ -26,17 +26,18 @@ package uk.co.bigbeeconsultants.http.response
 
 import uk.co.bigbeeconsultants.http.header.{CookieJar, Headers, MediaType}
 import uk.co.bigbeeconsultants.http.request.Request
-import java.io.InputStream
 
 /**
  * Represents a HTTP response. This is essentially immutable, although the implementation of
- * the response body may vary.
+ * the enclosed response body may vary.
  *
  * Note that the body may represent one of three cases: in the two obvious cases,
  * there was real data supplied by the server, that may or may not have been empty. The third case is a special
  * case in which the body is empty because the HTTP standard does not permit a body under those circumstances.
  * This is true for HEAD requests and all those status codes such as 204 or 304 for which the status bodyAllowed
  * field is false.
+ *
+ * A response may sometimes indicate a redirect. The lazy field `redirectTo` is computed with the new request
  */
 case class Response(request: Request,
                     status: Status,

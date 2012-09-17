@@ -1,3 +1,4 @@
+<?php
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -22,16 +23,22 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+$code = '303';
+$target = 'test-lighthttpclient.txt';
 
-version := "0.13.0"
+if (isset($_REQUEST['ST'])) { $code = strip_tags($_REQUEST['ST']); }
+if (isset($_REQUEST['TO'])) { $target = strip_tags($_REQUEST['TO']); }
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+if (isset($_SERVER['HTTP_HOST']))
+{
+    $host = $_SERVER['HTTP_HOST'];
+}
+else
+{
+    $host = $_SERVER['SERVER_ADDR'];
+}
 
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
-
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+header("Status: $code Artificial redirect");
+header("Set-Cookie: redirect2=ok");
+header('Location: http://' . $host . '/lighthttpclient/' . $target);
+?>

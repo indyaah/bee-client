@@ -41,6 +41,9 @@ final case class Request(method: String,
   require(url != null, "URL cannot be null.")
   require(headers != null, "Headers cannot be null.")
 
+  /** Gets the URL split into its component parts. */
+  lazy val split = SplitURL(url)
+
   /** Gets the request without any headers. */
   def withoutHeaders = this.copy(headers = Headers.empty)
 
@@ -60,11 +63,17 @@ final case class Request(method: String,
   def using(cookies: Option[CookieJar]): Request = this.copy(cookies = cookies)
 
   def isDelete = method == Request.DELETE
+
   def isGet = method == Request.GET
+
   def isHead = method == Request.HEAD
+
   def isOptions = method == Request.OPTIONS
+
   def isPost = method == Request.POST
+
   def isPut = method == Request.PUT
+
   def isTrace = method == Request.TRACE
 }
 
@@ -86,19 +95,26 @@ object Request {
   val TRACE = "TRACE"
 
   // methods without an entity body
-  def get(url: URL): Request = Request(GET, url, None)
+  def get(url: URL, headers: Headers = Headers.empty, cookies: Option[CookieJar] = None): Request =
+    Request(GET, url, None, headers, cookies)
 
-  def head(url: URL): Request = Request(HEAD, url, None)
+  def head(url: URL, headers: Headers = Headers.empty, cookies: Option[CookieJar] = None): Request =
+    Request(HEAD, url, None, headers, cookies)
 
-  def delete(url: URL): Request = Request(DELETE, url, None)
+  def delete(url: URL, headers: Headers = Headers.empty, cookies: Option[CookieJar] = None): Request =
+    Request(DELETE, url, None, headers, cookies)
 
-  def trace(url: URL): Request = Request(TRACE, url, None)
+  def trace(url: URL, headers: Headers = Headers.empty, cookies: Option[CookieJar] = None): Request =
+    Request(TRACE, url, None, headers, cookies)
 
   // method with an optional entity body
-  def options(url: URL, body: Option[RequestBody] = None): Request = Request(OPTIONS, url, body)
+  def options(url: URL, body: Option[RequestBody] = None, headers: Headers = Headers.empty, cookies: Option[CookieJar] = None): Request =
+    Request(OPTIONS, url, body, headers, cookies)
 
-  def post(url: URL, body: Option[RequestBody]): Request = Request(POST, url, body)
+  def post(url: URL, body: Option[RequestBody], headers: Headers = Headers.empty, cookies: Option[CookieJar] = None): Request =
+    Request(POST, url, body, headers, cookies)
 
   // methods requiring an entity body
-  def put(url: URL, body: RequestBody): Request = Request(PUT, url, Some(body))
+  def put(url: URL, body: RequestBody, headers: Headers = Headers.empty, cookies: Option[CookieJar] = None): Request =
+    Request(PUT, url, Some(body), headers, cookies)
 }

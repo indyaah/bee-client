@@ -43,7 +43,8 @@ object HttpIntegration {
   val testEchoFile = "test-echo-back.php"
   val test204File = "test-204-no-content.php"
   val test404File = "test-404-with-content.php"
-  val testRedirectFile = "test-redirect.php"
+  val testRedirect1File = "test-redirect1.php"
+  val testRedirect2File = "test-redirect2.php"
   val testCookieFile = "test-setcookie.php"
   val testImageFile = "B.png"
   val testPhotoFile = "plataria-sunset.jpg"
@@ -200,16 +201,18 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("txt text/plain get following redirect") {
-    val url = serverUrl + testRedirectFile
+    val url = serverUrl + testRedirect1File + "?TO=" + testRedirect2File
     try {
       val cookie = Cookie("c1", "v1", Domain.localhost)
-      val http2 = new HttpClient
+      val http2 = new HttpClient(Config(followRedirects = true))
       val response = http2.get(new URL(url), gzipHeaders, CookieJar(cookie))
       expect(200)(response.status.code)
       val body = response.body
       expect(TEXT_PLAIN)(body.contentType)
       expect(true)(body.toString.startsWith("Lorem "))
       expect(cookie)(response.cookies.get.find(_.name == "c1").get)
+      expect("ok")(response.cookies.get.find(_.name == "redirect1").get.value)
+      expect("ok")(response.cookies.get.find(_.name == "redirect2").get.value)
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)

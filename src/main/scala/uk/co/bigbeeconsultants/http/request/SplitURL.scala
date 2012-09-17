@@ -38,6 +38,8 @@ case class SplitURL(scheme: String,
                     fragment: Option[String] = None,
                     query: Option[String] = None) {
 
+  import SplitURL._
+
   def asURL: URL =
     if (fragment.isEmpty && query.isEmpty)
       new URL(scheme, host, port.getOrElse(-1), path)
@@ -61,7 +63,7 @@ case class SplitURL(scheme: String,
 
   def pathString: String = path + fragment.map("#" + _).getOrElse("") + query.map("?" + _).getOrElse("")
 
-  override def toString = scheme + "://" + hostAndPort + pathString
+  override def toString = scheme + DoubleSlash + hostAndPort + pathString
 
   def withQuery(params: Map[String, String]) = {
     copy(query = Some(SplitURL.assembleQueryString(params)))
@@ -70,6 +72,9 @@ case class SplitURL(scheme: String,
 
 
 object SplitURL {
+  /** The string "://", which is the top of Tim Berners-Lee's regrets. Alas. */
+  val DoubleSlash = "://"
+
   /**
    * Factory method creates an instance from a URL.
    */
@@ -80,7 +85,7 @@ object SplitURL {
    * Factory method creates an instance from a string containing a URL.
    */
   def apply(url: String) = {
-    val p1 = url.indexOf("://")
+    val p1 = url.indexOf(DoubleSlash)
     require(p1 > 0, "Malformed URL: no scheme part.")
     val p2 = url.indexOf('/', p1 + 3)
     require(p2 > p1, "Malformed URL: no host part")
