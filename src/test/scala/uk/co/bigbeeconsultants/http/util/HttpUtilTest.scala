@@ -1,5 +1,3 @@
-package uk.co.bigbeeconsultants.http.util
-
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -23,6 +21,8 @@ package uk.co.bigbeeconsultants.http.util
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
+
+package uk.co.bigbeeconsultants.http.util
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import org.scalatest.FunSuite

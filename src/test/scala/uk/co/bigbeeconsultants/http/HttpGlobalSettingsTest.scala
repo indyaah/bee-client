@@ -29,6 +29,7 @@ import org.scalatest.{BeforeAndAfter, FunSuite}
 class HttpGlobalSettingsTest extends FunSuite with BeforeAndAfter {
 
   test("maxConnections") {
+    HttpGlobalSettings.maxConnections = 5
     expect(5)(HttpGlobalSettings.maxConnections)
     HttpGlobalSettings.maxConnections = 10
     expect(10)(HttpGlobalSettings.maxConnections)

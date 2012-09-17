@@ -31,6 +31,7 @@ import org.scalatest.FunSuite
 
 class CookieJarTest extends FunSuite {
 
+  //TODO test for expiring cookies
   val ftpUrl1 = new URL("ftp://www.w3.org/standards/webdesign/htmlcss")
   val httpUrl1 = new URL("http://www.w3.org/standards/webdesign/htmlcss")
   val httpUrl2 = new URL("http://www.bbc.co.uk/radio/stations/radio1")
