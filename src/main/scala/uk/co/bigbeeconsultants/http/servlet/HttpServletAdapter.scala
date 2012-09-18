@@ -62,7 +62,10 @@ class HttpServletRequestAdapter(req: HttpServletRequest) {
  * reverse proxying to be implemented easily.
  * @param resp the response to be created
  * @param rewrite an optional mutation function that is applied to every line of the body content.
- * @param condition an optional condition that limits when the rewrite function will be used
+ *                This is used only when the content is treated as text (see `condition`)
+ * @param condition an optional condition that limits when the rewrite function will be used. By default,
+ *                  any media type that returns `true` for `isTextual` will be processed as text and this
+ *                  may imply transcoding. Otherwise the response body is processed as binary data.
  */
 class HttpServletResponseAdapter(resp: HttpServletResponse,
                                  rewrite: (String) => String = (x) => x,
@@ -72,6 +75,12 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
   private[this] var _status: Status = _
   private[this] var _mediaType: Option[MediaType] = _
   private[this] var _headers: Headers = _
+
+  def setResponseHeaders(headers: Headers) {
+    for (header <- headers.list) {
+      resp.setHeader(header.name, header.value)
+    }
+  }
 
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
                       headers: Headers, cookies: Option[CookieJar], inputStream: InputStream) {
@@ -83,9 +92,7 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
 
       resp.setStatus(status.code, status.message)
 
-      for (header <- headers.list) {
-        resp.setHeader(header.name, header.value)
-      }
+      setResponseHeaders(headers.list)
 
       if (mediaType.isDefined && condition(mediaType.get)) {
         HttpUtil.copyText(inputStream, resp.getOutputStream, mediaType.get.charsetOrUTF8, rewrite)

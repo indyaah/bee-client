@@ -199,7 +199,7 @@ class HttpClient(val config: Config = Config(),
   @throws(classOf[IOException])
   private[http] def doExecute(request: Request,
                               responseBuilder: ResponseBuilder): Option[Request] = {
-    logger.info(request.toString)
+    logger.info({request.toString})
 
     val httpURLConnection = openConnection(request)
     httpURLConnection.setAllowUserInteraction(false)

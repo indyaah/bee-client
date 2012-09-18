@@ -56,9 +56,11 @@ class HttpServletAdapterTest extends FunSuite {
     expect(MediaType.TEXT_PLAIN)(adapter.requestBody.mediaType)
   }
 
-  test("HttpServletResponseAdapter") {
+  test("HttpServletResponseAdapter setResponseHeaders") {
     val res = mock(classOf[HttpServletResponse])
-
+    val adapter = new HttpServletResponseAdapter(res)
+    adapter.setResponseHeaders(Headers(HOST -> "krum"))
+    verify(res).setHeader("Host", "krum")
   }
 
   //  test("CopyStreamResponseBody") {
