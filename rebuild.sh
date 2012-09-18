@@ -4,4 +4,6 @@ if [ -f /etc/mime.types -a /etc/mime.types -nt src/main/resources/mime-types.txt
   egrep -v '^#' /etc/mime.types | egrep '[[:space:]]' | tr '\t' ' ' > src/main/resources/mime-types.txt
 fi
 
+hg log --verbose | ./hgChangeLog.sh > changelog.md
 sbt clean test package package-doc package-src publish-local
+
