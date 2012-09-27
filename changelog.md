@@ -1,5 +1,10 @@
 #### Tue, 18 Sep 2012
 * v0.13.4
+* New script for generating the changelog.
+
+
+#### Tue, 18 Sep 2012
+* v0.13.4
 * HttpServletResponseAdapter has a new setResponseHeaders method
 
 
