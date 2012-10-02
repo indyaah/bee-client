@@ -30,62 +30,62 @@ class MediaTypeTest extends FunSuite {
 
 
   test ("mediaType construction variants") {
-    expect ("application/json")(MediaType.APPLICATION_JSON.toString)
-    expect ("text/plain")(MediaType ("text/plain").toString)
-    expect (true)(MediaType.STAR_STAR.isWildcardType)
-    expect (true)(MediaType.STAR_STAR.isWildcardSubtype)
-    expect (false)(MediaType.TEXT_PLAIN.isWildcardType)
-    expect (false)(MediaType.TEXT_PLAIN.isWildcardSubtype)
+    assert ("application/json" === MediaType.APPLICATION_JSON.toString)
+    assert ("text/plain" === MediaType ("text/plain").toString)
+    assert (true === MediaType.STAR_STAR.isWildcardType)
+    assert (true === MediaType.STAR_STAR.isWildcardSubtype)
+    assert (false === MediaType.TEXT_PLAIN.isWildcardType)
+    assert (false === MediaType.TEXT_PLAIN.isWildcardSubtype)
   }
 
 
   test ("parser") {
     val mt = MediaType ("text/html; charset=ISO-8859-1")
-    expect ("text/html;charset=ISO-8859-1")(mt.toString)
-    expect ("text/html;charset=ISO-8859-1")(mt.toQualifiers.toString)
-    expect ("text")(mt.contentType)
-    expect ("html")(mt.subtype)
-    expect ("ISO-8859-1")(mt.charset.get)
+    assert ("text/html;charset=ISO-8859-1" === mt.toString)
+    assert ("text/html;charset=ISO-8859-1" === mt.toQualifiers.toString)
+    assert ("text" === mt.contentType)
+    assert ("html" === mt.subtype)
+    assert ("ISO-8859-1" === mt.charset.get)
   }
 
 
   test ("edge cases") {
-    expect ("text/*")(MediaType ("text/").toString)
-    expect ("*/x")(MediaType ("/x").toString)
-    expect ("*/*")(MediaType ("/").toString)
-    expect ("*/*")(MediaType ("").toString)
+    assert ("text/*" === MediaType ("text/").toString)
+    assert ("*/x" === MediaType ("/x").toString)
+    assert ("*/*" === MediaType ("/").toString)
+    assert ("*/*" === MediaType ("").toString)
   }
 
 
   test ("isCompatible") {
     val mt = MediaType ("text/html")
-    expect (true)(mt.isCompatible (MediaType ("text/*")))
-    expect (true)(mt.isCompatible (MediaType ("*/*")))
-    expect (true)(mt.isCompatible (MediaType ("*/html")))
-    expect (true)(mt.isCompatible (MediaType ("text/html")))
-    expect (false)(mt.isCompatible (MediaType ("text/plain")))
-    expect (false)(mt.isCompatible (MediaType ("image/*")))
-    expect (false)(mt.isCompatible (null))
+    assert (true === mt.isCompatible (MediaType ("text/*")))
+    assert (true === mt.isCompatible (MediaType ("*/*")))
+    assert (true === mt.isCompatible (MediaType ("*/html")))
+    assert (true === mt.isCompatible (MediaType ("text/html")))
+    assert (false === mt.isCompatible (MediaType ("text/plain")))
+    assert (false === mt.isCompatible (MediaType ("image/*")))
+    assert (false === mt.isCompatible (null))
   }
 
 
   test ("isTextual") {
-    expect (false)(MediaType.APPLICATION_OCTET_STREAM.isTextual)
-    expect (false)(MediaType.IMAGE_JPG.isTextual)
-    expect (false)(MediaType.STAR_STAR.isTextual)
-    expect (true)(MediaType.TEXT_PLAIN.isTextual)
-    expect (true)(MediaType.TEXT_HTML.isTextual)
-    expect (true)(MediaType.APPLICATION_JSON.isTextual)
-    expect (true)(MediaType.APPLICATION_XML.isTextual)
-    expect (true)(MediaType.APPLICATION_SVG_XML.isTextual)
+    assert (false === MediaType.APPLICATION_OCTET_STREAM.isTextual)
+    assert (false === MediaType.IMAGE_JPG.isTextual)
+    assert (false === MediaType.STAR_STAR.isTextual)
+    assert (true === MediaType.TEXT_PLAIN.isTextual)
+    assert (true === MediaType.TEXT_HTML.isTextual)
+    assert (true === MediaType.APPLICATION_JSON.isTextual)
+    assert (true === MediaType.APPLICATION_XML.isTextual)
+    assert (true === MediaType.APPLICATION_SVG_XML.isTextual)
   }
 
 
   test ("withCharset") {
     val mt1 = MediaType.TEXT_HTML
-    expect (true)(mt1.charset.isEmpty)
+    assert (true === mt1.charset.isEmpty)
     val mt2 = mt1.withCharset ("UTF-8")
-    expect ("UTF-8")(mt2.charset.get)
+    assert ("UTF-8" === mt2.charset.get)
   }
 
   test ("withNullCharset") {

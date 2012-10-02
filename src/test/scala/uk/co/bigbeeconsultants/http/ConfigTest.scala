@@ -31,14 +31,14 @@ class ConfigTest extends FunSuite with BeforeAndAfter {
 
   test("configHeaders with keepAlive") {
     val c1 = Config(keepAlive = true)
-    expect(0)(c1.configHeaders.size)
+    assert(0 === c1.configHeaders.size)
 
     val c2 = Config(keepAlive = false)
-    expect("close")(c2.configHeaders(ExpertHeaderName.CONNECTION).value)
+    assert("close" === c2.configHeaders(ExpertHeaderName.CONNECTION).value)
   }
 
   test("configHeaders with userAgentString") {
     val c = Config(userAgentString = Some("FooBar"))
-    expect("FooBar")(c.configHeaders(HeaderName.USER_AGENT).value)
+    assert("FooBar" === c.configHeaders(HeaderName.USER_AGENT).value)
   }
 }

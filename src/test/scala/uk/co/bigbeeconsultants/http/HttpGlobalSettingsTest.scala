@@ -30,14 +30,14 @@ class HttpGlobalSettingsTest extends FunSuite with BeforeAndAfter {
 
   test("maxConnections") {
     HttpGlobalSettings.maxConnections = 5
-    expect(5)(HttpGlobalSettings.maxConnections)
+    assert(5 === HttpGlobalSettings.maxConnections)
     HttpGlobalSettings.maxConnections = 10
-    expect(10)(HttpGlobalSettings.maxConnections)
+    assert(10 === HttpGlobalSettings.maxConnections)
   }
 
 //  test("maxRedirects") {
-//    expect(20)(HttpGlobalSettings.maxRedirects)
+//    assert(20 === HttpGlobalSettings.maxRedirects)
 //    HttpGlobalSettings.maxRedirects = 10
-//    expect(10)(HttpGlobalSettings.maxRedirects)
+//    assert(10 === HttpGlobalSettings.maxRedirects)
 //  }
 }

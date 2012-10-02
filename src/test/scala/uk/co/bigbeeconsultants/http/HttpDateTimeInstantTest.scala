@@ -33,7 +33,7 @@ class HttpDateTimeInstantTest extends FunSuite {
 
   test("parse silly") {
     val d = HttpDateTimeInstant.parse("some silly rubbish", HttpDateTimeInstant.zero)
-    expect(HttpDateTimeInstant.zero)(d)
+    assert(HttpDateTimeInstant.zero === d)
   }
 
   test("parse rfc1123DateTimeFormat (with spaces)") {
@@ -45,15 +45,15 @@ class HttpDateTimeInstantTest extends FunSuite {
     }
     println(t)
     val d = HttpDateTimeInstant.parse(dateString)
-    expect(exp)(d)
-    expect(dateString)(d.toString)
+    assert(exp === d)
+    assert(dateString === d.toString)
   }
 
   test("parse rfc1123DateTimeFormat-like but with dashes instead") {
     val exp = new HttpDateTimeInstant(DatatypeConverter.parseDateTime("2005-11-01T08:49:37Z"))
     val d = HttpDateTimeInstant.parse("Tue, 01-Nov-2005 08:49:37 GMT")
-    expect(exp)(d)
-    expect("Tue, 01 Nov 2005 08:49:37 GMT")(d.toString)
+    assert(exp === d)
+    assert("Tue, 01 Nov 2005 08:49:37 GMT" === d.toString)
   }
 
   test("parse rfc1123DateTimeFormat") {
@@ -62,7 +62,7 @@ class HttpDateTimeInstantTest extends FunSuite {
       val t = start + (86400 * i)
       val exp = new HttpDateTimeInstant(t).toString
       val d = HttpDateTimeInstant.parse(exp)
-      expect(exp)(d.toString)
+      assert(exp === d.toString)
       //println(exp)
     }
   }
@@ -70,36 +70,36 @@ class HttpDateTimeInstantTest extends FunSuite {
   test("parse rfc850DateTimeFormat") {
     val exp = new HttpDateTimeInstant(DatatypeConverter.parseDateTime("2005-11-16T08:49:37Z"))
     val d = HttpDateTimeInstant.parse("Wednesday, 16-Nov-05 08:49:37 GMT")
-    expect(exp)(d)
+    assert(exp === d)
   }
 
   test("parse asciiDateTimeFormat1") {
     val exp = new HttpDateTimeInstant(DatatypeConverter.parseDateTime("1994-11-06T08:49:37Z"))
     val d = HttpDateTimeInstant.parse("Sun Nov  6 08:49:37 1994")
-    expect(exp)(d)
+    assert(exp === d)
   }
 
   test("parse asciiDateTimeFormat2") {
     val exp = new HttpDateTimeInstant(DatatypeConverter.parseDateTime("2005-11-16T08:49:37Z"))
     val d = HttpDateTimeInstant.parse("Wed Nov 16 08:49:37 2005")
-    expect(exp)(d)
+    assert(exp === d)
   }
 
   test("plus") {
     val now = new HttpDateTimeInstant()
     val later = new HttpDateTimeInstant() + 60
-    expect(60)(later.seconds - now.seconds)
+    assert(60 === later.seconds - now.seconds)
   }
 
   test("minus") {
     val now = new HttpDateTimeInstant()
     val later = new HttpDateTimeInstant() - 60
-    expect(-60)(later.seconds - now.seconds)
+    assert(-60 === later.seconds - now.seconds)
   }
 
   test("compare") {
     val now = new HttpDateTimeInstant()
     val later = new HttpDateTimeInstant() + 60
-    expect(true)(later > now)
+    assert(true === later > now)
   }
 }

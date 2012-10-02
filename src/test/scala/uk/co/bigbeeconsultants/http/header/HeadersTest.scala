@@ -31,64 +31,64 @@ class HeadersTest extends FunSuite {
 
   test ("construction using list") {
     val n = Headers (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar")
-    expect (3)(n.size)
-    expect (HOST -> "localhost")(n(0))
-    expect (ACCEPT -> "foo")(n(1))
-    expect (ACCEPT -> "bar")(n(2))
+    assert (3 === n.size)
+    assert (HOST -> "localhost" === n(0))
+    assert (ACCEPT -> "foo" === n(1))
+    assert (ACCEPT -> "bar" === n(2))
   }
 
   test ("construction using map") {
     val n = Headers (Map("Host" -> "localhost", "Accept" -> "foo"))
-    expect (2)(n.size)
-    expect (HOST-> "localhost")(n(0))
-    expect (ACCEPT -> "foo")(n(1))
+    assert (2 === n.size)
+    assert (HOST-> "localhost" === n(0))
+    assert (ACCEPT -> "foo" === n(1))
   }
 
   test ("names") {
     val n = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar"))
-    expect (List (HOST.name, ACCEPT.name, ACCEPT.name))(n.names)
+    assert (List (HOST.name, ACCEPT.name, ACCEPT.name) === n.names)
   }
 
   test ("find") {
     val n = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar"))
-    expect (Headers (List (HOST -> "localhost")))(n.filter (HOST))
-    expect (Headers (List (ACCEPT -> "foo", ACCEPT -> "bar")))(n.filter (ACCEPT))
+    assert (Headers (List (HOST -> "localhost")) === n.filter (HOST))
+    assert (Headers (List (ACCEPT -> "foo", ACCEPT -> "bar")) === n.filter (ACCEPT))
   }
 
   test ("get and apply") {
     val n = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar"))
-    expect (HOST -> "localhost")(n(0))
-    expect (HOST -> "localhost")(n(HOST))
-    expect (Some(ACCEPT -> "foo"))(n.get (ACCEPT))
+    assert (HOST -> "localhost" === n(0))
+    assert (HOST -> "localhost" === n(HOST))
+    assert (Some(ACCEPT -> "foo") === n.get (ACCEPT))
   }
 
   test ("remove and add") {
     val n1 = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar"))
     val n2 = n1 filterNot HOST
-    expect (2)(n2.size)
-    expect (false)(n2.contains(HOST))
-    expect (ACCEPT -> "foo")(n2(ACCEPT))
+    assert (2 === n2.size)
+    assert (false === n2.contains(HOST))
+    assert (ACCEPT -> "foo" === n2(ACCEPT))
 
     val n3 = n2 + (HOST -> "server")
-    expect (3)(n3.size)
-    expect (HOST -> "server")(n3(HOST))
+    assert (3 === n3.size)
+    assert (HOST -> "server" === n3(HOST))
 
     val n4 = n1 filterNot ACCEPT
-    expect (1)(n4.size)
-    expect (HOST -> "localhost")(n4(HOST))
-    expect (false)(n4.contains(ACCEPT))
+    assert (1 === n4.size)
+    assert (HOST -> "localhost" === n4(HOST))
+    assert (false === n4.contains(ACCEPT))
   }
 
   test ("set") {
     val n1 = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar"))
     val n2 = n1 set (HOST -> "server")
-    expect (3)(n2.size)
-    expect (HOST -> "server")(n2(HOST))
+    assert (3 === n2.size)
+    assert (HOST -> "server" === n2(HOST))
 
     val n3 = n2 set (ACCEPT -> "*/*")
-    expect (2)(n3.size)
-    expect (HOST -> "server")(n3(HOST))
-    expect (ACCEPT -> "*/*")(n3(ACCEPT))
+    assert (2 === n3.size)
+    assert (HOST -> "server" === n3(HOST))
+    assert (ACCEPT -> "*/*" === n3(ACCEPT))
   }
 
 }

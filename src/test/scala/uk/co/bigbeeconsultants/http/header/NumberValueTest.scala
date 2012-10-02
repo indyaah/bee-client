@@ -31,13 +31,13 @@ class NumberValueTest extends FunSuite {
   test("valid integer") {
     val v = NumberValue("12345")
     assert(v.isValid)
-    expect(12345)(v.toInt)
+    assert(12345 === v.toInt)
   }
 
   test("valid long") {
     val v = NumberValue("123456789012345")
     assert(v.isValid)
-    expect(123456789012345L)(v.toLong)
+    assert(123456789012345L === v.toLong)
   }
 
   test("invalid number") {

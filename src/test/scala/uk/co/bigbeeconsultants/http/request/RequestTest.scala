@@ -36,16 +36,16 @@ class RequestTest extends FunSuite {
 
   test ("request without body") {
     val r = Request.get (url1)
-    expect (url1)(r.url)
-    expect ("GET")(r.method)
-    expect (true)(r.body.isEmpty)
+    assert (url1 === r.url)
+    assert ("GET" === r.method)
+    assert (true === r.body.isEmpty)
   }
 
   test ("request with string url") {
     val r = Request("GET", "http://somewhere.com/")
-    expect (new URL("http://somewhere.com/"))(r.url)
-    expect ("GET")(r.method)
-    expect (true)(r.body.isEmpty)
+    assert (new URL("http://somewhere.com/") === r.url)
+    assert ("GET" === r.method)
+    assert (true === r.body.isEmpty)
   }
 
   test ("request with lowercase method") {
@@ -64,30 +64,30 @@ class RequestTest extends FunSuite {
     val mt = APPLICATION_JSON
     val b = RequestBody ("[1, 2, 3]", mt)
     val r = Request.put (url1, b)
-    expect (url1)(r.url)
-    expect ("PUT")(r.method)
-    expect (b)(r.body.get)
-    expect ("UTF-8")(r.body.get.mediaType.charsetOrElse ("UTF-8"))
+    assert (url1 === r.url)
+    assert ("PUT" === r.method)
+    assert (b === r.body.get)
+    assert ("UTF-8" === r.body.get.mediaType.charsetOrElse ("UTF-8"))
   }
 
   test ("request with headers") {
     val r0 = Request.get (url1)
-    expect (0)(r0.headers.size)
+    assert (0 === r0.headers.size)
     val r1 = r0 + (HOST -> "fred")
-    expect (1)(r1.headers.size)
-    expect ("fred")(r1.headers(HOST).value)
+    assert (1 === r1.headers.size)
+    assert ("fred" === r1.headers(HOST).value)
     val r2 = r1.withoutHeaders
-    expect (0)(r2.headers.size)
+    assert (0 === r2.headers.size)
   }
 
   test ("request with cookies") {
     val r0 = Request.get (url1)
-    expect (None)(r0.cookies)
+    assert (None === r0.cookies)
     val r1 = r0 using CookieJar(Cookie("x", "hello"))
-    expect (1)(r1.cookies.get.size)
-    expect ("hello")(r1.cookies.get.find(_.name == "x").get.value)
+    assert (1 === r1.cookies.get.size)
+    assert ("hello" === r1.cookies.get.find(_.name == "x").get.value)
     val r2 = r1.withoutCookies
-    expect (None)(r2.cookies)
+    assert (None === r2.cookies)
   }
 
 }

@@ -33,135 +33,135 @@ class SplitURLTest extends FunSuite {
     val s = "http://www.w3.org/"
     val url = new URL(s)
     val surl = SplitURL(url)
-    expect("http")(surl.scheme)
-    expect("www.w3.org")(surl.host)
-    expect(None)(surl.port)
-    expect(Nil)(surl.pathSegments)
-    expect(None)(surl.fragment)
-    expect(None)(surl.query)
-    expect(None)(surl.file)
-    expect(None)(surl.extension)
-    expect(s)(surl.toString)
+    assert("http" === surl.scheme)
+    assert("www.w3.org" === surl.host)
+    assert(None === surl.port)
+    assert(Nil === surl.pathSegments)
+    assert(None === surl.fragment)
+    assert(None === surl.query)
+    assert(None === surl.file)
+    assert(None === surl.extension)
+    assert(s === surl.toString)
   }
 
   test("quite simple url") {
     val s = "http://www.w3.org/Addressing/URL/5_BNF.html"
     val url = new URL(s)
     val surl = SplitURL(url)
-    expect("http")(surl.scheme)
-    expect("www.w3.org")(surl.host)
-    expect(None)(surl.port)
-    expect(List("Addressing", "URL", "5_BNF.html"))(surl.pathSegments)
-    expect(None)(surl.fragment)
-    expect(None)(surl.query)
-    expect(Some("5_BNF.html"))(surl.file)
-    expect(Some("html"))(surl.extension)
-    expect(s)(surl.toString)
+    assert("http" === surl.scheme)
+    assert("www.w3.org" === surl.host)
+    assert(None === surl.port)
+    assert(List("Addressing", "URL", "5_BNF.html") === surl.pathSegments)
+    assert(None === surl.fragment)
+    assert(None === surl.query)
+    assert(Some("5_BNF.html") === surl.file)
+    assert(Some("html") === surl.extension)
+    assert(s === surl.toString)
   }
 
   test("absolute url with fragment") {
     val s = "http://www.w3.org/Addressing/URL/5_BNF.html#z12"
     val url = new URL(s)
     val surl = SplitURL(url)
-    expect("http")(surl.scheme)
-    expect("www.w3.org")(surl.host)
-    expect(None)(surl.port)
-    expect(List("Addressing", "URL", "5_BNF.html"))(surl.pathSegments)
-    expect(Some("z12"))(surl.fragment)
-    expect(None)(surl.query)
-    expect(Some("5_BNF.html"))(surl.file)
-    expect(Some("html"))(surl.extension)
-    expect(s)(surl.toString)
+    assert("http" === surl.scheme)
+    assert("www.w3.org" === surl.host)
+    assert(None === surl.port)
+    assert(List("Addressing", "URL", "5_BNF.html") === surl.pathSegments)
+    assert(Some("z12") === surl.fragment)
+    assert(None === surl.query)
+    assert(Some("5_BNF.html") === surl.file)
+    assert(Some("html") === surl.extension)
+    assert(s === surl.toString)
   }
 
   test("absolute url with port and query") {
     val s = "http://myserver:8080/Addressing/URL/5_BNF.html?red=yes"
     val url = new URL(s)
     val surl = SplitURL(url)
-    expect("http")(surl.scheme)
-    expect("myserver")(surl.host)
-    expect(Some(8080))(surl.port)
-    expect(List("Addressing", "URL", "5_BNF.html"))(surl.pathSegments)
-    expect(None)(surl.fragment)
-    expect(Some("red=yes"))(surl.query)
-    expect(Some("5_BNF.html"))(surl.file)
-    expect(Some("html"))(surl.extension)
-    expect(s)(surl.toString)
+    assert("http" === surl.scheme)
+    assert("myserver" === surl.host)
+    assert(Some(8080) === surl.port)
+    assert(List("Addressing", "URL", "5_BNF.html") === surl.pathSegments)
+    assert(None === surl.fragment)
+    assert(Some("red=yes") === surl.query)
+    assert(Some("5_BNF.html") === surl.file)
+    assert(Some("html") === surl.extension)
+    assert(s === surl.toString)
   }
 
   test("string parser 1a") {
     val s = "http://myserver:8080/Addressing/URL/5_BNF.html#z12?red=yes"
     val surl = SplitURL(s)
-    expect("http")(surl.scheme)
-    expect("myserver")(surl.host)
-    expect(Some(8080))(surl.port)
-    expect(List("Addressing", "URL", "5_BNF.html"))(surl.pathSegments)
-    expect(Some("z12"))(surl.fragment)
-    expect(Some("red=yes"))(surl.query)
-    expect(Some("5_BNF.html"))(surl.file)
-    expect(Some("html"))(surl.extension)
-    expect(s)(surl.toString)
+    assert("http" === surl.scheme)
+    assert("myserver" === surl.host)
+    assert(Some(8080) === surl.port)
+    assert(List("Addressing", "URL", "5_BNF.html") === surl.pathSegments)
+    assert(Some("z12") === surl.fragment)
+    assert(Some("red=yes") === surl.query)
+    assert(Some("5_BNF.html") === surl.file)
+    assert(Some("html") === surl.extension)
+    assert(s === surl.toString)
   }
 
   test("string parser 1b") {
     val s = "http://myserver/"
     val surl = SplitURL(s)
-    expect("http")(surl.scheme)
-    expect("myserver")(surl.host)
-    expect(None)(surl.port)
-    expect(Nil)(surl.pathSegments)
-    expect(None)(surl.fragment)
-    expect(None)(surl.query)
-    expect(s)(surl.toString)
+    assert("http" === surl.scheme)
+    assert("myserver" === surl.host)
+    assert(None === surl.port)
+    assert(Nil === surl.pathSegments)
+    assert(None === surl.fragment)
+    assert(None === surl.query)
+    assert(s === surl.toString)
   }
 
   test("string parser 2a") {
     val s = "http://myserver/"
     val surl = SplitURL("http", "myserver", -1, "", null, null)
-    expect("http")(surl.scheme)
-    expect("myserver")(surl.host)
-    expect(None)(surl.port)
-    expect(Nil)(surl.pathSegments)
-    expect(None)(surl.fragment)
-    expect(None)(surl.query)
-    expect(s)(surl.toString)
+    assert("http" === surl.scheme)
+    assert("myserver" === surl.host)
+    assert(None === surl.port)
+    assert(Nil === surl.pathSegments)
+    assert(None === surl.fragment)
+    assert(None === surl.query)
+    assert(s === surl.toString)
   }
 
   test("string parser 2b") {
     val s = "http://myserver:8080/Addressing/URL/5_BNF.html?red=yes"
     val surl = SplitURL("http", "myserver", 8080, "/Addressing/URL/5_BNF.html", null, "red=yes")
-    expect("http")(surl.scheme)
-    expect("myserver")(surl.host)
-    expect(Some(8080))(surl.port)
-    expect(List("Addressing", "URL", "5_BNF.html"))(surl.pathSegments)
-    expect(None)(surl.fragment)
-    expect(Some("red=yes"))(surl.query)
-    expect(s)(surl.toString)
+    assert("http" === surl.scheme)
+    assert("myserver" === surl.host)
+    assert(Some(8080) === surl.port)
+    assert(List("Addressing", "URL", "5_BNF.html") === surl.pathSegments)
+    assert(None === surl.fragment)
+    assert(Some("red=yes") === surl.query)
+    assert(s === surl.toString)
   }
 
   test("convertToURL implicit converter") {
     val url = new URL("http://www.w3.org/")
     val surl = SplitURL(url)
     val url2: URL = surl
-    expect(url)(url2)
+    assert(url === url2)
   }
 
   test("convertFromURL implicit converter") {
     val url = new URL("http://www.w3.org/")
     val surl: SplitURL = url
-    expect(url)(surl.asURL)
+    assert(url === surl.asURL)
   }
 
   test("convertFromString implicit converter") {
     val url = "http://www.w3.org/"
     val surl: SplitURL = url
-    expect(url)(surl.toString)
+    assert(url === surl.toString)
   }
 
   test("withQuery augmentation") {
     val url = "http://www.w3.org/page"
     val surl = SplitURL(url)
-    expect(url + "?a=hello+world&b=a%40b.com")(surl.withQuery(Map("a" -> "hello world", "b" -> "a@b.com")).toString)
-    expect(url)(surl.withQuery(Map()).toString)
+    assert(url + "?a=hello+world&b=a%40b.com" === surl.withQuery(Map("a" -> "hello world", "b" -> "a@b.com")).toString)
+    assert(url === surl.withQuery(Map()).toString)
   }
 }

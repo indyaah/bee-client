@@ -122,8 +122,8 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     verifyHeaders (1)
     verifyNoMoreInteractions (httpURLConnection)
 
-    expect (TEXT_PLAIN)(response.body.contentType)
-    expect (expectedContent)(response.body.toString)
+    assert (TEXT_PLAIN === response.body.contentType)
+    assert (expectedContent === response.body.toString)
   }
 
 
@@ -165,16 +165,16 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
     verifyHeaders (1)
     verifyNoMoreInteractions (httpURLConnection)
 
-    expect (TEXT_PLAIN)(response.body.contentType)
-    expect (expectedContent)(response.body.toString)
+    assert (TEXT_PLAIN === response.body.contentType)
+    assert (expectedContent === response.body.toString)
     baos.toString("UTF-8")
   }
 
 
   test ("mock methods with broadly default settings and with a body should confirm all interations") {
-    expect("foo=bar&a=z") (executeBasicSettingsWithBody("POST"))
-    expect("hello world") (executeBasicSettingsWithBody("PUT"))
-    expect("hello world") (executeBasicSettingsWithBody("OPTIONS"))
+    assert("foo=bar&a=z" === executeBasicSettingsWithBody("POST"))
+    assert("hello world" === executeBasicSettingsWithBody("PUT"))
+    assert("hello world" === executeBasicSettingsWithBody("OPTIONS"))
   }
 
 

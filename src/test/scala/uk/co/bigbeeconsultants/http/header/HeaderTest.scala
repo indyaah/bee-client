@@ -32,80 +32,80 @@ class HeaderTest extends FunSuite {
 
   test ("qualifier toString") {
     val q = NameVal ("a", Some("b"))
-    expect ("a=b")(q.toString)
+    assert ("a=b" === q.toString)
   }
 
 
   test ("value toString") {
-    expect ("v")(Qualifiers ("v").toString)
+    assert ("v" === Qualifiers ("v").toString)
     val v1 = Qualifiers (List (NameVal("v", None), NameVal ("a", Some("b"))))
-    expect ("v;a=b")(v1.toString)
+    assert ("v;a=b" === v1.toString)
   }
 
 
   test ("simple") {
     val h = Header ("Accept-Ranges: bytes")
-    expect ("Accept-Ranges")(h.name)
-    expect ("bytes")(h.value)
-    expect ("Accept-Ranges: bytes")(h.toString)
+    assert ("Accept-Ranges" === h.name)
+    assert ("bytes" === h.value)
+    assert ("Accept-Ranges: bytes" === h.toString)
     //Allow: GET, HEAD, PUT
   }
 
 
   test ("value toInt") {
     val h = Header ("Content-Length: 123")
-    expect ("Content-Length")(h.name)
-    expect (123)(h.toNumber.toInt)
+    assert ("Content-Length" === h.name)
+    assert (123 === h.toNumber.toInt)
   }
 
 
   test ("value toLong") {
     val h = Header ("Content-Length: 123")
-    expect ("Content-Length")(h.name)
-    expect (123)(h.toNumber.toLong)
+    assert ("Content-Length" === h.name)
+    assert (123 === h.toNumber.toLong)
   }
 
 
   test ("simple list") {
     val h = Header ("Allow: GET, POST, PUT")
     val v = h.toQualifiedValue
-    expect ("Allow")(h.name)
-    expect (3)(v.parts.size)
-    expect ("GET")(v.parts (0).value)
-    expect ("Allow: GET, POST, PUT")(h.toString)
-    expect ("GET, POST, PUT")(v.toString)
+    assert ("Allow" === h.name)
+    assert (3 === v.parts.size)
+    assert ("GET" === v.parts (0).value)
+    assert ("Allow: GET, POST, PUT" === h.toString)
+    assert ("GET, POST, PUT" === v.toString)
   }
 
 
   test ("oneQ") {
     val h = Header ("Accept: audio/*;q=0.2, audio/basic")
     val v = h.toQualifiedValue
-    expect ("Accept")(h.name)
-    expect (2)(v.parts.size)
-    expect ("audio/*")(v.parts (0).value)
-    expect ("q")(v.parts (0).qualifiers (1).name)
-    expect ("0.2")(v.parts (0).qualifiers (1).value.get)
-    expect ("audio/basic")(v.parts (1).value)
-    expect ("Accept: audio/*;q=0.2, audio/basic")(h.toString)
-    expect ("audio/*;q=0.2, audio/basic")(v.toString)
+    assert ("Accept" === h.name)
+    assert (2 === v.parts.size)
+    assert ("audio/*" === v.parts (0).value)
+    assert ("q" === v.parts (0).qualifiers (1).name)
+    assert ("0.2" === v.parts (0).qualifiers (1).value.get)
+    assert ("audio/basic" === v.parts (1).value)
+    assert ("Accept: audio/*;q=0.2, audio/basic" === h.toString)
+    assert ("audio/*;q=0.2, audio/basic" === v.toString)
   }
 
 
   test ("range") {
     val h = Header ("Accept-Ranges: bytes=500-599,700-799")
     val v = h.toRangeValue
-    expect ("Accept-Ranges")(h.name)
-    expect (2)(v.parts.size)
-    expect ("Accept-Ranges: bytes=500-599,700-799")(h.toString)
-    expect ("bytes=500-599,700-799")(v.toString)
+    assert ("Accept-Ranges" === h.name)
+    assert (2 === v.parts.size)
+    assert ("Accept-Ranges: bytes=500-599,700-799" === h.toString)
+    assert ("bytes=500-599,700-799" === v.toString)
   }
 
 
   test ("date") {
     val time = DatatypeConverter.parseDateTime ("1994-11-06T08:49:37Z").getTime
     val h = Header ("Date: Sun, 06 Nov 1994 08:49:37 GMT")
-    expect ("Date")(h.name)
-    expect (time)(h.toDate.date.date)
+    assert ("Date" === h.name)
+    assert (time === h.toDate.date.date)
   }
 
 }

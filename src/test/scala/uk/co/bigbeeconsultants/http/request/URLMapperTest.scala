@@ -36,23 +36,23 @@ class URLMapperTest extends FunSuite {
 
   test("DefaultURLMapper.mapToDownstream") {
     val m = new DefaultURLMapper(upstreamBase, downstreamBase)
-    expect(downstreamStr + "/hello/world#at?red=1")(m.mapToDownstream(upstreamStr + "/hello/world#at?red=1").toString)
+    assert(downstreamStr + "/hello/world#at?red=1" === m.mapToDownstream(upstreamStr + "/hello/world#at?red=1").toString)
   }
 
   test("DefaultURLMapper.mapToUpstream") {
     val m = new DefaultURLMapper(upstreamBase, downstreamBase)
-    expect(upstreamStr + "/hello/world#at?red=1")(m.mapToUpstream(downstreamStr + "/hello/world#at?red=1").toString)
+    assert(upstreamStr + "/hello/world#at?red=1" === m.mapToUpstream(downstreamStr + "/hello/world#at?red=1").toString)
   }
 
   test("DefaultURLMapper.rewriteRequest") {
     val m = new DefaultURLMapper(upstreamBase, downstreamBase)
-    expect("first href='http://localhost/a/b/c' and second href='http://localhost/a/b/c/foo' too")(
+    assert("first href='http://localhost/a/b/c' and second href='http://localhost/a/b/c/foo' too" ===
       m.rewriteRequest("first href='http://wombat/zzz' and second href='http://wombat/zzz/foo' too"))
   }
 
   test("DefaultURLMapper.rewriteResponse") {
     val m = new DefaultURLMapper(upstreamBase, downstreamBase)
-    expect("first href='http://wombat/zzz' and second href='http://wombat/zzz/foo' too")(
+    assert("first href='http://wombat/zzz' and second href='http://wombat/zzz/foo' too" ===
       m.rewriteResponse("first href='http://localhost/a/b/c' and second href='http://localhost/a/b/c/foo' too"))
   }
 

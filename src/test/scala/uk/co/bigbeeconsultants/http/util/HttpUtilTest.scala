@@ -30,47 +30,47 @@ import org.scalatest.FunSuite
 class HttpUtilTest extends FunSuite {
 
   test("split_blank") {
-    expect(List(""))(HttpUtil.split("", ':'))
+    assert(List("") === HttpUtil.split("", ':'))
   }
 
   test("split_sepOnly") {
-    expect(List("", ""))(HttpUtil.split(":", ':'))
+    assert(List("", "") === HttpUtil.split(":", ':'))
   }
 
   test("split_oneOnly") {
-    expect(List("only"))(HttpUtil.split("only", ':'))
+    assert(List("only") === HttpUtil.split("only", ':'))
   }
 
   test("split_endOnly") {
-    expect(List("only", ""))(HttpUtil.split("only:", ':'))
+    assert(List("only", "") === HttpUtil.split("only:", ':'))
   }
 
   test("split_startOnly") {
-    expect(List("", "only"))(HttpUtil.split(":only", ':'))
+    assert(List("", "only") === HttpUtil.split(":only", ':'))
   }
 
   test("split_three") {
-    expect(List("one", "two", "three"))(HttpUtil.split("one:two:three", ':'))
+    assert(List("one", "two", "three") === HttpUtil.split("one:two:three", ':'))
   }
 
   test("divide0") {
-    expect(("", ""))(HttpUtil.divide("", ':'))
+    assert(("", "") === HttpUtil.divide("", ':'))
   }
 
   test("divide1") {
-    expect(("xyz", ""))(HttpUtil.divide("xyz", ':'))
+    assert(("xyz", "") === HttpUtil.divide("xyz", ':'))
   }
 
   test("divide2") {
-    expect(("aa", "bb:cc"))(HttpUtil.divide("aa:bb:cc", ':'))
+    assert(("aa", "bb:cc") === HttpUtil.divide("aa:bb:cc", ':'))
   }
 
   test("copy no content") {
     val baos = new ByteArrayOutputStream
     val count = HttpUtil.copyBytes(null, baos)
     val result = new String(baos.toByteArray)
-    expect(0)(count)
-    expect("")(result)
+    assert(0 === count)
+    assert("" === result)
   }
 
   test("copyBytesShort") {
@@ -80,8 +80,8 @@ class HttpUtilTest extends FunSuite {
     val baos = new ByteArrayOutputStream
     val count = HttpUtil.copyBytes(bais, baos)
     val result = new String(baos.toByteArray)
-    expect(bytes.length)(count)
-    expect(str)(result)
+    assert(bytes.length === count)
+    assert(str === result)
   }
 
   test("copyBytesLong") {
@@ -93,8 +93,8 @@ class HttpUtilTest extends FunSuite {
     val baos = new ByteArrayOutputStream
     val count = HttpUtil.copyBytes(bais, baos)
     val result = new String(baos.toByteArray)
-    expect(bytes.length)(count)
-    expect(str)(result)
+    assert(bytes.length === count)
+    assert(str === result)
   }
 
   test("copyText") {
@@ -106,14 +106,14 @@ class HttpUtilTest extends FunSuite {
     val baos = new ByteArrayOutputStream
     HttpUtil.copyText(bais, baos)
     val result = new String(baos.toByteArray)
-    expect(str)(result)
+    assert(str === result)
   }
 
   test("copyText with null input stream") {
     val baos = new ByteArrayOutputStream
     HttpUtil.copyText(null, baos)
     val result = new String(baos.toByteArray)
-    expect("")(result)
+    assert("" === result)
   }
 
   test("copyText with null output stream") {

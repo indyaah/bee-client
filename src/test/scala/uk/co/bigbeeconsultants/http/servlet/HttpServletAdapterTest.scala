@@ -43,7 +43,7 @@ class HttpServletAdapterTest extends FunSuite {
     req.contentType = MediaType.TEXT_PLAIN.value
 
     val adapterUrl = new HttpServletRequestAdapter(req).url
-    expect(splitUrl)(adapterUrl)
+    assert(splitUrl === adapterUrl)
   }
 
   test("HttpServletRequestAdapter.requestBody") {
@@ -53,8 +53,8 @@ class HttpServletAdapterTest extends FunSuite {
 
     val adapter = new HttpServletRequestAdapter(req)
 
-    expect(headers)(adapter.headers)
-    expect(MediaType.TEXT_PLAIN)(adapter.requestBody.mediaType)
+    assert(headers === adapter.headers)
+    assert(MediaType.TEXT_PLAIN === adapter.requestBody.mediaType)
   }
 
   test("HttpServletResponseAdapter setResponseHeaders") {

@@ -60,9 +60,9 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
     val response = http.get (new URL (baseUrl + url))
     server.verify ()
-    expect (APPLICATION_JSON)(response.body.contentType)
-    expect (APPLICATION_JSON.toString)(response.headers(CONTENT_TYPE).value)
-    expect (json)(response.body.toString)
+    assert (APPLICATION_JSON === response.body.contentType)
+    assert (APPLICATION_JSON.toString === response.headers(CONTENT_TYPE).value)
+    assert (json === response.body.toString)
   }
 
 
@@ -73,9 +73,9 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
     val response = http.get (new URL (baseUrl + url))
     server.verify ()
-    expect (APPLICATION_JSON)(response.body.contentType)
-    expect (APPLICATION_JSON.toString)(response.headers(CONTENT_TYPE).value)
-    expect ("")(response.body.asString)
+    assert (APPLICATION_JSON === response.body.contentType)
+    assert (APPLICATION_JSON.toString === response.headers(CONTENT_TYPE).value)
+    assert ("" === response.body.asString)
   }
 
 
@@ -89,14 +89,14 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     val response1 = http.get (new URL (baseUrl + url), Nil, CookieJar.empty)
     server.verify ()
     val jar1 = response1.cookies.get
-    expect (1)(jar1.size)
+    assert (1 === jar1.size)
 
     val stubbedMethod2 = stubbedMethod1.ifHeader (COOKIE.name, "foo=bar")
     server.expect (stubbedMethod2).thenReturn (200, APPLICATION_JSON, json)
     val response2 = http.get (new URL (baseUrl + url), Nil, jar1)
     server.verify ()
     val jar2 = response2.cookies.get
-    expect (jar1)(jar2)
+    assert (jar1 === jar2)
   }
 
 
@@ -109,10 +109,10 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     val response = http.get (new URL (baseUrl + url), Headers (List (ACCEPT_ENCODING -> "gzip")))
     server.verify ()
     val body = response.body
-    expect (TEXT_PLAIN)(body.contentType)
-    expect (loadsOfText)(body.toString)
+    assert (TEXT_PLAIN === body.contentType)
+    assert (loadsOfText === body.toString)
     val accEnc = stubbedMethod.requestHeaders.get ("Accept-Encoding")
-    expect ("gzip")(accEnc)
+    assert ("gzip" === accEnc)
   }
 
 
@@ -123,8 +123,8 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
     val response = http.head (new URL (baseUrl + url))
     server.verify ()
-    expect (TEXT_HTML)(response.body.contentType)
-    expect ("")(response.body.asString)
+    assert (TEXT_HTML === response.body.contentType)
+    assert ("" === response.body.asString)
   }
 
 
@@ -140,8 +140,8 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     val before = System.currentTimeMillis ()
     for (i <- 1 to n) {
       val response = http.get (new URL (baseUrl + url + i))
-      expect (APPLICATION_JSON)(response.body.contentType)
-      expect (json)(response.body.toString)
+      assert (APPLICATION_JSON === response.body.contentType)
+      assert (json === response.body.toString)
     }
     val after = System.currentTimeMillis ()
     server.verify ()
@@ -158,8 +158,8 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
     val response = http.put (new URL (baseUrl + url), request.RequestBody (jsonReq, APPLICATION_JSON))
     server.verify ()
-    expect (APPLICATION_JSON)(response.body.contentType)
-    expect (jsonRes)(response.body.toString)
+    assert (APPLICATION_JSON === response.body.contentType)
+    assert (jsonRes === response.body.toString)
   }
 
 
@@ -171,8 +171,8 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
     val response = http.post (new URL (baseUrl + url), Some(request.RequestBody (Map ("a" -> "b"), APPLICATION_JSON)))
     server.verify ()
-    expect (APPLICATION_JSON)(response.body.contentType)
-    expect (jsonRes)(response.body.toString)
+    assert (APPLICATION_JSON === response.body.contentType)
+    assert (jsonRes === response.body.toString)
   }
 
 
@@ -183,8 +183,8 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
     val response = http.post (new URL (baseUrl + url), Some(request.RequestBody (Map ("a" -> "b"), APPLICATION_JSON)))
     server.verify ()
-    expect (APPLICATION_JSON)(response.body.contentType)
-    expect ("")(response.body.asString)
+    assert (APPLICATION_JSON === response.body.contentType)
+    assert ("" === response.body.asString)
   }
 
 
@@ -195,8 +195,8 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
     val response = http.put (new URL (baseUrl + url), request.RequestBody (Map ("a" -> "b"), APPLICATION_JSON))
     server.verify ()
-    expect (APPLICATION_OCTET_STREAM)(response.body.contentType)
-    expect (false)(response.body.isTextual)
+    assert (APPLICATION_OCTET_STREAM === response.body.contentType)
+    assert (false === response.body.isTextual)
   }
 
 
@@ -207,14 +207,14 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
     val response = http.delete (new URL (baseUrl + url))
     server.verify ()
-    expect (APPLICATION_JSON)(response.body.contentType)
-    expect ("")(response.body.asString)
+    assert (APPLICATION_JSON === response.body.contentType)
+    assert ("" === response.body.asString)
   }
 
 
   test ("confirm empty buffer is immutable") {
     val emptyBuffer = ByteBuffer.allocateDirect (0)
-    expect (0)(emptyBuffer.capacity ())
+    assert (0 === emptyBuffer.capacity ())
     try {
       emptyBuffer.get ()
       fail ()
@@ -243,10 +243,10 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
       val stubbedMethod = StubMethod.get (url)
       server.expect (stubbedMethod).thenReturn (200, IMAGE_JPG, jpgBytes)
       val response = http.get (new URL (baseUrl + url))
-      expect (200)(response.status.code)
-      expect (IMAGE_JPG)(response.body.contentType)
+      assert (200 === response.status.code)
+      assert (IMAGE_JPG === response.body.contentType)
       val bytes = response.body.asBytes
-      expect (size)(bytes.length)
+      assert (size === bytes.length)
       server.verify ()
       server.clearExpectations ()
     }
@@ -267,7 +267,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
     //    if (CleanupThread.isRunning) {
     //      HttpClient.terminate()
-    //      expect(false, "Expect that cleanup thread has been successully shut down") (CleanupThread.isRunning)
+    //      assert(false, "Expect that cleanup thread has been successully shut down") (CleanupThread.isRunning)
     //    }
   }
 

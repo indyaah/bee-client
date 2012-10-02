@@ -30,63 +30,63 @@ class RangeValueTest extends FunSuite {
 
 
   test ("Range construction and toString") {
-    expect ("")(Range ("").toString)
-    expect ("123-")(Range ("123").toString)
-    expect ("123-")(Range ("123-").toString)
-    expect ("-123")(Range ("-123").toString)
+    assert ("" === Range ("").toString)
+    assert ("123-" === Range ("123").toString)
+    assert ("123-" === Range ("123-").toString)
+    assert ("-123" === Range ("-123").toString)
   }
 
 
   test ("Range isValid") {
-    expect (true)(Range ("0-499").isValid)
-    expect (true)(Range ("0-").isValid)
-    expect (true)(Range ("100-").isValid)
-    expect (true)(Range ("-499").isValid)
-    expect (false)(Range ("").isValid)
-    expect (false)(Range ("200-100").isValid)
+    assert (true === Range ("0-499").isValid)
+    assert (true === Range ("0-").isValid)
+    assert (true === Range ("100-").isValid)
+    assert (true === Range ("-499").isValid)
+    assert (false === Range ("").isValid)
+    assert (false === Range ("200-100").isValid)
   }
 
 
   test ("Range of") {
-    expect ((0, 500))(Range ("0-499").of(10000))
-    expect ((500, 500))(Range ("500-999").of(10000))
-    expect ((9500, 500))(Range ("-500").of(10000))
-    expect ((9500, 500))(Range ("9500-").of(10000))
-    expect ((0, 1))(Range ("0-0").of(10000))
-    expect ((9999, 1))(Range ("-1").of(10000))
+    assert ((0, 500) === Range ("0-499").of(10000))
+    assert ((500, 500) === Range ("500-999").of(10000))
+    assert ((9500, 500) === Range ("-500").of(10000))
+    assert ((9500, 500) === Range ("9500-").of(10000))
+    assert ((0, 1) === Range ("0-0").of(10000))
+    assert ((9999, 1) === Range ("-1").of(10000))
   }
 
 
   test ("RangeValue 1") {
     val r = RangeValue("bytes=0-499")
-    expect (true)(r.isValid)
-    expect ("bytes=0-499")(r.toString)
-    expect ((0, 500))(r(0).left.get.of(10000))
+    assert (true === r.isValid)
+    assert ("bytes=0-499" === r.toString)
+    assert ((0, 500) === r(0).left.get.of(10000))
   }
 
   test ("RangeValue 2") {
     val r = RangeValue("bytes=500-599,700-799")
-    expect (true)(r.isValid)
-    expect ("bytes=500-599,700-799")(r.toString)
-    expect ((500, 100))(r(0).left.get.of(10000))
-    expect ((700, 100))(r(1).left.get.of(10000))
+    assert (true === r.isValid)
+    assert ("bytes=500-599,700-799" === r.toString)
+    assert ((500, 100) === r(0).left.get.of(10000))
+    assert ((700, 100) === r(1).left.get.of(10000))
   }
 
   test ("RangeValue bytes") {
     val r = RangeValue("bytes")
-    expect (true)(r.isValid)
-    expect ("bytes")(r.toString)
+    assert (true === r.isValid)
+    assert ("bytes" === r.toString)
   }
 
   test ("RangeValue none") {
     val r = RangeValue("none")
-    expect (true)(r.isValid)
-    expect ("none")(r.toString)
+    assert (true === r.isValid)
+    assert ("none" === r.toString)
   }
 
   test ("RangeValue invalid") {
     val r = RangeValue("invalid")
-    expect (false)(r.isValid)
-    expect ("invalid")(r.toString)
+    assert (false === r.isValid)
+    assert ("invalid" === r.toString)
   }
 }

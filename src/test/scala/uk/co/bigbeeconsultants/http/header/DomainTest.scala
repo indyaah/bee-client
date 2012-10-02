@@ -79,9 +79,9 @@ class DomainTest extends FunSuite {
 
   test("domain parent") {
     val d = Domain("www.members.w3.org")
-    expect("www.members.w3.org")(d.domain)
-    expect("members.w3.org")(d.parent.get.domain)
-    expect("w3.org")(d.parent.get.parent.get.domain)
+    assert("www.members.w3.org" === d.domain)
+    assert("members.w3.org" === d.parent.get.domain)
+    assert("w3.org" === d.parent.get.parent.get.domain)
     assert(!d.parent.get.parent.get.parent.isDefined)
   }
 
