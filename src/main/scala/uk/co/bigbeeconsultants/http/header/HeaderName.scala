@@ -51,6 +51,8 @@ sealed trait GeneralHeaderName {
   val WARNING = HeaderName ("Warning") // String value (in ISO8859-1)
 }
 
+object GeneralHeaderName extends GeneralHeaderName
+
 /** Header names used only for requests. */
 sealed trait RequestHeaderName {
   val ACCEPT = HeaderName ("Accept") // QualifiedValue
@@ -76,6 +78,8 @@ sealed trait RequestHeaderName {
   val USER_AGENT = HeaderName ("User-Agent") // String
 }
 
+object RequestHeaderName extends RequestHeaderName
+
 /** Header names used only for responses. */
 sealed trait ResponseHeaderName {
   val AGE = HeaderName ("Age") // Int
@@ -90,6 +94,8 @@ sealed trait ResponseHeaderName {
   val WWW_AUTHENTICATE = HeaderName ("WWW-Authenticate") // ListValue
 }
 
+object ResponseHeaderName extends ResponseHeaderName
+
 /** Header names used only for entity metadata. */
 sealed trait EntityHeaderName {
   val ALLOW = HeaderName ("Allow") // ListValue
@@ -103,6 +109,8 @@ sealed trait EntityHeaderName {
   val EXPIRES = HeaderName ("Expires") // HttpDateTimeInstant
   val LAST_MODIFIED = HeaderName ("Last-Modified") // HttpDateTimeInstant
 }
+
+object EntityHeaderName extends EntityHeaderName
 
 /**
  * Provides the header names in RFC2616 (inter alia) using the canonical capitalisation. These values are

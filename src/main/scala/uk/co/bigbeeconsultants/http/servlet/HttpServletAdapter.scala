@@ -26,6 +26,7 @@ package uk.co.bigbeeconsultants.http.servlet
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import uk.co.bigbeeconsultants.http.header.{CookieJar, MediaType, Header, Headers}
+import uk.co.bigbeeconsultants.http.header.ResponseHeaderName._
 import java.io.InputStream
 import uk.co.bigbeeconsultants.http.response.{Status, ResponseBuilder}
 import uk.co.bigbeeconsultants.http.util.HttpUtil
@@ -78,7 +79,10 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
 
   def setResponseHeaders(headers: Headers) {
     for (header <- headers.list) {
-      resp.setHeader(header.name, header.value)
+      if (header.name == LOCATION.name)
+        resp.setHeader(header.name, rewrite(header.value))
+      else
+        resp.setHeader(header.name, header.value)
     }
   }
 
