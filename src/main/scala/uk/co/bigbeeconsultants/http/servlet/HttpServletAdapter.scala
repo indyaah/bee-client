@@ -79,10 +79,8 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
 
   def setResponseHeaders(headers: Headers) {
     for (header <- headers.list) {
-      if (header.name == LOCATION.name)
-        resp.setHeader(header.name, rewrite(header.value))
-      else
-        resp.setHeader(header.name, header.value)
+      val value = if (header.name == LOCATION.name) rewrite(header.value) else header.value
+      resp.setHeader(header.name, value)
     }
   }
 
@@ -96,7 +94,7 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
 
       resp.setStatus(status.code, status.message)
 
-      setResponseHeaders(headers.list)
+      setResponseHeaders(headers)
 
       if (mediaType.isDefined && condition(mediaType.get)) {
         HttpUtil.copyText(inputStream, resp.getOutputStream, mediaType.get.charsetOrUTF8, rewrite)
