@@ -162,5 +162,6 @@ class SplitURLTest extends FunSuite {
     val url = "http://www.w3.org/page"
     val surl = SplitURL(url)
     expect(url + "?a=hello+world&b=a%40b.com")(surl.withQuery(Map("a" -> "hello world", "b" -> "a@b.com")).toString)
+    expect(url)(surl.withQuery(Map()).toString)
   }
 }

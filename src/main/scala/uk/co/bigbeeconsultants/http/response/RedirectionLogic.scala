@@ -83,7 +83,7 @@ private[http] object RedirectionLogic {
     val loc = if (location.startsWith("http://") || location.startsWith("https://")) {
       location
     } else {
-      request.split.scheme + "://" + request.split.hostAndPort + location
+      request.split.scheme.get + "://" + request.split.hostAndPort.get + location
     }
     new URL(loc)
   }

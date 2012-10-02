@@ -32,7 +32,7 @@ import uk.co.bigbeeconsultants.http.header.MediaType
 import uk.co.bigbeeconsultants.http.header.MediaType._
 import uk.co.bigbeeconsultants.http.util.HttpUtil
 import uk.co.bigbeeconsultants.http.HttpClient
-import uk.co.bigbeeconsultants.http.request.SplitURL
+import uk.co.bigbeeconsultants.http.url.PartialURL
 
 /**
  * Provides a body implementation that copies the whole response from the response input stream into a ByteBuffer.
@@ -44,7 +44,7 @@ import uk.co.bigbeeconsultants.http.request.SplitURL
  *
  * Take care because the memory footprint will be large when dealing with large volumes of response data.
  */
-final class ByteBufferResponseBody(getUrl: Option[URL],
+final class ByteBufferResponseBody(requestUrl: Option[URL],
                                    optionalContentType: Option[MediaType],
                                    inputStream: InputStream,
                                    suppliedContentLength: Int = 0x10000) extends ResponseBody {
@@ -69,7 +69,7 @@ final class ByteBufferResponseBody(getUrl: Option[URL],
 
   // edge case for undefined content type
   private def guessMediaTypeFromContent: MediaType = {
-    val extension = getUrl.flatMap(SplitURL(_).extension)
+    val extension = requestUrl.flatMap(PartialURL(_).extension)
     if (extension.isDefined) {
       MimeTypeRegistry.table.get(extension.get).getOrElse(guessMediaTypeFromBodyData)
     } else {

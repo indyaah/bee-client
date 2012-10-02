@@ -30,7 +30,8 @@ import uk.co.bigbeeconsultants.http.header.ResponseHeaderName._
 import java.io.InputStream
 import uk.co.bigbeeconsultants.http.response.{Status, ResponseBuilder}
 import uk.co.bigbeeconsultants.http.util.HttpUtil
-import uk.co.bigbeeconsultants.http.request.{SplitURL, Request, RequestBody}
+import uk.co.bigbeeconsultants.http.request.{Request, RequestBody}
+import uk.co.bigbeeconsultants.http.url.{Path, PartialURL}
 
 /**
  * Adapts HTTP Servlet request objects to the Light Http Client API. This allows a variety of solutions such as
@@ -38,8 +39,10 @@ import uk.co.bigbeeconsultants.http.request.{SplitURL, Request, RequestBody}
  */
 class HttpServletRequestAdapter(req: HttpServletRequest) {
 
-  def url: SplitURL = {
-    SplitURL(req.getScheme, req.getServerName, req.getServerPort, req.getRequestURI, null, req.getQueryString)
+  def url: PartialURL = {
+    val port = if (req.getServerPort < 0) None else Some(req.getServerPort)
+    new PartialURL(Option(req.getScheme), Option(req.getServerName), port,
+      Path(req.getRequestURI), None, Option(req.getQueryString))
   }
 
   def headers: Headers = {

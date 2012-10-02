@@ -22,16 +22,28 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http.url
 
-version := "0.14.0"
+import org.scalatest.FunSuite
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+class PathTest extends FunSuite {
 
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
+  test("parse") {
+    expect(Path(false, Nil))(Path.empty)
+    expect(Path(false, Nil))(Path(""))
+    expect(Path(true, Nil))(Path("/"))
+    expect(Path(true, List("a")))(Path("/a"))
+    expect(Path(true, List("a")))(Path("a"))
+    expect(Path(true, List("a", "b")))(Path("/a/b"))
+    expect(Path(true, List("a", "b")))(Path("a/b"))
+  }
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+  test("toString") {
+    expect("")(Path.empty.toString)
+    expect("")(Path("").toString)
+    expect("/")(Path("/").toString)
+    expect("a")(Path("a").toString)
+    expect("/a/b")(Path("/a/b").toString)
+    expect("a/b")(Path("a/b").toString)
+  }
+}

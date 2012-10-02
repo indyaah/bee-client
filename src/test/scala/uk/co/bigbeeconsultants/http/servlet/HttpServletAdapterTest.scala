@@ -28,21 +28,22 @@ import org.scalatest.FunSuite
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.header.{MediaType, Headers}
 import java.{util => ju}
-import uk.co.bigbeeconsultants.http.request.SplitURL
 import org.mockito.Mockito._
 import javax.servlet.http.HttpServletResponse
 import uk.co.bigbeeconsultants.http.util.StubHttpServletRequest
+import uk.co.bigbeeconsultants.http.url.{Path, PartialURL}
 
 class HttpServletAdapterTest extends FunSuite {
 
   test("HttpServletRequestAdapter.url") {
 
-    val splitUrl = SplitURL("http", "localhost", -1, "/context/x/y/z", null, "a=1")
+    val splitUrl = PartialURL(Some("http"), Some("localhost"), None, Path("/context/x/y/z"), None, Some("a=1"))
+    val s = splitUrl.toString
     val req = new StubHttpServletRequest().copyFrom(splitUrl)
     req.contentType = MediaType.TEXT_PLAIN.value
 
-    val adapter = new HttpServletRequestAdapter(req)
-    expect(splitUrl)(adapter.url)
+    val adapterUrl = new HttpServletRequestAdapter(req).url
+    expect(splitUrl)(adapterUrl)
   }
 
   test("HttpServletRequestAdapter.requestBody") {

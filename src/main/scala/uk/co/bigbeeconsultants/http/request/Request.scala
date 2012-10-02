@@ -26,6 +26,7 @@ package uk.co.bigbeeconsultants.http.request
 
 import java.net.URL
 import uk.co.bigbeeconsultants.http.header.{CookieJar, Header, Headers}
+import uk.co.bigbeeconsultants.http.url.PartialURL
 
 //TODO: need to support chunked streaming out of the request
 /**
@@ -42,7 +43,7 @@ final case class Request(method: String,
   require(headers != null, "Headers cannot be null.")
 
   /** Gets the URL split into its component parts. */
-  lazy val split = SplitURL(url)
+  lazy val split = PartialURL(url)
 
   /** Gets the request without any headers. */
   def withoutHeaders = this.copy(headers = Headers.empty)

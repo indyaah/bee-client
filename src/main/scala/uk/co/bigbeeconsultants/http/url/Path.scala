@@ -22,16 +22,31 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "lighthttpclient"
+package uk.co.bigbeeconsultants.http.url
 
-version := "0.14.0"
+case class Path(isAbsolute: Boolean = true,
+                segments: List[String] = Nil) extends Seq[String] {
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+  override def apply(idx: Int) = segments(idx)
 
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
+  override def iterator = segments.iterator
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+  override def length = segments.length
+
+  override def toList = segments
+
+  override def toString: String =
+    if (isAbsolute) segments.mkString("/", "/", "")
+    else segments.mkString("/")
+}
+
+object Path {
+  val empty = new Path(false, Nil)
+
+  def apply(path: String) = {
+    if (path.isEmpty) empty
+    else if (path == "/") new Path(true, Nil)
+    else if (path(0) == '/') new Path(true, List() ++ path.substring(1).split("/"))
+    else new Path(false, List() ++ path.split("/"))
+  }
+}

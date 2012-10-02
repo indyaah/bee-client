@@ -26,11 +26,15 @@ package uk.co.bigbeeconsultants.http.request
 
 import java.net.{URLEncoder, URL}
 import uk.co.bigbeeconsultants.http.HttpClient
+import uk.co.bigbeeconsultants.http.url.{Path, PartialURL}
 
 /**
  * Provides a utility wrapper for URLs that splits them into their component parts and allows alteration and reassembly
- * with different components. Use the case-class 'copy' method to alter components.
+ * with different components. Instances are always URLs with valid syntax.
+ *
+ * Use the case-class 'copy' method to alter components.
  */
+@deprecated("PartialURL provides a more complete capability", "v0.14.0")
 case class SplitURL(scheme: String,
                     host: String,
                     port: Option[Int] = None,
@@ -40,18 +44,33 @@ case class SplitURL(scheme: String,
 
   import SplitURL._
 
+  /** Converts this instance to a java.net.URL. */
   def asURL: URL =
     if (fragment.isEmpty && query.isEmpty)
       new URL(scheme, host, port.getOrElse(-1), path)
     else
       new URL(toString)
 
+  /** Converts this instance to a [[uk.co.bigbeeconsultants.http.url.PartialURL]]. */
+  def asPartialURL: PartialURL =
+    new PartialURL(Some(scheme), Some(host), port, new Path(true, pathSegments), fragment, query)
+
+  /**
+   * Gets the host and port parts as a string.
+   * E.g. "localhost:8080"
+   */
   def hostAndPort: String = host + port.map(":" + _.toString).getOrElse("")
 
+  /**
+   * Gets the path segments in the common slash-separated form.
+   * E.g. "/top/second/third"
+   */
   def path: String = pathSegments.mkString("/", "/", "")
 
+  /** Gets the last path segment, if any. */
   def file: Option[String] = if (pathSegments.isEmpty) None else Some(pathSegments.last)
 
+  /** Gets the extension of the last path segment, if any. */
   def extension: Option[String] = {
     val f = file
     if (f.isEmpty) None
@@ -61,16 +80,20 @@ case class SplitURL(scheme: String,
     }
   }
 
+  /** Gets the path concatenated with the fragment identifier (if any) and the query parameters (if any). */
   def pathString: String = path + fragment.map("#" + _).getOrElse("") + query.map("?" + _).getOrElse("")
 
   override def toString = scheme + DoubleSlash + hostAndPort + pathString
 
+  /** Creates a new instance, replacing any query string with a new one formed from a map of key/values pairs. */
   def withQuery(params: Map[String, String]) = {
-    copy(query = Some(SplitURL.assembleQueryString(params)))
+    val newValue = if (params.isEmpty) None else Some(SplitURL.assembleQueryString(params))
+    copy(query = newValue)
   }
 }
 
 
+@deprecated("PartialURL provides a more complete capability", "v0.14.0")
 object SplitURL {
   /** The string "://", which is the top of Tim Berners-Lee's regrets. Alas. */
   val DoubleSlash = "://"

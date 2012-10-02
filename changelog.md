@@ -1,3 +1,8 @@
+#### Thu, 27 Sep 2012
+* v0.13.4
+* Documentation changes.
+
+
 #### Tue, 18 Sep 2012
 * v0.13.4
 * New script for generating the changelog.
