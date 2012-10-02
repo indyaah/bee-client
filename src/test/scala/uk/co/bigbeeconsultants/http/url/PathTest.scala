@@ -28,22 +28,52 @@ import org.scalatest.FunSuite
 
 class PathTest extends FunSuite {
 
-  test("parse") {
-    expect(Path(false, Nil))(Path.empty)
-    expect(Path(false, Nil))(Path(""))
-    expect(Path(true, Nil))(Path("/"))
-    expect(Path(true, List("a")))(Path("/a"))
-    expect(Path(true, List("a")))(Path("a"))
-    expect(Path(true, List("a", "b")))(Path("/a/b"))
-    expect(Path(true, List("a", "b")))(Path("a/b"))
+  test("parse and equals") {
+    assert(Path(false, Nil) === Path.empty)
+    assert(Path(false, Nil) === Path(""))
+    assert(Path(true, Nil) === Path("/"))
+    assert(Path(true, List("a")) === Path("/a"))
+    assert(Path(false, List("a")) === Path("a"))
+    assert(Path(true, List("a", "b")) === Path("/a/b"))
+    assert(Path(false, List("a", "b")) === Path("a/b"))
   }
 
   test("toString") {
-    expect("")(Path.empty.toString)
-    expect("")(Path("").toString)
-    expect("/")(Path("/").toString)
-    expect("a")(Path("a").toString)
-    expect("/a/b")(Path("/a/b").toString)
-    expect("a/b")(Path("a/b").toString)
+    assert("" === Path.empty.toString)
+    assert("" === Path("").toString)
+    assert("/" === Path("/").toString)
+    assert("a" === Path("a").toString)
+    assert("/a/b" === Path("/a/b").toString)
+    assert("a/b" === Path("a/b").toString)
+  }
+
+  val abcdef = List("a", "b", "c", "d", "e", "f")
+
+  test("+ concatenation") {
+    assert(Path(true, abcdef) === Path("/a/b/c") + Path("d/e/f"))
+  }
+
+  test("/ concatenation") {
+    assert(Path(true, abcdef) === Path("/a/b/c") / "d" / "e" / "f")
+  }
+
+  test("init") {
+    assert(Path(true, abcdef.init) === Path("/a/b/c/d/e/f").init)
+    assert(Path(false, abcdef.init) === Path("a/b/c/d/e/f").init)
+  }
+
+  test("tail") {
+    assert(Path(false, abcdef.tail) === Path("/a/b/c/d/e/f").tail)
+    assert(Path(false, abcdef.tail) === Path("a/b/c/d/e/f").tail)
+  }
+
+  test("drop") {
+    assert(Path(false, abcdef.drop(3)) === Path("/a/b/c/d/e/f").drop(3))
+    assert(Path(false, abcdef.drop(3)) === Path("a/b/c/d/e/f").drop(3))
+  }
+
+  test("take") {
+    assert(Path(true, abcdef.take(3)) === Path("/a/b/c/d/e/f").take(3))
+    assert(Path(false, abcdef.take(3)) === Path("a/b/c/d/e/f").take(3))
   }
 }
