@@ -35,7 +35,7 @@ class CookieParserTest extends FunSuite {
   test("example 1") {
     val str = "SID=31d4d96e407aad42"
     val headers = HeaderName.SET_COOKIE -> (str)
-    val cookies = CookieJar.empty.gleanCookies(new URL("http://a.z.com/"), Headers(headers)).cookies
+    val cookies: List[Cookie] = CookieJar.empty.gleanCookies(new URL("http://a.z.com/"), Headers(headers))._1.get.cookies
     assert(1 === cookies.size)
     val cookie = cookies(0)
     assert(CookieParser.asSetHeader(cookie).startsWith(str))
@@ -57,7 +57,7 @@ class CookieParserTest extends FunSuite {
     val c3Str = "ccc3=f1=5; Path=/; Domain=z.com; Expires=Mon, 12 Sep 2022 11:21:33 GMT"
     val h1 = HeaderName.SET_COOKIE -> (c1Str + "\n" + c2Str + "\n" + c3Str)
 
-    val cookies = CookieJar.empty.gleanCookies(new URL("http://a.z.com/"), Headers(h1)).cookies
+    val cookies: List[Cookie] = CookieJar.empty.gleanCookies(new URL("http://a.z.com/"), Headers(h1))._1.get.cookies
     val c1 = cookies(2)
     val c2 = cookies(1)
     val c3 = cookies(0)

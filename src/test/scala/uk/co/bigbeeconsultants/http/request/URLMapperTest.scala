@@ -46,14 +46,14 @@ class URLMapperTest extends FunSuite {
 
   test("DefaultURLMapper.rewriteRequest") {
     val m = new DefaultURLMapper(upstreamBase, downstreamBase)
-    assert("first href='http://localhost/a/b/c' and second href='http://localhost/a/b/c/foo' too" ===
-      m.rewriteRequest("first href='http://wombat/zzz' and second href='http://wombat/zzz/foo' too"))
+    assert("first href='http://localhost/a/b/c/' and second href='http://localhost/a/b/c/foo/' too" ===
+      m.rewriteRequest("first href='http://wombat/zzz/' and second href='http://wombat/zzz/foo/' too"))
   }
 
   test("DefaultURLMapper.rewriteResponse") {
     val m = new DefaultURLMapper(upstreamBase, downstreamBase)
-    assert("first href='http://wombat/zzz' and second href='http://wombat/zzz/foo' too" ===
-      m.rewriteResponse("first href='http://localhost/a/b/c' and second href='http://localhost/a/b/c/foo' too"))
+    assert("first href='http://wombat/zzz/' and second href='http://wombat/zzz/foo/' too" ===
+      m.rewriteResponse("first href='http://localhost/a/b/c/' and second href='http://localhost/a/b/c/foo/' too"))
   }
 
 }

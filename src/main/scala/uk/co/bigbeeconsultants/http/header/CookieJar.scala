@@ -57,13 +57,16 @@ case class CookieJar(cookies: List[Cookie]) extends Iterable[CookieIdentity] {
    * means for updating a cookie jar after each request.
    * @return a new cookie jar containing the merged cookies.
    */
-  private[http] def gleanCookies(url: URL, headers: Headers): CookieJar = {
-    val setcookies = filterCookieHeaders(headers)
-    if (setcookies.isEmpty) this else CookieParser.updateCookies(this, url, setcookies)
+  private[http] def gleanCookies(url: URL, headers: Headers): (Option[CookieJar], Headers) = {
+    val (setcookies, others) = filterCookieHeaders(headers)
+    if (setcookies.isEmpty)
+      (Some(this), headers)
+    else
+      (Some(CookieParser.updateCookies(this, url, setcookies)), Headers(others))
   }
 
-  private def filterCookieHeaders(headers: Headers): List[Header] = {
-    headers.list.filter {
+  private def filterCookieHeaders(headers: Headers): (List[Header], List[Header]) = {
+    headers.list.partition {
       header => header.name == HeaderName.SET_COOKIE.name ||
         header.name == HeaderName.OBSOLETE_SET_COOKIE2.name
     }

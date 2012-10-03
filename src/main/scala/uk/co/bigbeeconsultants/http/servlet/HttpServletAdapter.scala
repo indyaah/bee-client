@@ -25,24 +25,30 @@
 package uk.co.bigbeeconsultants.http.servlet
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
-import uk.co.bigbeeconsultants.http.header.{CookieJar, MediaType, Header, Headers}
-import uk.co.bigbeeconsultants.http.header.ResponseHeaderName._
+import uk.co.bigbeeconsultants.http.header._
+import uk.co.bigbeeconsultants.http.header.HeaderName._
 import java.io.InputStream
 import uk.co.bigbeeconsultants.http.response.{Status, ResponseBuilder}
 import uk.co.bigbeeconsultants.http.util.HttpUtil
-import uk.co.bigbeeconsultants.http.request.{Request, RequestBody}
+import uk.co.bigbeeconsultants.http.request.{URLMapper, Request, RequestBody}
 import uk.co.bigbeeconsultants.http.url.{Path, PartialURL}
+import scala.Some
 
 /**
  * Adapts HTTP Servlet request objects to the Light Http Client API. This allows a variety of solutions such as
  * reverse proxying to be implemented easily.
  */
-class HttpServletRequestAdapter(req: HttpServletRequest) {
+class HttpServletRequestAdapter(req: HttpServletRequest,
+                                urlMapper: URLMapper = URLMapper.noop) {
 
-  def url: PartialURL = {
+  def requestURL: PartialURL = {
     val port = if (req.getServerPort < 0) None else Some(req.getServerPort)
     new PartialURL(Option(req.getScheme), Option(req.getServerName), port,
       Path(req.getRequestURI), None, Option(req.getQueryString))
+  }
+
+  def url: PartialURL = {
+    urlMapper.mapToDownstream(requestURL)
   }
 
   def headers: Headers = {
@@ -65,14 +71,14 @@ class HttpServletRequestAdapter(req: HttpServletRequest) {
  * Adapts HTTP Servlet response objects to the Light Http Client API. This allows a variety of solutions such as
  * reverse proxying to be implemented easily.
  * @param resp the response to be created
- * @param rewrite an optional mutation function that is applied to every line of the body content.
+ * @param urlMapper an optional mapper that is applied to every line of the body content.
  *                This is used only when the content is treated as text (see `condition`)
  * @param condition an optional condition that limits when the rewrite function will be used. By default,
  *                  any media type that returns `true` for `isTextual` will be processed as text and this
  *                  may imply transcoding. Otherwise the response body is processed as binary data.
  */
 class HttpServletResponseAdapter(resp: HttpServletResponse,
-                                 rewrite: (String) => String = (x) => x,
+                                 urlMapper: URLMapper = URLMapper.noop,
                                  condition: (MediaType) => Boolean = (mt) => mt.isTextual) extends ResponseBuilder {
 
   private[this] var _request: Request = _
@@ -82,8 +88,18 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
 
   def setResponseHeaders(headers: Headers) {
     for (header <- headers.list) {
-      val value = if (header.name == LOCATION.name) rewrite(header.value) else header.value
-      resp.setHeader(header.name, value)
+      header.name match {
+        case LOCATION.name => resp.setHeader(header.name, urlMapper.rewriteResponse(header.value))
+        case CONTENT_LENGTH.name => // do not keep because the size may change when URLs are fixed up
+        case _ => resp.setHeader(header.name, header.value)
+      }
+    }
+  }
+
+  def setResponseCookies(jar: CookieJar) {
+    for (cookie <- jar.cookies) {
+      val changedCookie = cookie.copy(path = urlMapper.rewriteResponse(cookie.path))
+      resp.addCookie(changedCookie.asServletCookie)
     }
   }
 
@@ -99,8 +115,12 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
 
       setResponseHeaders(headers)
 
+      if (cookies.isDefined) {
+        setResponseCookies(cookies.get)
+      }
+
       if (mediaType.isDefined && condition(mediaType.get)) {
-        HttpUtil.copyText(inputStream, resp.getOutputStream, mediaType.get.charsetOrUTF8, rewrite)
+        HttpUtil.copyText(inputStream, resp.getOutputStream, mediaType.get.charsetOrUTF8, urlMapper.rewriteResponse)
       }
       else {
         HttpUtil.copyBytes(inputStream, resp.getOutputStream)

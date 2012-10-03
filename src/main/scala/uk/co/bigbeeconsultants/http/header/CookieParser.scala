@@ -51,10 +51,9 @@ private[header] object CookieParser {
     var expires: Option[HttpDateTimeInstant] = None
     var domain: Domain = Domain(from.getHost)
     var hostOnly = true
-    var persistent = false
     var secure = false
     var httpOnly = false
-    var hasMaxAge = false
+    var maxAge: Option[Int] = None
 
     for (attr <- HttpUtil.split(line, ';')) {
 
@@ -80,14 +79,9 @@ private[header] object CookieParser {
           return None
       }
       else if (a.equalsIgnoreCase(MAX_AGE)) {
-        persistent = true
-        hasMaxAge = true
-        val seconds = v.toLong
-        val secDelta = if (seconds > 0) seconds else 0
-        expires = Some(now + secDelta)
+        maxAge = Some(v.toInt)
       }
-      else if (a.equalsIgnoreCase(EXPIRES) && !hasMaxAge) {
-        persistent = true
+      else if (a.equalsIgnoreCase(EXPIRES)) {
         expires = Some(HttpDateTimeInstant.parse(v))
       }
       else if (a.equalsIgnoreCase(PATH)) {
@@ -99,8 +93,10 @@ private[header] object CookieParser {
       path += "/"
     }
 
+    val persistent = maxAge.isDefined || expires.isDefined
+
     Some(Cookie(name, value, domain, path,
-      expires, now, persistent, hostOnly, secure, httpOnly, from.getProtocol))
+      maxAge, expires, now, persistent, hostOnly, secure, httpOnly, from.getProtocol))
   }
 
 

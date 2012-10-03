@@ -26,6 +26,8 @@ package uk.co.bigbeeconsultants.http.header
 
 import java.net.URL
 import org.scalatest.FunSuite
+import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
+import java.util.Date
 
 class CookieTest extends FunSuite {
 
@@ -79,5 +81,18 @@ class CookieTest extends FunSuite {
     assert(false === c2.willBeSentTo(httpUrl1))
     assert(true === c1.willBeSentTo(httpsUrl1))
     assert(false === c2.willBeSentTo(httpsUrl1))
+  }
+
+
+  test("conversion to servlet cookie") {
+    val now = new HttpDateTimeInstant
+    val now20 = new HttpDateTimeInstant(new Date(System.currentTimeMillis() + 20000))
+    val c = Cookie("n1", "v1", "www.w3.org", "/path/", Some(10), Some(now20), now, false, false, false, false, "http")
+    val s = c.asServletCookie
+    assert("n1" === s.getName)
+    assert("v1" === s.getValue)
+    assert("/path/" === s.getPath)
+    assert("www.w3.org" === s.getDomain)
+    assert(10 === s.getMaxAge)
   }
 }

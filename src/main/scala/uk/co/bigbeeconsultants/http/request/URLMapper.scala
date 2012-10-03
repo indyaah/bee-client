@@ -51,6 +51,23 @@ class URLMapper {
   def rewriteResponse(body: String): String = body
 }
 
+object URLMapper {
+  /** Singleton for no-op behaviour. */
+  val noop = new URLMapper
+}
+
+
+/**
+ * Provides newly constructed instances of [[uk.co.bigbeeconsultants.http.request.DefaultURLMapper]].
+ */
+class URLMapperFactory(upstreamCpLength: Int, downstreamBase: PartialURL) {
+  def getMapper(requestUrl: PartialURL): URLMapper = {
+    val upstreamBase = requestUrl.copy(path = requestUrl.path.take(upstreamCpLength), query = None, fragment = None)
+    new DefaultURLMapper(upstreamBase, downstreamBase)
+  }
+}
+
+
 /**
  * Extends [[uk.co.bigbeeconsultants.http.request.URLMapper]] to provide a convenient mapping from one URL
  * namespace to another.
@@ -59,10 +76,10 @@ class DefaultURLMapper(upstreamBase: PartialURL, downstreamBase: PartialURL) ext
   require(upstreamBase.isURL == downstreamBase.isURL,
     upstreamBase + " and " + downstreamBase + " : upstream and downstream sides must be compatible.")
 
-  private val downstreamBaseStr = downstreamBase.toString
-  private val downstreamPath = downstreamBase.path.toString
-  private val upstreamBaseStr = upstreamBase.toString
-  private val upstreamPath = upstreamBase.path.toString
+  private val downstreamBaseStr = downstreamBase.toString + '/'
+  private val downstreamPath = downstreamBase.path.toString + '/'
+  private val upstreamBaseStr = upstreamBase.toString + '/'
+  private val upstreamPath = upstreamBase.path.toString + '/'
 
   private val compiledDownstreamAbs = Pattern.compile(downstreamBaseStr)
   private val compiledDownstreamRel = Pattern.compile(downstreamPath)
@@ -87,7 +104,8 @@ class DefaultURLMapper(upstreamBase: PartialURL, downstreamBase: PartialURL) ext
 
   private def rewrite2(fromAbs: Pattern, fromRel: Pattern, toAbs: String, toRel: String, content: String): String = {
     val pass1 = if (upstreamBase.isURL) fromAbs.matcher(content).replaceAll(toAbs) else content
-    fromRel.matcher(pass1).replaceAll(toRel)
+    val pass2 = fromRel.matcher(pass1).replaceAll(toRel)
+    pass2
   }
 
   override def rewriteRequest(content: String): String = {

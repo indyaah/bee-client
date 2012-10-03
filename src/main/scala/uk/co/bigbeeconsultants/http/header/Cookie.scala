@@ -33,6 +33,7 @@ package uk.co.bigbeeconsultants.http.header
 // - IPv6 addresses - http://tools.ietf.org/html/rfc2732
 
 import java.net.URL
+import javax.servlet.http.{Cookie => ServletCookie}
 import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 
 /**
@@ -66,6 +67,7 @@ case class CookieKey(name: String,
    * Constructs a [[uk.co.bigbeeconsultants.http.header.Cookie]] by providing a value for this key.
    */
   def ->(value: String,
+         maxAge: Option[Int] = None,
          expires: Option[HttpDateTimeInstant] = None,
          creation: HttpDateTimeInstant = new HttpDateTimeInstant(),
          persistent: Boolean = false,
@@ -73,7 +75,7 @@ case class CookieKey(name: String,
          secure: Boolean = false,
          httpOnly: Boolean = false,
          serverProtocol: String = "http") =
-    new Cookie(name, value, domain, path, expires, creation, persistent, hostOnly,
+    new Cookie(name, value, domain, path, maxAge, expires, creation, persistent, hostOnly,
       secure, httpOnly, serverProtocol)
 }
 
@@ -85,6 +87,7 @@ case class Cookie(name: String,
                   value: String,
                   domain: Domain = Domain.localhost,
                   path: String = "/",
+                  maxAge: Option[Int] = None,
                   expires: Option[HttpDateTimeInstant] = None,
                   creation: HttpDateTimeInstant = new HttpDateTimeInstant(),
                   persistent: Boolean = false,
@@ -106,5 +109,15 @@ case class Cookie(name: String,
     val qDomain = domain matches url
     val qPath = path.isEmpty || url.getPath.startsWith(path)
     qSecure && qHttpOnly && qDomain && qPath
+  }
+
+  def asServletCookie: ServletCookie = {
+    val javaxCookie = new ServletCookie(name, value)
+    javaxCookie.setDomain(domain.domain)
+    javaxCookie.setPath(path)
+    javaxCookie.setSecure(secure)
+    if (maxAge.isDefined) javaxCookie.setMaxAge(maxAge.get)
+    javaxCookie.setVersion(1)
+    javaxCookie
   }
 }

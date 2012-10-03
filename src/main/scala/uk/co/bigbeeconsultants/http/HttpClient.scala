@@ -215,12 +215,16 @@ class HttpClient(val config: Config = Config(),
       copyRequestBodyToOutputStream(request, httpURLConnection)
 
       val status = Status(httpURLConnection.getResponseCode, httpURLConnection.getResponseMessage)
-      val responseHeaders = processResponseHeaders(httpURLConnection)
-      val responseCookies = request.cookies.map(_.gleanCookies(request.url, responseHeaders))
+      val allResponseHeaders = processResponseHeaders(httpURLConnection)
+      val (responseCookies, responseHeadersWithoutCookies) =
+        if (request.cookies.isDefined)
+          request.cookies.get.gleanCookies(request.url, allResponseHeaders)
+        else
+          (None, allResponseHeaders)
 
-      redirect = RedirectionLogic.determineRedirect(config, request, status, responseHeaders, responseCookies)
+      redirect = RedirectionLogic.determineRedirect(config, request, status, responseHeadersWithoutCookies, responseCookies)
       if (redirect.isEmpty) {
-        handleContent(httpURLConnection, request, status, responseHeaders, responseCookies, responseBuilder)
+        handleContent(httpURLConnection, request, status, responseHeadersWithoutCookies, responseCookies, responseBuilder)
       }
     } finally {
       httpURLConnection.disconnect()
