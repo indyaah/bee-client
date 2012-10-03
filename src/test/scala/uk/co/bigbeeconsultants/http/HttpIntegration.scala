@@ -34,6 +34,7 @@ import org.scalatest.{BeforeAndAfter, FunSuite}
 import java.net.{ConnectException, Proxy, URL}
 import java.io.File
 import scala.Some
+import util.DumbTrustManager
 
 object HttpIntegration {
 
@@ -49,7 +50,7 @@ object HttpIntegration {
   val testImageFile = "B.png"
   val testPhotoFile = "plataria-sunset.jpg"
 
-  val serverUrl = "http://localhost/lighthttpclient/"
+  val serverUrl = "//localhost/lighthttpclient/"
 
   //  val proxyAddress = new InetSocketAddress("localhost", 8888)
   //  val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
@@ -127,6 +128,7 @@ object HttpIntegration {
 class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   import HttpIntegration._
+  DumbTrustManager.install()
 
   private val jsonSample = """{ "x": 1, "y": true }"""
   private val jsonBody = RequestBody(jsonSample, APPLICATION_JSON)
@@ -144,18 +146,24 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   test("html text/html head x100") {
     for (i <- 1 to 100) {
-      headTest(http, serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
+      headTest(http, "http:" + serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
+      headTest(http, "https:" + serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
     }
   }
 
   test("html text/html get x100") {
     for (i <- 1 to 100) {
-      htmlGet(http, serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
+      htmlGet(http, "http:" + serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
+      htmlGet(http, "https:" + serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
     }
   }
 
   test("html text/html get giving 204 x100") {
-    val url = serverUrl + test204File
+    textHtmlGet204("http:" + serverUrl + test204File)
+//    textHtmlGet204("https:" + serverUrl + test204File)
+  }
+
+  private def textHtmlGet204(url: String) {
     try {
       val response = http.get(new URL(url), gzipHeaders)
       assert(204 === response.status.code, url)
@@ -170,7 +178,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("image/png get x1") {
-    val url = serverUrl + testImageFile
+    imagePngGet("http:" + serverUrl + testImageFile)
+    imagePngGet("https:" + serverUrl + testImageFile)
+  }
+
+  private def imagePngGet(url: String) {
     try {
       val response = http.get(new URL(url), gzipHeaders)
       assert(200 === response.status.code)
@@ -187,7 +199,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("txt text/plain get x1") {
-    val url = serverUrl + testTxtFile
+    textPlainGet("http:" + serverUrl + testTxtFile)
+    textPlainGet("https:" + serverUrl + testTxtFile)
+  }
+
+  private def textPlainGet(url: String) {
     try {
       val response = http.get(new URL(url), gzipHeaders)
       assert(200 === response.status.code)
@@ -201,7 +217,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("txt text/plain get following redirect") {
-    val url = serverUrl + testRedirect1File + "?TO=" + testRedirect2File
+    textPlainGetFollowingRedirect("http:" + serverUrl + testRedirect1File + "?TO=" + testRedirect2File)
+//    textPlainGetFollowingRedirect("https:" + serverUrl + testRedirect1File + "?TO=" + testRedirect2File)
+  }
+
+  private def textPlainGetFollowingRedirect(url: String) {
     try {
       val cookie = Cookie("c1", "v1", Domain.localhost)
       val http2 = new HttpClient(Config(followRedirects = true))
@@ -220,7 +240,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("txt text/plain get following redirect using HttpBrowser") {
-    val url = serverUrl + testRedirect1File + "?TO=" + testRedirect2File
+    val url = "http:" + serverUrl + testRedirect1File + "?TO=" + testRedirect2File
     try {
       val cookie = Cookie("c1", "v1", Domain.localhost)
       val httpBrowser = new HttpBrowser(Config(followRedirects = true), initialCookieJar = CookieJar(cookie))
@@ -242,7 +262,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("txt text/plain get qith query string x1") {
-    val url = serverUrl + testEchoFile + "?A=1&B=2"
+    textPlainGetWithQueryString("http:" + serverUrl + testEchoFile + "?A=1&B=2")
+//    textPlainGetWithQueryString("https:" + serverUrl + testEchoFile + "?A=1&B=2")
+  }
+
+  private def textPlainGetWithQueryString(url: String) {
     try {
       val response = http.get(new URL(url), gzipHeaders)
       assert(200 === response.status.code)
@@ -259,7 +283,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("txt text/plain get acquiring a cookie") {
-    val url = serverUrl + testCookieFile
+    textPlainGetAcquiringCookie("http:" + serverUrl + testCookieFile)
+//    textPlainGetAcquiringCookie("https:" + serverUrl + testCookieFile)
+  }
+
+  private def textPlainGetAcquiringCookie(url: String) {
     try {
       val response = http.get(new URL(url), gzipHeaders, CookieJar.empty)
       assert(200 === response.status.code)
@@ -275,7 +303,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("php text/plain options x1") {
-    val url = serverUrl + testPhpFile + "?CT=text/plain"
+    textPlainOptions("http:" + serverUrl + testPhpFile + "?CT=text/plain")
+//    textPlainOptions("https:" + serverUrl + testPhpFile + "?CT=text/plain")
+  }
+
+  private def textPlainOptions(url: String) {
     try {
       val response = http.options(new URL(url), None)
       assert(302 === response.status.code)
@@ -288,7 +320,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("php text/plain post x1") {
-    val url = serverUrl + testEchoFile
+    textPlainPost("http:" + serverUrl + testEchoFile)
+//    textPlainPost("https:" + serverUrl + testEchoFile)
+  }
+
+  private def textPlainPost(url: String) {
     try {
       val response = http.post(new URL(url), Some(jsonBody), gzipHeaders)
       assert(200 === response.status.code)
@@ -305,7 +341,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("php text/plain put x1") {
-    val url = serverUrl + testEchoFile
+    textPlainPut("http:" + serverUrl + testEchoFile)
+//    textPlainPut("https:" + serverUrl + testEchoFile)
+  }
+
+  private def textPlainPut(url: String) {
     try {
       val response = http.put(new URL(url), jsonBody, gzipHeaders)
       assert(200 === response.status.code)
@@ -322,7 +362,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("php text/html delete x1") {
-    val url = serverUrl + testEchoFile
+    textHtmlDelete("http:" + serverUrl + testEchoFile)
+//    textHtmlDelete("https:" + serverUrl + testEchoFile)
+  }
+
+  private def textHtmlDelete(url: String) {
     try {
       val response = http.delete(new URL(url), gzipHeaders)
       assert(200 === response.status.code)
@@ -337,7 +381,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("php text/html options x1") {
-    val url = serverUrl + testEchoFile
+    textHtmlOptions("http:" + serverUrl + testEchoFile)
+//    textHtmlOptions("https:" + serverUrl + testEchoFile)
+  }
+
+  private def textHtmlOptions(url: String) {
     try {
       val response = http.options(new URL(url), None)
       assert(200 === response.status.code)
@@ -352,7 +400,12 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("jpg image/jpg get x100") {
-    val url = serverUrl + testPhotoFile
+    imageJpegGet("http:" + serverUrl + testPhotoFile)
+    // works but VERY slow
+    //imageJpegGet("https:" + serverUrl + testPhotoFile)
+  }
+
+  private def imageJpegGet(url: String) {
     try {
       val loops = 100
       val before = System.currentTimeMillis()
@@ -374,7 +427,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("php text/html get x100") {
-    val url = serverUrl + testPhpFile
+    textHtmlGet100("http:" + serverUrl + testPhpFile)
+//    textHtmlGet100("https:" + serverUrl + testPhpFile)
+  }
+
+  private def textHtmlGet100(url: String) {
     try {
       var size = -1
       var first = "NOT SET"
