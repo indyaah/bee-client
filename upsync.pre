@@ -1,6 +1,6 @@
 set -e
 #USERNAME=
-PROJECT=lighthttpclient
+PROJECT=bee-client
 SCALA=2.9.1
 VNUM=$(grep version build.sbt | sed 's/.*:= *//' | tr -d '"')
 DEST=/home/websites/bigbeeconsultants
