@@ -17,7 +17,7 @@ object Example5a extends App {
 //  HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory)
 //  HttpsURLConnection.setDefaultHostnameVerifier(new DumbHostnameVerifier)
 
-//  val url = "https://localhost/lighthttpclient/test-echo-back.php"
+//  val url = "https://localhost/bee-client/test-echo-back.php"
     val url = "https://www.amazon.co.uk/"
   val httpClient = new HttpClient
   val response = httpClient.get(url)

@@ -2,16 +2,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>uk.co.bigbeeconsultants</groupId>
-    <artifactId>lighthttpclient</artifactId>
+    <artifactId>bee-client</artifactId>
     <packaging>jar</packaging>
     <name>Light Http Client</name>
     <version>0.1</version>
     <description>Light-weight HTTP client in Scala to replace Apache HTTP client</description>
-    <url>https://bitbucket.org/rickb777/lighthttpclient</url>
+    <url>https://bitbucket.org/rickb777/bee-client</url>
     <issueManagement>
         <system>Bitbucket</system>
         <url>
-            https://bitbucket.org/rickb777/lighthttpclient/issues
+            https://bitbucket.org/rickb777/bee-client/issues
         </url>
     </issueManagement>
     <inceptionYear>2011</inceptionYear>
@@ -36,9 +36,9 @@
         </license>
     </licenses>
     <scm>
-        <connection>scm:hg:https://bitbucket.org/rickb777/lighthttpclient</connection>
-        <developerConnection>scm:hg:https://bitbucket.org/rickb777/lighthttpclient</developerConnection>
-        <url>https://bitbucket.org/rickb777/lighthttpclient</url>
+        <connection>scm:hg:https://bitbucket.org/rickb777/bee-client</connection>
+        <developerConnection>scm:hg:https://bitbucket.org/rickb777/bee-client</developerConnection>
+        <url>https://bitbucket.org/rickb777/bee-client</url>
     </scm>
     <organization>
         <name>Big Bee Consultants</name>

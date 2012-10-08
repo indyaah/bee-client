@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/bin/bash -e
+export SCALA_HOME=/home/rick/sw/scala-latest
+PATH=$SCALA_HOME/bin:$PATH
 exec scala "$0" "$@"
 !#
 val filteredLines = io.Source.stdin.getLines.

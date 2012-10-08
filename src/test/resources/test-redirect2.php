@@ -24,7 +24,7 @@
 //-----------------------------------------------------------------------------
 
 $code = '303';
-$target = 'test-lighthttpclient.txt';
+$target = 'lorem1.txt';
 
 if (isset($_REQUEST['ST'])) { $code = strip_tags($_REQUEST['ST']); }
 if (isset($_REQUEST['TO'])) { $target = strip_tags($_REQUEST['TO']); }
@@ -40,5 +40,5 @@ else
 
 header("Status: $code Artificial redirect");
 header("Set-Cookie: redirect2=ok");
-header('Location: http://' . $host . '/lighthttpclient/' . $target);
+header('Location: http://' . $host . '/' . $target);
 ?>

@@ -5,7 +5,7 @@ import uk.co.bigbeeconsultants.http.request.RequestBody
 
 object Example3b extends App {
   val requestBody = RequestBody(Map("x" -> "1", "y" -> "2"))
-  val url = "http://localhost/lighthttpclient/test-echo-back.php"
+  val url = "http://localhost/bee-client/test-echo-back.php"
   val httpClient = new HttpClient
   val response = httpClient.post(url, Some(requestBody))
   println(response.status)

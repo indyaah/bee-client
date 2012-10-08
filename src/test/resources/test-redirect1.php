@@ -40,5 +40,5 @@ else
 
 header("Status: $code Artificial redirect");
 header("Set-Cookie: redirect1=ok");
-header('Location: http://' . $host . '/lighthttpclient/' . $target);
+header('Location: http://' . $host . '/' . $target);
 ?>
