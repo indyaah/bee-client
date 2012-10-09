@@ -43,7 +43,7 @@ import java.io.IOException
  *
  * [[uk.co.bigbeeconsultants.http.HttpBrowser]] provides an alternative that handles cookies for you.
  */
-class HttpClient(val config: Config = Config(),
+class HttpClient(val commonConfig: Config = Config(),
                  val commonRequestHeaders: Headers = HttpClient.defaultRequestHeaders) extends Logging {
 
   /**
@@ -51,7 +51,7 @@ class HttpClient(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def head(url: URL, requestHeaders: Headers = Nil): Response = {
-    execute(Request.head(url) + requestHeaders)
+    makeRequest(Request.head(url) + requestHeaders)
   }
 
   /**
@@ -59,7 +59,7 @@ class HttpClient(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def head(url: URL, requestHeaders: Headers, jar: CookieJar): Response = {
-    execute(Request.head(url) + requestHeaders using jar)
+    makeRequest(Request.head(url) + requestHeaders using jar)
   }
 
 
@@ -68,7 +68,7 @@ class HttpClient(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def trace(url: URL, requestHeaders: Headers = Nil): Response = {
-    execute(Request.trace(url) + requestHeaders)
+    makeRequest(Request.trace(url) + requestHeaders)
   }
 
   /**
@@ -76,7 +76,7 @@ class HttpClient(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def trace(url: URL, requestHeaders: Headers, jar: CookieJar): Response = {
-    execute(Request.trace(url) + requestHeaders using jar)
+    makeRequest(Request.trace(url) + requestHeaders using jar)
   }
 
 
@@ -85,7 +85,7 @@ class HttpClient(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def get(url: URL, requestHeaders: Headers = Nil): Response = {
-    execute(Request.get(url) + requestHeaders)
+    makeRequest(Request.get(url) + requestHeaders)
   }
 
   /**
@@ -93,7 +93,7 @@ class HttpClient(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def get(url: URL, requestHeaders: Headers, jar: CookieJar): Response = {
-    execute(Request.get(url) + requestHeaders using jar)
+    makeRequest(Request.get(url) + requestHeaders using jar)
   }
 
 
@@ -102,7 +102,7 @@ class HttpClient(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def delete(url: URL, requestHeaders: Headers = Nil): Response = {
-    execute(Request.delete(url) + requestHeaders)
+    makeRequest(Request.delete(url) + requestHeaders)
   }
 
   /**
@@ -110,7 +110,7 @@ class HttpClient(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def delete(url: URL, requestHeaders: Headers, jar: CookieJar): Response = {
-    execute(Request.delete(url) + requestHeaders using jar)
+    makeRequest(Request.delete(url) + requestHeaders using jar)
   }
 
 
@@ -119,7 +119,7 @@ class HttpClient(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def options(url: URL, body: Option[RequestBody], requestHeaders: Headers = Nil): Response = {
-    execute(Request.options(url, body) + requestHeaders)
+    makeRequest(Request.options(url, body) + requestHeaders)
   }
 
   /**
@@ -127,7 +127,7 @@ class HttpClient(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def options(url: URL, body: Option[RequestBody], requestHeaders: Headers, jar: CookieJar): Response = {
-    execute(Request.options(url, body) + requestHeaders using jar)
+    makeRequest(Request.options(url, body) + requestHeaders using jar)
   }
 
 
@@ -136,7 +136,7 @@ class HttpClient(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def post(url: URL, body: Option[RequestBody], requestHeaders: Headers = Nil): Response = {
-    execute(Request.post(url, body) + requestHeaders)
+    makeRequest(Request.post(url, body) + requestHeaders)
   }
 
   /**
@@ -144,7 +144,7 @@ class HttpClient(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def post(url: URL, body: Option[RequestBody], requestHeaders: Headers, jar: CookieJar): Response = {
-    execute(Request.post(url, body) + requestHeaders using jar)
+    makeRequest(Request.post(url, body) + requestHeaders using jar)
   }
 
 
@@ -153,7 +153,7 @@ class HttpClient(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def put(url: URL, body: RequestBody, requestHeaders: Headers = Nil): Response = {
-    execute(Request.put(url, body) + requestHeaders)
+    makeRequest(Request.put(url, body) + requestHeaders)
   }
 
   /**
@@ -161,7 +161,7 @@ class HttpClient(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def put(url: URL, body: RequestBody, requestHeaders: Headers, jar: CookieJar): Response = {
-    execute(Request.put(url, body) + requestHeaders using jar)
+    makeRequest(Request.put(url, body) + requestHeaders using jar)
   }
 
 
@@ -173,7 +173,7 @@ class HttpClient(val config: Config = Config(),
    *         no exception occurred
    */
   @throws(classOf[IOException])
-  def execute(request: Request): Response = {
+  def makeRequest(request: Request, config: Config = commonConfig): Response = {
     val responseBuilder = new BufferedResponseBuilder
     execute(request, responseBuilder)
     responseBuilder.response.get
@@ -191,17 +191,18 @@ class HttpClient(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   @throws(classOf[IllegalStateException])
-  def execute(request: Request, responseBuilder: ResponseBuilder) {
-    RedirectionLogic.doExecute(this, request: Request, responseBuilder: ResponseBuilder)
+  def execute(request: Request, responseBuilder: ResponseBuilder, config: Config = commonConfig) {
+    RedirectionLogic.doExecute(this, request, responseBuilder, config)
   }
 
 
   @throws(classOf[IOException])
   private[http] def doExecute(request: Request,
-                              responseBuilder: ResponseBuilder): Option[Request] = {
+                              responseBuilder: ResponseBuilder,
+                              config: Config): Option[Request] = {
     logger.info({request.toString})
 
-    val httpURLConnection = openConnection(request)
+    val httpURLConnection = openConnection(request, config.proxy)
     httpURLConnection.setAllowUserInteraction(false)
     httpURLConnection.setConnectTimeout(config.connectTimeout)
     httpURLConnection.setReadTimeout(config.readTimeout)
@@ -210,7 +211,7 @@ class HttpClient(val config: Config = Config(),
 
     var redirect: Option[Request] = None
     try {
-      setRequestHeaders(request, httpURLConnection)
+      setRequestHeaders(request, httpURLConnection, config)
       httpURLConnection.connect()
       copyRequestBodyToOutputStream(request, httpURLConnection)
 
@@ -251,7 +252,7 @@ class HttpClient(val config: Config = Config(),
 
   /** Provides a seam for testing. Not for normal use. */
   @throws(classOf[IOException])
-  protected def openConnection(request: Request) = request.url.openConnection(config.proxy).asInstanceOf[HttpURLConnection]
+  protected def openConnection(request: Request, proxy: Proxy) = request.url.openConnection(proxy).asInstanceOf[HttpURLConnection]
 
   private def copyRequestBodyToOutputStream(request: Request, httpURLConnection: HttpURLConnection) {
     if (request.body.isDefined) {
@@ -260,7 +261,7 @@ class HttpClient(val config: Config = Config(),
   }
 
 
-  private def setRequestHeaders(request: Request, httpURLConnection: HttpURLConnection) {
+  private def setRequestHeaders(request: Request, httpURLConnection: HttpURLConnection, config: Config) {
     val method = request.method.toUpperCase
     httpURLConnection.setRequestMethod(method)
 

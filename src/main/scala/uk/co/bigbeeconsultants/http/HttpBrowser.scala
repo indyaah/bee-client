@@ -56,7 +56,7 @@ class HttpBrowser(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def head(url: URL, requestHeaders: Headers = Nil): Response = {
-    execute(Request.head(url) + requestHeaders)
+    makeRequest(Request.head(url) + requestHeaders)
   }
 
   /**
@@ -64,7 +64,7 @@ class HttpBrowser(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def trace(url: URL, requestHeaders: Headers = Nil): Response = {
-    execute(Request.trace(url) + requestHeaders)
+    makeRequest(Request.trace(url) + requestHeaders)
   }
 
   /**
@@ -72,7 +72,7 @@ class HttpBrowser(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def get(url: URL, requestHeaders: Headers = Nil): Response = {
-    execute(Request.get(url) + requestHeaders)
+    makeRequest(Request.get(url) + requestHeaders)
   }
 
   /**
@@ -80,7 +80,7 @@ class HttpBrowser(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def delete(url: URL, requestHeaders: Headers = Nil): Response = {
-    execute(Request.delete(url) + requestHeaders)
+    makeRequest(Request.delete(url) + requestHeaders)
   }
 
   /**
@@ -88,7 +88,7 @@ class HttpBrowser(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def options(url: URL, body: Option[RequestBody], requestHeaders: Headers = Nil): Response = {
-    execute(Request.options(url, body) + requestHeaders)
+    makeRequest(Request.options(url, body) + requestHeaders)
   }
 
   /**
@@ -96,7 +96,7 @@ class HttpBrowser(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def post(url: URL, body: Option[RequestBody], requestHeaders: Headers = Nil): Response = {
-    execute(Request.post(url, body) + requestHeaders)
+    makeRequest(Request.post(url, body) + requestHeaders)
   }
 
   /**
@@ -104,7 +104,7 @@ class HttpBrowser(val config: Config = Config(),
    */
   @throws(classOf[IOException])
   def put(url: URL, body: RequestBody, requestHeaders: Headers = Nil): Response = {
-    execute(Request.put(url, body) + requestHeaders)
+    makeRequest(Request.put(url, body) + requestHeaders)
   }
 
   /**
@@ -115,8 +115,8 @@ class HttpBrowser(val config: Config = Config(),
    *         no exception occurred
    */
   @throws(classOf[IOException])
-  def execute(request: Request): Response = {
-    val response = httpClient.execute(request using _cookieJar)
+  def makeRequest(request: Request): Response = {
+    val response = httpClient.makeRequest(request using _cookieJar)
     // here's a potential race condition which we happily ignore
     _cookieJar = response.cookies
     response

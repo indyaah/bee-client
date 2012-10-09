@@ -31,7 +31,7 @@ import header.HeaderName._
 import java.lang.AssertionError
 import request.RequestBody
 import org.scalatest.{BeforeAndAfter, FunSuite}
-import java.net.{ConnectException, Proxy, URL}
+import java.net.{UnknownHostException, ConnectException, Proxy, URL}
 import java.io.File
 import scala.Some
 import util.DumbTrustManager
@@ -115,7 +115,8 @@ object HttpIntegration {
   }
 
   private def skipTestWarning(method: String, url: String, e: Exception) {
-    if (e.isInstanceOf[ConnectException] || e.getCause.isInstanceOf[ConnectException]) {
+    if (e.isInstanceOf[ConnectException] || e.getCause.isInstanceOf[ConnectException] ||
+        e.isInstanceOf[UnknownHostException] || e.getCause.isInstanceOf[UnknownHostException]) {
       System.err.println("***** Test skipped: " + method + " " + url + " : " + e.getMessage)
     }
     else {

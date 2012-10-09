@@ -28,20 +28,71 @@ import java.net.{MalformedURLException, URL}
 import uk.co.bigbeeconsultants.http.request.SplitURL
 
 /**
+ * Defines a service endpoint, which is typically a webserver accessed via HTTP. This is equivalent to a URL
+ * without any path, fragment or query string.
+ * @param scheme the scheme - typically "http" or "https"
+ * @param host the hostname or IP address
+ * @param port the optional TCP port number
+ */
+case class Endpoint(scheme: String, host: String, port: Option[Int] = None) {
+  require(scheme != null && host != null && port != null)
+
+  /**
+   * Gets the host and port parts as a string.
+   * E.g. "localhost:8080"
+   */
+  def hostAndPort: String = host + port.map(":" + _.toString).getOrElse("")
+
+  override def toString = scheme + Endpoint.DoubleSlash + hostAndPort
+}
+
+
+/**
+ * Defines a service endpoint, which is typically a webserver accessed via HTTP. This is equivalent to a URL
+ * without any path, fragment or query string.
+ */
+object Endpoint {
+  /** The string "://", which is the top of Tim Berners-Lee's regrets. Alas. */
+  val DoubleSlash = "://"
+
+  def apply(scheme: Option[String], host: Option[String], port: Option[Int]): Option[Endpoint] = {
+    require(scheme.isDefined == host.isDefined)
+    if (scheme.isDefined) Some(new Endpoint(scheme.get, host.get, port)) else None
+  }
+
+  def apply(url: String): Endpoint = {
+    val p1 = url.indexOf(DoubleSlash)
+    require(p1 > 0, url)
+    val p2 = url.indexOf('/', p1 + 3)
+    val s3 = if (p2 < 0) url.length else p2
+    val colon = url.indexOf(':', p1 + 3)
+    val scheme = url.substring(0, p1)
+    val host = if (0 < colon) url.substring(p1 + 3, colon) else url.substring(p1 + 3, s3)
+    val port = if (0 < colon && colon < s3) Some(url.substring(colon + 1, s3).toInt) else None
+    Endpoint(scheme, host, port)
+  }
+}
+
+
+/**
  * Provides a utility wrapper for URLs that splits them into their component parts and allows alteration and reassembly
  * with different components. Instances may be relative URLs.
  *
  * Use the case-class 'copy' method to alter components.
  */
-case class PartialURL(scheme: Option[String],
-                      host: Option[String],
-                      port: Option[Int] = None,
+case class PartialURL(endpoint: Option[Endpoint],
                       path: Path = Path.empty,
                       fragment: Option[String] = None,
                       query: Option[String] = None) {
 
-  require(scheme != null && host != null && port != null && path != null && fragment != null && query != null)
-  import PartialURL._
+  require(endpoint != null && path != null && fragment != null && query != null)
+
+//  def this(scheme: Option[String],
+//           host: Option[String],
+//           port: Option[Int] = None,
+//           path: Path = Path.empty,
+//           fragment: Option[String] = None,
+//           query: Option[String] = None) = this()
 
   /**
    * Converts this instance to a java.net.URL if possible. This will succeed if isURL would return true.
@@ -50,23 +101,26 @@ case class PartialURL(scheme: Option[String],
   lazy val asURL: URL = {
     if (!isURL) throw new MalformedURLException(toString + " cannot be convert to a URL.")
 
-    if (fragment.isEmpty && query.isEmpty)
-      new URL(scheme.get, host.get, port.getOrElse(-1), path.toString)
-    else
+    if (fragment.isEmpty && query.isEmpty) {
+      val ep = endpoint.get
+      new URL(ep.scheme, ep.host, ep.port.getOrElse(-1), path.toString)
+    } else {
       new URL(toString)
+    }
   }
 
   /** Tests whether this instance is convertible to an absolute URL. */
-  def isURL = scheme.isDefined && host.isDefined && (path.isAbsolute || path.isEmpty)
+  def isURL = endpoint.isDefined && (path.isAbsolute || path.isEmpty)
 
   /**
    * Converts this instance to a [[uk.co.bigbeeconsultants.http.request.SplitURL]] if possible.
    */
   def asSplitURL: SplitURL = {
-    if (scheme.isEmpty || host.isEmpty) {
+    if (endpoint.isEmpty) {
       throw new MalformedURLException(toString + " cannot be convert to a URL.")
     }
-    new SplitURL(scheme.get, host.get, port, path.segments, fragment, query)
+    val ep = endpoint.get
+    new SplitURL(ep.scheme, ep.host, ep.port, path.segments, fragment, query)
   }
 
   /**
@@ -74,8 +128,7 @@ case class PartialURL(scheme: Option[String],
    * E.g. "localhost:8080"
    */
   def hostAndPort: Option[String] = {
-    if (host.isEmpty) None
-    else Some(host.get + port.map(":" + _.toString).getOrElse(""))
+    endpoint.map(_.hostAndPort)
   }
 
   /** Gets the last path segment, if any. */
@@ -99,17 +152,12 @@ case class PartialURL(scheme: Option[String],
   }
 
   override def toString = {
-    val schemeWithSlashes = if (scheme.isEmpty) "" else scheme.get + DoubleSlash
-    val hap = hostAndPort
-    if (hap.isDefined) schemeWithSlashes + hap.getOrElse("") + pathString else pathString
+    endpoint.map(_.toString).getOrElse("") + pathString
   }
 }
 
 
 object PartialURL {
-  /** The string "://", which is the top of Tim Berners-Lee's regrets. Alas. */
-  val DoubleSlash = "://"
-
   /**
    * Factory method creates an instance from a URL.
    */
@@ -121,24 +169,21 @@ object PartialURL {
   def apply(url: String): PartialURL = {
     val hash = url.lastIndexOf('#')
     val query = url.lastIndexOf('?')
-    val p1 = url.indexOf(DoubleSlash)
+    val p1 = url.indexOf(Endpoint.DoubleSlash)
     if (p1 >= 0) parseFullURL(url, p1, hash, query) else parsePartialURL(url, hash, query)
   }
 
   private def parseFullURL(url: String, p1: Int, hash: Int, query: Int) = {
     val p2 = url.indexOf('/', p1 + 3)
-    //val p2 = if (p2a >= 0) p2a else if (url(0) == '/') 0 else url.length
-    val colon = url.indexOf(':', p1 + 3)
-    val scheme = Some(url.substring(0, p1))
-    val host = if (0 < colon) Some(url.substring(p1 + 3, colon)) else if (p2 < 0) Some(url.substring(p1 + 3)) else Some(url.substring(p1 + 3, p2))
-    val port = if (0 < colon && colon < p2) Some(url.substring(colon + 1, p2).toInt) else None
+    val s3 = if (p2 < 0) url.length else p2
     val path = if (p2 < 0) Path.empty else Path(pathStr(url, p2, hash, query))
-    new PartialURL(scheme, host, port, path, fragment(url, p2, hash, query), qs(url, p2, hash, query))
+    val endpoint = Endpoint(url.substring(0, s3))
+    new PartialURL(Some(endpoint), path, fragment(url, p2, hash, query), qs(url, p2, hash, query))
   }
 
   private def parsePartialURL(url: String, hash: Int, query: Int) = {
     val path = Path(pathStr(url, 0, hash, query))
-    new PartialURL(None, None, None, path, fragment(url, 0, hash, query), qs(url, 0, hash, query))
+    new PartialURL(None, path, fragment(url, 0, hash, query), qs(url, 0, hash, query))
   }
 
   private def pathStr(url: String, slash: Int, hash: Int, query: Int) = {
@@ -172,7 +217,7 @@ object PartialURL {
       None
   }
 
-  private def portAsOption(port: Int) = if (port < 0) None else Some(port)
-
-  private def strAsOption(str: String) = if (str != null && str.length > 0) Some(str) else None
+//  private def portAsOption(port: Int) = if (port < 0) None else Some(port)
+//
+//  private def strAsOption(str: String) = if (str != null && str.length > 0) Some(str) else None
 }

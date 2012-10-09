@@ -26,7 +26,7 @@ package uk.co.bigbeeconsultants.http.request
 
 import java.net.{URLEncoder, URL}
 import uk.co.bigbeeconsultants.http.HttpClient
-import uk.co.bigbeeconsultants.http.url.{Path, PartialURL}
+import uk.co.bigbeeconsultants.http.url.{Endpoint, Path, PartialURL}
 
 /**
  * Provides a utility wrapper for URLs that splits them into their component parts and allows alteration and reassembly
@@ -53,7 +53,7 @@ case class SplitURL(scheme: String,
 
   /** Converts this instance to a [[uk.co.bigbeeconsultants.http.url.PartialURL]]. */
   def asPartialURL: PartialURL =
-    new PartialURL(Some(scheme), Some(host), port, new Path(true, pathSegments), fragment, query)
+    new PartialURL(Some(new Endpoint(scheme, host, port)), new Path(true, pathSegments), fragment, query)
 
   /**
    * Gets the host and port parts as a string.

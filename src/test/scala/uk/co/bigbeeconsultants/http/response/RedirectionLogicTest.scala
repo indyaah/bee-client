@@ -105,9 +105,9 @@ class RedirectionLogicTest extends FunSuite with ShouldMatchers {
     val request = Request.get("http://localhost/foo/bar")
     val httpClient = mock(classOf[HttpClient])
     val config = Config(followRedirects = false)
-    when (httpClient.config) thenReturn config
-    when (httpClient.doExecute(any(), any())) thenReturn None
-    val remainingTries = doExecute(httpClient, request, new BufferedResponseBuilder)
+    when (httpClient.commonConfig) thenReturn config
+    when (httpClient.doExecute(any(), any(), any())) thenReturn None
+    val remainingTries = doExecute(httpClient, request, new BufferedResponseBuilder, config)
     remainingTries should be(0)
   }
 
@@ -115,9 +115,9 @@ class RedirectionLogicTest extends FunSuite with ShouldMatchers {
     val request = Request.get("http://localhost/foo/bar")
     val httpClient = mock(classOf[HttpClient])
     val config = Config(followRedirects = false)
-    when (httpClient.config) thenReturn config
-    when (httpClient.doExecute(any(), any())) thenReturn Some(request)
-    val remainingTries = doExecute(httpClient, request, new BufferedResponseBuilder)
+    when (httpClient.commonConfig) thenReturn config
+    when (httpClient.doExecute(any(), any(), any())) thenReturn Some(request)
+    val remainingTries = doExecute(httpClient, request, new BufferedResponseBuilder, config)
     remainingTries should be(0)
   }
 
@@ -125,9 +125,9 @@ class RedirectionLogicTest extends FunSuite with ShouldMatchers {
     val request = Request.get("http://localhost/foo/bar")
     val httpClient = mock(classOf[HttpClient])
     val config = Config(followRedirects = true, maxRedirects = 10)
-    when (httpClient.config) thenReturn config
-    when (httpClient.doExecute(any(), any())) thenReturn Some(request) thenReturn None
-    val remainingTries = doExecute(httpClient, request, new BufferedResponseBuilder)
+    when (httpClient.commonConfig) thenReturn config
+    when (httpClient.doExecute(any(), any(), any())) thenReturn Some(request) thenReturn None
+    val remainingTries = doExecute(httpClient, request, new BufferedResponseBuilder, config)
     remainingTries should be(8)
   }
 
@@ -135,10 +135,10 @@ class RedirectionLogicTest extends FunSuite with ShouldMatchers {
     val request = Request.get("http://localhost/foo/bar")
     val httpClient = mock(classOf[HttpClient])
     val config = Config(followRedirects = true, maxRedirects = 10)
-    when (httpClient.config) thenReturn config
-    when (httpClient.doExecute(any(), any())) thenReturn Some(request)
+    when (httpClient.commonConfig) thenReturn config
+    when (httpClient.doExecute(any(), any(), any())) thenReturn Some(request)
     intercept[IllegalStateException] {
-      doExecute(httpClient, request, new BufferedResponseBuilder)
+      doExecute(httpClient, request, new BufferedResponseBuilder, config)
     }
   }
 }

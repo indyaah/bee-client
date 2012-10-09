@@ -183,9 +183,10 @@ class StubHttpServletRequest extends HttpServletRequest {
   def copyFrom(url: PartialURL) = {
     require (url.isURL)
     require (url.path.size > 1)
-    scheme = url.scheme.get
-    serverName = url.host.get
-    serverPort = url.port.getOrElse(-1)
+    val endpoint = url.endpoint.get
+    scheme = endpoint.scheme
+    serverName = endpoint.host
+    serverPort = endpoint.port.getOrElse(-1)
     contextPath = "/" + url.path.head
     requestURI = url.path.toString
     queryString = url.query.getOrElse("")

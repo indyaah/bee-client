@@ -31,13 +31,13 @@ import java.{util => ju}
 import org.mockito.Mockito._
 import javax.servlet.http.HttpServletResponse
 import uk.co.bigbeeconsultants.http.util.StubHttpServletRequest
-import uk.co.bigbeeconsultants.http.url.{Path, PartialURL}
+import uk.co.bigbeeconsultants.http.url.{Endpoint, Path, PartialURL}
 
 class HttpServletAdapterTest extends FunSuite {
 
   test("HttpServletRequestAdapter.url") {
 
-    val splitUrl = PartialURL(Some("http"), Some("localhost"), None, Path("/context/x/y/z"), None, Some("a=1"))
+    val splitUrl = PartialURL(Some(Endpoint("http", "localhost", None)), Path("/context/x/y/z"), None, Some("a=1"))
     val s = splitUrl.toString
     val req = new StubHttpServletRequest().copyFrom(splitUrl)
     req.contentType = MediaType.TEXT_PLAIN.value

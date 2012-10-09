@@ -22,16 +22,12 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "bee-client"
+package uk.co.bigbeeconsultants.http.header
 
-version := "0.16.0"
+import uk.co.bigbeeconsultants.http.url.Endpoint
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+case class Realm(name: String, server: Endpoint)
 
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
+object Realm {
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+}

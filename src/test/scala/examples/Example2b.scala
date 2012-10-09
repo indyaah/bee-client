@@ -13,7 +13,7 @@ object Example2b extends App {
   )
   val httpClient = new HttpClient
   val request = Request.get("http://www.google.com/")
-  val response = httpClient.execute(request + headers)
+  val response = httpClient.makeRequest(request + headers)
 
   // prints a list of the response header names available to you
   println(response.headers.names.sorted)

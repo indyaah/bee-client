@@ -30,25 +30,19 @@ import uk.co.bigbeeconsultants.http.header.HeaderName._
 import java.io.InputStream
 import uk.co.bigbeeconsultants.http.response.{Status, ResponseBuilder}
 import uk.co.bigbeeconsultants.http.util.HttpUtil
-import uk.co.bigbeeconsultants.http.request.{URLMapper, Request, RequestBody}
-import uk.co.bigbeeconsultants.http.url.{Path, PartialURL}
-import scala.Some
+import uk.co.bigbeeconsultants.http.request.{Request, RequestBody}
+import uk.co.bigbeeconsultants.http.url.{Endpoint, Path, PartialURL}
 
 /**
  * Adapts HTTP Servlet request objects to the Light Http Client API. This allows a variety of solutions such as
  * reverse proxying to be implemented easily.
  */
-class HttpServletRequestAdapter(req: HttpServletRequest,
-                                urlMapper: URLMapper = URLMapper.noop) {
-
-  def requestURL: PartialURL = {
-    val port = if (req.getServerPort < 0) None else Some(req.getServerPort)
-    new PartialURL(Option(req.getScheme), Option(req.getServerName), port,
-      Path(req.getRequestURI), None, Option(req.getQueryString))
-  }
+class HttpServletRequestAdapter(req: HttpServletRequest) {
 
   def url: PartialURL = {
-    urlMapper.mapToDownstream(requestURL)
+    val port = if (req.getServerPort < 0) None else Some(req.getServerPort)
+    new PartialURL(Endpoint(Option(req.getScheme), Option(req.getServerName), port),
+      Path(req.getRequestURI), None, Option(req.getQueryString))
   }
 
   def headers: Headers = {
@@ -71,14 +65,14 @@ class HttpServletRequestAdapter(req: HttpServletRequest,
  * Adapts HTTP Servlet response objects to the Light Http Client API. This allows a variety of solutions such as
  * reverse proxying to be implemented easily.
  * @param resp the response to be created
- * @param urlMapper an optional mapper that is applied to every line of the body content.
+ * @param rewrite an optional mutation function that is applied to every line of the body content.
  *                This is used only when the content is treated as text (see `condition`)
  * @param condition an optional condition that limits when the rewrite function will be used. By default,
  *                  any media type that returns `true` for `isTextual` will be processed as text and this
  *                  may imply transcoding. Otherwise the response body is processed as binary data.
  */
 class HttpServletResponseAdapter(resp: HttpServletResponse,
-                                 urlMapper: URLMapper = URLMapper.noop,
+                                 rewrite: (String) => String = (x) => x,
                                  condition: (MediaType) => Boolean = (mt) => mt.isTextual) extends ResponseBuilder {
 
   private[this] var _request: Request = _
@@ -88,18 +82,14 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
 
   def setResponseHeaders(headers: Headers) {
     for (header <- headers.list) {
-      header.name match {
-        case LOCATION.name => resp.setHeader(header.name, urlMapper.rewriteResponse(header.value))
-        case CONTENT_LENGTH.name => // do not keep because the size may change when URLs are fixed up
-        case _ => resp.setHeader(header.name, header.value)
-      }
+      val value = if (header.name == LOCATION.name) rewrite(header.value) else header.value
+      resp.setHeader(header.name, value)
     }
   }
 
   def setResponseCookies(jar: CookieJar) {
     for (cookie <- jar.cookies) {
-      val changedCookie = cookie.copy(path = urlMapper.rewriteResponse(cookie.path))
-      resp.addCookie(changedCookie.asServletCookie)
+      resp.addCookie(cookie.asServletCookie)
     }
   }
 
@@ -120,7 +110,7 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
       }
 
       if (mediaType.isDefined && condition(mediaType.get)) {
-        HttpUtil.copyText(inputStream, resp.getOutputStream, mediaType.get.charsetOrUTF8, urlMapper.rewriteResponse)
+        HttpUtil.copyText(inputStream, resp.getOutputStream, mediaType.get.charsetOrUTF8, rewrite)
       }
       else {
         HttpUtil.copyBytes(inputStream, resp.getOutputStream)

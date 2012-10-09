@@ -33,17 +33,17 @@ import java.net.URL
 
 private[http] object RedirectionLogic {
 
-  def doExecute(httpClient: HttpClient, request: Request, responseBuilder: ResponseBuilder): Int = {
+  def doExecute(httpClient: HttpClient, request: Request, responseBuilder: ResponseBuilder, config: Config): Int = {
     var nextRequest: Option[Request] = Some(request)
-    var remainingTries = if (httpClient.config.followRedirects) httpClient.config.maxRedirects else 1
+    var remainingTries = if (config.followRedirects) config.maxRedirects else 1
     while (remainingTries > 0 && nextRequest.isDefined) {
       remainingTries -= 1
-      nextRequest = httpClient.doExecute(nextRequest.get, responseBuilder)
+      nextRequest = httpClient.doExecute(nextRequest.get, responseBuilder, config)
     }
 
-    if (httpClient.config.followRedirects && nextRequest.isDefined)
+    if (config.followRedirects && nextRequest.isDefined)
       throw new IllegalStateException("The server is not redirecting correctly. Maximum redirects (" +
-        httpClient.config.maxRedirects + ") was exceeded for " + request)
+        config.maxRedirects + ") was exceeded for " + request)
 
     remainingTries
   }
@@ -83,7 +83,7 @@ private[http] object RedirectionLogic {
     val loc = if (location.startsWith("http://") || location.startsWith("https://")) {
       location
     } else {
-      request.split.scheme.get + "://" + request.split.hostAndPort.get + location
+      request.split.endpoint.get.toString + location
     }
     new URL(loc)
   }

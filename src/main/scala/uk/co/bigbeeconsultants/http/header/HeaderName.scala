@@ -24,8 +24,6 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import reflect.Type
-
 /**
  * Constructs a new HeaderName instance from a string. Bear in mind that header names are case-insensitive,
  * but you are advised to stick to the canonical capitalisation, which is as given by the HeaderName object values.
@@ -85,7 +83,7 @@ sealed trait ResponseHeaderName {
   val AGE = HeaderName ("Age") // Int
   val ETAG = HeaderName ("ETag") // String
   val LOCATION = HeaderName ("Location") // String
-  val PROXY_AUTHENTICATE = HeaderName ("Proxy-Authenticate")
+  val PROXY_AUTHENTICATE = HeaderName ("Proxy-Authenticate") // ListValue
   val RETRY_AFTER = HeaderName ("Retry-After") // HttpDateTimeInstant or Int
   val SET_COOKIE = HeaderName ("Set-Cookie")
   val OBSOLETE_SET_COOKIE2 = HeaderName ("Set-Cookie2")

@@ -89,7 +89,7 @@ class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
   private def newHttpClient(config: Config = Config (),
                             commonRequestHeaders: Headers = HttpClient.defaultRequestHeaders) = {
     new HttpClient (config, commonRequestHeaders) {
-      override def openConnection(request: Request) = httpURLConnection
+      override def openConnection(request: Request, proxy: Proxy) = httpURLConnection
     }
   }
 

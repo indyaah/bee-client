@@ -87,11 +87,13 @@ class DefaultURLMapper(upstreamBase: PartialURL, downstreamBase: PartialURL) ext
   private val compiledUpstreamRel = Pattern.compile(upstreamPath)
 
   private def map(from: PartialURL, to: PartialURL, href: PartialURL): PartialURL = {
-    val scheme = if (to.scheme.isDefined) to.scheme else href.scheme
-    val host = if (to.host.isDefined) to.host else href.host
-    val port = if (to.port.isDefined) to.port else href.port
     val path = new Path(true, to.path.segments ++ href.path.segments.drop(from.path.size))
-    new PartialURL(scheme, host, port, path, href.fragment, href.query)
+    val ep = to.endpoint.get
+    if (to.endpoint.isDefined) {
+      new PartialURL(to.endpoint, path, href.fragment, href.query)
+    } else {
+      new PartialURL(href.endpoint, path, href.fragment, href.query)
+    }
   }
 
   override def mapToDownstream(href: PartialURL): PartialURL = {
