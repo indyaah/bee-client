@@ -72,15 +72,15 @@ class PartialURLTest extends FunSuite {
     val u = new URL(w3Org)
     val purl = PartialURL(w3Org)
     assert(w3Org === purl.endpoint.get.toString)
-    assert(false === purl.path.isAbsolute)
     assert(Nil === purl.path.segments)
     assert(None === purl.fragment)
     assert(None === purl.query)
     assert(None === purl.file)
     assert(None === purl.extension)
-    assert(w3Org === purl.toString)
-    assert(u === purl.asURL)
+    assert(w3Org + "/" === purl.toString)
+    assert(new URL(w3Org + "/") === purl.asURL)
     assert(purl === PartialURL(u))
+    assert(purl.path.isAbsolute)
   }
 
   test("absolute url with short path") {
@@ -97,6 +97,7 @@ class PartialURLTest extends FunSuite {
     assert(s === purl.toString)
     assert(u === purl.asURL)
     assert(purl === PartialURL(u))
+    assert(purl.path.isAbsolute)
   }
 
   test("absolute url with path only") {
@@ -112,6 +113,7 @@ class PartialURLTest extends FunSuite {
     assert(s === purl.toString)
     assert(u === purl.asURL)
     assert(purl === PartialURL(u))
+    assert(purl.startsWith(PartialURL(w3Org)))
   }
 
   test("absolute url with fragment") {
@@ -171,6 +173,7 @@ class PartialURLTest extends FunSuite {
     assert(None === purl.extension)
     assert(s === purl.toString)
     assert(false === purl.isURL)
+    assert(!purl.path.isAbsolute)
   }
 
   test("relative url with short path") {
@@ -185,6 +188,7 @@ class PartialURLTest extends FunSuite {
     assert(None === purl.extension)
     assert(s === purl.toString)
     assert(false === purl.isURL)
+    assert(purl.path.isAbsolute)
   }
 
   test("relative url with path only") {
@@ -198,6 +202,7 @@ class PartialURLTest extends FunSuite {
     assert("html" === purl.extension.get)
     assert(s === purl.toString)
     assert(false === purl.isURL)
+    assert(purl.path.isAbsolute)
   }
 
   test("relative url with fragment") {

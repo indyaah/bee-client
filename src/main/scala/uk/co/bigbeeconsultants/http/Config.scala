@@ -24,7 +24,7 @@
 
 package uk.co.bigbeeconsultants.http
 
-import header.{ExpertHeaderName, Headers}
+import header.{CredentialSuite, ExpertHeaderName, Headers}
 import header.HeaderName._
 import java.net.Proxy
 
@@ -39,7 +39,8 @@ case class Config(connectTimeout: Int = 2000,
                   sendHostHeader: Boolean = true,
                   keepAlive: Boolean = true,
                   userAgentString: Option[String] = None,
-                  proxy: Proxy = Proxy.NO_PROXY) {
+                  proxy: Proxy = Proxy.NO_PROXY,
+                  credentials: CredentialSuite = CredentialSuite.empty) {
 
   require(maxRedirects > 1, maxRedirects + ": too few maxRedirects")
 

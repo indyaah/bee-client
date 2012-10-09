@@ -473,4 +473,36 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
         skipTestWarning("GET", url, e)
     }
   }
+
+  test("txt text/plain get basic auth") {
+    textPlainGetBasicAuth401("http:" + serverUrl + "private/lorem2.txt")
+    textPlainGetBasicAuth401("https:" + serverUrl + "private/lorem2.txt")
+    textPlainGetBasicAuth("http:" + serverUrl + "private/lorem2.txt")
+    //textPlainGetBasicAuth("https:" + serverUrl + "private/lorem2.txt")
+  }
+
+  private def textPlainGetBasicAuth401(url: String) {
+    try {
+      val response = http.get(new URL(url), gzipHeaders)
+      assert(401 === response.status.code, url)
+    } catch {
+      case e: Exception =>
+        skipTestWarning("GET", url, e)
+    }
+  }
+
+  private def textPlainGetBasicAuth(url: String) {
+    try {
+      val requestHeaders = gzipHeaders + BasicAuthentication("bigbee", "HelloWorld")
+      val response = http.get(new URL(url), requestHeaders)
+      assert(200 === response.status.code, url)
+      val body = response.body
+      assert(TEXT_PLAIN.value === body.contentType.value, url)
+      assert(true === body.toString.startsWith("Lorem "), url)
+    } catch {
+      case e: Exception =>
+        skipTestWarning("GET", url, e)
+    }
+  }
+
 }

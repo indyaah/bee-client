@@ -168,6 +168,8 @@ class HttpClient(val commonConfig: Config = Config(),
   /**
    * Makes an arbitrary request and returns the response. The entire response body is read into memory.
    * @param request the request
+   * @param config the particular configuration being used for this request; defaults to the commonConfiguration
+   *               supplied to this instance of HttpClient
    * @throws IOException (or ConnectException subclass) if an IO exception occurred
    * @return the response (for all outcomes including 4xx and 5xx status codes) if
    *         no exception occurred
@@ -175,7 +177,7 @@ class HttpClient(val commonConfig: Config = Config(),
   @throws(classOf[IOException])
   def makeRequest(request: Request, config: Config = commonConfig): Response = {
     val responseBuilder = new BufferedResponseBuilder
-    execute(request, responseBuilder)
+    execute(request, responseBuilder, config)
     responseBuilder.response.get
   }
 
@@ -184,6 +186,8 @@ class HttpClient(val commonConfig: Config = Config(),
    * Makes an arbitrary request using a response builder and without following any redirection.
    * @param request the request
    * @param responseBuilder the response factory, e.g. new BufferedResponseBuilder
+   * @param config the particular configuration being used for this request; defaults to the commonConfiguration
+   *               supplied to this instance of HttpClient
    * @throws IOException (or ConnectException subclass) if an IO exception occurred
    * @throws IllegalStateException if the maximum redirects threshold was exceeded
    * @return the response (for all outcomes including 4xx and 5xx status codes) if

@@ -123,6 +123,10 @@ case class PartialURL(endpoint: Option[Endpoint],
     new SplitURL(ep.scheme, ep.host, ep.port, path.segments, fragment, query)
   }
 
+  def startsWith(other: PartialURL): Boolean = {
+    this.endpoint == other.endpoint && this.path.startsWith(other.path)
+  }
+
   /**
    * Gets the host and port parts as a string.
    * E.g. "localhost:8080"
@@ -173,10 +177,12 @@ object PartialURL {
     if (p1 >= 0) parseFullURL(url, p1, hash, query) else parsePartialURL(url, hash, query)
   }
 
+  private val root = new Path(true, Nil)
+
   private def parseFullURL(url: String, p1: Int, hash: Int, query: Int) = {
     val p2 = url.indexOf('/', p1 + 3)
     val s3 = if (p2 < 0) url.length else p2
-    val path = if (p2 < 0) Path.empty else Path(pathStr(url, p2, hash, query))
+    val path = if (p2 < 0) root else Path(pathStr(url, p2, hash, query))
     val endpoint = Endpoint(url.substring(0, s3))
     new PartialURL(Some(endpoint), path, fragment(url, p2, hash, query), qs(url, p2, hash, query))
   }

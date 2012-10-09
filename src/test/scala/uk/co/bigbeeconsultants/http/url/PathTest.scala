@@ -30,6 +30,7 @@ class PathTest extends FunSuite {
 
   test("parse and equals") {
     assert(Path(false, Nil) === Path.empty)
+//    assert(Path(true, Nil) === Path.slash)
     assert(Path(false, Nil) === Path(""))
     assert(Path(true, Nil) === Path("/"))
     assert(Path(true, List("a")) === Path("/a"))
@@ -75,5 +76,19 @@ class PathTest extends FunSuite {
   test("take") {
     assert(Path(true, abcdef.take(3)) === Path("/a/b/c/d/e/f").take(3))
     assert(Path(false, abcdef.take(3)) === Path("a/b/c/d/e/f").take(3))
+  }
+
+  test("startsWith") {
+    assert(Path("/a/b/c/d/e/f").startsWith(Path("/")))
+    assert(Path("/a/b/c/d/e/f").startsWith(Path("/a/b")))
+    assert(Path("a/b/c/d/e/f").startsWith(Path("a/b")))
+    assert(!Path("a/b/c/d/e/f").startsWith(Path("/a/b")))
+    assert(!Path("/a/b/c/d/e/f").startsWith(Path("a/b")))
+    assert(Path("/a/b/c/d/e/f").startsWith(Path("/a/b/c/d/e/f")))
+    assert(!Path("/a/b/c/d/e/f").startsWith(Path("/a/b/c/d/e/f/g")))
+    assert(!Path("").startsWith(Path("/a/b/c/d/e/f/g")))
+    assert(!Path("").startsWith(Path("/")))
+    assert(!Path("/").startsWith(Path("")))
+    assert(Path("").startsWith(Path("")))
   }
 }

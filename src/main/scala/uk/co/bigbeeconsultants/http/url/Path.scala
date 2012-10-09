@@ -56,6 +56,13 @@ class Path(val isAbsolute: Boolean = true,
     if (isAbsolute) segments.mkString("/", "/", "")
     else segments.mkString("/")
 
+  /** Tests whether this path starts with the segments found in another path. */
+  def startsWith(other: Path) = {
+    this.isAbsolute == other.isAbsolute &&
+      this.length >= other.length &&
+      this.segments.slice(0, other.length) == other.segments
+  }
+
   /** Concatenates this path with another, which must be relative. */
   def +(relative: Path): Path = {
     require(!relative.isAbsolute, relative)
@@ -86,6 +93,7 @@ class Path(val isAbsolute: Boolean = true,
  */
 object Path {
   val empty = new Path(false, Nil)
+  val root = new Path(false, Nil)
 
   /** Constructs an instance directly. */
   def apply(isAbsolute: Boolean, segments: List[String]) = new Path(isAbsolute, segments)

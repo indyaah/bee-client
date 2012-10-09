@@ -24,10 +24,34 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import uk.co.bigbeeconsultants.http.url.Endpoint
+import uk.co.bigbeeconsultants.http.util.Base64
+import uk.co.bigbeeconsultants.http.header.HeaderName._
+import uk.co.bigbeeconsultants.http.url.PartialURL
 
-case class Realm(name: String, server: Endpoint)
+case class Credential(username: String, password: String) {
+  def basicAuthHeader: Header = {
+    val value = username + ":" + password
+    val credential = "Basic " + Base64.encodeBytes(value.getBytes("UTF-8"))
+    AUTHORIZATION -> credential
+  }
+}
 
-object Realm {
+/**
+ * Factory for construction of basic authentication headers.
+ */
+object BasicAuthentication {
+  def apply(username: String, password: String): Header = {
+    new Credential(username, password).basicAuthHeader
+  }
+}
 
+
+case class CredentialSuite(credentials: Map[PartialURL, Credential]) {
+  def basicAuthHeader(url: PartialURL): Option[Header] = {
+    null // TODO
+  }
+}
+
+object CredentialSuite {
+  val empty = new CredentialSuite(Map())
 }
