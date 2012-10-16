@@ -24,48 +24,31 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import uk.co.bigbeeconsultants.http.util.Base64
-import uk.co.bigbeeconsultants.http.header.HeaderName._
-import uk.co.bigbeeconsultants.http.url.PartialURL
+import org.scalatest.FunSuite
 
-case class Credential(username: String, password: String) {
-  def basicAuthHeader: Header = {
-    val value = username + ":" + password
-    val credential = "Basic " + Base64.encodeBytes(value.getBytes("UTF-8"))
-    AUTHORIZATION -> credential
+class AuthenticateValueTest extends FunSuite {
+
+
+  test ("basic string") {
+    val v = AuthenticateValue ("Basic realm=\"private\"")
+    assert ("Basic" === v.authScheme)
+    assert (1 === v.parts.size)
+    assert ("private" === v.realm.get)
+    assert ("Basic realm=\"private\"" === v.toString)
+    assert(v.isValid)
   }
 
-  def digestAuthHeader(challenge: AuthenticateValue): Header = {
-    //TODO
-    val value = username + ":" + password
-    val credential = "Digest " + Base64.encodeBytes(value.getBytes("UTF-8"))
-    AUTHORIZATION -> credential
+
+  test ("digest string") {
+    val v = AuthenticateValue ("Digest realm=\"private\", nonce=\"DCKawjTMBAA=d61b9a5f7be110cda76e46e3ac032bdccd440fae\", algorithm=MD5, qop=\"auth\"")
+    assert ("Digest" === v.authScheme)
+    assert (4 === v.parts.size)
+    assert ("private" === v.realm.get)
+    assert ("DCKawjTMBAA=d61b9a5f7be110cda76e46e3ac032bdccd440fae" === v.nonce.get)
+    assert ("MD5" === v.algorithm.get)
+    assert ("auth" === v.qop.get)
+    assert ("Digest realm=\"private\", nonce=\"DCKawjTMBAA=d61b9a5f7be110cda76e46e3ac032bdccd440fae\", algorithm=MD5, qop=\"auth\"" === v.toString)
+    assert(v.isValid)
   }
 
-  def respondToChallenge(challenge: AuthenticateValue): Header = {
-    challenge.authScheme match {
-      case "Basic" => basicAuthHeader
-      case "Digest" => digestAuthHeader(challenge)
-    }
-  }
-}
-
-/**
- * Factory for construction of basic authentication headers.
- */
-object BasicAuthentication {
-  def apply(username: String, password: String): Header = {
-    new Credential(username, password).basicAuthHeader
-  }
-}
-
-
-case class CredentialSuite(credentials: Map[PartialURL, Credential]) {
-  def basicAuthHeader(url: PartialURL): Option[Header] = {
-    null // TODO
-  }
-}
-
-object CredentialSuite {
-  val empty = new CredentialSuite(Map())
 }

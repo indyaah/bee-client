@@ -108,4 +108,11 @@ class HeaderTest extends FunSuite {
     assert (time === h.toDate.date.date)
   }
 
+
+  test ("authenticate") {
+    val h = Header ("WWW-Authenticate: Digest realm=\"private\", nonce=\"DCKawjTMBAA=d61b9a5f7be110cda76e46e3ac032bdccd440fae\", algorithm=MD5, qop=\"auth\"")
+    assert ("WWW-Authenticate" === h.name)
+    assert ("DCKawjTMBAA=d61b9a5f7be110cda76e46e3ac032bdccd440fae" === h.toAuthenticateValue.nonce.get)
+  }
+
 }

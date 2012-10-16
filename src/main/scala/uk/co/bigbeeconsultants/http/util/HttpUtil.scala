@@ -43,6 +43,14 @@ object HttpUtil {
   val DEFAULT_BUFFER_SIZE = 1024 * 16
 
   /**
+   * Removes surrounding double quotes from a string.
+   */
+  def unquote(str: String): String = {
+    if (str.length >= 2 && str(0) == '"' && str(str.length - 1) == '"') str.substring(1, str.length-1)
+    else str
+  }
+
+  /**
    * Efficiently splits a string at all occurrences of a given character. The returned list always contains at least
    * one item, even if it is blank.
    */

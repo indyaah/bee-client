@@ -28,13 +28,11 @@ else
     [ -d /etc/apache2/sites-enabled ] && ETCDIR=/etc/apache2/sites-enabled
 
     case "$WEBSERVER" in
-        # TODO
-        #*/apache2* | */cherokee*)
-        #    SVR=apache2
-        #    ;;
-        #*/cherokee*)
-        #    SVR=cherokee
-        #    ;;
+        */apache2*)
+            SVR=apache2
+            [ -d /var/www ] && WWWDIR=/var/www
+            [ -d /etc/apache2/sites-enabled ] && ETCDIR=/etc/apache2/sites-enabled
+            ;;
         */nginx*)
             SVR=nginx
             [ -d /usr/share/nginx/www ] && WWWDIR=/usr/share/nginx/www
@@ -63,9 +61,9 @@ else
 
     if [ -d $ETCDIR ]; then
         cd $ETCDIR
-        rm -f bee-client.cfg
-        ln -fs $TGT/scripts/$SVR.cfg bee-client.cfg
-        ln -fs $TGT/scripts/$SVR.ssl.cfg bee-client-ssl.cfg
+        rm -f bee-client.cfg bee-client-ssl.cfg
+        [ -f $TGT/scripts/$SVR.cfg ] && ln -vfs $TGT/scripts/$SVR.cfg bee-client.cfg
+        [ -f $TGT/scripts/$SVR.ssl.cfg ] && ln -vfs $TGT/scripts/$SVR.ssl.cfg bee-client-ssl.cfg
         ls -l
         echo Set up $ETCDIR ok.
         service $SVR reload

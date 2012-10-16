@@ -37,6 +37,11 @@ case class NameVal(name: String, value: Option[String]) {
     else name
 
   def isValid = !name.isEmpty
+
+  def valueWithoutQuotes: Option[String] = {
+    if (value.isEmpty) None
+    else Some(HttpUtil.unquote(value.get))
+  }
 }
 
 object NameVal {
@@ -64,6 +69,8 @@ case class Qualifiers(qualifiers: List[NameVal] = Nil) extends Iterable[NameVal]
   def value = qualifiers(0).name
 
   def apply(i: Int) = qualifiers.apply(i)
+
+  override def size = qualifiers.size
 
   override def iterator = qualifiers.iterator
 
@@ -107,6 +114,8 @@ case class QualifiedValue(value: String) extends Iterable[Qualifiers] with Value
   lazy val isValid = parts.forall(_.isValid)
 
   def apply(i: Int) = parts(i)
+
+  override def size = parts.size
 
   override def iterator = parts.iterator
 

@@ -29,6 +29,13 @@ import org.scalatest.FunSuite
 
 class HttpUtilTest extends FunSuite {
 
+  test("unquote") {
+    assert("" === HttpUtil.unquote(""))
+    assert("\"" === HttpUtil.unquote("\""))
+    assert("xyz" === HttpUtil.unquote("\"xyz\""))
+    assert("xyz" === HttpUtil.unquote("xyz"))
+  }
+
   test("split_blank") {
     assert(List("") === HttpUtil.split("", ':'))
   }

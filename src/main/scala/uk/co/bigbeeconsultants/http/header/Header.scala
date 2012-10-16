@@ -45,6 +45,9 @@ case class Header(name: String, value: String) {
   /** Converts the value to a qualified value. */
   def toQualifiedValue = QualifiedValue (value)
 
+  /** Converts the value to an authenticate value. */
+  def toAuthenticateValue = AuthenticateValue (value)
+
   /** Converts the value to a range value. */
   def toRangeValue = RangeValue (value)
 

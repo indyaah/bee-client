@@ -37,6 +37,16 @@ class QualifiedValueTest extends FunSuite {
   }
 
 
+  // as used in WWW-Authenticate
+  test ("NameVal with quoted pair toString") {
+    val q = NameVal ("a=\"bravo\"")
+    assert ("a=\"bravo\"" === q.toString)
+    assert ("a" === q.name)
+    assert ("\"bravo\"" === q.value.get)
+    assert ("bravo" === q.valueWithoutQuotes.get)
+  }
+
+
   test ("NameVal without pair toString") {
     val q = NameVal ("aaa")
     assert ("aaa" === q.toString)
