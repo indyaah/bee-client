@@ -22,16 +22,15 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "bee-client"
+package uk.co.bigbeeconsultants.http.auth
 
-version := "0.16.2"
+import uk.co.bigbeeconsultants.http.header.Header
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
-
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
-
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+/**
+ * Factory for construction of basic authentication headers.
+ */
+object BasicAuthentication {
+  def apply(username: String, password: String): Header = {
+    new BasicCredential(username, password).toAuthHeader
+  }
+}

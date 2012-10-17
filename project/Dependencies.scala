@@ -32,34 +32,34 @@ object Resolvers {
 }
 
 object Dependencies {
-  val slf4jVersion = "1.6.+"
-  val logbackVersion = "1.0.+"
+  val slf4jVersion = "1.6.6"
+  val logbackVersion = "1.0.7"
   val jettyVersion = "6.1.26"
 
   val slf4jApi = "org.slf4j" % "slf4j-api" % slf4jVersion withSources()
   val slf4jJcl = "org.slf4j" % "jcl-over-slf4j" % slf4jVersion withSources()
   val slf4jLog4j = "org.slf4j" % "log4j-over-slf4j" % slf4jVersion withSources()
-  val slf4s = "com.weiglewilczek.slf4s" %% "slf4s" % "1.0.+" withSources()
+  val slf4s = "com.weiglewilczek.slf4s" %% "slf4s" % "1.0.7" withSources()
 
   //  val jodaTime         = "joda-time"          % "joda-time"         % "2.+" withJavadoc()
   //  val jodaConvert      = "joda-time"          % "joda-convert"      % "1.+" withJavadoc()
 
 //  val jcsp = "org.codehaus.jcsp" % "jcsp" % "1.1-rc5"
 
-  val servletApi = "org.mortbay.jetty" % "servlet-api" % "2.5.+" withSources()
+  val servletApi = "org.mortbay.jetty" % "servlet-api" % "2.5.20110712" withSources()
 //  val servlet = "javax.servlet" % "servlet-api" % "2.5" withSources()
 
-  val beeConfig = "bee-config" % "bee-config_2.9.1" % "0.10.+" withSources() withJavadoc()
+  val beeConfig = "bee-config" % "bee-config_2.9.1" % "0.11.+" withSources() withJavadoc()
 
   // ========== Test ==========
 
-  val scalatest = "org.scalatest" %% "scalatest" % "1.8.+" % "test" withSources()
+  val scalatest = "org.scalatest" %% "scalatest" % "1.8.RC2" % "test" withSources()
 
   // see lib folder
   //val stubserver       = "tarttelin"               % "stubserver"               % "0.3"   % "test"
   // Currently directly from source https://github.com/rickb777/JavaStubServer
 
-  val mockito = "org.mockito" % "mockito-all" % "1.9.+" % "test"
+  val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
 
   val logbackCore = "ch.qos.logback" % "logback-core" % logbackVersion % "test"
   val logbackClassic = "ch.qos.logback" % "logback-classic" % logbackVersion % "test"

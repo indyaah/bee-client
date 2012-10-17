@@ -53,7 +53,7 @@ case class AuthenticateValue(authScheme: String, parts: ListMap[String, String])
 
   lazy val algorithm: Option[String] = parts.get("algorithm").map(HttpUtil.unquote(_))
 
-  lazy val qop: Option[String] = parts.get("qop").map(HttpUtil.unquote(_))
+  lazy val qop: List[String] = parts.get("qop").map(qop => HttpUtil.split(HttpUtil.unquote(qop), ',')).getOrElse(Nil)
 
   lazy val isValid = {
     if (authScheme == "Basic") realm.isDefined
@@ -67,12 +67,12 @@ case class AuthenticateValue(authScheme: String, parts: ListMap[String, String])
 
 object AuthenticateValue {
   def apply(headerValue: String): AuthenticateValue = {
-    val sections = HttpUtil.divide(headerValue, ' ')
+    val sections = HttpUtil.divide(headerValue.replace('\n', ' '), ' ')
 
-    val parts = ListMap() ++ HttpUtil.split(sections._2, ',').map {
+    val parts = HttpUtil.splitQuoted(sections._2, ',').map {
       v: String => HttpUtil.divide(v.trim, '=')
     }
 
-    new AuthenticateValue(sections._1, parts)
+    new AuthenticateValue(sections._1, ListMap() ++ parts)
   }
 }

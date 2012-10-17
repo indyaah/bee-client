@@ -24,6 +24,7 @@
 
 package uk.co.bigbeeconsultants.http
 
+import auth.BasicAuthentication
 import HttpClient._
 import header._
 import header.MediaType._
@@ -35,6 +36,7 @@ import java.net.{UnknownHostException, ConnectException, Proxy, URL}
 import java.io.File
 import scala.Some
 import util.DumbTrustManager
+import header.{HeaderName, Headers}
 
 object HttpIntegration {
 

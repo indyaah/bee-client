@@ -24,7 +24,8 @@
 
 package uk.co.bigbeeconsultants.http
 
-import header.{CredentialSuite, ExpertHeaderName, Headers}
+import auth.CredentialSuite
+import header.{ExpertHeaderName, Headers}
 import header.HeaderName._
 import java.net.Proxy
 

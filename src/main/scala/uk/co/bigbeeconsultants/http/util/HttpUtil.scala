@@ -70,6 +70,33 @@ object HttpUtil {
   }
 
   /**
+   * Efficiently splits a string at all occurrences of a given character except those inside double quotes.
+   * The returned list always contains at least one item, even if it is blank.
+   */
+  def splitQuoted(str: String, sep: Char, quoteMark: Char = '"'): List[String] = {
+    val list = new ListBuffer[String]
+    val part = new StringBuilder
+    var inQuotes = false
+    for (c <- str.toCharArray) {
+      if (c == sep) {
+          if (inQuotes) {
+            part += c
+          } else {
+            list += part.toString()
+            part.setLength(0)
+          }
+      } else if (c == quoteMark) {
+          inQuotes = !inQuotes
+          part += c
+      } else {
+          part += c
+      }
+    }
+    list += part.toString()
+    list.toList
+  }
+
+  /**
    * Efficiently divides a string at the first occurrence of a separator character.
    * @return a tuple of the string before and the string after the separator
    */

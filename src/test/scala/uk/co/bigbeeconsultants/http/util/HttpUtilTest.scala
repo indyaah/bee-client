@@ -36,28 +36,56 @@ class HttpUtilTest extends FunSuite {
     assert("xyz" === HttpUtil.unquote("xyz"))
   }
 
-  test("split_blank") {
+  test("split blank") {
     assert(List("") === HttpUtil.split("", ':'))
   }
 
-  test("split_sepOnly") {
+  test("split sepOnly") {
     assert(List("", "") === HttpUtil.split(":", ':'))
   }
 
-  test("split_oneOnly") {
+  test("split oneOnly") {
     assert(List("only") === HttpUtil.split("only", ':'))
   }
 
-  test("split_endOnly") {
+  test("split endOnly") {
     assert(List("only", "") === HttpUtil.split("only:", ':'))
   }
 
-  test("split_startOnly") {
+  test("split startOnly") {
     assert(List("", "only") === HttpUtil.split(":only", ':'))
   }
 
-  test("split_three") {
+  test("split three") {
     assert(List("one", "two", "three") === HttpUtil.split("one:two:three", ':'))
+  }
+
+  test("split quoted blank") {
+    assert(List("") === HttpUtil.splitQuoted("", ':'))
+  }
+
+  test("split quoted sepOnly") {
+    assert(List("", "") === HttpUtil.splitQuoted(":", ':'))
+  }
+
+  test("split quoted oneOnly") {
+    assert(List("only") === HttpUtil.splitQuoted("only", ':'))
+  }
+
+  test("split quoted endOnly") {
+    assert(List("only", "") === HttpUtil.splitQuoted("only:", ':'))
+  }
+
+  test("split quoted startOnly") {
+    assert(List("", "only") === HttpUtil.splitQuoted(":only", ':'))
+  }
+
+  test("split quoted three") {
+    assert(List("one", "two", "three") === HttpUtil.splitQuoted("one:two:three", ':'))
+  }
+
+  test("split quoted containing seps") {
+    assert(List("a=\"one\"", "b=\"two,two,two\"", "c=three", "d=\"four\"") === HttpUtil.splitQuoted("a=\"one\",b=\"two,two,two\",c=three,d=\"four\"", ','))
   }
 
   test("divide0") {

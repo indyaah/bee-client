@@ -22,43 +22,10 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.http.header
+package uk.co.bigbeeconsultants.http.auth
 
-import uk.co.bigbeeconsultants.http.util.Base64
-import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.url.PartialURL
-
-case class Credential(username: String, password: String) {
-  def basicAuthHeader: Header = {
-    val value = username + ":" + password
-    val credential = "Basic " + Base64.encodeBytes(value.getBytes("UTF-8"))
-    AUTHORIZATION -> credential
-  }
-
-  def digestAuthHeader(challenge: AuthenticateValue): Header = {
-    //TODO
-    val value = username + ":" + password
-    val credential = "Digest " + Base64.encodeBytes(value.getBytes("UTF-8"))
-    AUTHORIZATION -> credential
-  }
-
-  def respondToChallenge(challenge: AuthenticateValue): Header = {
-    challenge.authScheme match {
-      case "Basic" => basicAuthHeader
-      case "Digest" => digestAuthHeader(challenge)
-    }
-  }
-}
-
-/**
- * Factory for construction of basic authentication headers.
- */
-object BasicAuthentication {
-  def apply(username: String, password: String): Header = {
-    new Credential(username, password).basicAuthHeader
-  }
-}
-
+import uk.co.bigbeeconsultants.http.header.Header
 
 case class CredentialSuite(credentials: Map[PartialURL, Credential]) {
   def basicAuthHeader(url: PartialURL): Option[Header] = {
