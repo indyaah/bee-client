@@ -25,6 +25,9 @@
 package uk.co.bigbeeconsultants.http.header
 
 import org.scalatest.FunSuite
+import uk.co.bigbeeconsultants.http._
+import uk.co.bigbeeconsultants.http.auth.DigestCredential
+import uk.co.bigbeeconsultants.http.request.Request
 
 class AuthenticateValueTest extends FunSuite {
 
@@ -60,8 +63,12 @@ class AuthenticateValueTest extends FunSuite {
     //    password is "Circle Of Life" (with one space between each of the
     //    three words).
 
-    val s = "Digest\nrealm=\"testrealm@host.com\",\nqop=\"auth,auth-int\",\n" +
-      "nonce=\"dcd98b7102dd2f0e8b11d0f600bfb0c093\",\nopaque=\"5ccc069c403ebaf9f0171e9517f40e41\""
+    val s = """|Digest
+               |realm="testrealm@host.com",
+               |qop="auth,auth-int",
+               |nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
+               |opaque="5ccc069c403ebaf9f0171e9517f40e41"""".stripMargin
+
     val v = AuthenticateValue(s)
     assert("Digest" === v.authScheme)
     assert(4 === v.parts.size)
@@ -73,10 +80,13 @@ class AuthenticateValueTest extends FunSuite {
     assert(s.replace('\n', ' ') === v.toString)
     assert(v.isValid)
 
-//    "Authorization: Digest username=\"Mufasa\",\n" +
-//      "realm=\"testrealm@host.com\",\nnonce=\"dcd98b7102dd2f0e8b11d0f600bfb0c093\",\n" +
-//      "uri=\"/dir/index.html\",\nqop=auth,\nnc=00000001,\ncnonce=\"0a4f113b\",\n" +
-//      "response=\"6629fae49393a05397450978507c4ef1\",\nopaque=\"5ccc069c403ebaf9f0171e9517f40e41\""
+    val dc = DigestCredential("Mufasa", "Circle Of Life", v, Request.get("http://any/dir/index.html"), Some("0a4f113b"), Some("auth"), Some(1))
+//    assert(
+//      """|Authorization: Digest username="Mufasa",
+//         |realm="testrealm@host.com", nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
+//         |uri="/dir/index.html", qop=auth, nc=00000001, cnonce="0a4f113b",
+//         |response="6629fae49393a05397450978507c4ef1", opaque="5ccc069c403ebaf9f0171e9517f40e41"""".stripMargin.replace('\n', ' ')
+//      === dc.toAuthHeader)
   }
 
 }

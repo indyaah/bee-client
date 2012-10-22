@@ -73,6 +73,6 @@ object AuthenticateValue {
       v: String => HttpUtil.divide(v.trim, '=')
     }
 
-    new AuthenticateValue(sections._1, ListMap() ++ parts)
+    new AuthenticateValue(sections._1.trim, ListMap() ++ parts)
   }
 }
