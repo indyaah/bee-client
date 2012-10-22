@@ -42,10 +42,9 @@ import response._
  * the updated state.
  */
 class HttpBrowser(val config: Config = Config(),
-                  val commonRequestHeaders: Headers = HttpClient.defaultRequestHeaders,
                   initialCookieJar: CookieJar = CookieJar.empty) {
 
-  private val httpClient = new HttpClient(config, commonRequestHeaders)
+  private val httpClient = new HttpClient(config)
   private var _cookieJar: Option[CookieJar] = Some(initialCookieJar)
 
   /** Gets the current state of the cookie jar. */
@@ -117,8 +116,9 @@ class HttpBrowser(val config: Config = Config(),
   @throws(classOf[IOException])
   def makeRequest(request: Request): Response = {
     val response = httpClient.makeRequest(request using _cookieJar)
-    // here's a potential race condition which we happily ignore
-    _cookieJar = response.cookies
+    synchronized {
+      _cookieJar = response.cookies
+    }
     response
   }
 }

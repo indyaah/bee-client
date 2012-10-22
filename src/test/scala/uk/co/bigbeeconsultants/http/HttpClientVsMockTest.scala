@@ -35,196 +35,240 @@ import response.Status
 import collection.immutable.ListMap
 import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
 
-
 class HttpClientVsMockTest extends FunSuite with BeforeAndAfter {
 
-  val url = new URL ("http://server/some/url")
+  val url = new URL("http://server/some/url")
   var httpURLConnection: HttpURLConnection = null
 
   private def createMock(contentType: String, content: String, status: Status) {
-    httpURLConnection = mock (classOf[HttpURLConnection])
-    when (httpURLConnection.getContentType).thenReturn (contentType)
-    when (httpURLConnection.getResponseCode).thenReturn (status.code)
-    when (httpURLConnection.getInputStream).thenReturn (new ByteArrayInputStream (content.getBytes ("UTF-8")))
-    when (httpURLConnection.getResponseMessage).thenReturn (status.message)
+    httpURLConnection = mock(classOf[HttpURLConnection])
+    when(httpURLConnection.getContentType).thenReturn(contentType)
+    when(httpURLConnection.getResponseCode).thenReturn(status.code)
+    when(httpURLConnection.getInputStream).thenReturn(new ByteArrayInputStream(content.getBytes("UTF-8")))
+    when(httpURLConnection.getResponseMessage).thenReturn(status.message)
   }
 
   private def expectHeaders(map: ListMap[String, String]) {
-    when (httpURLConnection.getHeaderFieldKey (0)).thenReturn (null)
+    when(httpURLConnection.getHeaderFieldKey(0)).thenReturn(null)
     var i = 1
     for ((k, v) <- map) {
       if (v != null) {
-        when (httpURLConnection.getHeaderFieldKey (i)).thenReturn (k)
-        when (httpURLConnection.getHeaderField (i)).thenReturn (v)
+        when(httpURLConnection.getHeaderFieldKey(i)).thenReturn(k)
+        when(httpURLConnection.getHeaderField(i)).thenReturn(v)
         i += 1
       }
     }
-    when (httpURLConnection.getHeaderFieldKey (i)).thenReturn (null)
+    when(httpURLConnection.getHeaderFieldKey(i)).thenReturn(null)
   }
 
   private def verifyRequestSettings(method: String, headers: List[Header]) {
-    verify (httpURLConnection).setRequestMethod (method)
+    verify(httpURLConnection).setRequestMethod(method)
     for (h <- headers) {
-      verify (httpURLConnection).setRequestProperty (h.name, h.value)
+      verify(httpURLConnection).setRequestProperty(h.name, h.value)
     }
   }
 
   private def verifyHeaders(n: Int) {
-    verify (httpURLConnection).getHeaderFieldKey (0)
+    verify(httpURLConnection).getHeaderFieldKey(0)
     for (i <- 1 to n) {
-      verify (httpURLConnection).getHeaderFieldKey (i)
-      verify (httpURLConnection).getHeaderField (i)
+      verify(httpURLConnection).getHeaderFieldKey(i)
+      verify(httpURLConnection).getHeaderField(i)
     }
-    verify (httpURLConnection).getHeaderFieldKey (n + 1)
+    verify(httpURLConnection).getHeaderFieldKey(n + 1)
   }
 
   private def verifyConfig(config: Config) {
-    verify (httpURLConnection).setConnectTimeout (config.connectTimeout)
-    verify (httpURLConnection).setReadTimeout (config.readTimeout)
-    verify (httpURLConnection).setInstanceFollowRedirects (false)
-    verify (httpURLConnection).setUseCaches (config.useCaches)
-    verify (httpURLConnection).setAllowUserInteraction (false)
+    verify(httpURLConnection).setConnectTimeout(config.connectTimeout)
+    verify(httpURLConnection).setReadTimeout(config.readTimeout)
+    verify(httpURLConnection).setInstanceFollowRedirects(false)
+    verify(httpURLConnection).setUseCaches(config.useCaches)
+    verify(httpURLConnection).setAllowUserInteraction(false)
   }
 
-  private def newHttpClient(config: Config = Config (),
-                            commonRequestHeaders: Headers = HttpClient.defaultRequestHeaders) = {
-    new HttpClient (config, commonRequestHeaders) {
+  private def newHttpClient(config: Config = Config()) = {
+    new HttpClient(config) {
       override def openConnection(request: Request, proxy: Proxy) = httpURLConnection
     }
   }
 
 
-  def executeBasicSettingsWithoutBody(method: String, contentType: String, status: Status = Status (200, "OK")) {
+  def executeBasicSettingsWithoutBody(method: String, contentType: String, useCookies: Boolean, status: Status = Status(200, "OK")) {
     val expectedContent = "hello world"
-    createMock (contentType, expectedContent, status)
-    expectHeaders (ListMap ("Content-Type" -> contentType))
+    createMock(contentType, expectedContent, status)
+    expectHeaders(ListMap("Content-Type" -> contentType))
 
-    val http = newHttpClient ()
+    val http = newHttpClient()
 
-    val headers = Headers (List (ACCEPT_LANGUAGE -> "en"))
-    val response = method match {
-      case "GET" => http.get (url, headers)
-      case "HEAD" => http.head (url, headers)
-      case "TRACE" => http.trace (url, headers)
-      case "DELETE" => http.delete (url, headers)
-      case "POST" => http.post (url, Some(RequestBody(MediaType.TEXT_HTML)), headers)
-    }
+    val headers = Headers(List(ACCEPT_LANGUAGE -> "en"))
+    val response =
+      if (useCookies)
+        method match {
+          case "GET" => http.get(url, headers, CookieJar.empty)
+          case "HEAD" => http.head(url, headers, CookieJar.empty)
+          case "TRACE" => http.trace(url, headers, CookieJar.empty)
+          case "DELETE" => http.delete(url, headers, CookieJar.empty)
+        }
+      else
+        method match {
+          case "GET" => http.get(url, headers)
+          case "HEAD" => http.head(url, headers)
+          case "TRACE" => http.trace(url, headers)
+          case "DELETE" => http.delete(url, headers)
+        }
 
     verifyConfig(Config())
-    verifyRequestSettings (method, List(HOST -> "server", ACCEPT -> "*/*",
+    verifyRequestSettings(method, List(HOST -> "server", ACCEPT -> "*/*",
       ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8,*;q=.1", ACCEPT_LANGUAGE -> "en"))
-    verify (httpURLConnection).getContentType
-    verify (httpURLConnection, times (2)).getResponseCode
-    verify (httpURLConnection).getResponseMessage
-    verify (httpURLConnection).getInputStream
-    verify (httpURLConnection).connect ()
-    verify (httpURLConnection).disconnect ()
-    verifyHeaders (1)
-    verifyNoMoreInteractions (httpURLConnection)
+    verify(httpURLConnection).getContentType
+    verify(httpURLConnection, times(2)).getResponseCode
+    verify(httpURLConnection).getResponseMessage
+    verify(httpURLConnection).getInputStream
+    verify(httpURLConnection).connect()
+    verify(httpURLConnection).disconnect()
+    verifyHeaders(1)
+    verifyNoMoreInteractions(httpURLConnection)
 
-    assert (TEXT_PLAIN === response.body.contentType)
-    assert (expectedContent === response.body.toString)
+    assert(TEXT_PLAIN === response.body.contentType)
+    assert(expectedContent === response.body.toString)
   }
 
 
-  test ("mock methods with broadly default settings and without a body should confirm all interations") {
-    executeBasicSettingsWithoutBody("GET", "text/plain")
-    executeBasicSettingsWithoutBody("HEAD", "text/plain")
-    executeBasicSettingsWithoutBody("TRACE", "text/plain")
-    executeBasicSettingsWithoutBody("DELETE", "text/plain")
+  test("mock methods with broadly default settings and without a body should confirm all interations") {
+    executeBasicSettingsWithoutBody("GET", "text/plain", false)
+    executeBasicSettingsWithoutBody("HEAD", "text/plain", false)
+    executeBasicSettingsWithoutBody("TRACE", "text/plain", false)
+    executeBasicSettingsWithoutBody("DELETE", "text/plain", false)
+    executeBasicSettingsWithoutBody("GET", "text/plain", true)
+    executeBasicSettingsWithoutBody("HEAD", "text/plain", true)
+    executeBasicSettingsWithoutBody("TRACE", "text/plain", true)
+    executeBasicSettingsWithoutBody("DELETE", "text/plain", true)
   }
 
 
-  def executeBasicSettingsWithBody(method: String) = {
+  def executeBasicSettingsWithBody(method: String, useCookies: Boolean) = {
     val expectedContent = "hello world"
-    createMock ("text/plain", expectedContent, Status (200, "OK"))
-    expectHeaders (ListMap ("Content-Type" -> "text/plain"))
+    createMock("text/plain", expectedContent, Status(200, "OK"))
+    expectHeaders(ListMap("Content-Type" -> "text/plain"))
 
-    val baos = new ByteArrayOutputStream ()
-    when (httpURLConnection.getOutputStream).thenReturn (baos)
+    val baos = new ByteArrayOutputStream()
+    when(httpURLConnection.getOutputStream).thenReturn(baos)
 
-    val http = newHttpClient ()
+    val http = newHttpClient()
 
-    val headers = Headers (List (ACCEPT_LANGUAGE -> "en"))
-    val response = method match {
-      case "POST" => http.post (url, Some(RequestBody(Map("foo" -> "bar", "a" -> "z"), TEXT_PLAIN)), headers)
-      case "PUT" => http.put (url, RequestBody("hello world", TEXT_PLAIN), headers)
-      case "OPTIONS" => http.options (url, Some(RequestBody("hello world", TEXT_PLAIN)), headers)    }
+    val headers = Headers(List(ACCEPT_LANGUAGE -> "en"))
+    val response =
+      if (useCookies)
+        method match {
+          case "POST" => http.post(url, Some(RequestBody(Map("foo" -> "bar", "a" -> "z"), TEXT_PLAIN)), headers, CookieJar.empty)
+          case "PUT" => http.put(url, RequestBody("hello world", TEXT_PLAIN), headers, CookieJar.empty)
+          case "OPTIONS" => http.options(url, Some(RequestBody("hello world", TEXT_PLAIN)), headers, CookieJar.empty)
+        }
+      else
+        method match {
+          case "POST" => http.post(url, Some(RequestBody(Map("foo" -> "bar", "a" -> "z"), TEXT_PLAIN)), headers)
+          case "PUT" => http.put(url, RequestBody("hello world", TEXT_PLAIN), headers)
+          case "OPTIONS" => http.options(url, Some(RequestBody("hello world", TEXT_PLAIN)), headers)
+        }
 
     verifyConfig(Config())
-    verifyRequestSettings (method, List(HOST -> "server", ACCEPT -> "*/*",
+    verifyRequestSettings(method, List(HOST -> "server", ACCEPT -> "*/*",
       ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8,*;q=.1", ACCEPT_LANGUAGE -> "en", CONTENT_TYPE -> "text/plain"))
-    verify (httpURLConnection).setDoOutput (true)
-    verify (httpURLConnection).getContentType
-    verify (httpURLConnection, times (2)).getResponseCode
-    verify (httpURLConnection).getResponseMessage
-    verify (httpURLConnection).getInputStream
-    verify (httpURLConnection).getOutputStream
-    verify (httpURLConnection).connect ()
-    verify (httpURLConnection).disconnect ()
-    verifyHeaders (1)
-    verifyNoMoreInteractions (httpURLConnection)
+    verify(httpURLConnection).setDoOutput(true)
+    verify(httpURLConnection).getContentType
+    verify(httpURLConnection, times(2)).getResponseCode
+    verify(httpURLConnection).getResponseMessage
+    verify(httpURLConnection).getInputStream
+    verify(httpURLConnection).getOutputStream
+    verify(httpURLConnection).connect()
+    verify(httpURLConnection).disconnect()
+    verifyHeaders(1)
+    verifyNoMoreInteractions(httpURLConnection)
 
-    assert (TEXT_PLAIN === response.body.contentType)
-    assert (expectedContent === response.body.toString)
+    assert(TEXT_PLAIN === response.body.contentType)
+    assert(expectedContent === response.body.toString)
     baos.toString("UTF-8")
   }
 
 
-  test ("mock methods with broadly default settings and with a body should confirm all interations") {
-    assert("foo=bar&a=z" === executeBasicSettingsWithBody("POST"))
-    assert("hello world" === executeBasicSettingsWithBody("PUT"))
-    assert("hello world" === executeBasicSettingsWithBody("OPTIONS"))
+  test("mock methods with broadly default settings and with a body should confirm all interations") {
+    assert("foo=bar&a=z" === executeBasicSettingsWithBody("POST", false))
+    assert("hello world" === executeBasicSettingsWithBody("PUT", false))
+    assert("hello world" === executeBasicSettingsWithBody("OPTIONS", false))
+    assert("foo=bar&a=z" === executeBasicSettingsWithBody("POST", true))
+    assert("hello world" === executeBasicSettingsWithBody("PUT", true))
+    assert("hello world" === executeBasicSettingsWithBody("OPTIONS", true))
   }
 
 
-  test ("config connect timeout should send the correct header") {
-    createMock ("text/plain", "hello world", Status (200, "OK"))
-    expectHeaders (ListMap ("Content-Type" -> "text/plain"))
+  test("config connect timeout should send the correct header") {
+    createMock("text/plain", "hello world", Status(200, "OK"))
+    expectHeaders(ListMap("Content-Type" -> "text/plain"))
 
-    val config = Config (connectTimeout = 12345)
-    newHttpClient (config).get (url)
+    val config = Config(connectTimeout = 12345)
+    newHttpClient(config).get(url)
     verifyConfig(config)
   }
 
 
-  test ("config read timeout should send the correct header") {
-    createMock ("text/plain", "hello world", Status (200, "OK"))
-    expectHeaders (ListMap ("Content-Type" -> "text/plain"))
+  test("config read timeout should send the correct header") {
+    createMock("text/plain", "hello world", Status(200, "OK"))
+    expectHeaders(ListMap("Content-Type" -> "text/plain"))
 
-    val config = Config (readTimeout = 12345)
-    newHttpClient (config).get (url)
+    val config = Config(readTimeout = 12345)
+    newHttpClient(config).get(url)
     verifyConfig(config)
   }
 
 
-  test ("config follow redirects should send the correct header") {
-    createMock ("text/plain", "hello world", Status (200, "OK"))
-    expectHeaders (ListMap ("Content-Type" -> "text/plain"))
+  test("config follow redirects should send the correct header") {
+    createMock("text/plain", "hello world", Status(200, "OK"))
+    expectHeaders(ListMap("Content-Type" -> "text/plain"))
 
-    val config = Config (followRedirects = false)
-    newHttpClient (config).get (url)
+    val config = Config(followRedirects = false)
+    newHttpClient(config).get(url)
     verifyConfig(config)
   }
 
 
-  test ("config use caches should send the correct header") {
-    createMock ("text/plain", "hello world", Status (200, "OK"))
-    expectHeaders (ListMap ("Content-Type" -> "text/plain"))
+  test("config use caches should send the correct header") {
+    createMock("text/plain", "hello world", Status(200, "OK"))
+    expectHeaders(ListMap("Content-Type" -> "text/plain"))
 
-    val config = Config (useCaches = false)
-    newHttpClient (config).get (url)
+    val config = Config(useCaches = false)
+    newHttpClient(config).get(url)
     verifyConfig(config)
   }
 
 
-  test ("config host header flag should be able to disable the host header") {
-    createMock ("text/plain", "hello world", Status (200, "OK"))
-    expectHeaders (ListMap ("Content-Type" -> "text/plain"))
+  test("config host header flag should be able to disable the host header") {
+    createMock("text/plain", "hello world", Status(200, "OK"))
+    expectHeaders(ListMap("Content-Type" -> "text/plain"))
 
-    newHttpClient (config = Config (sendHostHeader = false)).get (url)
+    newHttpClient(config = Config(preRequests = Nil)).get(url)
 
-    verify (httpURLConnection, times (0)).setRequestProperty (HOST, "server")
+    verify(httpURLConnection, times(0)).setRequestProperty(HOST, "server")
+  }
+
+
+  test("config host header should not be automatically sent for IP addresses") {
+    createMock("text/plain", "hello world", Status(200, "OK"))
+    expectHeaders(ListMap("Content-Type" -> "text/plain"))
+
+    val url = new URL("http://192.168.1.1/some/url")
+    newHttpClient(config = Config()).get(url)
+
+    verify(httpURLConnection, times(0)).setRequestProperty(HOST, "192.168.1.1")
+  }
+
+
+  test("config host header should not be automatically sent for localhost") {
+    createMock("text/plain", "hello world", Status(200, "OK"))
+    expectHeaders(ListMap("Content-Type" -> "text/plain"))
+
+    val url = new URL("http://localhost/some/url")
+    newHttpClient(config = Config()).get(url)
+
+    verify(httpURLConnection, times(0)).setRequestProperty(HOST, "localhost")
   }
 
 }

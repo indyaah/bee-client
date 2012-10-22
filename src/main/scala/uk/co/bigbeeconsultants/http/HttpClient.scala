@@ -25,7 +25,7 @@
 package uk.co.bigbeeconsultants.http
 
 import header.HeaderName._
-import header.{CookieJar, Headers, Header, MediaType}
+import header._
 import response._
 import request.{RequestBody, Request}
 import java.net._
@@ -33,6 +33,8 @@ import java.util.zip.GZIPInputStream
 import com.weiglewilczek.slf4s.Logging
 import collection.mutable.ListBuffer
 import java.io.IOException
+import javax.net.ssl.HttpsURLConnection
+import scala.Some
 
 /**
  * Constructs an instance for handling any number of HTTP requests with any level of concurrency.
@@ -43,8 +45,7 @@ import java.io.IOException
  *
  * [[uk.co.bigbeeconsultants.http.HttpBrowser]] provides an alternative that handles cookies for you.
  */
-class HttpClient(val commonConfig: Config = Config(),
-                 val commonRequestHeaders: Headers = HttpClient.defaultRequestHeaders) extends Logging {
+class HttpClient(val commonConfig: Config = Config()) extends Logging {
 
   /**
    * Make a HEAD request. No cookies are used and none are returned.
@@ -204,7 +205,9 @@ class HttpClient(val commonConfig: Config = Config(),
   private[http] def doExecute(request: Request,
                               responseBuilder: ResponseBuilder,
                               config: Config): Option[Request] = {
-    logger.info({request.toString})
+    logger.info({
+      request.toString
+    })
 
     val httpURLConnection = openConnection(request, config.proxy)
     httpURLConnection.setAllowUserInteraction(false)
@@ -212,6 +215,14 @@ class HttpClient(val commonConfig: Config = Config(),
     httpURLConnection.setReadTimeout(config.readTimeout)
     httpURLConnection.setInstanceFollowRedirects(false)
     httpURLConnection.setUseCaches(config.useCaches)
+
+    if (httpURLConnection.isInstanceOf[HttpsURLConnection]) {
+      val httpsConnection = httpURLConnection.asInstanceOf[HttpsURLConnection]
+      if (config.sslSocketFactory.isDefined)
+        httpsConnection.setSSLSocketFactory(config.sslSocketFactory.get)
+      if (config.hostnameVerifier.isDefined)
+        httpsConnection.setHostnameVerifier(config.hostnameVerifier.get)
+    }
 
     var redirect: Option[Request] = None
     try {
@@ -269,24 +280,11 @@ class HttpClient(val commonConfig: Config = Config(),
     val method = request.method.toUpperCase
     httpURLConnection.setRequestMethod(method)
 
-    if (config.sendHostHeader) {
-      httpURLConnection.setRequestProperty(HOST, request.url.getHost)
-      logger.debug((HOST -> request.url.getHost).toString)
-    }
+    config.preRequests.foreach(_.process(request, httpURLConnection, config))
 
     if (request.body.isDefined) {
       httpURLConnection.setRequestProperty(CONTENT_TYPE, request.body.get.mediaType)
       logger.debug((CONTENT_TYPE -> request.body.get.mediaType).toString)
-    }
-
-    for (hdr <- config.configHeaders) {
-      httpURLConnection.setRequestProperty(hdr.name, hdr.value)
-      logger.debug(hdr.toString)
-    }
-
-    for (hdr <- commonRequestHeaders) {
-      httpURLConnection.setRequestProperty(hdr.name, hdr.value)
-      logger.debug(hdr.toString)
     }
 
     for (hdr <- request.headers) {
@@ -358,11 +356,5 @@ object HttpClient {
   val UTF8 = "UTF-8"
   val GZIP = "gzip"
   //val DEFLATE = "deflate"
-
-  val defaultRequestHeaders = Headers(
-    ACCEPT -> "*/*",
-    ACCEPT_ENCODING -> GZIP,
-    ACCEPT_CHARSET -> (UTF8 + ",*;q=.1")
-  )
 }
 
