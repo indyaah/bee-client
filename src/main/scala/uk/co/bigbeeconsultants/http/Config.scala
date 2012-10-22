@@ -25,10 +25,7 @@
 package uk.co.bigbeeconsultants.http
 
 import auth.CredentialSuite
-import header.{ExpertHeaderName, Headers}
-import header.HeaderName._
 import java.net.Proxy
-import javax.net.ssl.{HostnameVerifier, SSLSocketFactory}
 import request._
 
 /**
@@ -44,9 +41,8 @@ import request._
  * @param proxy supplies the proxy configuration (NO_PROXY).
  *              See http://docs.oracle.com/javase/6/docs/api/java/net/Proxy.html
  * @param credentials provides a credentials source (empty) -- experimental
- * @param sslSocketFactory provides an SSL socket factory, otherwise the default will be used
- * @param hostnameVerifier provides an SSL hostname verifier, otherwise the default will be used
- * @param preRequests provides the pre-request handlers to configure headers etc on every request
+ * @param preRequests provides the pre-request handlers to configure headers etc on every request using
+ *                    Config.standardSetup, i.e.
  *                    (List([[uk.co.bigbeeconsultants.http.request.AutomaticHostHeader]],
  *                    [[uk.co.bigbeeconsultants.http.request.DefaultRequestHeaders]],
  *                    [[uk.co.bigbeeconsultants.http.request.ConnectionControl]],
@@ -61,10 +57,18 @@ case class Config(connectTimeout: Int = 2000,
                   userAgentString: Option[String] = None,
                   proxy: Proxy = Proxy.NO_PROXY,
                   credentials: CredentialSuite = CredentialSuite.empty,
-                  sslSocketFactory: Option[SSLSocketFactory] = None,
-                  hostnameVerifier: Option[HostnameVerifier] = None,
-                  preRequests: List[PreRequest] =
-                  List(AutomaticHostHeader, DefaultRequestHeaders, ConnectionControl, UserAgentString)) {
+                  preRequests: List[PreRequest] = Config.standardSetup) {
 
   require(maxRedirects > 1, maxRedirects + ": too few maxRedirects")
+}
+
+object Config {
+  /**
+   * Lists the setup steps applied to each request.
+   * (List([[uk.co.bigbeeconsultants.http.request.AutomaticHostHeader]],
+   * [[uk.co.bigbeeconsultants.http.request.DefaultRequestHeaders]],
+   * [[uk.co.bigbeeconsultants.http.request.ConnectionControl]],
+   * [[uk.co.bigbeeconsultants.http.request.UserAgentString]]))
+   */
+  val standardSetup = List(AutomaticHostHeader, DefaultRequestHeaders, ConnectionControl, UserAgentString)
 }

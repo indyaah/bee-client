@@ -24,13 +24,14 @@
 
 package uk.co.bigbeeconsultants.http.request
 
-import java.net.HttpURLConnection
+import java.net.{URLConnection, HttpURLConnection}
 import uk.co.bigbeeconsultants.http.HttpClient
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.util.IpUtil
-import com.weiglewilczek.slf4s.Logging
 import uk.co.bigbeeconsultants.http.header._
 import uk.co.bigbeeconsultants.http.Config
+import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
+import com.weiglewilczek.slf4s.Logging
 
 
 /**
@@ -40,9 +41,11 @@ import uk.co.bigbeeconsultants.http.Config
 trait PreRequest extends Logging {
   def process(request: Request, httpURLConnection: HttpURLConnection, config: Config)
 
-  final def setHeader(httpURLConnection: HttpURLConnection, header: Header) {
-    httpURLConnection.setRequestProperty(header.name, header.value)
-    logger.debug(header.toString)
+  final def setHeader(urlConnection: URLConnection, header: Header) {
+    urlConnection.setRequestProperty(header.name, header.value)
+    logger.debug({
+      header.toString
+    })
   }
 }
 
@@ -100,6 +103,32 @@ object DefaultRequestHeaders extends PreRequest {
 
   override def process(request: Request, httpURLConnection: HttpURLConnection, config: Config) {
     defaultRequestHeaders.foreach(setHeader(httpURLConnection, _))
+  }
+}
+
+
+/**
+ * Injects a particular SSL Socket Factory into every HTTPS request using it.
+ */
+class SSLSocketFactoryInjecter(sslSocketFactory: SSLSocketFactory) extends PreRequest {
+  override def process(request: Request, httpURLConnection: HttpURLConnection, config: Config) {
+    if (httpURLConnection.isInstanceOf[HttpsURLConnection]) {
+      val httpsConnection = httpURLConnection.asInstanceOf[HttpsURLConnection]
+      httpsConnection.setSSLSocketFactory(sslSocketFactory)
+    }
+  }
+}
+
+
+/**
+ * Injects a particular hostname verifier into every HTTPS request using it.
+ */
+class HostnameVerifierInjecter(hostnameVerifier: HostnameVerifier) extends PreRequest {
+  override def process(request: Request, httpURLConnection: HttpURLConnection, config: Config) {
+    if (httpURLConnection.isInstanceOf[HttpsURLConnection]) {
+      val httpsConnection = httpURLConnection.asInstanceOf[HttpsURLConnection]
+      httpsConnection.setHostnameVerifier(hostnameVerifier)
+    }
   }
 }
 

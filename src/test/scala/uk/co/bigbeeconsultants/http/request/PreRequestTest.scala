@@ -31,6 +31,7 @@ import java.net.HttpURLConnection
 import uk.co.bigbeeconsultants.http.response.Status
 import java.io.ByteArrayInputStream
 import uk.co.bigbeeconsultants.http.Config
+import javax.net.ssl.{HostnameVerifier, SSLSocketFactory, HttpsURLConnection}
 
 class PreRequestTest extends FunSuite {
 
@@ -99,4 +100,24 @@ class PreRequestTest extends FunSuite {
     verify(httpURLConnection, times(1)).setRequestProperty("Accept-Encoding", "gzip")
     verify(httpURLConnection, times(1)).setRequestProperty("Accept-Charset", "UTF-8,*;q=.1")
   }
+
+
+  test("SSLSocketFactoryInjecter") {
+    val httpsURLConnection = mock(classOf[HttpsURLConnection])
+    val sslSocketFactory = mock(classOf[SSLSocketFactory])
+    val pr = new SSLSocketFactoryInjecter(sslSocketFactory)
+    pr.process(null, httpsURLConnection, Config())
+    verify(httpsURLConnection, times(1)).setSSLSocketFactory(sslSocketFactory)
+  }
+
+
+  test("HostnameVerifierInjecter") {
+    val httpsURLConnection = mock(classOf[HttpsURLConnection])
+    val hostnameVerifier = mock(classOf[HostnameVerifier])
+    val pr = new HostnameVerifierInjecter(hostnameVerifier)
+    pr.process(null, httpsURLConnection, Config())
+    verify(httpsURLConnection, times(1)).setHostnameVerifier(hostnameVerifier)
+  }
+
+
 }

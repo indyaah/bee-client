@@ -30,10 +30,9 @@ import response._
 import request.{RequestBody, Request}
 import java.net._
 import java.util.zip.GZIPInputStream
-import com.weiglewilczek.slf4s.Logging
+import com.weiglewilczek.slf4s.{Logger, Logging}
 import collection.mutable.ListBuffer
 import java.io.IOException
-import javax.net.ssl.HttpsURLConnection
 import scala.Some
 
 /**
@@ -46,6 +45,8 @@ import scala.Some
  * [[uk.co.bigbeeconsultants.http.HttpBrowser]] provides an alternative that handles cookies for you.
  */
 class HttpClient(val commonConfig: Config = Config()) extends Logging {
+
+  import HttpClient._
 
   /**
    * Make a HEAD request. No cookies are used and none are returned.
@@ -216,16 +217,9 @@ class HttpClient(val commonConfig: Config = Config()) extends Logging {
     httpURLConnection.setInstanceFollowRedirects(false)
     httpURLConnection.setUseCaches(config.useCaches)
 
-    if (httpURLConnection.isInstanceOf[HttpsURLConnection]) {
-      val httpsConnection = httpURLConnection.asInstanceOf[HttpsURLConnection]
-      if (config.sslSocketFactory.isDefined)
-        httpsConnection.setSSLSocketFactory(config.sslSocketFactory.get)
-      if (config.hostnameVerifier.isDefined)
-        httpsConnection.setHostnameVerifier(config.hostnameVerifier.get)
-    }
-
     var redirect: Option[Request] = None
     try {
+      config.preRequests.foreach(_.process(request, httpURLConnection, config))
       setRequestHeaders(request, httpURLConnection, config)
       httpURLConnection.connect()
       copyRequestBodyToOutputStream(request, httpURLConnection)
@@ -280,23 +274,18 @@ class HttpClient(val commonConfig: Config = Config()) extends Logging {
     val method = request.method.toUpperCase
     httpURLConnection.setRequestMethod(method)
 
-    config.preRequests.foreach(_.process(request, httpURLConnection, config))
-
-    if (request.body.isDefined) {
-      httpURLConnection.setRequestProperty(CONTENT_TYPE, request.body.get.mediaType)
-      logger.debug((CONTENT_TYPE -> request.body.get.mediaType).toString)
+    for (hdr <- request.headers) {
+      setRequestHeader(httpURLConnection, hdr, logger)
     }
 
-    for (hdr <- request.headers) {
-      httpURLConnection.setRequestProperty(hdr.name, hdr.value)
-      logger.debug(hdr.toString)
+    if (request.body.isDefined) {
+      setRequestHeader(httpURLConnection, CONTENT_TYPE -> request.body.get.mediaType, logger)
     }
 
     if (request.cookies.isDefined) {
       request.cookies.get.filterForRequest(request.url) match {
         case Some(hdr) =>
-          httpURLConnection.setRequestProperty(hdr.name, hdr.value)
-          logger.debug(hdr.toString)
+          setRequestHeader(httpURLConnection, hdr, logger)
         case _ =>
       }
     }
@@ -356,5 +345,12 @@ object HttpClient {
   val UTF8 = "UTF-8"
   val GZIP = "gzip"
   //val DEFLATE = "deflate"
+
+  final def setRequestHeader(urlConnection: URLConnection, header: Header, logger: Logger) {
+    urlConnection.setRequestProperty(header.name, header.value)
+    logger.debug({
+      header.toString
+    })
+  }
 }
 
