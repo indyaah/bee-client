@@ -80,10 +80,20 @@ class RequestTest extends FunSuite {
     assert (0 === r2.headers.size)
   }
 
-  test ("request with cookies") {
+  test ("request with cookies for 'using'") {
     val r0 = Request.get (url1)
     assert (None === r0.cookies)
     val r1 = r0 using CookieJar(Cookie("x", "hello"))
+    assert (1 === r1.cookies.get.size)
+    assert ("hello" === r1.cookies.get.find(_.name == "x").get.value)
+    val r2 = r1.withoutCookies
+    assert (None === r2.cookies)
+  }
+
+  test ("request with cookies for '+'") {
+    val r0 = Request.get (url1)
+    assert (None === r0.cookies)
+    val r1 = r0 + CookieJar(Cookie("x", "hello"))
     assert (1 === r1.cookies.get.size)
     assert ("hello" === r1.cookies.get.find(_.name == "x").get.value)
     val r2 = r1.withoutCookies

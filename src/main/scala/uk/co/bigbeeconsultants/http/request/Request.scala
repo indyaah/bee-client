@@ -58,9 +58,15 @@ final case class Request(method: String,
   def +(moreHeaders: Headers) = this.copy(headers = this.headers ++ moreHeaders)
 
   /** Provides the cookie jar to be used with this request. This replaces any previous setting. */
-  def using(cookies: CookieJar): Request = using(Some(cookies))
+  def +(cookies: CookieJar): Request = using(Some(cookies))
 
   /** Provides the cookie jar to be used with this request. This replaces any previous setting. */
+  def +(cookies: Option[CookieJar]): Request = using(cookies)
+
+  /** Provides the cookie jar to be used with this request. This replaces any previous setting. An alias for '+'. */
+  def using(cookies: CookieJar): Request = using(Some(cookies))
+
+  /** Provides the cookie jar to be used with this request. This replaces any previous setting. An alias for '+'. */
   def using(cookies: Option[CookieJar]): Request = this.copy(cookies = cookies)
 
   def isDelete = method == Request.DELETE
