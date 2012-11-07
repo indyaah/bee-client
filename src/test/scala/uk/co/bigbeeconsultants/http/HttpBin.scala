@@ -29,7 +29,7 @@ import header.MediaType._
 import header.HeaderName._
 import java.lang.AssertionError
 import java.net.{Proxy, URL}
-import header.{HeaderName, Headers}
+import header._
 import org.scalatest.Assertions
 import request.RequestBody
 import util.DumbTrustManager
@@ -46,14 +46,15 @@ object HttpBin extends App with Assertions {
   private val jsonSample = """{ "x": 1, "y": true }"""
   private val jsonBody = RequestBody(jsonSample, APPLICATION_JSON)
 
-  val serverUrl = "//httpbin.org/"
+  val serverUrl = "httpbin.org"
 
   //  val proxyAddress = new InetSocketAddress("localhost", 8888)
   //  val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
   val proxy = Proxy.NO_PROXY
 
   implicit val config = Config(followRedirects = false, proxy = proxy)
-  var http: HttpClient = new HttpClient(config)
+  var httpClient = new HttpClient(config)
+  var httpBrowser = new HttpBrowser(config)
 
   val gzipHeaders = Headers(ACCEPT_ENCODING -> GZIP)
 
@@ -67,17 +68,20 @@ object HttpBin extends App with Assertions {
   private def extractLineFromResponse(expectedHeader: String, bodyLines: Seq[String]): String = {
     val expectedHeaderColon = expectedHeader + ':'
     for (line <- bodyLines) {
-      if (line.startsWith(expectedHeaderColon)) {
+      if (line.trim.startsWith(expectedHeaderColon)) {
         return line.substring(line.indexOf(':') + 1).trim()
       }
     }
     throw new AssertionError("Expect response to contain\n" + expectedHeader)
   }
 
-  headTest(http, "http:" + serverUrl)
-  headTest(http, "https:" + serverUrl)
+  headTest(httpClient, "http://" + serverUrl)
+  headTest(httpClient, "https://" + serverUrl)
+  headTest(httpBrowser, "http://" + serverUrl)
+  headTest(httpBrowser, "https://" + serverUrl)
 
-  def headTest(http: HttpClient, url: String) {
+  def headTest(http: Http, url: String) {
+    println("HEAD " + url)
     val response = http.head(new URL(url), gzipHeaders)
     assert(response.status.code === 200, url)
     val body = response.body
@@ -86,10 +90,13 @@ object HttpBin extends App with Assertions {
     assert(body.toString == "", url)
   }
 
-  htmlGet(http, "http:" + serverUrl + "headers")
-  htmlGet(http, "https:" + serverUrl + "headers")
+  htmlGet(httpClient, "http://" + serverUrl + "/headers")
+  htmlGet(httpClient, "https://" + serverUrl + "/headers")
+  htmlGet(httpBrowser, "http://" + serverUrl + "/headers")
+  htmlGet(httpBrowser, "https://" + serverUrl + "/headers")
 
-  private def htmlGet(http: HttpClient, url: String) {
+  private def htmlGet(http: Http, url: String) {
+    println("GET " + url)
     val response = http.get(new URL(url), gzipHeaders)
     assert(response.status.code === 200, url)
     val body = response.body
@@ -100,10 +107,13 @@ object HttpBin extends App with Assertions {
     assert(bodyLines(0) startsWith "{", url)
   }
 
-  textHtmlGet204("http:" + serverUrl + "status/204")
-  textHtmlGet204("https:" + serverUrl + "status/204")
+  textHtmlGet204(httpClient, "http://" + serverUrl + "/status/204")
+  textHtmlGet204(httpClient, "https://" + serverUrl + "/status/204")
+  textHtmlGet204(httpBrowser, "http://" + serverUrl + "/status/204")
+  textHtmlGet204(httpBrowser, "https://" + serverUrl + "/status/204")
 
-  private def textHtmlGet204(url: String) {
+  private def textHtmlGet204(http: Http, url: String) {
+    println("GET " + url)
     val response = http.get(new URL(url), gzipHeaders)
     assert(204 === response.status.code, url)
     val body = response.body
@@ -112,4 +122,23 @@ object HttpBin extends App with Assertions {
     assert("" === body.toString)
   }
 
+  val cookieC1V1 = Cookie("c1", "v1", Domain(serverUrl))
+  val configFollowRedirects = Config(followRedirects = true)
+  textPlainGetFollowingRedirect(new HttpClient(configFollowRedirects), "http://" + serverUrl + "/redirect/1")
+  textPlainGetFollowingRedirect(new HttpClient(configFollowRedirects), "https://" + serverUrl + "/redirect/1")
+  textPlainGetFollowingRedirect(new HttpBrowser(configFollowRedirects, CookieJar(cookieC1V1)), "http://" + serverUrl + "/redirect/1")
+  textPlainGetFollowingRedirect(new HttpBrowser(configFollowRedirects, CookieJar(cookieC1V1)), "https://" + serverUrl + "/redirect/1")
+
+  private def textPlainGetFollowingRedirect(http: Http, url: String) {
+    println("GET " + url)
+    val response = http.get(new URL(url), gzipHeaders, CookieJar(cookieC1V1))
+    assert(200 === response.status.code, url)
+    val body = response.body
+    assert(APPLICATION_JSON.value === body.contentType.value, url)
+    assert(true === body.toString.startsWith("{"), url)
+    assert(cookieC1V1 === response.cookies.get.find(_.name == "c1").get, url)
+    val bodyLines = response.body.toString.split("\n").toSeq
+    val cookieLine = extractLineFromResponse("\"Cookie\"", bodyLines)
+    assert(cookieLine contains("c1=v1"), cookieLine)
+  }
 }

@@ -26,6 +26,7 @@ package uk.co.bigbeeconsultants.http.header
 
 import java.util.regex.Pattern
 import java.net.{InetAddress, URL}
+import uk.co.bigbeeconsultants.http.util.IpUtil
 
 /**
  * Models a domain name as used in cookies.
@@ -49,7 +50,7 @@ class Domain(val domain: String) {
     }
   }
 
-  def isIpAddress: Boolean = Domain.ipV4.matcher (domain).matches ()
+  def isIpAddress: Boolean = IpUtil.isIpAddressSyntax(domain)
 
   /**Tests whether this domain matches some URL. */
   def matches(url: URL) = {
@@ -98,6 +99,4 @@ object Domain {
       case e: Exception => "localhost"
     })
   }
-
-  private val ipV4 = Pattern.compile ("[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+")
 }

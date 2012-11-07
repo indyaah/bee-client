@@ -24,8 +24,6 @@
 
 package uk.co.bigbeeconsultants.http.util
 
-import java.util.regex.Pattern
-
 object IpUtil {
 //  val ipv4pattern = Pattern.compile("[12]?[0-9]?[0-9]\\.[12]?[0-9]?[0-9]\\.[12]?[0-9]?[0-9]\\.[12]?[0-9]?[0-9]")
 

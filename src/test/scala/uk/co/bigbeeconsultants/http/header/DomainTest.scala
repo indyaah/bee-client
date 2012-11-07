@@ -40,8 +40,14 @@ class DomainTest extends FunSuite {
   }
 
 
-  test("domain isIpAddress with dotted quad") {
+  test("domain isIpAddress with IPv4") {
     val d = Domain("10.1.233.0")
+    assert(d.isIpAddress)
+  }
+
+
+  test("domain isIpAddress with IPv6") {
+    val d = Domain("2001:db8:85a3::8a2e:370:7334")
     assert(d.isIpAddress)
   }
 

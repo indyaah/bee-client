@@ -24,8 +24,9 @@
 
 package uk.co.bigbeeconsultants.http.url
 
-import java.net.{MalformedURLException, URL}
-import uk.co.bigbeeconsultants.http.request.SplitURL
+import java.net.{URLEncoder, MalformedURLException, URL}
+import uk.co.bigbeeconsultants.http.HttpClient
+import uk.co.bigbeeconsultants.http.header.Domain
 
 /**
  * Defines a service endpoint, which is typically a webserver accessed via HTTP. This is equivalent to a URL
@@ -36,6 +37,8 @@ import uk.co.bigbeeconsultants.http.request.SplitURL
  */
 case class Endpoint(scheme: String, host: String, port: Option[Int] = None) {
   require(scheme != null && host != null && port != null)
+
+  lazy val domain = Domain(host)
 
   /**
    * Gets the host and port parts as a string.
@@ -87,13 +90,6 @@ case class PartialURL(endpoint: Option[Endpoint],
 
   require(endpoint != null && path != null && fragment != null && query != null)
 
-//  def this(scheme: Option[String],
-//           host: Option[String],
-//           port: Option[Int] = None,
-//           path: Path = Path.empty,
-//           fragment: Option[String] = None,
-//           query: Option[String] = None) = this()
-
   /**
    * Converts this instance to a java.net.URL if possible. This will succeed if isURL would return true.
    * @throws MalformedURLException if some of the necessary information is missing, i.e. this instance is relative.
@@ -113,16 +109,9 @@ case class PartialURL(endpoint: Option[Endpoint],
   def isURL = endpoint.isDefined && (path.isAbsolute || path.isEmpty)
 
   /**
-   * Converts this instance to a [[uk.co.bigbeeconsultants.http.request.SplitURL]] if possible.
+   * Tests whether this instances starts with another instance. This is true if both endpoints are the same
+   * (possibly None) and this path starts with thie other path.
    */
-  def asSplitURL: SplitURL = {
-    if (endpoint.isEmpty) {
-      throw new MalformedURLException(toString + " cannot be convert to a URL.")
-    }
-    val ep = endpoint.get
-    new SplitURL(ep.scheme, ep.host, ep.port, path.segments, fragment, query)
-  }
-
   def startsWith(other: PartialURL): Boolean = {
     this.endpoint == other.endpoint && this.path.startsWith(other.path)
   }
@@ -157,6 +146,25 @@ case class PartialURL(endpoint: Option[Endpoint],
 
   override def toString = {
     endpoint.map(_.toString).getOrElse("") + pathString
+  }
+
+  /** Creates a new instance, replacing any query string with a new one formed from a map of key/values pairs. */
+  def withQuery(params: Map[String, String]) = {
+    def assembleQueryString(queryParams: Map[String, String]): String = {
+      val w = new StringBuilder
+      var amp = ""
+      for ((key, value) <- queryParams) {
+        w.append(amp)
+        w.append(URLEncoder.encode(key, HttpClient.UTF8))
+        w.append('=')
+        w.append(URLEncoder.encode(value, HttpClient.UTF8))
+        amp = "&"
+      }
+      w.toString()
+    }
+
+    val newValue = if (params.isEmpty) None else Some(assembleQueryString(params))
+    copy(query = newValue)
   }
 }
 
@@ -223,7 +231,7 @@ object PartialURL {
       None
   }
 
-//  private def portAsOption(port: Int) = if (port < 0) None else Some(port)
-//
-//  private def strAsOption(str: String) = if (str != null && str.length > 0) Some(str) else None
+  //  private def portAsOption(port: Int) = if (port < 0) None else Some(port)
+  //
+  //  private def strAsOption(str: String) = if (str != null && str.length > 0) Some(str) else None
 }

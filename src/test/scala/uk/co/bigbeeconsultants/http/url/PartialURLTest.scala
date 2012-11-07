@@ -257,4 +257,10 @@ class PartialURLTest extends FunSuite {
     assert(false === purl.isURL)
   }
 
+  test("withQuery augmentation") {
+    val url = "http://www.w3.org/page"
+    val purl = PartialURL(url)
+    assert(url + "?a=hello+world&b=a%40b.com" === purl.withQuery(Map("a" -> "hello world", "b" -> "a@b.com")).toString)
+    assert(url === purl.withQuery(Map()).toString)
+  }
 }

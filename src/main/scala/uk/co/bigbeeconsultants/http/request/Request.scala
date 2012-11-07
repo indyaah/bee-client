@@ -82,6 +82,14 @@ final case class Request(method: String,
   def isPut = method == Request.PUT
 
   def isTrace = method == Request.TRACE
+
+  /**
+   * Creates a new instance, setting the query string to be a new one formed from a map of key/values pairs.
+   * If the map is empty, any previous query parameters are removed.
+   */
+  def withQuery(params: Map[String, String]) = {
+    copy(url = split.withQuery(params).asURL)
+  }
 }
 
 /**

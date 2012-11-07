@@ -100,4 +100,10 @@ class RequestTest extends FunSuite {
     assert (None === r2.cookies)
   }
 
+  test("withQuery augmentation") {
+    val r0 = Request.get (url1)
+    val r1 = r0.withQuery(Map("a" -> "hello world", "b" -> "a@b.com"))
+    assert(url1.toString + "?a=hello+world&b=a%40b.com" === r1.url.toString)
+    assert(url1 === r1.withQuery(Map()).url)
+  }
 }
