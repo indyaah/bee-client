@@ -1,7 +1,10 @@
 #!/bin/bash -e
-export SCALA_HOME=/home/rick/sw/scala-latest
+scalabin=$(type -p scala)
+[ -f "$scalabin" ] || exit 1
+export SCALA_HOME=$(dirname $(dirname $scalabin))
+[ -d "$SCALA_HOME" ] || exit 2
 PATH=$SCALA_HOME/bin:$PATH
-exec scala "$0" "$@"
+exec scala -cp $SCALA_HOME/lib/scala-library.jar "$0" "$@"
 !#
 val filteredLines = io.Source.stdin.getLines.
   filterNot(_ == "description:").

@@ -1,3 +1,39 @@
+#### Thu, 25 Oct 2012
+* Added overloaded '+' methods for cookie jars when altering Request instances.
+
+
+#### Mon, 22 Oct 2012
+* v0.17.2
+* Config: new SSLSocketFactoryInjecter and HostnameVerifierInjecter replace the parameters.
+
+
+#### Mon, 22 Oct 2012
+* v0.17.1
+* More work done on DigestCredential - still incomplete
+
+
+#### Mon, 22 Oct 2012
+* v0.17.0
+* Config changed to allow more extensibility.
+* new PreRequest mechanism for inserting behaviour during the construction of an HttpURLConnection
+
+
+#### Wed, 17 Oct 2012
+* v0.16.2
+* More work done on digest authentication. Still not finished.
+* Dependencies now fixed to specific versions because compilation is soo much quicker.
+
+
+#### Wed, 17 Oct 2012
+* v0.16.1
+* New AuthenticateValue handles WWW-Authenticate/Proxy-Authenticate headers
+* Digest authentication is not yet implemented.
+
+
+#### Mon, 15 Oct 2012
+* (changelog)
+
+
 #### Wed, 10 Oct 2012
 * v0.16.0
 * Borrowed a public-domain Base64 encoder (Java). New B64Util class.

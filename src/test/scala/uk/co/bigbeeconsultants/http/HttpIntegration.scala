@@ -39,7 +39,6 @@ import util.DumbTrustManager
 import header.{HeaderName, Headers}
 
 object HttpIntegration {
-
   val testHtmlFile = "test-lighthttpclient.html"
   val testTxtFile = "lorem1.txt"
   val testPhpFile = "test-lighthttpclient.php"
@@ -54,10 +53,6 @@ object HttpIntegration {
 
   val serverUrl = "//beeclient/"
 
-  //  val proxyAddress = new InetSocketAddress("localhost", 8888)
-  //  val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
-  val proxy = Proxy.NO_PROXY
-
   val gzipHeaders = Headers(ACCEPT_ENCODING -> GZIP)
 
   val dir = new File("src/test/resources")
@@ -65,16 +60,36 @@ object HttpIntegration {
   val testTxtSize = new File(dir, testTxtFile).length
   val testImageSize = 497
   val testPhotoSize = 1605218
+}
+
+class HttpIntegration extends FunSuite with BeforeAndAfter {
+  import HttpIntegration._
+
+  //  val proxyAddress = new InetSocketAddress("localhost", 8888)
+  //  val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
+  val proxy = Proxy.NO_PROXY
+
+  DumbTrustManager.install()
+
+  private val jsonSample = """{ "x": 1, "y": true }"""
+  private val jsonBody = RequestBody(jsonSample, APPLICATION_JSON)
+
+  val config = Config(followRedirects = false, proxy = proxy)
+  var http: HttpClient = _
+
+  before {
+    http = new HttpClient(config)
+  }
 
   def headTest(http: HttpClient, url: String, size: Long) {
     try {
       val response = http.head(new URL(url), gzipHeaders)
-      assert(response.status.code == 200, url)
+      assert(response.status.code === 200, url)
       val body = response.body
-      assert(body.contentType.value == TEXT_HTML.value, url)
+      assert(body.contentType.value === TEXT_HTML.value, url)
       expectHeaderIfPresent("gzip")(response.headers, CONTENT_ENCODING)
       //      expectHeaderIfPresent (size === response.headers, CONTENT_LENGTH)
-      assert(body.toString == "", url)
+      assert(body.toString === "", url)
     } catch {
       case e: Exception =>
         skipTestWarning("HEAD", url, e)
@@ -84,12 +99,12 @@ object HttpIntegration {
   private def htmlGet(http: HttpClient, url: String, size: Long) {
     try {
       val response = http.get(new URL(url), gzipHeaders)
-      assert(response.status.code == 200, url)
+      assert(response.status.code === 200, url)
       val body = response.body
-      assert(body.contentType.value == TEXT_HTML.value, url)
+      assert(body.contentType.value === TEXT_HTML.value, url)
       val string = body.toString
       assert(string startsWith "<!DOCTYPE html>", url)
-      assert(response.headers(CONTENT_ENCODING).value == "gzip", response.headers(CONTENT_ENCODING))
+      assert(response.headers(CONTENT_ENCODING).value === "gzip", response.headers(CONTENT_ENCODING))
       //assert (size === response.headers.get (CONTENT_LENGTH).toInt)
       val bodyLines = string.split("\n")
       assert(bodyLines(0) startsWith "<!DOCTYPE html>", url)
@@ -102,7 +117,7 @@ object HttpIntegration {
   private def expectHeaderIfPresent(expected: Any)(headers: Headers, name: HeaderName) {
     val hdrs = headers filter name
     if (!hdrs.isEmpty) {
-      assert(hdrs(0).value == expected, hdrs(0))
+      assert(hdrs(0).value === expected, hdrs(0))
     }
   }
 
@@ -124,27 +139,6 @@ object HttpIntegration {
     else {
       throw e
     }
-  }
-}
-
-
-class HttpIntegration extends FunSuite with BeforeAndAfter {
-
-  import HttpIntegration._
-  DumbTrustManager.install()
-
-  private val jsonSample = """{ "x": 1, "y": true }"""
-  private val jsonBody = RequestBody(jsonSample, APPLICATION_JSON)
-
-  val config = Config(followRedirects = false, proxy = proxy)
-  var http: HttpClient = _
-
-  before {
-    http = new HttpClient(config)
-  }
-
-  test("setupOK") {
-    //    assertFalse(http.config.keepAlive)
   }
 
   test("html text/html head x100") {

@@ -25,9 +25,8 @@
 package uk.co.bigbeeconsultants.http
 
 import header._
-import java.net.URL
 import java.io.IOException
-import request.{RequestBody, Request}
+import request.Request
 import response._
 
 /**
@@ -41,84 +40,32 @@ import response._
  * behaviour. the cookie jars themselves are immutable so will be in either of two states: the original state or
  * the updated state.
  */
-class HttpBrowser(val config: Config = Config(),
-                  initialCookieJar: CookieJar = CookieJar.empty) {
+class HttpBrowser(commonConfig: Config = Config(),
+                  initialCookieJar: CookieJar = CookieJar.empty) extends Http(commonConfig) {
 
-  private val httpClient = new HttpClient(config)
+  private val httpClient = new HttpClient(commonConfig)
   private var _cookieJar: Option[CookieJar] = Some(initialCookieJar)
 
   /** Gets the current state of the cookie jar. */
   def cookies = _cookieJar.get
 
   /**
-   * Make a HEAD request.
-   */
-  @throws(classOf[IOException])
-  def head(url: URL, requestHeaders: Headers = Nil): Response = {
-    makeRequest(Request.head(url) + requestHeaders)
-  }
-
-  /**
-   * Make a TRACE request.
-   */
-  @throws(classOf[IOException])
-  def trace(url: URL, requestHeaders: Headers = Nil): Response = {
-    makeRequest(Request.trace(url) + requestHeaders)
-  }
-
-  /**
-   * Make a GET request.
-   */
-  @throws(classOf[IOException])
-  def get(url: URL, requestHeaders: Headers = Nil): Response = {
-    makeRequest(Request.get(url) + requestHeaders)
-  }
-
-  /**
-   * Make a DELETE request.
-   */
-  @throws(classOf[IOException])
-  def delete(url: URL, requestHeaders: Headers = Nil): Response = {
-    makeRequest(Request.delete(url) + requestHeaders)
-  }
-
-  /**
-   * Make an OPTIONS request.
-   */
-  @throws(classOf[IOException])
-  def options(url: URL, body: Option[RequestBody], requestHeaders: Headers = Nil): Response = {
-    makeRequest(Request.options(url, body) + requestHeaders)
-  }
-
-  /**
-   * Make a POST request.
-   */
-  @throws(classOf[IOException])
-  def post(url: URL, body: Option[RequestBody], requestHeaders: Headers = Nil): Response = {
-    makeRequest(Request.post(url, body) + requestHeaders)
-  }
-
-  /**
-   * Make a PUT request.
-   */
-  @throws(classOf[IOException])
-  def put(url: URL, body: RequestBody, requestHeaders: Headers = Nil): Response = {
-    makeRequest(Request.put(url, body) + requestHeaders)
-  }
-
-  /**
-   * Makes an arbitrary request and returns the response. The entire response body is read into memory.
+   * Makes an arbitrary request using a response builder. After this call, the response builder will provide the
+   * response.
    * @param request the request
+   * @param responseBuilder the response factory, e.g. new BufferedResponseBuilder
+   * @param config the particular configuration being used for this request; defaults to the commonConfiguration
+   *               supplied to this instance of HttpClient
    * @throws IOException (or ConnectException subclass) if an IO exception occurred
-   * @return the response (for all outcomes including 4xx and 5xx status codes) if
-   *         no exception occurred
+   * @throws IllegalStateException if the maximum redirects threshold was exceeded
    */
   @throws(classOf[IOException])
-  def makeRequest(request: Request): Response = {
-    val response = httpClient.makeRequest(request using _cookieJar)
-    synchronized {
-      _cookieJar = response.cookies
-    }
-    response
+  @throws(classOf[IllegalStateException])
+  def execute(request: Request, responseBuilder: ResponseBuilder, config: Config = commonConfig) {
+    httpClient.execute(request using _cookieJar, responseBuilder, config)
+    if (responseBuilder.response.isDefined)
+      synchronized {
+        _cookieJar = responseBuilder.response.get.cookies
+      }
   }
 }
