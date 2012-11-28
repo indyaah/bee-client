@@ -69,10 +69,10 @@ object AuthenticateValue {
   def apply(headerValue: String): AuthenticateValue = {
     val sections = HttpUtil.divide(headerValue.replace('\n', ' '), ' ')
 
-    val parts = HttpUtil.splitQuoted(sections._2, ',').map {
+    val parts = ListMap() ++ HttpUtil.splitQuoted(sections._2, ',').map {
       v: String => HttpUtil.divide(v.trim, '=')
     }
 
-    new AuthenticateValue(sections._1.trim, ListMap() ++ parts)
+    new AuthenticateValue(sections._1.trim, parts)
   }
 }

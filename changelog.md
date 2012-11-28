@@ -1,3 +1,14 @@
+#### Wed, 07 Nov 2012
+* PartialURL and Request allow augmentation with query parameters
+* Deprecated SplitURL has been deleted - use PartialURL now.
+* More testing.
+
+
+#### Wed, 07 Nov 2012
+* 0.17.3
+* New Http abstract base class is common to HttpClient and HttpBrowser.
+
+
 #### Thu, 25 Oct 2012
 * Added overloaded '+' methods for cookie jars when altering Request instances.
 

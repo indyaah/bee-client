@@ -4,7 +4,7 @@
     <groupId>uk.co.bigbeeconsultants</groupId>
     <artifactId>bee-client</artifactId>
     <packaging>jar</packaging>
-    <name>Light Http Client</name>
+    <name>Bee Client</name>
     <version>0.1</version>
     <description>Light-weight HTTP client in Scala to replace Apache HTTP client</description>
     <url>https://bitbucket.org/rickb777/bee-client</url>

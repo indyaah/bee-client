@@ -30,7 +30,8 @@ import response._
 import request.Request
 import java.net._
 import java.util.zip.GZIPInputStream
-import com.weiglewilczek.slf4s.{Logger, Logging}
+import org.slf4j.{LoggerFactory, Logger}
+
 import collection.mutable.ListBuffer
 import java.io.IOException
 import scala.Some
@@ -44,8 +45,9 @@ import scala.Some
  *
  * [[uk.co.bigbeeconsultants.http.HttpBrowser]] provides an alternative that handles cookies for you.
  */
-class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) with Logging {
+class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
 
+  private val logger = LoggerFactory.getLogger(getClass)
   import HttpClient._
 
   /**
@@ -69,9 +71,7 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) wit
   private[http] def doExecute(request: Request,
                               responseBuilder: ResponseBuilder,
                               config: Config): Option[Request] = {
-    logger.info({
-      request.toString
-    })
+    logger.info("{}", request)
 
     val httpURLConnection = openConnection(request, config.proxy)
     httpURLConnection.setAllowUserInteraction(false)
@@ -211,9 +211,7 @@ object HttpClient {
 
   final def setRequestHeader(urlConnection: URLConnection, header: Header, logger: Logger) {
     urlConnection.setRequestProperty(header.name, header.value)
-    logger.debug({
-      header.toString
-    })
+    logger.debug("{}", header)
   }
 }
 

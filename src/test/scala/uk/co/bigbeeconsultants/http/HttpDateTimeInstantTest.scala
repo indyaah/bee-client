@@ -47,6 +47,7 @@ class HttpDateTimeInstantTest extends FunSuite {
     val d = HttpDateTimeInstant.parse(dateString)
     assert(exp === d)
     assert(dateString === d.toString)
+    assert("2005-11-16T08:49:37Z" === d.toIsoString)
   }
 
   test("parse rfc1123DateTimeFormat-like but with dashes instead") {
@@ -54,6 +55,7 @@ class HttpDateTimeInstantTest extends FunSuite {
     val d = HttpDateTimeInstant.parse("Tue, 01-Nov-2005 08:49:37 GMT")
     assert(exp === d)
     assert("Tue, 01 Nov 2005 08:49:37 GMT" === d.toString)
+    assert("2005-11-01T08:49:37Z" === d.toIsoString)
   }
 
   test("parse rfc1123DateTimeFormat") {
@@ -88,18 +90,18 @@ class HttpDateTimeInstantTest extends FunSuite {
   test("plus") {
     val now = new HttpDateTimeInstant()
     val later = new HttpDateTimeInstant() + 60
-    assert(60 === later.seconds - now.seconds)
+    assert(60 === (later.seconds - now.seconds))
   }
 
   test("minus") {
     val now = new HttpDateTimeInstant()
     val later = new HttpDateTimeInstant() - 60
-    assert(-60 === later.seconds - now.seconds)
+    assert(-60 === (later.seconds - now.seconds))
   }
 
   test("compare") {
     val now = new HttpDateTimeInstant()
     val later = new HttpDateTimeInstant() + 60
-    assert(true === later > now)
+    assert(true === (later > now))
   }
 }

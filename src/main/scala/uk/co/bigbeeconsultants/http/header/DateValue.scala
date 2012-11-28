@@ -26,10 +26,11 @@ package uk.co.bigbeeconsultants.http.header
 
 import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 import java.text.ParseException
-import com.weiglewilczek.slf4s.Logging
+import org.slf4j.LoggerFactory
 
-case class DateValue(value: String) extends Value with Logging {
+case class DateValue(value: String) extends Value {
 
+  private val logger = LoggerFactory.getLogger(getClass)
   private var valid = false
   private var _date = HttpDateTimeInstant.zero
   try {
@@ -37,7 +38,7 @@ case class DateValue(value: String) extends Value with Logging {
     valid = true
   } catch {
     case pe: ParseException =>
-      logger.error(value + ": failed to parse date. " + pe.getMessage)
+      logger.error("{}: failed to parse date. {}", value, pe.getMessage)
   }
 
   val isValid = valid

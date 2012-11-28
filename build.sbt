@@ -24,7 +24,13 @@
 
 name := "bee-client"
 
-version := "0.17.3"
+organization := "uk/co/bigbeeconsultants"
+
+version := "0.18.0"
+
+crossScalaVersions := Seq("2.9.0", "2.9.1", "2.9.2")
+
+//publishTo := Some(Resolver.file("file", new File("/home/websites/your/releases"))
 
 // append several options to the list of options passed to the Java compiler
 //javacOptions += "-g:none"

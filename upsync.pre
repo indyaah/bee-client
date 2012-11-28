@@ -1,13 +1,12 @@
-set -e
 #USERNAME=
 PROJECT=bee-client
-SCALA=2.9.1
+GROUPID=uk/co/bigbeeconsultants
 VNUM=$(grep version build.sbt | sed 's/.*:= *//' | tr -d '"')
 DEST=/home/websites/bigbeeconsultants
 DIR=$PWD
 SOURCES="docs repo"
 mkdir -p $DEST/docs/${PROJECT}
-mkdir -p $DEST/repo/${PROJECT}
+mkdir -p $DEST/repo/${GROUPID}
 
 function symlink
 {
@@ -28,8 +27,8 @@ function do_repo
 {
   if [ -d $DIR/target/scala-${SCALA} ]; then
     cd $DEST
-    rsync -av $HOME/.ivy2/local/${PROJECT} repo
-    cd repo/${PROJECT}/${PROJECT}_${SCALA}
+    rsync -av $HOME/.ivy2/local/${GROUPID}/ repo/${GROUPID}
+    cd repo/${GROUPID}/${PROJECT}_${SCALA}
     symlink ${VNUM} latest
     cd ${VNUM}
     ln -fs */${PROJECT}* .
@@ -37,6 +36,8 @@ function do_repo
     for e in '' '-sources' '-javadoc'; do
       symlink ${VNUM}/${PROJECT}_${SCALA}${e}.jar ${PROJECT}_${SCALA}-${VNUM}${e}.jar
     done
+  else
+    echo Skipped $DIR/target/scala-${SCALA}.
   fi
 }
 
@@ -50,9 +51,14 @@ function writeLatest
   echo "</head><body><a href='$2'>Latest</a></body></html>" >>$1
 }
 
+SCALA=2.9.2
+
 do_docs
-do_repo
+
+for SCALA in 2.9.0 2.9.1 2.9.2; do
+  do_repo
+done
 
 cd $DEST
 writeLatest docs/${PROJECT}/latest.html "http://www.bigbeeconsultants.co.uk/docs/${PROJECT}/${VNUM}/"
-writeLatest repo/${PROJECT}/latest.html "http://www.bigbeeconsultants.co.uk/repo/${PROJECT}/${PROJECT}_${SCALA}/${VNUM}/"
+writeLatest repo/${GROUPID}/${PROJECT}-latest.html "http://www.bigbeeconsultants.co.uk/repo/${GROUPID}/${PROJECT}_${SCALA}/${VNUM}/"

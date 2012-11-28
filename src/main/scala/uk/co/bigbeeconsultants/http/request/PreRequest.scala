@@ -31,21 +31,21 @@ import uk.co.bigbeeconsultants.http.util.IpUtil
 import uk.co.bigbeeconsultants.http.header._
 import uk.co.bigbeeconsultants.http.Config
 import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
-import com.weiglewilczek.slf4s.Logging
+import org.slf4j.LoggerFactory
 
 
 /**
  * Provides the interface for specifying pre-request actions on each request. A list of instances is supplied
  * to [[uk.co.bigbeeconsultants.http.Config]].
  */
-trait PreRequest extends Logging {
+trait PreRequest {
+  final val logger = LoggerFactory.getLogger(getClass)
+
   def process(request: Request, httpURLConnection: HttpURLConnection, config: Config)
 
   final def setHeader(urlConnection: URLConnection, header: Header) {
     urlConnection.setRequestProperty(header.name, header.value)
-    logger.debug({
-      header.toString
-    })
+    logger.debug("{}", header)
   }
 }
 
@@ -54,6 +54,7 @@ trait PreRequest extends Logging {
  * Sets the "Connection: close" header if not a keep-alive connection.
  */
 object ConnectionControl extends PreRequest {
+
   override def process(request: Request, httpURLConnection: HttpURLConnection, config: Config) {
     if (!config.keepAlive) {
       setHeader(httpURLConnection, ExpertHeaderName.CONNECTION -> "close")

@@ -39,7 +39,9 @@ object Dependencies {
   val slf4jApi = "org.slf4j" % "slf4j-api" % slf4jVersion withSources()
   val slf4jJcl = "org.slf4j" % "jcl-over-slf4j" % slf4jVersion withSources()
   val slf4jLog4j = "org.slf4j" % "log4j-over-slf4j" % slf4jVersion withSources()
-  val slf4s = "com.weiglewilczek.slf4s" %% "slf4s" % "1.0.7" withSources()
+
+  // No longer using slf4s because it holds back the supportable range of Scala versions
+  //val slf4s = "com.weiglewilczek.slf4s" %% "slf4s" % "1.0.+" withSources()
 
   //  val jodaTime         = "joda-time"          % "joda-time"         % "2.+" withJavadoc()
   //  val jodaConvert      = "joda-time"          % "joda-convert"      % "1.+" withJavadoc()

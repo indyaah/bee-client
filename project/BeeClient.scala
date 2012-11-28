@@ -26,7 +26,7 @@ import sbt._
 import Keys._
 import Dependencies._
 
-object LightHttpClient extends Build {
+object BeeClient extends Build {
 
   def standardSettings = Seq(
     exportJars := true
@@ -41,7 +41,7 @@ object LightHttpClient extends Build {
       resolvers := Resolvers.resolvers,
 
       libraryDependencies ++= Seq(
-        slf4jApi, slf4s, servletApi,
+        slf4jApi, servletApi,
         // for testing
         jettyEmbedded, scalatest, mockito,
         logbackCore, logbackClassic

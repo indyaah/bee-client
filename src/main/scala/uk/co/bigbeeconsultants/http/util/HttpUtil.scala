@@ -30,14 +30,7 @@ import java.io._
 import uk.co.bigbeeconsultants.http.HttpClient
 
 object HttpUtil {
-  // Dates are always in GMT. The canonical representation is rfc1123DateTimeFormat.
-  // leading "EEE, " assumed to have been stripped; trailing "GMT" ignored
-  val rfc1123DateTimeFormat = "dd MMM yyyy HH:mm:ss"
-  // leading "EEEE, " assumed to have been stripped; trailing "GMT" ignored
-  val rfc850DateTimeFormat = "dd-MMM-yy HH:mm:ss"
-  // leading "EEE " assumed to have been stripped; trailing "GMT" ignored
-  val asciiDateTimeFormat = "MMM d HH:mm:ss yyyy"
-
+  // Known to be immutable.
   val emptyBuffer = ByteBuffer.allocateDirect(0)
 
   val DEFAULT_BUFFER_SIZE = 1024 * 16
