@@ -75,6 +75,7 @@ object HttpBin extends App with Assertions {
     throw new AssertionError("Expect response to contain\n" + expectedHeader)
   }
 
+
   headTest(httpClient, "http://" + serverUrl)
   headTest(httpClient, "https://" + serverUrl)
   headTest(httpBrowser, "http://" + serverUrl)
@@ -89,6 +90,7 @@ object HttpBin extends App with Assertions {
     expectHeaderIfPresent("gzip")(response.headers, CONTENT_ENCODING)
     assert(body.toString == "", url)
   }
+
 
   htmlGet(httpClient, "http://" + serverUrl + "/headers")
   htmlGet(httpClient, "https://" + serverUrl + "/headers")
@@ -107,6 +109,7 @@ object HttpBin extends App with Assertions {
     assert(bodyLines(0) startsWith "{", url)
   }
 
+
   textHtmlGet204(httpClient, "http://" + serverUrl + "/status/204")
   textHtmlGet204(httpClient, "https://" + serverUrl + "/status/204")
   textHtmlGet204(httpBrowser, "http://" + serverUrl + "/status/204")
@@ -121,6 +124,7 @@ object HttpBin extends App with Assertions {
     assert(TEXT_HTML.value === body.contentType.value, url)
     assert("" === body.toString)
   }
+
 
   val cookieC1V1 = Cookie("c1", "v1", Domain(serverUrl))
   val configFollowRedirects = Config(followRedirects = true)
@@ -139,6 +143,21 @@ object HttpBin extends App with Assertions {
     assert(cookieC1V1 === response.cookies.get.find(_.name == "c1").get, url)
     val bodyLines = response.body.toString.split("\n").toSeq
     val cookieLine = extractLineFromResponse("\"Cookie\"", bodyLines)
-    assert(cookieLine contains("c1=v1"), cookieLine)
+    assert(cookieLine contains ("c1=v1"), cookieLine)
   }
+
+
+  textPlainGetWithQueryString(httpClient, "http://" + serverUrl + "/get?A=1&B=2")
+
+  private def textPlainGetWithQueryString(http: Http, url: String) {
+    val response = http.get(new URL(url), gzipHeaders)
+    assert(200 === response.status.code, url)
+    val body = response.body
+    assert(APPLICATION_JSON.value === body.contentType.value, url)
+    val bodyLines = response.body.toString.split("\n").toSeq
+    assert("\"1\"," === extractLineFromResponse("\"A\"", bodyLines), response.body)
+    assert("\"2\"" === extractLineFromResponse("\"B\"", bodyLines), response.body)
+//    assert(Set("""A: 1""", """"B: 2""") === bodyLines.filter(_.startsWith("    \"")).reverse.take(2).map(_.trim).toSet, response.body)
+  }
+
 }

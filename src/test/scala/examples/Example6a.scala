@@ -12,7 +12,7 @@ object Example6a extends App {
   println(response401.headers(HeaderName.WWW_AUTHENTICATE).toAuthenticateValue)
 
   val credential = new BasicCredential("bigbee", "HelloWorld")
-  val login = Headers(credential.toAuthHeader)
+  val login = Headers(credential.toAuthHeader())
   val response200 = httpClient.get(url, login) // with authentication
   println(response200.status)
   println(response200.body)

@@ -31,6 +31,6 @@ import uk.co.bigbeeconsultants.http.header.Header
  */
 object BasicAuthentication {
   def apply(username: String, password: String): Header = {
-    new BasicCredential(username, password).toAuthHeader
+    new BasicCredential(username, password).toAuthHeader("")
   }
 }

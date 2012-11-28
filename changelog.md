@@ -1,3 +1,10 @@
+#### Wed, 28 Nov 2012
+* v0.18.0
+* Upgraded to support Maven / Ivy correctly
+* Stopped using Slf4s because it limits supported Scala versions and is not essential.
+* HttpDateTimeInstant now adds support for ISO8601.
+
+
 #### Wed, 07 Nov 2012
 * PartialURL and Request allow augmentation with query parameters
 * Deprecated SplitURL has been deleted - use PartialURL now.
