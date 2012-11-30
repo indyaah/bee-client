@@ -44,7 +44,7 @@ object BeeClient extends Build {
         slf4jApi, servletApi,
         // for testing
         jettyEmbedded, scalatest, mockito,
-        logbackCore, logbackClassic
+        logbackCore, logbackClassic, jsontools
       )
     // plus all the jars in the lib folder
     )

@@ -32,8 +32,7 @@ import java.net.{Proxy, URL}
 import header._
 import org.scalatest.Assertions
 import request.RequestBody
-import util.DumbTrustManager
-import scala.Predef._
+import util.{JSONWrapper, DumbTrustManager}
 
 /**
  * Tests the API against httpbin.org. This is an app rather than a unit test because it would be rude to
@@ -52,7 +51,7 @@ object HttpBin extends App with Assertions {
   //  val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
   val proxy = Proxy.NO_PROXY
 
-  implicit val config = Config(followRedirects = false, proxy = proxy)
+  implicit val config = Config(connectTimeout = 10000, readTimeout = 10000, followRedirects = false, proxy = proxy)
   var httpClient = new HttpClient(config)
   var httpBrowser = new HttpBrowser(config)
 
@@ -64,17 +63,6 @@ object HttpBin extends App with Assertions {
       assert(hdrs(0).value == expected, hdrs(0))
     }
   }
-
-  private def extractLineFromResponse(expectedHeader: String, bodyLines: Seq[String]): String = {
-    val expectedHeaderColon = expectedHeader + ':'
-    for (line <- bodyLines) {
-      if (line.trim.startsWith(expectedHeaderColon)) {
-        return line.substring(line.indexOf(':') + 1).trim()
-      }
-    }
-    throw new AssertionError("Expect response to contain\n" + expectedHeader)
-  }
-
 
   headTest(httpClient, "http://" + serverUrl)
   headTest(httpClient, "https://" + serverUrl)
@@ -103,10 +91,8 @@ object HttpBin extends App with Assertions {
     assert(response.status.code === 200, url)
     val body = response.body
     assert(body.contentType.value === APPLICATION_JSON.value, url)
-    val string = body.toString
-    assert(string startsWith "{", url)
-    val bodyLines = string.split("\n")
-    assert(bodyLines(0) startsWith "{", url)
+    val json = JSONWrapper(response.body.toString)
+    assert(serverUrl === json.get("headers/Host").asString)
   }
 
 
@@ -137,12 +123,10 @@ object HttpBin extends App with Assertions {
     println("GET " + url)
     val response = http.get(new URL(url), gzipHeaders, CookieJar(cookieC1V1))
     assert(200 === response.status.code, url)
-    val body = response.body
-    assert(APPLICATION_JSON.value === body.contentType.value, url)
-    assert(true === body.toString.startsWith("{"), url)
+    assert(APPLICATION_JSON.value === response.body.contentType.value, url)
+    val json = JSONWrapper(response.body.toString)
     assert(cookieC1V1 === response.cookies.get.find(_.name == "c1").get, url)
-    val bodyLines = response.body.toString.split("\n").toSeq
-    val cookieLine = extractLineFromResponse("\"Cookie\"", bodyLines)
+    val cookieLine = json.get("headers/Cookie").asString
     assert(cookieLine contains ("c1=v1"), cookieLine)
   }
 
@@ -152,12 +136,12 @@ object HttpBin extends App with Assertions {
   private def textPlainGetWithQueryString(http: Http, url: String) {
     val response = http.get(new URL(url), gzipHeaders)
     assert(200 === response.status.code, url)
-    val body = response.body
-    assert(APPLICATION_JSON.value === body.contentType.value, url)
-    val bodyLines = response.body.toString.split("\n").toSeq
-    assert("\"1\"," === extractLineFromResponse("\"A\"", bodyLines), response.body)
-    assert("\"2\"" === extractLineFromResponse("\"B\"", bodyLines), response.body)
-//    assert(Set("""A: 1""", """"B: 2""") === bodyLines.filter(_.startsWith("    \"")).reverse.take(2).map(_.trim).toSet, response.body)
+    assert(APPLICATION_JSON.value === response.body.contentType.value, url)
+    val json = JSONWrapper(response.body.toString)
+    val args = json.get("args")
+    assert(2 === args.asMap.size, response.body)
+    assert("1" === args.get("A").asString, response.body)
+    assert("2" === args.get("B").asString, response.body)
   }
 
 }

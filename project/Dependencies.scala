@@ -57,6 +57,8 @@ object Dependencies {
 
   val scalatest = "org.scalatest" %% "scalatest" % "1.8.RC2" % "test" withSources()
 
+  val jsontools = "com.sdicons.jsontools" % "jsontools-core" % "1.7" % "test" withSources()
+
   // see lib folder
   //val stubserver       = "tarttelin"               % "stubserver"               % "0.3"   % "test"
   // Currently directly from source https://github.com/rickb777/JavaStubServer

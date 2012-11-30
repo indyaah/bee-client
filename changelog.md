@@ -1,4 +1,9 @@
 #### Wed, 28 Nov 2012
+* v0.18.1
+* DigestCredential now computes the digest response as specified by RFC2617. More work is still needed to provide round-trip digest authentication support.
+
+
+#### Wed, 28 Nov 2012
 * v0.18.0
 * Upgraded to support Maven / Ivy correctly
 * Stopped using Slf4s because it limits supported Scala versions and is not essential.
