@@ -24,6 +24,7 @@
 
 package uk.co.bigbeeconsultants.http
 
+import auth.BasicCredential
 import HttpClient._
 import header.MediaType._
 import header.HeaderName._
@@ -96,6 +97,19 @@ object HttpBin extends App with Assertions {
   }
 
 
+  val configWithUserAgent = Config(userAgentString = Some("HttpBin-test-app"))
+
+  private def htmlGetUserAgent(http: Http, url: String) {
+    println("GET " + url)
+    val response = http.get(new URL(url), gzipHeaders)
+    assert(response.status.code === 200, url)
+    val body = response.body
+    assert(body.contentType.value === APPLICATION_JSON.value, url)
+    val json = JSONWrapper(response.body.toString)
+    assert("HttpBin-test-app" === json.get("user-agent").asString)
+  }
+
+
   textHtmlGet204(httpClient, "http://" + serverUrl + "/status/204")
   textHtmlGet204(httpClient, "https://" + serverUrl + "/status/204")
   textHtmlGet204(httpBrowser, "http://" + serverUrl + "/status/204")
@@ -142,6 +156,24 @@ object HttpBin extends App with Assertions {
     assert(2 === args.asMap.size, response.body)
     assert("1" === args.get("A").asString, response.body)
     assert("2" === args.get("B").asString, response.body)
+  }
+
+
+  basicAuth(httpClient, "http://" + serverUrl + "/basic-auth/fred/bloggs")
+
+  private def basicAuth(http: Http, urlStr: String) {
+    val url = new URL(urlStr)
+    val response1 = http.get(url, gzipHeaders)
+    assert(401 === response1.status.code, urlStr)
+    val cred = new BasicCredential("fred", "bloggs")
+    val response2 = http.get(url, gzipHeaders + cred.toAuthHeader())
+    assert(200 === response2.status.code, urlStr)
+//    assert(APPLICATION_JSON.value === response2.body.contentType.value, urlStr)
+//    val json = JSONWrapper(response2.body.toString)
+//    val args = json.get("args")
+//    assert(2 === args.asMap.size, response2.body)
+//    assert("1" === args.get("A").asString, response2.body)
+//    assert("2" === args.get("B").asString, response2.body)
   }
 
 }

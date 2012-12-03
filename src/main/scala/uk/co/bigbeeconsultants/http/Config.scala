@@ -27,6 +27,7 @@ package uk.co.bigbeeconsultants.http
 import auth.CredentialSuite
 import java.net.Proxy
 import request._
+import javax.net.ssl.{SSLSocketFactory, HostnameVerifier}
 
 /**
  * Specifies configuration options that will be used across many requests or for a particular request.
@@ -47,6 +48,14 @@ import request._
  *                    [[uk.co.bigbeeconsultants.http.request.DefaultRequestHeaders]],
  *                    [[uk.co.bigbeeconsultants.http.request.ConnectionControl]],
  *                    [[uk.co.bigbeeconsultants.http.request.UserAgentString]]))
+ * @param hostnameVerifier an optional SSL hostname verifier to be used on all requests. This is similar to
+ *                         setting the global state via HttpsURLConnection.setDefaultHostnameVerifier, except
+ *                         that, this way, it is possible to configure multiple clients each with their own
+ *                         hostname verifier.
+ * @param sslSocketFactory an optional SSL socket factory to be used on all requests. This is similar to
+ *                         setting the global state via HttpsURLConnection.setDefaultSSLSocketFactory, except
+ *                         that, this way, it is possible to configure multiple clients each with their own
+ *                         socket factory.
  */
 case class Config(connectTimeout: Int = 2000,
                   readTimeout: Int = 5000,
@@ -57,7 +66,9 @@ case class Config(connectTimeout: Int = 2000,
                   userAgentString: Option[String] = None,
                   proxy: Proxy = Proxy.NO_PROXY,
                   credentials: CredentialSuite = CredentialSuite.empty,
-                  preRequests: List[PreRequest] = Config.standardSetup) {
+                  preRequests: List[PreRequest] = Config.standardSetup,
+                  hostnameVerifier: Option[HostnameVerifier] = None,
+                  sslSocketFactory: Option[SSLSocketFactory] = None) {
 
   require(maxRedirects > 1, maxRedirects + ": too few maxRedirects")
 }

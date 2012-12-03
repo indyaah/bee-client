@@ -29,12 +29,11 @@ import header._
 import response._
 import request.Request
 import java.net._
+import javax.net.ssl.HttpsURLConnection
 import java.util.zip.GZIPInputStream
 import org.slf4j.{LoggerFactory, Logger}
-
 import collection.mutable.ListBuffer
 import java.io.IOException
-import scala.Some
 
 /**
  * Constructs an instance for handling any number of HTTP requests with any level of concurrency.
@@ -73,12 +72,7 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
                               config: Config): Option[Request] = {
     logger.info("{}", request)
 
-    val httpURLConnection = openConnection(request, config.proxy)
-    httpURLConnection.setAllowUserInteraction(false)
-    httpURLConnection.setConnectTimeout(config.connectTimeout)
-    httpURLConnection.setReadTimeout(config.readTimeout)
-    httpURLConnection.setInstanceFollowRedirects(false)
-    httpURLConnection.setUseCaches(config.useCaches)
+    val httpURLConnection = configureConnection(openConnection(request, config.proxy), config)
 
     var redirect: Option[Request] = None
     try {
@@ -125,6 +119,23 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
   /** Provides a seam for testing. Not for normal use. */
   @throws(classOf[IOException])
   protected def openConnection(request: Request, proxy: Proxy) = request.url.openConnection(proxy).asInstanceOf[HttpURLConnection]
+
+  private def configureConnection(httpURLConnection: HttpURLConnection, config: Config): HttpURLConnection = {
+    httpURLConnection.setAllowUserInteraction(false)
+    httpURLConnection.setConnectTimeout(config.connectTimeout)
+    httpURLConnection.setReadTimeout(config.readTimeout)
+    httpURLConnection.setInstanceFollowRedirects(false)
+    httpURLConnection.setUseCaches(config.useCaches)
+
+    httpURLConnection match {
+      case hs: HttpsURLConnection =>
+        if (config.hostnameVerifier.isDefined) hs.setHostnameVerifier(config.hostnameVerifier.get)
+        if (config.sslSocketFactory.isDefined) hs.setSSLSocketFactory(config.sslSocketFactory.get)
+      case _ => // do nothing
+    }
+
+    httpURLConnection
+  }
 
   private def copyRequestBodyToOutputStream(request: Request, httpURLConnection: HttpURLConnection) {
     if (request.body.isDefined) {

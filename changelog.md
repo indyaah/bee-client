@@ -1,3 +1,8 @@
+#### Fri, 30 Nov 2012
+* v0.18.1
+* More testing. Added JSON parsing for httpbin.org integration tests.
+
+
 #### Wed, 28 Nov 2012
 * v0.18.1
 * DigestCredential now computes the digest response as specified by RFC2617. More work is still needed to provide round-trip digest authentication support.
