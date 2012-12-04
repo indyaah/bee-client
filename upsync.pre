@@ -1,12 +1,13 @@
 #USERNAME=
 PROJECT=bee-client
-GROUPID=uk/co/bigbeeconsultants
+GROUPID=uk.co.bigbeeconsultants
+GROUPDIR=uk/co/bigbeeconsultants
 VNUM=$(grep version build.sbt | sed 's/.*:= *//' | tr -d '"')
 DEST=/home/websites/bigbeeconsultants
 DIR=$PWD
 SOURCES="docs repo"
 mkdir -p $DEST/docs/${PROJECT}
-mkdir -p $DEST/repo/${GROUPID}
+mkdir -p $DEST/repo/${GROUPDIR}
 
 function symlink
 {
@@ -23,19 +24,26 @@ function do_docs
   fi
 }
 
+function linkOneArtefact
+{
+  for h in '' '.md5' '.sha1'; do
+    symlink ${1}/${PROJECT}_${SCALA}${2}${h} ${PROJECT}_${SCALA}-${VNUM}${2}${h}
+  done
+}
+
 function do_repo
 {
   if [ -d $DIR/target/scala-${SCALA} ]; then
     cd $DEST
-    rsync -av $HOME/.ivy2/local/${GROUPID}/ repo/${GROUPID}
-    cd repo/${GROUPID}/${PROJECT}_${SCALA}
+    rsync -av $HOME/.ivy2/local/${GROUPID}/ repo/${GROUPDIR}
+    cd repo/${GROUPDIR}/${PROJECT}_${SCALA}
     symlink ${VNUM} latest
     cd ${VNUM}
-    ln -fs */${PROJECT}* .
+    linkOneArtefact poms '.pom'
+    linkOneArtefact jars '.jar'
+    linkOneArtefact docs '-javadoc.jar'
+    linkOneArtefact srcs '-sources.jar'
     cd ..
-    for e in '' '-sources' '-javadoc'; do
-      symlink ${VNUM}/${PROJECT}_${SCALA}${e}.jar ${PROJECT}_${SCALA}-${VNUM}${e}.jar
-    done
   else
     echo Skipped $DIR/target/scala-${SCALA}.
   fi
@@ -61,4 +69,4 @@ done
 
 cd $DEST
 writeLatest docs/${PROJECT}/latest.html "http://www.bigbeeconsultants.co.uk/docs/${PROJECT}/${VNUM}/"
-writeLatest repo/${GROUPID}/${PROJECT}-latest.html "http://www.bigbeeconsultants.co.uk/repo/${GROUPID}/${PROJECT}_${SCALA}/${VNUM}/"
+writeLatest repo/${GROUPDIR}/${PROJECT}-latest.html "http://www.bigbeeconsultants.co.uk/repo/${GROUPDIR}/${PROJECT}_${SCALA}/${VNUM}/"
