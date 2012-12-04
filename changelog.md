@@ -1,3 +1,9 @@
+#### Mon, 03 Dec 2012
+* v0.18.3
+* Config now has two new options: hostnameVerifier and sslSocketFactory. Individual HttpClient instances can now be
+*  set up with bespoke SSL settings to suit their intended remote access point.
+
+
 #### Fri, 30 Nov 2012
 * v0.18.1
 * More testing. Added JSON parsing for httpbin.org integration tests.

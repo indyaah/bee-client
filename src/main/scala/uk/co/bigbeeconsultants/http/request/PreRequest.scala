@@ -111,11 +111,12 @@ object DefaultRequestHeaders extends PreRequest {
 /**
  * Injects a particular SSL Socket Factory into every HTTPS request using it.
  */
-class SSLSocketFactoryInjecter(sslSocketFactory: SSLSocketFactory) extends PreRequest {
+object SSLSocketFactoryInjecter extends PreRequest {
   override def process(request: Request, httpURLConnection: HttpURLConnection, config: Config) {
-    if (httpURLConnection.isInstanceOf[HttpsURLConnection]) {
-      val httpsConnection = httpURLConnection.asInstanceOf[HttpsURLConnection]
-      httpsConnection.setSSLSocketFactory(sslSocketFactory)
+    httpURLConnection match {
+      case hs: HttpsURLConnection if config.sslSocketFactory.isDefined =>
+        hs.setSSLSocketFactory(config.sslSocketFactory.get)
+      case _ => // nothing
     }
   }
 }
@@ -124,11 +125,12 @@ class SSLSocketFactoryInjecter(sslSocketFactory: SSLSocketFactory) extends PreRe
 /**
  * Injects a particular hostname verifier into every HTTPS request using it.
  */
-class HostnameVerifierInjecter(hostnameVerifier: HostnameVerifier) extends PreRequest {
+object HostnameVerifierInjecter extends PreRequest {
   override def process(request: Request, httpURLConnection: HttpURLConnection, config: Config) {
-    if (httpURLConnection.isInstanceOf[HttpsURLConnection]) {
-      val httpsConnection = httpURLConnection.asInstanceOf[HttpsURLConnection]
-      httpsConnection.setHostnameVerifier(hostnameVerifier)
+    httpURLConnection match {
+      case hs: HttpsURLConnection if config.hostnameVerifier.isDefined =>
+        hs.setHostnameVerifier(config.hostnameVerifier.get)
+      case _ => // nothing
     }
   }
 }

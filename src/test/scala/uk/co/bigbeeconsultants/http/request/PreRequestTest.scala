@@ -105,8 +105,8 @@ class PreRequestTest extends FunSuite {
   test("SSLSocketFactoryInjecter") {
     val httpsURLConnection = mock(classOf[HttpsURLConnection])
     val sslSocketFactory = mock(classOf[SSLSocketFactory])
-    val pr = new SSLSocketFactoryInjecter(sslSocketFactory)
-    pr.process(null, httpsURLConnection, Config())
+    val config = Config(preRequests = List(SSLSocketFactoryInjecter), sslSocketFactory = Some(sslSocketFactory))
+    SSLSocketFactoryInjecter.process(null, httpsURLConnection, config)
     verify(httpsURLConnection, times(1)).setSSLSocketFactory(sslSocketFactory)
   }
 
@@ -114,8 +114,8 @@ class PreRequestTest extends FunSuite {
   test("HostnameVerifierInjecter") {
     val httpsURLConnection = mock(classOf[HttpsURLConnection])
     val hostnameVerifier = mock(classOf[HostnameVerifier])
-    val pr = new HostnameVerifierInjecter(hostnameVerifier)
-    pr.process(null, httpsURLConnection, Config())
+    val config = Config(preRequests = List(SSLSocketFactoryInjecter), hostnameVerifier = Some(hostnameVerifier))
+    HostnameVerifierInjecter.process(null, httpsURLConnection, config)
     verify(httpsURLConnection, times(1)).setHostnameVerifier(hostnameVerifier)
   }
 

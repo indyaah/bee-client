@@ -126,14 +126,6 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
     httpURLConnection.setReadTimeout(config.readTimeout)
     httpURLConnection.setInstanceFollowRedirects(false)
     httpURLConnection.setUseCaches(config.useCaches)
-
-    httpURLConnection match {
-      case hs: HttpsURLConnection =>
-        if (config.hostnameVerifier.isDefined) hs.setHostnameVerifier(config.hostnameVerifier.get)
-        if (config.sslSocketFactory.isDefined) hs.setSSLSocketFactory(config.sslSocketFactory.get)
-      case _ => // do nothing
-    }
-
     httpURLConnection
   }
 
