@@ -40,6 +40,7 @@ import util.HttpUtil
  */
 final class RequestBody(val mediaType: MediaType, val copyTo: OutputStream => Unit, source: => Any = "...") {
 
+  // TODO allow multipass access to source during digest authentication
   override def toString = "RequestBody(" + mediaType + "," + source.toString + ")"
 }
 

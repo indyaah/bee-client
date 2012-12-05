@@ -24,11 +24,10 @@
 
 package uk.co.bigbeeconsultants.http
 
-import auth.BasicCredential
+import auth.{Realm, CredentialSuite, Credential}
 import HttpClient._
 import header.MediaType._
 import header.HeaderName._
-import java.lang.AssertionError
 import java.net.{Proxy, URL}
 import header._
 import org.scalatest.Assertions
@@ -65,10 +64,10 @@ object HttpBin extends App with Assertions {
     }
   }
 
-  headTest(httpClient, "http://" + serverUrl)
-  headTest(httpClient, "https://" + serverUrl)
-  headTest(httpBrowser, "http://" + serverUrl)
-  headTest(httpBrowser, "https://" + serverUrl)
+//  headTest(httpClient, "http://" + serverUrl)
+//  headTest(httpClient, "https://" + serverUrl)
+//  headTest(httpBrowser, "http://" + serverUrl)
+//  headTest(httpBrowser, "https://" + serverUrl)
 
   def headTest(http: Http, url: String) {
     println("HEAD " + url)
@@ -81,10 +80,10 @@ object HttpBin extends App with Assertions {
   }
 
 
-  htmlGet(httpClient, "http://" + serverUrl + "/headers")
-  htmlGet(httpClient, "https://" + serverUrl + "/headers")
-  htmlGet(httpBrowser, "http://" + serverUrl + "/headers")
-  htmlGet(httpBrowser, "https://" + serverUrl + "/headers")
+//  htmlGet(httpClient, "http://" + serverUrl + "/headers")
+//  htmlGet(httpClient, "https://" + serverUrl + "/headers")
+//  htmlGet(httpBrowser, "http://" + serverUrl + "/headers")
+//  htmlGet(httpBrowser, "https://" + serverUrl + "/headers")
 
   private def htmlGet(http: Http, url: String) {
     println("GET " + url)
@@ -110,10 +109,10 @@ object HttpBin extends App with Assertions {
   }
 
 
-  textHtmlGet204(httpClient, "http://" + serverUrl + "/status/204")
-  textHtmlGet204(httpClient, "https://" + serverUrl + "/status/204")
-  textHtmlGet204(httpBrowser, "http://" + serverUrl + "/status/204")
-  textHtmlGet204(httpBrowser, "https://" + serverUrl + "/status/204")
+//  textHtmlGet204(httpClient, "http://" + serverUrl + "/status/204")
+//  textHtmlGet204(httpClient, "https://" + serverUrl + "/status/204")
+//  textHtmlGet204(httpBrowser, "http://" + serverUrl + "/status/204")
+//  textHtmlGet204(httpBrowser, "https://" + serverUrl + "/status/204")
 
   private def textHtmlGet204(http: Http, url: String) {
     println("GET " + url)
@@ -128,10 +127,10 @@ object HttpBin extends App with Assertions {
 
   val cookieC1V1 = Cookie("c1", "v1", Domain(serverUrl))
   val configFollowRedirects = Config(followRedirects = true)
-  textPlainGetFollowingRedirect(new HttpClient(configFollowRedirects), "http://" + serverUrl + "/redirect/1")
-  textPlainGetFollowingRedirect(new HttpClient(configFollowRedirects), "https://" + serverUrl + "/redirect/1")
-  textPlainGetFollowingRedirect(new HttpBrowser(configFollowRedirects, CookieJar(cookieC1V1)), "http://" + serverUrl + "/redirect/1")
-  textPlainGetFollowingRedirect(new HttpBrowser(configFollowRedirects, CookieJar(cookieC1V1)), "https://" + serverUrl + "/redirect/1")
+//  textPlainGetFollowingRedirect(new HttpClient(configFollowRedirects), "http://" + serverUrl + "/redirect/1")
+//  textPlainGetFollowingRedirect(new HttpClient(configFollowRedirects), "https://" + serverUrl + "/redirect/1")
+//  textPlainGetFollowingRedirect(new HttpBrowser(configFollowRedirects, CookieJar(cookieC1V1)), "http://" + serverUrl + "/redirect/1")
+//  textPlainGetFollowingRedirect(new HttpBrowser(configFollowRedirects, CookieJar(cookieC1V1)), "https://" + serverUrl + "/redirect/1")
 
   private def textPlainGetFollowingRedirect(http: Http, url: String) {
     println("GET " + url)
@@ -145,7 +144,7 @@ object HttpBin extends App with Assertions {
   }
 
 
-  textPlainGetWithQueryString(httpClient, "http://" + serverUrl + "/get?A=1&B=2")
+//  textPlainGetWithQueryString(httpClient, "http://" + serverUrl + "/get?A=1&B=2")
 
   private def textPlainGetWithQueryString(http: Http, url: String) {
     val response = http.get(new URL(url), gzipHeaders)
@@ -159,21 +158,32 @@ object HttpBin extends App with Assertions {
   }
 
 
-  basicAuth(httpClient, "http://" + serverUrl + "/basic-auth/fred/bloggs")
+  val fredBloggs = new Credential("fred", "bloggs")
+//  basicAuth(httpClient, "http://" + serverUrl + "/basic-auth/fred/bloggs")
+//  basicAuth(httpClient, "https://" + serverUrl + "/basic-auth/fred/bloggs")
+//  basicAuth(httpBrowser, "http://" + serverUrl + "/basic-auth/fred/bloggs")
+//  basicAuth(httpBrowser, "https://" + serverUrl + "/basic-auth/fred/bloggs")
 
   private def basicAuth(http: Http, urlStr: String) {
     val url = new URL(urlStr)
     val response1 = http.get(url, gzipHeaders)
     assert(401 === response1.status.code, urlStr)
-    val cred = new BasicCredential("fred", "bloggs")
-    val response2 = http.get(url, gzipHeaders + cred.toAuthHeader())
+    val response2 = http.get(url, gzipHeaders + fredBloggs.toBasicAuthHeader)
     assert(200 === response2.status.code, urlStr)
-//    assert(APPLICATION_JSON.value === response2.body.contentType.value, urlStr)
-//    val json = JSONWrapper(response2.body.toString)
-//    val args = json.get("args")
-//    assert(2 === args.asMap.size, response2.body)
-//    assert("1" === args.get("A").asString, response2.body)
-//    assert("2" === args.get("B").asString, response2.body)
+    val json = JSONWrapper(response2.body.toString)
+    assert(json.get("authenticated").asBoolean)
+  }
+
+  val browserWithCreds = new HttpBrowser(config, CookieJar.empty, new CredentialSuite(Map(Realm("Fake Realm") -> fredBloggs)))
+  automaticBasicAuth(browserWithCreds, "http://" + serverUrl + "/basic-auth/fred/bloggs")
+  automaticBasicAuth(browserWithCreds, "https://" + serverUrl + "/basic-auth/fred/bloggs")
+
+  private def automaticBasicAuth(http: Http, urlStr: String) {
+    val url = new URL(urlStr)
+    val response = http.get(url, gzipHeaders)
+    assert(200 === response.status.code, urlStr)
+    val json = JSONWrapper(response.body.toString)
+    assert(json.get("authenticated").asBoolean)
   }
 
 }

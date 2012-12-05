@@ -41,25 +41,27 @@ case class AuthenticateValue(authScheme: String, parts: ListMap[String, String])
   // qop-options       = "qop" "=" <"> 1#qop-value <">
   // qop-value         = "auth" | "auth-int" | token
 
-  lazy val realm: Option[String] = parts.get("realm").map(HttpUtil.unquote(_))
+  lazy val realm: Option[String] = unquoted("realm")
 
-  lazy val domain: List[String] = parts.get("domain").map(HttpUtil.split(_, ' ')).getOrElse(Nil)
+  lazy val domain: List[String] = unquoted("domain").map(HttpUtil.split(_, ' ')).getOrElse(Nil)
 
-  lazy val nonce: Option[String] = parts.get("nonce").map(HttpUtil.unquote(_))
+  lazy val nonce: Option[String] = unquoted("nonce")
 
-  lazy val opaque: Option[String] = parts.get("opaque").map(HttpUtil.unquote(_))
+  lazy val opaque: Option[String] = unquoted("opaque")
 
-  lazy val stale: Boolean = parts.get("stale").map(_ == "true").getOrElse(false)
+  lazy val stale: Boolean = parts.get("stale").map(_.toLowerCase == "true").getOrElse(false)
 
-  lazy val algorithm: Option[String] = parts.get("algorithm").map(HttpUtil.unquote(_))
+  lazy val algorithm: Option[String] = unquoted("algorithm")
 
-  lazy val qop: List[String] = parts.get("qop").map(qop => HttpUtil.split(HttpUtil.unquote(qop), ',')).getOrElse(Nil)
+  lazy val qop: List[String] = unquoted("qop").map(HttpUtil.split(_, ',')).getOrElse(Nil)
 
   lazy val isValid = {
     if (authScheme == "Basic") realm.isDefined
     else if (authScheme == "Digest") realm.isDefined && nonce.isDefined
     else false
   }
+
+  private def unquoted(key: String) = parts.get(key).map(HttpUtil.unquote(_))
 
   override lazy val toString = authScheme + " " + parts.map(kv => kv._1 + "=" + kv._2).mkString(", ")
 }
@@ -69,10 +71,12 @@ object AuthenticateValue {
   def apply(headerValue: String): AuthenticateValue = {
     val sections = HttpUtil.divide(headerValue.replace('\n', ' '), ' ')
 
-    val parts = ListMap() ++ HttpUtil.splitQuoted(sections._2, ',').map {
-      v: String => HttpUtil.divide(v.trim, '=')
+    val parts = HttpUtil.splitQuoted(sections._2, ',') map {
+      v => HttpUtil.divide(v.trim, '=')
+    } map {
+      kv => (kv._1.toLowerCase -> kv._2)
     }
 
-    new AuthenticateValue(sections._1.trim, parts)
+    new AuthenticateValue(sections._1.trim, ListMap() ++ parts)
   }
 }

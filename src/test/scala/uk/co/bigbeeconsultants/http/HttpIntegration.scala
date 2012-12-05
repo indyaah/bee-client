@@ -24,7 +24,7 @@
 
 package uk.co.bigbeeconsultants.http
 
-import auth.BasicAuthentication
+import auth.{Realm, CredentialSuite, Credential}
 import HttpClient._
 import header._
 import header.MediaType._
@@ -63,6 +63,7 @@ object HttpIntegration {
 }
 
 class HttpIntegration extends FunSuite with BeforeAndAfter {
+
   import HttpIntegration._
 
   //  val proxyAddress = new InetSocketAddress("localhost", 8888)
@@ -74,14 +75,10 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   private val jsonSample = """{ "x": 1, "y": true }"""
   private val jsonBody = RequestBody(jsonSample, APPLICATION_JSON)
 
-  val config = Config(followRedirects = false, proxy = proxy)
-  var http: HttpClient = _
+  val configNoRedirects = Config(followRedirects = false, proxy = proxy)
 
-  before {
-    http = new HttpClient(config)
-  }
 
-  def headTest(http: HttpClient, url: String, size: Long) {
+  def headTest(http: Http, url: String, size: Long) {
     try {
       val response = http.head(new URL(url), gzipHeaders)
       assert(response.status.code === 200, url)
@@ -96,7 +93,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
     }
   }
 
-  private def htmlGet(http: HttpClient, url: String, size: Long) {
+  private def htmlGet(http: Http, url: String, size: Long) {
     try {
       val response = http.get(new URL(url), gzipHeaders)
       assert(response.status.code === 200, url)
@@ -133,7 +130,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   private def skipTestWarning(method: String, url: String, e: Exception) {
     if (e.isInstanceOf[ConnectException] || e.getCause.isInstanceOf[ConnectException] ||
-        e.isInstanceOf[UnknownHostException] || e.getCause.isInstanceOf[UnknownHostException]) {
+      e.isInstanceOf[UnknownHostException] || e.getCause.isInstanceOf[UnknownHostException]) {
       System.err.println("***** Test skipped: " + method + " " + url + " : " + e.getMessage)
     }
     else {
@@ -142,6 +139,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("html text/html head x100") {
+    val http = new HttpClient(configNoRedirects)
     for (i <- 1 to 100) {
       headTest(http, "http:" + serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
       headTest(http, "https:" + serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
@@ -149,6 +147,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("html text/html get x100") {
+    val http = new HttpClient(configNoRedirects)
     for (i <- 1 to 100) {
       htmlGet(http, "http:" + serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
       htmlGet(http, "https:" + serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
@@ -157,10 +156,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   test("html text/html get giving 204 x100") {
     textHtmlGet204("http:" + serverUrl + test204File)
-//    textHtmlGet204("https:" + serverUrl + test204File)
+    //    textHtmlGet204("https:" + serverUrl + test204File)
   }
 
   private def textHtmlGet204(url: String) {
+    val http = new HttpClient(configNoRedirects)
     try {
       val response = http.get(new URL(url), gzipHeaders)
       assert(204 === response.status.code, url)
@@ -180,6 +180,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   private def imagePngGet(url: String) {
+    val http = new HttpClient(configNoRedirects)
     try {
       val response = http.get(new URL(url), gzipHeaders)
       assert(200 === response.status.code, url)
@@ -201,6 +202,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   private def textPlainGet(url: String) {
+    val http = new HttpClient(configNoRedirects)
     try {
       val response = http.get(new URL(url), gzipHeaders)
       assert(200 === response.status.code, url)
@@ -215,13 +217,13 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   test("txt text/plain get following redirect") {
     textPlainGetFollowingRedirect("http:" + serverUrl + testRedirect1File + "?TO=" + testRedirect2File)
-//    textPlainGetFollowingRedirect("https:" + serverUrl + testRedirect1File + "?TO=" + testRedirect2File)
+    //    textPlainGetFollowingRedirect("https:" + serverUrl + testRedirect1File + "?TO=" + testRedirect2File)
   }
 
   private def textPlainGetFollowingRedirect(url: String) {
+    val cookie = Cookie("c1", "v1", Domain.localhost)
+    val http2 = new HttpClient(Config(followRedirects = true))
     try {
-      val cookie = Cookie("c1", "v1", Domain.localhost)
-      val http2 = new HttpClient(Config(followRedirects = true))
       val response = http2.get(new URL(url), gzipHeaders, CookieJar(cookie))
       assert(200 === response.status.code, url)
       val body = response.body
@@ -238,9 +240,9 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   test("txt text/plain get following redirect using HttpBrowser") {
     val url = "http:" + serverUrl + testRedirect1File + "?TO=" + testRedirect2File
+    val cookie = Cookie("c1", "v1", Domain.localhost)
+    val httpBrowser = new HttpBrowser(Config(followRedirects = true), initialCookieJar = CookieJar(cookie))
     try {
-      val cookie = Cookie("c1", "v1", Domain.localhost)
-      val httpBrowser = new HttpBrowser(Config(followRedirects = true), initialCookieJar = CookieJar(cookie))
       val response = httpBrowser.get(new URL(url), gzipHeaders)
       assert(200 === response.status.code, url)
       val body = response.body
@@ -260,10 +262,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   test("txt text/plain get qith query string x1") {
     textPlainGetWithQueryString("http:" + serverUrl + testEchoFile + "?A=1&B=2")
-//    textPlainGetWithQueryString("https:" + serverUrl + testEchoFile + "?A=1&B=2")
+    //    textPlainGetWithQueryString("https:" + serverUrl + testEchoFile + "?A=1&B=2")
   }
 
   private def textPlainGetWithQueryString(url: String) {
+    val http = new HttpClient(configNoRedirects)
     try {
       val response = http.get(new URL(url), gzipHeaders)
       assert(200 === response.status.code, url)
@@ -281,10 +284,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   test("txt text/plain get acquiring a cookie") {
     textPlainGetAcquiringCookie("http:" + serverUrl + testCookieFile)
-//    textPlainGetAcquiringCookie("https:" + serverUrl + testCookieFile)
+    //    textPlainGetAcquiringCookie("https:" + serverUrl + testCookieFile)
   }
 
   private def textPlainGetAcquiringCookie(url: String) {
+    val http = new HttpClient(configNoRedirects)
     try {
       val response = http.get(new URL(url), gzipHeaders, CookieJar.empty)
       assert(200 === response.status.code, url)
@@ -301,10 +305,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   test("php text/plain options x1") {
     textPlainOptions("http:" + serverUrl + testPhpFile + "?CT=text/plain")
-//    textPlainOptions("https:" + serverUrl + testPhpFile + "?CT=text/plain")
+    //    textPlainOptions("https:" + serverUrl + testPhpFile + "?CT=text/plain")
   }
 
   private def textPlainOptions(url: String) {
+    val http = new HttpClient(configNoRedirects)
     try {
       val response = http.options(new URL(url), None)
       assert(302 === response.status.code, url)
@@ -318,10 +323,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   test("php text/plain post x1") {
     textPlainPost("http:" + serverUrl + testEchoFile)
-//    textPlainPost("https:" + serverUrl + testEchoFile)
+    //    textPlainPost("https:" + serverUrl + testEchoFile)
   }
 
   private def textPlainPost(url: String) {
+    val http = new HttpClient(configNoRedirects)
     try {
       val response = http.post(new URL(url), Some(jsonBody), gzipHeaders)
       assert(200 === response.status.code, url)
@@ -339,10 +345,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   test("php text/plain put x1") {
     textPlainPut("http:" + serverUrl + testEchoFile)
-//    textPlainPut("https:" + serverUrl + testEchoFile)
+    //    textPlainPut("https:" + serverUrl + testEchoFile)
   }
 
   private def textPlainPut(url: String) {
+    val http = new HttpClient(configNoRedirects)
     try {
       val response = http.put(new URL(url), jsonBody, gzipHeaders)
       assert(200 === response.status.code, url)
@@ -360,10 +367,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   test("php text/html delete x1") {
     textHtmlDelete("http:" + serverUrl + testEchoFile)
-//    textHtmlDelete("https:" + serverUrl + testEchoFile)
+    //    textHtmlDelete("https:" + serverUrl + testEchoFile)
   }
 
   private def textHtmlDelete(url: String) {
+    val http = new HttpClient(configNoRedirects)
     try {
       val response = http.delete(new URL(url), gzipHeaders)
       assert(200 === response.status.code, url)
@@ -379,10 +387,11 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   test("php text/html options x1") {
     textHtmlOptions("http:" + serverUrl + testEchoFile)
-//    textHtmlOptions("https:" + serverUrl + testEchoFile)
+    //    textHtmlOptions("https:" + serverUrl + testEchoFile)
   }
 
   private def textHtmlOptions(url: String) {
+    val http = new HttpClient(configNoRedirects)
     try {
       val response = http.options(new URL(url), None)
       assert(200 === response.status.code, url)
@@ -403,8 +412,9 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   private def imageJpegGet(url: String) {
+    val http = new HttpClient(configNoRedirects)
     try {
-      val loops = 100
+      val loops = 20
       val before = System.currentTimeMillis()
       for (i <- 1 to loops) {
         val response = http.get(new URL(url + "?n=" + i), gzipHeaders)
@@ -425,14 +435,15 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   test("php text/html get x100") {
     textHtmlGet100("http:" + serverUrl + testPhpFile)
-//    textHtmlGet100("https:" + serverUrl + testPhpFile)
+    //    textHtmlGet100("https:" + serverUrl + testPhpFile)
   }
 
   private def textHtmlGet100(url: String) {
+    val http = new HttpClient(configNoRedirects)
     try {
       var size = -1
       var first = "NOT SET"
-      val loops = 100
+      val loops = 20
       val before = System.currentTimeMillis()
       var ok = true
       for (i <- 1 to loops) {
@@ -478,6 +489,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   private def textPlainGetBasicAuth401(url: String) {
+    val http = new HttpClient(configNoRedirects)
     try {
       val response = http.get(new URL(url), gzipHeaders)
       assert(401 === response.status.code, url)
@@ -488,9 +500,32 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   private def textPlainGetBasicAuth(url: String) {
+    val http = new HttpClient(configNoRedirects)
     try {
-      val requestHeaders = gzipHeaders + BasicAuthentication("bigbee", "HelloWorld")
+      val bigbee = new Credential("bigbee", "HelloWorld")
+      val requestHeaders = gzipHeaders + bigbee.toBasicAuthHeader
       val response = http.get(new URL(url), requestHeaders)
+      assert(200 === response.status.code, url)
+      val body = response.body
+      assert(TEXT_PLAIN.value === body.contentType.value, url)
+      assert(true === body.toString.startsWith("Lorem "), url)
+    } catch {
+      case e: Exception =>
+        skipTestWarning("GET", url, e)
+    }
+  }
+
+  test("txt text/plain get automatic basic auth") {
+    for (i <- 1 to 5) {
+      textPlainGetAutomaticBasicAuth("http:" + serverUrl + "private/lorem2.txt")
+    }
+  }
+
+  private def textPlainGetAutomaticBasicAuth(url: String) {
+    val bigbee = new Credential("bigbee", "HelloWorld")
+    val http = new HttpBrowser(configNoRedirects, CookieJar.empty, new CredentialSuite(Map(Realm("Restricted") -> bigbee)))
+    try {
+      val response = http.get(new URL(url), gzipHeaders)
       assert(200 === response.status.code, url)
       val body = response.body
       assert(TEXT_PLAIN.value === body.contentType.value, url)

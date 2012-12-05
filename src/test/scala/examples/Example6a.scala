@@ -1,7 +1,7 @@
 package examples
 
 import uk.co.bigbeeconsultants.http._
-import auth.BasicCredential
+import auth.Credential
 import header.{HeaderName, Headers}
 
 object Example6a extends App {
@@ -11,8 +11,8 @@ object Example6a extends App {
   println(response401.status)
   println(response401.headers(HeaderName.WWW_AUTHENTICATE).toAuthenticateValue)
 
-  val credential = new BasicCredential("bigbee", "HelloWorld")
-  val login = Headers(credential.toAuthHeader())
+  val credential = new Credential("bigbee", "HelloWorld")
+  val login = Headers(credential.toBasicAuthHeader)
   val response200 = httpClient.get(url, login) // with authentication
   println(response200.status)
   println(response200.body)

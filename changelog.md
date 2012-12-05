@@ -1,3 +1,13 @@
+#### Tue, 04 Dec 2012
+* v0.18.4
+* Build scripts now handle maven repository format correctly.
+
+
+#### Tue, 04 Dec 2012
+* v0.18.3
+* PreRequest handlers for hostnameVerifier and sslSocketFactory tweaked a little.
+
+
 #### Mon, 03 Dec 2012
 * v0.18.3
 * Config now has two new options: hostnameVerifier and sslSocketFactory. Individual HttpClient instances can now be

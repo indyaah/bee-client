@@ -24,15 +24,21 @@
 
 package uk.co.bigbeeconsultants.http.auth
 
-import uk.co.bigbeeconsultants.http.url.PartialURL
-import uk.co.bigbeeconsultants.http.header.Header
+import uk.co.bigbeeconsultants.http.header.{AuthenticateValue, Header}
 
-case class CredentialSuite(credentials: Map[PartialURL, Credential]) {
-  def basicAuthHeader(url: PartialURL): Option[Header] = {
-    null // TODO
+case class CredentialSuite(credentials: Map[Realm, Credential]) {
+  def basicAuthHeader(realm: Realm): Option[Header] = {
+    credentials.get(realm).map(_.toBasicAuthHeader)
+  }
+
+  def authHeader(authenticate: AuthenticateValue) = {
+    basicAuthHeader(Realm(authenticate.realm.get))
   }
 }
 
 object CredentialSuite {
   val empty = new CredentialSuite(Map())
 }
+
+// Should include the domain list, but this is poorly defined so not supported yet.
+case class Realm(realm: String)

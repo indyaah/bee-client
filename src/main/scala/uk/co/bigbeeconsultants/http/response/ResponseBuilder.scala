@@ -31,7 +31,9 @@ import java.net.URL
 
 /**
  * Defines how responses will be handled. The 'standard' implementation is BufferedResponseBuilder,
- * which returns responses buffered in byte arrays (and also strings).
+ * which returns responses buffered in byte arrays (and also strings). When an HTTP request is made,
+ * captureResponse will usually be called once. However, during authentication, it may be called more
+ * than once, all times except the last are transient; implementations need to handle this correctly.
  * @see BufferedResponseBuilder
  */
 trait ResponseBuilder {

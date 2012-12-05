@@ -24,13 +24,3 @@
 
 package uk.co.bigbeeconsultants.http.auth
 
-import uk.co.bigbeeconsultants.http.header.Header
-
-/**
- * Factory for construction of basic authentication headers.
- */
-object BasicAuthentication {
-  def apply(username: String, password: String): Header = {
-    new BasicCredential(username, password).toAuthHeader("")
-  }
-}
