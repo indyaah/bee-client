@@ -1,3 +1,8 @@
+#### Wed, 05 Dec 2012
+* v0.18.4
+* More work done on authentication. First working implementation in HttpBrowser of automatic basic authentication.
+
+
 #### Tue, 04 Dec 2012
 * v0.18.4
 * Build scripts now handle maven repository format correctly.
