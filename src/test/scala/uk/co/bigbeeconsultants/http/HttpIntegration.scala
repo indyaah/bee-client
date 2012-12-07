@@ -516,14 +516,14 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   }
 
   test("txt text/plain get automatic basic auth") {
+    val bigbee = new Credential("bigbee", "HelloWorld")
+    val http = new HttpBrowser(configNoRedirects, CookieJar.empty, new CredentialSuite(Map(Realm("Restricted") -> bigbee)))
     for (i <- 1 to 5) {
-      textPlainGetAutomaticBasicAuth("http:" + serverUrl + "private/lorem2.txt")
+      textPlainGetAutomaticBasicAuth(http, "http:" + serverUrl + "private/lorem2.txt")
     }
   }
 
-  private def textPlainGetAutomaticBasicAuth(url: String) {
-    val bigbee = new Credential("bigbee", "HelloWorld")
-    val http = new HttpBrowser(configNoRedirects, CookieJar.empty, new CredentialSuite(Map(Realm("Restricted") -> bigbee)))
+  private def textPlainGetAutomaticBasicAuth(http: Http, url: String) {
     try {
       val response = http.get(new URL(url), gzipHeaders)
       assert(200 === response.status.code, url)

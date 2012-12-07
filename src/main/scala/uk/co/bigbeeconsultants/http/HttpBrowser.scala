@@ -24,17 +24,12 @@
 
 package uk.co.bigbeeconsultants.http
 
-import auth.{Credential, Realm, CredentialSuite}
+import auth._
 import header._
-import header.HeaderName._
 import java.io.IOException
 import request.Request
 import response._
 import java.util.concurrent.atomic.AtomicReference
-import url.{Endpoint, PartialURL}
-import java.util.concurrent.ConcurrentHashMap
-import scala.collection.JavaConversions
-import collection.mutable
 
 /**
  * Provides an alternative to [[uk.co.bigbeeconsultants.http.HttpClient]]
@@ -55,7 +50,7 @@ class HttpBrowser(commonConfig: Config = Config(),
 
   private val httpClient = new HttpClient(commonConfig)
   private val cookieJar = new AtomicReference[CookieJar](initialCookieJar)
-  private val knownRealms: mutable.ConcurrentMap[Endpoint, List[RealmMapping]] = JavaConversions.asScalaConcurrentMap(new ConcurrentHashMap[Endpoint, List[RealmMapping]]())
+  private val authenticationRegistry = new AuthenticationRegistry(credentialSuite)
 
   /** Gets the current state of the cookie jar. */
   def cookies = cookieJar.get
@@ -75,11 +70,8 @@ class HttpBrowser(commonConfig: Config = Config(),
   def execute(request: Request, responseBuilder: ResponseBuilder, config: Config = commonConfig) {
 
     val requestWithCookies = request using cookieJar.get
-    val url = request.split
-    val realmMappings: List[RealmMapping] = knownRealms.get(url.endpoint.get) getOrElse Nil
-    val matchingRealm: Option[Realm] = realmMappings find (rm => url.startsWith(rm.url)) map (_.realm)
-    val matchingCredential: Option[Credential] = matchingRealm flatMap (credentialSuite.credentials.get(_))
-    var authHeader: Option[Header] = matchingCredential map (_.toBasicAuthHeader)
+    val realmMappings = authenticationRegistry.findRealmMappings(request)
+    var authHeader = authenticationRegistry.findKnownAuthHeaderFromMappings(request, realmMappings)
 
     var remainingRetries = 5
     while (remainingRetries > 0) {
@@ -90,10 +82,8 @@ class HttpBrowser(commonConfig: Config = Config(),
       responseBuilder.response match {
         case Some(res) if res.status.code == Status.S401_Unauthorized.code =>
           // authentication was missing or failed - try again
-          val authenticateHeaders = res.headers.filter(WWW_AUTHENTICATE).list map (_.toAuthenticateValue)
-          authHeader = mustAuthenticate(request, authenticateHeaders)
-          updateKnownRealms(url, authHeader, realmMappings)
-          remainingRetries -= 1
+          authHeader = authenticationRegistry.processResponse(request, res, realmMappings)
+          if (authHeader.isDefined) remainingRetries -= 1 else remainingRetries = 0
 
         case Some(res) if res.status.code != Status.S401_Unauthorized.code =>
           // authentication succeeded or is not used
@@ -109,18 +99,4 @@ class HttpBrowser(commonConfig: Config = Config(),
       cookieJar.set(responseBuilder.response.get.cookies.get)
     }
   }
-
-  private def updateKnownRealms(url: PartialURL, authHeader: Option[Header], existingRealmMappings: List[RealmMapping]) {
-    if (authHeader.isDefined) {
-      //TODO
-    }
-  }
-
-  // TODO
-  private def mustAuthenticate(request: Request, authenticateHeaders: List[AuthenticateValue]): Option[Header] = {
-    if (authenticateHeaders.isEmpty) None
-    else credentialSuite.authHeader(authenticateHeaders.head)
-  }
 }
-
-private case class RealmMapping(url: PartialURL, realm: Realm)
