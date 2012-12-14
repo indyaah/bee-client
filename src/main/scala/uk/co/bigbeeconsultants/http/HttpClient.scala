@@ -29,11 +29,11 @@ import header._
 import response._
 import request.Request
 import java.net._
-import javax.net.ssl.HttpsURLConnection
 import java.util.zip.GZIPInputStream
 import org.slf4j.{LoggerFactory, Logger}
 import collection.mutable.ListBuffer
 import java.io.IOException
+import util.DiagnosticTimer
 
 /**
  * Constructs an instance for handling any number of HTTP requests with any level of concurrency.
@@ -70,7 +70,7 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
   private[http] def doExecute(request: Request,
                               responseBuilder: ResponseBuilder,
                               config: Config): Option[Request] = {
-    logger.info("{}", request)
+    val timer = new DiagnosticTimer
 
     val httpURLConnection = configureConnection(openConnection(request, config.proxy), config)
 
@@ -93,6 +93,13 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
       if (redirect.isEmpty) {
         handleContent(httpURLConnection, request, status, responseHeadersWithoutCookies, responseCookies, responseBuilder)
       }
+
+      if (logger.isInfoEnabled)
+        logger.info("{} {}", request.toShortString, status.code + " " + timer)
+    } catch {
+      case e: Exception =>
+        if (logger.isInfoEnabled)
+          logger.info("{} - {}", request.toShortString, timer + " " + e.getMessage)
     } finally {
       httpURLConnection.disconnect()
     }

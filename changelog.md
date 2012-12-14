@@ -1,3 +1,18 @@
+#### Fri, 14 Dec 2012
+* v0.18.6
+* More work done to support digest authentication. First live test has passed!
+
+
+#### Fri, 07 Dec 2012
+* v0.18.5
+* New AuthenticationRegistry provides an easily-testable framework to support automatic authentication in HttpBrowser.
+
+
+#### Thu, 06 Dec 2012
+* v0.18.5
+* Further work done one automatic authentication in HttpBrowser.
+
+
 #### Wed, 05 Dec 2012
 * v0.18.4
 * More work done on authentication. First working implementation in HttpBrowser of automatic basic authentication.

@@ -42,6 +42,12 @@ final class RequestBody(val mediaType: MediaType, val copyTo: OutputStream => Un
 
   // TODO allow multipass access to source during digest authentication
   override def toString = "RequestBody(" + mediaType + "," + source.toString + ")"
+
+  def toShortString = {
+    val s = source.toString
+    val sourceString = if (s.length > 125) s.substring(0, 125) + "..." else s
+    "(" + mediaType + "," + sourceString + ")"
+  }
 }
 
 

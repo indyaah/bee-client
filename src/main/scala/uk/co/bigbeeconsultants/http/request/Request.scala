@@ -90,6 +90,11 @@ final case class Request(method: String,
   def withQuery(params: Map[String, String]) = {
     copy(url = split.withQuery(params).asURL)
   }
+
+  def toShortString = {
+    val bodyStr = if (body.isEmpty) "-" else body.get.toShortString
+    method + ' ' + url + ' ' + bodyStr + ' ' + headers.list.mkString("[", ";", "]")
+  }
 }
 
 /**
@@ -132,4 +137,6 @@ object Request {
   // methods requiring an entity body
   def put(url: URL, body: RequestBody, headers: Headers = Headers.empty, cookies: Option[CookieJar] = None): Request =
     Request(PUT, url, Some(body), headers, cookies)
+
+  private final val requestLen = "Request(".length
 }
