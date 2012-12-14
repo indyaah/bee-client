@@ -24,7 +24,7 @@
 
 package uk.co.bigbeeconsultants.http.auth
 
-import collection.{JavaConversions, mutable}
+import collection.JavaConversions
 import uk.co.bigbeeconsultants.http.url.{Path, PartialURL, Endpoint}
 import java.util.concurrent.ConcurrentHashMap
 import uk.co.bigbeeconsultants.http.header.{AuthenticateValue, Header}
@@ -32,8 +32,12 @@ import uk.co.bigbeeconsultants.http.request.Request
 import uk.co.bigbeeconsultants.http.response.Response
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 
-private[http] class AuthenticationRegistry(credentialSuite: CredentialSuite = CredentialSuite.empty) {
-  private val knownRealms: mutable.ConcurrentMap[Endpoint, Set[RealmMapping]] = JavaConversions.asScalaConcurrentMap(new ConcurrentHashMap[Endpoint, Set[RealmMapping]]())
+final class AuthenticationRegistry(credentialSuite: CredentialSuite = CredentialSuite.empty, cacheRealms: Boolean = false) {
+
+  // mutable state is required for (a) automatic realm lookup to reduce network traffic by reducing 401s
+  // (b) digest authentication nonce counters
+  private val knownRealms = JavaConversions.asScalaConcurrentMap(new ConcurrentHashMap[Endpoint, Set[RealmMapping]]())
+  private val nonces = JavaConversions.asScalaConcurrentMap(new ConcurrentHashMap[Credential.Realm, NonceVal]())
 
   def findRealmMappings(endpoint: Endpoint): Set[RealmMapping] = knownRealms.get(endpoint) getOrElse Set()
 
@@ -41,7 +45,7 @@ private[http] class AuthenticationRegistry(credentialSuite: CredentialSuite = Cr
 
   def findKnownAuthHeaderFromMappings(request: Request, realmMappings: Iterable[RealmMapping]): Option[Header] = {
     val url = request.split
-    val matchingRealm: Option[Realm] = realmMappings find (rm => url.path.startsWith(rm.path)) map (_.realm)
+    val matchingRealm: Option[Credential.Realm] = realmMappings find (rm => url.path.startsWith(rm.path)) map (_.realm)
     val matchingCredential: Option[Credential] = matchingRealm flatMap (credentialSuite.credentials.get(_))
     matchingCredential map (_.toBasicAuthHeader)
   }
@@ -50,31 +54,41 @@ private[http] class AuthenticationRegistry(credentialSuite: CredentialSuite = Cr
     findKnownAuthHeaderFromMappings(request, findRealmMappings(request))
   }
 
-  def processResponse(request: Request, response: Response, existingRealmMappings: Set[RealmMapping]): Option[Header] = {
+  def processResponse(response: Response, existingRealmMappings: Set[RealmMapping] = Set.empty): Option[Header] = {
     val wwwAuthenticateHeaders: List[AuthenticateValue] = response.headers.filter(WWW_AUTHENTICATE).list map (_.toAuthenticateValue)
-    val authorizationHeader = mustAuthenticate(request, wwwAuthenticateHeaders)
-    updateKnownRealms(request.split, wwwAuthenticateHeaders, existingRealmMappings)
+    val authorizationHeader = mustAuthenticate(response.request, wwwAuthenticateHeaders)
+    if (cacheRealms)
+      updateKnownRealms(response.request.split, wwwAuthenticateHeaders, existingRealmMappings)
     authorizationHeader
   }
 
   private def mustAuthenticate(request: Request, wwwAuthenticateHeaders: List[AuthenticateValue]): Option[Header] = {
-    val possibleAuthorizationHeaders = for {
-      wah <- wwwAuthenticateHeaders
-      authorizationHeader = credentialSuite.authHeader(wah)
-      if authorizationHeader.isDefined
-    } yield {
-      authorizationHeader.get
+    wwwAuthenticateHeaders match {
+      case wah :: xs if (wah.authScheme == "Digest") =>
+        val nonceValOption = nonces.get(wah.realm.get)
+        val newNonceVal = nonceValOption match {
+          case Some(nonceVal) =>
+            if (nonceVal.nonce == wah.nonce.get) nonceVal.next else NonceVal(wah.nonce.get, 1)
+          case None =>
+            NonceVal(wah.nonce.get, 1)
+        }
+        nonces update(wah.realm.get, newNonceVal)
+        credentialSuite.authHeader(wah, request, newNonceVal.count)
+
+      case wah :: xs if (wah.authScheme == "Basic") =>
+        credentialSuite.authHeader(wah, request, 0)
+
+      case _ => None
     }
-    possibleAuthorizationHeaders.headOption
   }
 
   private def updateKnownRealms(url: PartialURL, wwwAuthenticateHeaders: List[AuthenticateValue], existingRealmMappings: Set[RealmMapping]) {
     for (wah <- wwwAuthenticateHeaders) {
       val realm = wah.realm.get
-      val (thisOne, others) = existingRealmMappings.partition(_.realm.realm == realm)
-      assert(!others.exists(_.realm.realm == realm))
+      val (thisOne, others) = existingRealmMappings.partition(_.realm == realm)
+      assert(!others.exists(_.realm == realm))
       if (thisOne.isEmpty || thisOne.head.path.startsWith(url.path)) {
-        val newMapping = new RealmMapping(Realm(realm), url.path)
+        val newMapping = new RealmMapping(realm, url.path)
         val newSet = others + newMapping
         knownRealms.update(url.endpoint.get, newSet)
       }
@@ -89,9 +103,14 @@ private[http] class AuthenticationRegistry(credentialSuite: CredentialSuite = Cr
     knownRealms.clear()
   }
 
+  // a testing seam
   private[auth] def put(endpoint: Endpoint, mappings: Set[RealmMapping]) {
     knownRealms.put(endpoint, mappings)
   }
 }
 
-private[auth] case class RealmMapping(realm: Realm, path: Path)
+case class RealmMapping(realm: Credential.Realm, path: Path)
+
+case class NonceVal(nonce: String, count: Int) {
+  def next = copy(count = count + 1)
+}

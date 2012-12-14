@@ -25,20 +25,29 @@
 package uk.co.bigbeeconsultants.http.auth
 
 import uk.co.bigbeeconsultants.http.header.{AuthenticateValue, Header}
+import uk.co.bigbeeconsultants.http.request.Request
 
-case class CredentialSuite(credentials: Map[Realm, Credential]) {
-  def basicAuthHeader(realm: Realm): Option[Header] = {
-    credentials.get(realm).map(_.toBasicAuthHeader)
+case class CredentialSuite(credentials: Map[Credential.Realm, Credential]) {
+
+  def authHeader(authenticate: AuthenticateValue, request: Request, nonceCount: Int): Option[Header] = {
+    val credential = credentials.get(authenticate.realm.get)
+    if (credential.isEmpty) None
+    else {
+      authenticate.authScheme match {
+        case "Basic" =>
+          Some(credential.get.toBasicAuthHeader)
+        case "Digest" =>
+          val dc = DigestCredential(credential.get, authenticate, authenticate.opaque.getOrElse("TODO cnonce"))
+          Some(dc.toDigestAuthHeader(request, nonceCount))
+        case _ =>
+          None
+      }
+    }
   }
 
-  def authHeader(authenticate: AuthenticateValue) = {
-    basicAuthHeader(Realm(authenticate.realm.get))
-  }
+  def updated(realm: Credential.Realm, credential: Credential) = new CredentialSuite(credentials updated(realm, credential))
 }
 
 object CredentialSuite {
   val empty = new CredentialSuite(Map())
 }
-
-// Should include the domain list, but this is poorly defined so not supported yet.
-case class Realm(realm: String)

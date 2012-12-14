@@ -37,8 +37,8 @@ class AuthenticationRegistryTest extends FunSuite {
 
   val fredBloggs = new Credential("fred", "bloggs")
   val johnSmith = new Credential("john", "smith")
-  val fbRealm = Realm("FBRealm")
-  val jsRealm = Realm("JSRealm")
+  val fbRealm = "FBRealm"
+  val jsRealm = "JSRealm"
   val credentials = new CredentialSuite(Map(fbRealm -> fredBloggs, jsRealm -> johnSmith))
   val getExampleOneTwo = Request.get(new URL("http://example.com/one/two"))
   val getExampleTwo = Request.get(new URL("http://example.com/two"))
@@ -47,7 +47,7 @@ class AuthenticationRegistryTest extends FunSuite {
 
   test("empty registry with no authentication requirement") {
     val request = getExampleOneTwo
-    val authenticationRegistry = new AuthenticationRegistry(credentials)
+    val authenticationRegistry = new AuthenticationRegistry(credentials, true)
     val realmMappings = authenticationRegistry.findRealmMappings(request)
     assert(realmMappings.isEmpty)
 
@@ -55,13 +55,13 @@ class AuthenticationRegistryTest extends FunSuite {
     assert(authHeader1.isEmpty)
 
     val response = Response(request, Status.S204_NoContent, new EmptyResponseBody(MediaType.APPLICATION_JSON), Headers(), None)
-    val authHeader2 = authenticationRegistry.processResponse(request, response, realmMappings)
+    val authHeader2 = authenticationRegistry.processResponse(response, realmMappings)
     assert(authHeader2.isEmpty)
   }
 
   test("findRealmMappings should return nothing with non-matching endpoint") {
     val request = getExampleOneTwo
-    val authenticationRegistry = new AuthenticationRegistry(credentials)
+    val authenticationRegistry = new AuthenticationRegistry(credentials, true)
     authenticationRegistry.put(Endpoint("http://w3.org/"), Set(RealmMapping(fbRealm, request.split.path)))
 
     val realmMappings = authenticationRegistry.findRealmMappings(request)
@@ -70,7 +70,7 @@ class AuthenticationRegistryTest extends FunSuite {
 
   test("findRealmMappings should return nothing with matching endpoint but empty list") {
     val request = getExampleOneTwo
-    val authenticationRegistry = new AuthenticationRegistry(credentials)
+    val authenticationRegistry = new AuthenticationRegistry(credentials, true)
     authenticationRegistry.put(request.split.endpoint.get, Set())
 
     val realmMappings = authenticationRegistry.findRealmMappings(request)
@@ -83,7 +83,7 @@ class AuthenticationRegistryTest extends FunSuite {
   test("findRealmMappings should return existing list with matching endpoint") {
     val request = getExampleOneTwo
     val mappings = Set(RealmMapping(fbRealm, request.split.path))
-    val authenticationRegistry = new AuthenticationRegistry(credentials)
+    val authenticationRegistry = new AuthenticationRegistry(credentials, true)
     authenticationRegistry.put(request.split.endpoint.get, mappings)
 
     val realmMappings = authenticationRegistry.findRealmMappings(request)
@@ -92,8 +92,8 @@ class AuthenticationRegistryTest extends FunSuite {
 
   test("findKnownAuthHeader should return nothing with non-matching realm") {
     val request = getExampleOneTwo
-    val mappings = Set(RealmMapping(Realm("Nowhere"), request.split.path))
-    val authenticationRegistry = new AuthenticationRegistry(credentials)
+    val mappings = Set(RealmMapping("Nowhere", request.split.path))
+    val authenticationRegistry = new AuthenticationRegistry(credentials, true)
     authenticationRegistry.put(request.split.endpoint.get, mappings)
 
     val authHeader = authenticationRegistry.findKnownAuthHeader(request)
@@ -103,7 +103,7 @@ class AuthenticationRegistryTest extends FunSuite {
   test("findKnownAuthHeader should return nothing with non-matching path") {
     val request = getExampleOneTwo
     val mappings = Set(RealmMapping(fbRealm, PartialURL("http://w3.org/a/b/c").path))
-    val authenticationRegistry = new AuthenticationRegistry(credentials)
+    val authenticationRegistry = new AuthenticationRegistry(credentials, true)
     authenticationRegistry.put(request.split.endpoint.get, mappings)
 
     val authHeader = authenticationRegistry.findKnownAuthHeader(request)
@@ -113,7 +113,7 @@ class AuthenticationRegistryTest extends FunSuite {
   test("findKnownAuthHeader should return existing list with matching endpoint") {
     val request = getExampleOneTwo
     val mappings = Set(RealmMapping(fbRealm, request.split.path))
-    val authenticationRegistry = new AuthenticationRegistry(credentials)
+    val authenticationRegistry = new AuthenticationRegistry(credentials, true)
     authenticationRegistry.put(request.split.endpoint.get, mappings)
 
     val authHeader = authenticationRegistry.findKnownAuthHeader(request)
@@ -123,25 +123,25 @@ class AuthenticationRegistryTest extends FunSuite {
   test("processResponse should return nothing if the response contains no challenges") {
     val request = getExampleOneTwo
     val mappings = Set(RealmMapping(fbRealm, request.split.path))
-    val authenticationRegistry = new AuthenticationRegistry(credentials)
+    val authenticationRegistry = new AuthenticationRegistry(credentials, true)
     authenticationRegistry.put(request.split.endpoint.get, mappings)
 
     val response = Response(request, Status.S204_NoContent, new EmptyResponseBody(MediaType.APPLICATION_JSON), Headers(), None)
-    val authHeader = authenticationRegistry.processResponse(request, response, mappings)
+    val authHeader = authenticationRegistry.processResponse(response, mappings)
     assert(authHeader.isEmpty)
   }
 
   test("processResponse should return nothing if the response challenge is not satisfied by the credentials") {
     val request = getExampleOneTwo
     val mappings = Set(RealmMapping(fbRealm, request.split.path))
-    val authenticationRegistry = new AuthenticationRegistry(credentials)
+    val authenticationRegistry = new AuthenticationRegistry(credentials, true)
     authenticationRegistry.put(request.split.endpoint.get, mappings)
 
     val challengeValue = AuthenticateValue("Basic realm=\"Somewhere Else\"")
     assert(challengeValue.isValid)
     val challenge = WWW_AUTHENTICATE -> challengeValue.toString
     val response = Response(request, Status.S401_Unauthorized, new EmptyResponseBody(MediaType.APPLICATION_JSON), Headers(challenge), None)
-    val authHeader = authenticationRegistry.processResponse(request, response, mappings)
+    val authHeader = authenticationRegistry.processResponse(response, mappings)
     assert(authHeader.isEmpty)
   }
 
@@ -149,25 +149,27 @@ class AuthenticationRegistryTest extends FunSuite {
     val request1 = getExampleOneTwo
     val request2 = getExampleOne
     val fbMapping = RealmMapping(fbRealm, request1.split.path)
-    val jsMapping = RealmMapping(jsRealm, getExampleTwo.split.path)
+//    val jsMapping = RealmMapping(jsRealm, getExampleTwo.split.path)
     val mappings = Set(fbMapping)
-    val authenticationRegistry = new AuthenticationRegistry(credentials)
+    val authenticationRegistry = new AuthenticationRegistry(credentials, true)
     authenticationRegistry.put(request1.split.endpoint.get, mappings)
     assert(authenticationRegistry.findRealmMappings(exampleCom) === Set(RealmMapping(fbRealm, request1.split.path)))
 
-    val challengeValue = new AuthenticateValue("Basic", ListMap("realm" -> fbRealm.realm))
+    val challengeValue = new AuthenticateValue("Basic", ListMap("realm" -> fbRealm))
     assert(challengeValue.isValid)
     val challenge = WWW_AUTHENTICATE -> challengeValue.toString
     val response1 = Response(request1, Status.S401_Unauthorized, new EmptyResponseBody(MediaType.APPLICATION_JSON), Headers(challenge), None)
-    val authHeader1 = authenticationRegistry.processResponse(request1, response1, mappings)
+    val authHeader1 = authenticationRegistry.processResponse(response1, mappings)
     assert(authHeader1 === Some(fredBloggs.toBasicAuthHeader))
     assert(authenticationRegistry.size == 1)
     assert(authenticationRegistry.findRealmMappings(exampleCom) === Set(RealmMapping(fbRealm, request1.split.path)))
 
     val response2 = Response(request2, Status.S401_Unauthorized, new EmptyResponseBody(MediaType.APPLICATION_JSON), Headers(challenge), None)
-    val authHeader = authenticationRegistry.processResponse(request2, response2, mappings)
+    val authHeader = authenticationRegistry.processResponse(response2, mappings)
     assert(authHeader === Some(fredBloggs.toBasicAuthHeader))
     assert(authenticationRegistry.size == 1)
     assert(authenticationRegistry.findRealmMappings(exampleCom) === Set(RealmMapping(fbRealm, request2.split.path)))
   }
+
+  //TODO more tests for digest authentication
 }

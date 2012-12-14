@@ -24,7 +24,7 @@
 
 package uk.co.bigbeeconsultants.http
 
-import auth.{Realm, CredentialSuite, Credential}
+import auth.{CredentialSuite, Credential}
 import HttpClient._
 import header._
 import header.MediaType._
@@ -517,7 +517,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   test("txt text/plain get automatic basic auth") {
     val bigbee = new Credential("bigbee", "HelloWorld")
-    val http = new HttpBrowser(configNoRedirects, CookieJar.empty, new CredentialSuite(Map(Realm("Restricted") -> bigbee)))
+    val http = new HttpBrowser(configNoRedirects, CookieJar.empty, new CredentialSuite(Map("Restricted" -> bigbee)))
     for (i <- 1 to 5) {
       textPlainGetAutomaticBasicAuth(http, "http:" + serverUrl + "private/lorem2.txt")
     }

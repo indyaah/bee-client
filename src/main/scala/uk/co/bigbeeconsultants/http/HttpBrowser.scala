@@ -50,7 +50,7 @@ class HttpBrowser(commonConfig: Config = Config(),
 
   private val httpClient = new HttpClient(commonConfig)
   private val cookieJar = new AtomicReference[CookieJar](initialCookieJar)
-  private val authenticationRegistry = new AuthenticationRegistry(credentialSuite)
+  private val authenticationRegistry = new AuthenticationRegistry(credentialSuite, true)
 
   /** Gets the current state of the cookie jar. */
   def cookies = cookieJar.get
@@ -80,12 +80,12 @@ class HttpBrowser(commonConfig: Config = Config(),
       httpClient.execute(requestWithAuth, responseBuilder, config)
 
       responseBuilder.response match {
-        case Some(res) if res.status.code == Status.S401_Unauthorized.code =>
+        case Some(resp) if resp.status.code == Status.S401_Unauthorized.code =>
           // authentication was missing or failed - try again
-          authHeader = authenticationRegistry.processResponse(request, res, realmMappings)
+          authHeader = authenticationRegistry.processResponse(resp, realmMappings)
           if (authHeader.isDefined) remainingRetries -= 1 else remainingRetries = 0
 
-        case Some(res) if res.status.code != Status.S401_Unauthorized.code =>
+        case Some(resp) if resp.status.code != Status.S401_Unauthorized.code =>
           // authentication succeeded or is not used
           remainingRetries = 0
 
