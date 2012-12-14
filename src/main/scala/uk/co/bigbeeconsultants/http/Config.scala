@@ -25,7 +25,9 @@
 package uk.co.bigbeeconsultants.http
 
 import auth.CredentialSuite
+import header.HeaderName._
 import java.net.Proxy
+import header.Headers
 import request._
 import javax.net.ssl.{SSLSocketFactory, HostnameVerifier}
 
@@ -50,6 +52,7 @@ import javax.net.ssl.{SSLSocketFactory, HostnameVerifier}
  *                         setting the global state via HttpsURLConnection.setDefaultSSLSocketFactory, except
  *                         that, this way, it is possible to configure multiple clients each with their own
  *                         socket factory.
+ * @param commonRequestHeaders headers sent on every request, in addition to those cited in each particular request
  * @param preRequests provides the pre-request handlers to configure headers etc on every request using
  *                    Config.standardSetup, i.e.
  *                    (List([[uk.co.bigbeeconsultants.http.request.AutomaticHostHeader]],
@@ -70,6 +73,7 @@ case class Config(connectTimeout: Int = 2000,
                   credentials: CredentialSuite = CredentialSuite.empty,
                   hostnameVerifier: Option[HostnameVerifier] = None,
                   sslSocketFactory: Option[SSLSocketFactory] = None,
+                  commonRequestHeaders: Headers = Config.defaultRequestHeaders,
                   preRequests: List[PreRequest] = Config.standardSetup) {
 
   require(maxRedirects > 1, maxRedirects + ": too few maxRedirects")
@@ -85,6 +89,19 @@ object Config {
    * [[uk.co.bigbeeconsultants.http.request.HostnameVerifierInjecter]]))
    * [[uk.co.bigbeeconsultants.http.request.SSLSocketFactoryInjecter]]))
    */
-  val standardSetup = List(AutomaticHostHeader, DefaultRequestHeaders, ConnectionControl, UserAgentString,
+  final val standardSetup = List(AutomaticHostHeader, DefaultRequestHeaders, ConnectionControl, UserAgentString,
     SSLSocketFactoryInjecter, HostnameVerifierInjecter)
+
+  /**
+   * Lists the request headers that will normally be sent with every request, in addition to any other headers
+   * that accompany each request. These are
+   * Accept: * / *
+   * Accept-Encoding: gzip
+   * Accept-Charset: UTF-8, *;q=.1
+   */
+  final val defaultRequestHeaders = Headers(
+    ACCEPT -> "*/*",
+    ACCEPT_ENCODING -> HttpClient.GZIP,
+    ACCEPT_CHARSET -> (HttpClient.UTF8 + ",*;q=.1")
+  )
 }

@@ -1,5 +1,10 @@
 #### Fri, 14 Dec 2012
 * v0.18.6
+* access logging improved - use logback.xml to configure the level you want
+
+
+#### Fri, 14 Dec 2012
+* v0.18.6
 * More work done to support digest authentication. First live test has passed!
 
 

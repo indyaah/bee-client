@@ -25,12 +25,10 @@
 package uk.co.bigbeeconsultants.http.request
 
 import java.net.{URLConnection, HttpURLConnection}
-import uk.co.bigbeeconsultants.http.HttpClient
-import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.util.IpUtil
 import uk.co.bigbeeconsultants.http.header._
 import uk.co.bigbeeconsultants.http.Config
-import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
+import javax.net.ssl.HttpsURLConnection
 import org.slf4j.LoggerFactory
 
 
@@ -95,15 +93,19 @@ object AutomaticHostHeader extends PreRequest {
  * Accept-Encoding: gzip
  * Accept-Charset: UTF-8, *;q=.1
  */
-object DefaultRequestHeaders extends PreRequest {
-  val defaultRequestHeaders = Headers(
-    ACCEPT -> "*/*",
-    ACCEPT_ENCODING -> HttpClient.GZIP,
-    ACCEPT_CHARSET -> (HttpClient.UTF8 + ",*;q=.1")
-  )
-
+class RequestHeadersInjecter(requestHeaders: Headers) extends PreRequest {
   override def process(request: Request, httpURLConnection: HttpURLConnection, config: Config) {
-    defaultRequestHeaders.foreach(setHeader(httpURLConnection, _))
+    requestHeaders.foreach(setHeader(httpURLConnection, _))
+  }
+}
+
+
+/**
+ * Sends the Config.commonRequestHeaders request headers with every request.
+ */
+object DefaultRequestHeaders extends PreRequest {
+  override def process(request: Request, httpURLConnection: HttpURLConnection, config: Config) {
+    config.commonRequestHeaders.foreach(setHeader(httpURLConnection, _))
   }
 }
 
