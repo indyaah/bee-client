@@ -1,4 +1,9 @@
 #### Fri, 14 Dec 2012
+* v0.18.7
+* commonRequestHeaders restored - now provided via Config
+
+
+#### Fri, 14 Dec 2012
 * v0.18.6
 * access logging improved - use logback.xml to configure the level you want
 

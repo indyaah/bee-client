@@ -54,6 +54,7 @@ object HttpIntegration {
   val serverUrl = "//beeclient/"
 
   val gzipHeaders = Headers(ACCEPT_ENCODING -> GZIP)
+  val deflateHeaders = Headers(ACCEPT_ENCODING -> DEFLATE)
 
   val dir = new File("src/test/resources")
   val testHtmlSize = 1497
@@ -93,15 +94,16 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
     }
   }
 
-  private def htmlGet(http: Http, url: String, size: Long) {
+  private def htmlGet(http: Http, url: String, encoding: String, size: Long) {
+    val headers = Headers(ACCEPT_ENCODING -> encoding)
     try {
-      val response = http.get(new URL(url), gzipHeaders)
+      val response = http.get(new URL(url), headers)
       assert(response.status.code === 200, url)
       val body = response.body
       assert(body.contentType.value === TEXT_HTML.value, url)
       val string = body.toString
       assert(string startsWith "<!DOCTYPE html>", url)
-      assert(response.headers(CONTENT_ENCODING).value === "gzip", response.headers(CONTENT_ENCODING))
+      assert(response.headers(CONTENT_ENCODING).value === encoding, response.headers(CONTENT_ENCODING))
       //assert (size === response.headers.get (CONTENT_LENGTH).toInt)
       val bodyLines = string.split("\n")
       assert(bodyLines(0) startsWith "<!DOCTYPE html>", url)
@@ -149,8 +151,9 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   test("html text/html get x100") {
     val http = new HttpClient(configNoRedirects)
     for (i <- 1 to 100) {
-      htmlGet(http, "http:" + serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
-      htmlGet(http, "https:" + serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
+      htmlGet(http, "http:" + serverUrl + testHtmlFile + "?LOREM=" + i, GZIP, testHtmlSize)
+      htmlGet(http, "https:" + serverUrl + testHtmlFile + "?LOREM=" + i, GZIP, testHtmlSize)
+      //htmlGet(http, "http:" + serverUrl + testHtmlFile + "?LOREM=" + i, DEFLATE, testHtmlSize)
     }
   }
 
