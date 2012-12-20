@@ -60,7 +60,7 @@ case class MediaType(contentType: String, subtype: String, charset: Option[Strin
    * Checks if the primary type is a wildcard.
    * @return true if the primary type is a wildcard
    */
-  def isWildcardType = contentType == WILDCARD;
+  def isWildcardType = contentType == WILDCARD
 
   /**
    * Checks if the subtype is a wildcard.
@@ -79,10 +79,10 @@ case class MediaType(contentType: String, subtype: String, charset: Option[Strin
       false
     else if (contentType == WILDCARD || other.contentType == WILDCARD)
       true
-    else if (contentType.equalsIgnoreCase(other.contentType) && (subtype == WILDCARD || other.subtype == WILDCARD))
+    else if ((contentType equalsIgnoreCase other.contentType) && (subtype == WILDCARD || other.subtype == WILDCARD))
       true
     else
-      contentType.equalsIgnoreCase(other.contentType) && subtype.equalsIgnoreCase(other.subtype)
+      (contentType equalsIgnoreCase other.contentType) && (subtype equalsIgnoreCase other.subtype)
   }
 
   /**
@@ -95,12 +95,12 @@ case class MediaType(contentType: String, subtype: String, charset: Option[Strin
 
   /**
    * Tests whether a media type represents textual traffic. This is true for all content with the `contentType` of
-   * "text" and also for various "application" types with json or xml subtypes.
+   * "text" and also for those "application" types with json, xml, or ...+xml subtypes.
    */
   def isTextual = {
     contentType match {
       case "text" => true
-      case "application" if (subtype == "json" || subtype == "xml" || subtype.endsWith("+xml")) => true
+      case "application" => subtype == "json" || subtype == "xml" || (subtype endsWith "+xml")
       case _ => false
     }
   }

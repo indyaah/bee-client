@@ -49,24 +49,34 @@ class HeadersTest extends FunSuite {
     assert (List (HOST.name, ACCEPT.name, ACCEPT.name) === n.names)
   }
 
-  test ("find") {
+  test ("contains") {
     val n = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar"))
-    assert (Headers (List (HOST -> "localhost")) === n.filter (HOST))
-    assert (Headers (List (ACCEPT -> "foo", ACCEPT -> "bar")) === n.filter (ACCEPT))
+    assert (n contains HOST)
+    assert (n contains HeaderName("HOST"))
+    assert (n contains ACCEPT)
+    assert (n contains HeaderName("accept"))
+  }
+
+  test ("filter") {
+    val n = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar"))
+    assert (Headers (List (HOST -> "localhost")) === (n filter HOST))
+    assert (Headers (List (HOST -> "localhost")) === (n filter HeaderName("HOST")))
+    assert (Headers (List (ACCEPT -> "foo", ACCEPT -> "bar")) === (n filter ACCEPT))
+    assert (Headers (List (ACCEPT -> "foo", ACCEPT -> "bar")) === (n filter HeaderName("accept")))
   }
 
   test ("get and apply") {
     val n = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar"))
     assert (HOST -> "localhost" === n(0))
     assert (HOST -> "localhost" === n(HOST))
-    assert (Some(ACCEPT -> "foo") === n.get (ACCEPT))
+    assert (Some(ACCEPT -> "foo") === (n get ACCEPT))
   }
 
   test ("remove and add") {
     val n1 = Headers (List (HOST -> "localhost", ACCEPT -> "foo", ACCEPT -> "bar"))
     val n2 = n1 filterNot HOST
     assert (2 === n2.size)
-    assert (false === n2.contains(HOST))
+    assert (false === (n2 contains HOST))
     assert (ACCEPT -> "foo" === n2(ACCEPT))
 
     val n3 = n2 + (HOST -> "server")
@@ -76,7 +86,7 @@ class HeadersTest extends FunSuite {
     val n4 = n1 filterNot ACCEPT
     assert (1 === n4.size)
     assert (HOST -> "localhost" === n4(HOST))
-    assert (false === n4.contains(ACCEPT))
+    assert (false === (n4 contains ACCEPT))
   }
 
   test ("set") {

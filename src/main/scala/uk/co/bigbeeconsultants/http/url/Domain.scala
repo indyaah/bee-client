@@ -28,37 +28,46 @@ import java.net.{InetAddress, URL}
 import uk.co.bigbeeconsultants.http.util.IpUtil
 
 /**
- * Models a domain name as used in cookies.
+ * Models a domain name (as used in cookies).
  */
 class Domain(val domain: String) {
 
-  require (domain.length > 0)
-  require (!domain.startsWith("."))
+  require(domain.length > 0)
+  require(!domain.startsWith("."))
 
+  /**
+   * Gets the parent domain, if any. This is obtained by removing the section from the start of the domain
+   * name to the first dot. It stops before returning a top-level domain (TLD), therefore the result will
+   * always contain at least one dot.
+   */
   lazy val parent: Option[Domain] = {
     if (isIpAddress) {
       None
     } else {
-      val firstDot = domain.indexOf ('.')
-      val lastDot = domain.lastIndexOf ('.')
+      val firstDot = domain.indexOf('.')
+      val lastDot = domain.lastIndexOf('.')
       if (firstDot > 0 && lastDot > firstDot) {
-        Some (Domain (domain.substring (firstDot + 1)))
+        Some(Domain(domain.substring(firstDot + 1)))
       } else {
         None
       }
     }
   }
 
-  def isIpAddress: Boolean = IpUtil.isIpAddressSyntax(domain)
+  /** True if this is not an IP address and has no dots or is a multicast name (ending ".local"). */
+  lazy val isLocalName: Boolean = !isIpAddress && (domain.indexOf('.') < 0 || domain.endsWith(".local"))
 
-  /**Tests whether this domain matches some URL. */
+  /** True if this is an IP address, false if it's a DNS name or hostname. */
+  lazy val isIpAddress: Boolean = IpUtil.isIpAddressSyntax(domain)
+
+  /** Tests whether this domain matches some URL. */
   def matches(url: URL) = {
     val host = url.getHost
     if (host == domain) {
       true
     } else if (host.length > domain.length) {
-      host.endsWith (domain) &&
-        host.charAt (host.length - domain.length - 1) == '.' &&
+      host.endsWith(domain) &&
+        host.charAt(host.length - domain.length - 1) == '.' &&
         !isIpAddress
     } else {
       false
@@ -82,10 +91,10 @@ class Domain(val domain: String) {
  */
 object Domain {
   /** Constructs a new domain based on the host in an URL. */
-  def apply(url: URL): Domain = new Domain (url.getHost)
+  def apply(url: URL): Domain = new Domain(url.getHost)
 
   /** Constructs a new domain based on a string, which may or may not start with '.'. */
-  def apply(dom: String): Domain = if (dom.startsWith(".")) new Domain (dom.substring(1)) else new Domain(dom)
+  def apply(dom: String): Domain = if (dom.startsWith(".")) new Domain(dom.substring(1)) else new Domain(dom)
 
   //private def extractDomainFrom(url: URL) = HttpUtil$.divide(url.getAuthority, ':')._1
 

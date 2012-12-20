@@ -62,6 +62,8 @@ class DomainTest extends FunSuite {
   test("domain matches same") {
     val d = Domain("www.w3.org")
     assert(d.matches(new URL("http://www.w3.org:80/standards/")))
+    assert(!d.isIpAddress)
+    assert(!d.isLocalName)
   }
 
 
@@ -83,12 +85,29 @@ class DomainTest extends FunSuite {
   }
 
 
-  test("domain parent") {
+  test("domain parent 1") {
     val d = Domain("www.members.w3.org")
     assert("www.members.w3.org" === d.domain)
     assert("members.w3.org" === d.parent.get.domain)
     assert("w3.org" === d.parent.get.parent.get.domain)
     assert(!d.parent.get.parent.get.parent.isDefined)
+  }
+
+
+  test("domain parent 2") {
+    val d = Domain("www.bbc.co.uk")
+    assert("www.bbc.co.uk" === d.domain)
+    assert("bbc.co.uk" === d.parent.get.domain)
+    assert("co.uk" === d.parent.get.parent.get.domain)
+    assert(!d.parent.get.parent.get.parent.isDefined)
+  }
+
+
+  test("isLocalName") {
+    assert(Domain("foobar").isLocalName)
+    assert(Domain("foobar.local").isLocalName)
+    assert(!Domain("10.0.0.10").isLocalName)
+    assert(!Domain("www.bbc.co.uk").isLocalName)
   }
 
 

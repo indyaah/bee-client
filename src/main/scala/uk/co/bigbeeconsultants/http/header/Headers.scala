@@ -50,29 +50,29 @@ case class Headers(list: List[Header]) {
    * @param name the required header name. Uppercase or lowercase doesn't matter. Via an implicit
    *             conversion, a String can be used here.
    */
-  def contains(name: HeaderName) = list.find(_.name equalsIgnoreCase name).isDefined
+  def contains(name: HeaderName) = list.exists(_ =~= name)
 
   /**
    * Finds all the headers that have a given name.
    * @param name the required header name. Uppercase or lowercase doesn't matter. Via an implicit
    *             conversion, a String can be used here.
    */
-  def filter(name: HeaderName): Headers = new Headers(list.filter(_.name equalsIgnoreCase name))
+  def filter(name: HeaderName): Headers = new Headers(list.filter(_ =~= name))
 
   /**
    * Finds all the headers that do not have a given name.
    * @param name the required header name. Uppercase or lowercase doesn't matter. Via an implicit
    *             conversion, a String can be used here.
    */
-  def filterNot(name: HeaderName): Headers = new Headers(list.filterNot(_.name equalsIgnoreCase name))
+  def filterNot(name: HeaderName): Headers = new Headers(list.filterNot(_ =~= name))
 
   /**
    * Finds the header that has a given name. If more than one match exists, only the first
-   * will be returned.
+   * will be returned. Use 'filter' if you anticipate more than one.
    * @param name the required header name. Uppercase or lowercase doesn't matter. Via an implicit
    *             conversion, a String can be used here.
    */
-  def get(name: HeaderName): Option[Header] = list.find(_.name equalsIgnoreCase name)
+  def get(name: HeaderName): Option[Header] = list.find(_ =~= name)
 
   /**
    * Finds the header that has a given name. If none exists, an exception will be thrown.
@@ -80,7 +80,7 @@ case class Headers(list: List[Header]) {
    * @param name the required header name. Uppercase or lowercase doesn't matter. Via an implicit
    *             conversion, a String can be used here.
    */
-  def apply(name: HeaderName): Header = list.find(_.name equalsIgnoreCase name).get
+  def apply(name: HeaderName): Header = list.find(_ =~= name).get
 
   /**
    * Gets the header at a specified index.
@@ -100,7 +100,7 @@ case class Headers(list: List[Header]) {
    * so this method has the effect of replacing the existing value(s). Otherwise it adds a new header.
    */
   def set(newHeader: Header): Headers = {
-    new Headers(newHeader :: list.filterNot(_.name equalsIgnoreCase newHeader.name))
+    new Headers(newHeader :: list.filterNot(_ =~= newHeader.name))
   }
 
   /**

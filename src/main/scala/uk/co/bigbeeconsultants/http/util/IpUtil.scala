@@ -24,9 +24,16 @@
 
 package uk.co.bigbeeconsultants.http.util
 
+/**
+ * Provides utilities for internet addresses.
+ */
 object IpUtil {
 //  val ipv4pattern = Pattern.compile("[12]?[0-9]?[0-9]\\.[12]?[0-9]?[0-9]\\.[12]?[0-9]?[0-9]\\.[12]?[0-9]?[0-9]")
 
+  /**
+   * Tests the syntax of a string to see whether it may be an IPv4 or IPv6 address. This does not confirm whether it
+   * is a valid address, just that the syntax is valid.
+   */
   def isIpAddressSyntax(host: String) = isIp4AddressSyntax(host) || isIp6AddressSyntax(host)
 
   /**

@@ -41,11 +41,6 @@ More examples follow in [the tutorial](http://www.bigbeeconsultants.co.uk/conten
 
 ## Future Plans ##
 
-The following features are not supported yet, but are under consideration
-for future versions.
+Several new features are under consideration for future versions.
 
-*   Configurable content caching.
-
-*   Proxy support enhanced to support conditional switching.
-
-*   Tested against an even wider range of servers.
+See https://bitbucket.org/rickb777/bee-client/issues?status=new&status=open

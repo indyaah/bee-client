@@ -56,6 +56,15 @@ case class Header(name: String, value: String) {
   /** Converts the value to a media type. */
   def toMediaType = MediaType (value)
 
+  /** Header name equalsIgnoreCase other name. */
+  def =~=(other: String) = name equalsIgnoreCase other
+
+  /** Header name equalsIgnoreCase other name. */
+  def =~=(other: HeaderName) = name equalsIgnoreCase other.name
+
+  /** Header name equalsIgnoreCase other name. */
+  def =~=(other: Header) = name equalsIgnoreCase other.name
+
   override def toString = name + ": " + value
 
   lazy val hasListValue = HeaderName.headersWithListValues.contains (name)
