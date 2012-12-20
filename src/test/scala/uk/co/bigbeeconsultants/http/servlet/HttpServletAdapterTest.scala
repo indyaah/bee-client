@@ -25,13 +25,12 @@
 package uk.co.bigbeeconsultants.http.servlet
 
 import org.scalatest.FunSuite
+import org.mockito.Mockito._
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.header.{MediaType, Headers}
-import java.{util => ju}
-import org.mockito.Mockito._
-import javax.servlet.http.HttpServletResponse
 import uk.co.bigbeeconsultants.http.util.StubHttpServletRequest
 import uk.co.bigbeeconsultants.http.url.{Endpoint, Path, PartialURL}
+import javax.servlet.http.HttpServletResponse
 
 class HttpServletAdapterTest extends FunSuite {
 
@@ -54,7 +53,7 @@ class HttpServletAdapterTest extends FunSuite {
     val adapter = new HttpServletRequestAdapter(req)
 
     assert(headers === adapter.headers)
-    assert(MediaType.TEXT_PLAIN === adapter.requestBody.mediaType)
+    assert(MediaType.TEXT_PLAIN === adapter.requestBody.contentType)
   }
 
   test("HttpServletResponseAdapter setResponseHeaders") {

@@ -76,7 +76,10 @@ final class EmptyResponseBody(val contentType: MediaType) extends ResponseBody {
 /**
  * Provides a body implementation based simply on a string.
  */
-final class StringResponseBody(val contentType: MediaType, bodyText: String) extends ResponseBody {
+final class StringResponseBody(val bodyText: String, val contentType: MediaType) extends ResponseBody {
+
+  @deprecated
+  def this(contentType: MediaType, bodyText: String) = this(bodyText, contentType)
 
   /**
    * Converts the body of the response into an array of bytes.

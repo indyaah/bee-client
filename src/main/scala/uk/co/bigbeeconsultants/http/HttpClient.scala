@@ -153,7 +153,7 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
     }
 
     if (request.body.isDefined) {
-      setRequestHeader(httpURLConnection, CONTENT_TYPE -> request.body.get.mediaType, logger)
+      setRequestHeader(httpURLConnection, CONTENT_TYPE -> request.body.get.contentType, logger)
     }
 
     if (request.cookies.isDefined) {

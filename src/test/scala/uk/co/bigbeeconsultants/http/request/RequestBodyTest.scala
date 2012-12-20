@@ -33,40 +33,81 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 class RequestBodyTest extends FunSuite {
 
-  val url1 = new URL ("http://localhost/")
+  val url1 = new URL("http://localhost/")
 
-
-  test ("body with string") {
+  test("body with string") {
     val mt = MediaType.APPLICATION_JSON
-    val b = RequestBody ("[1, 2, 3]", mt)
-    assert (mt === b.mediaType)
+    val str = "[1, 2, 3]"
+    val b = RequestBody(str, mt)
+    assert(mt === b.contentType)
     val baos = new ByteArrayOutputStream
-    b.copyTo (baos)
-    val result = baos.toString (HttpClient.UTF8)
-    assert ("[1, 2, 3]" === result)
+    b.copyTo(baos)
+    val result = baos.toString(HttpClient.UTF8)
+    assert(str === result)
   }
 
 
-  test ("body with input stream") {
+//  test("body with string using the cache") {
+//    val mt = MediaType.APPLICATION_JSON
+//    val str = "[1, 2, 3]"
+//    val b = RequestBody(str, mt)
+//    assert(mt === b.contentType)
+//    assert(str === b.cachedString)
+//    val baos = new ByteArrayOutputStream
+//    b.copyTo(baos)
+//    val result = baos.toString(HttpClient.UTF8)
+//    assert(str === result)
+//  }
+
+
+  test("body with input stream") {
     val s = "So shaken as we are, so wan with care!"
     val inputStream = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
     val mt = MediaType.TEXT_PLAIN
-    val b = RequestBody (inputStream, mt)
-    assert (mt === b.mediaType)
+    val b = RequestBody(inputStream, mt)
+    assert(mt === b.contentType)
     val baos = new ByteArrayOutputStream
-    b.copyTo (baos)
-    val result = baos.toString (HttpClient.UTF8)
-    assert (s === result)
+    b.copyTo(baos)
+    val result = baos.toString(HttpClient.UTF8)
+    assert(s === result)
   }
 
 
-  test ("body with keyVal p airs") {
-    val mt = MediaType.APPLICATION_JSON
-    val b = RequestBody (ListMap ("a" -> "1", "b" -> "2", "c" -> "3"), mt)
-    assert (mt === b.mediaType)
+  test("body with input stream fails if not cached") {
+    val s = "So shaken as we are, so wan with care!"
+    val inputStream = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
+    val mt = MediaType.TEXT_PLAIN
+    val b = RequestBody(inputStream, mt)
+    assert(mt === b.contentType)
     val baos = new ByteArrayOutputStream
-    b.copyTo (baos)
-    val result = baos.toString (HttpClient.UTF8)
-    assert ("a=1&b=2&c=3" === result)
+    b.copyTo(baos)
+    intercept[IllegalStateException] {
+      b.copyTo(baos)
+    }
+  }
+
+
+//  test("body with input stream using the cache") {
+//    val s = "So shaken as we are, so wan with care!"
+//    val inputStream = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
+//    val mt = MediaType.TEXT_PLAIN
+//    val b = RequestBody(inputStream, mt)
+//    assert(mt === b.contentType)
+//    assert(s === b.cachedString)
+//    val baos = new ByteArrayOutputStream
+//    b.copyTo(baos)
+//    val result = baos.toString(HttpClient.UTF8)
+//    assert(s === result)
+//  }
+
+
+  test("body with keyVal pairs") {
+    val mt = MediaType.APPLICATION_JSON
+    val b = RequestBody(ListMap("a" -> "1", "b" -> "2", "c" -> "3"), mt)
+    assert(mt === b.contentType)
+    val baos = new ByteArrayOutputStream
+    b.copyTo(baos)
+    val result = baos.toString(HttpClient.UTF8)
+    assert("a=1&b=2&c=3" === result)
   }
 }

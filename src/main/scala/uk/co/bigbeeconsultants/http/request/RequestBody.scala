@@ -28,7 +28,7 @@ import java.net.URLEncoder
 import uk.co.bigbeeconsultants.http._
 import header.MediaType
 import header.MediaType._
-import java.io.{InputStream, OutputStreamWriter, OutputStream}
+import java.io.{InputStream, OutputStream}
 import util.HttpUtil
 
 /**
@@ -38,17 +38,68 @@ import util.HttpUtil
  * <p>
  * The companion object provides apply methods for common sources of body data.
  */
-final class RequestBody(val mediaType: MediaType, val copyTo: OutputStream => Unit, source: => Any = "...") {
+trait RequestBody {
+  def copyTo: OutputStream => Unit
 
-  // TODO allow multipass access to source during digest authentication
-  override def toString = "RequestBody(" + mediaType + "," + source.toString + ")"
+  def contentType: MediaType
 
-  def toShortString = {
-    val s = source.toString
-    val sourceString = if (s.length > 125) s.substring(0, 125) + "..." else s
-    "(" + mediaType + "," + sourceString + ")"
-  }
+  def toShortString: String
+
+  override def toString = "RequestBody(" + contentType + "," + toShortString + ")"
 }
+
+//  @deprecated
+//  def this(contentType: MediaType, copyToFn: OutputStream => Unit, source: => Any = "") = this(copyToFn, contentType)
+//
+//  @deprecated
+//  def mediaType = contentType
+//
+//  private var consumed = false
+//  private var cache: Array[Byte] = null
+//
+//  /**
+//   * Gets the copyTo function that sends the body content. This method can only be invoked once.
+//   */
+//  def copyTo = {
+//    if (consumed) {
+//      if (cache != null) cachedCopyTo
+//      else throw new IllegalStateException("Cannont use the copyTo function more than once.")
+//    }
+//    else {
+//      consumed = true
+//      copyToFn
+//    }
+//  }
+//
+//  /**
+//   * Caches the body and gets the copyTo function that sends the body content. This method can be invoked many times.
+//   */
+//  def cachedCopyTo =
+//    (outputStream: OutputStream) => {
+//      outputStream.write(cachedBytes)
+//      outputStream.flush()
+//    }
+//
+//  /**
+//   * Gets the cache of bytes that will be sent to the HTTP server as the request body.
+//   */
+//  def cachedBytes: Array[Byte] = {
+//    if (cache == null) {
+//      val baos = new ByteArrayOutputStream(2048)
+//      copyTo(baos)
+//      cache = baos.toByteArray
+//    }
+//    cache
+//  }
+//
+//  /**
+//   * Gets the cached string that will be sent to the HTTP server as the request body.
+//   */
+//  lazy val cachedString = {
+//    if (source.isDefined) source.get
+//    else new String(cachedBytes, contentType.charsetOrUTF8)
+//  }
+//
 
 
 /**
@@ -59,45 +110,58 @@ object RequestBody {
   /**
    * Factory for request bodies sourced from strings.
    */
-  def apply(string: String, mediaType: MediaType): RequestBody = {
-    new RequestBody (mediaType, (outputStream) => {
-      val encoding = mediaType.charsetOrElse (HttpClient.UTF8)
-      outputStream.write (string.getBytes (encoding))
-      outputStream.flush()
-    }, string)
-  }
+  def apply(string: String, contentType: MediaType): RequestBody =
+    new StringRequestBody(string, contentType)
 
   /**
    * Factory for request bodies sourced from key-value pairs, typical for POST requests.
    */
-  def apply(data: Map[String, String], mediaType: MediaType = APPLICATION_FORM_URLENCODED): RequestBody = {
-    new RequestBody (mediaType, (outputStream) => {
-      val encoding = mediaType.charsetOrElse (HttpClient.UTF8)
-      val w = new OutputStreamWriter (outputStream, encoding)
-      var amp = ""
-      for ((key, value) <- data) {
-        w.append(amp)
-        w.write (URLEncoder.encode (key, encoding))
-        w.write ('=')
-        w.write (URLEncoder.encode (value, encoding))
-        amp = "&"
-      }
-      w.flush ()
-    }, data)
+  def apply(data: Map[String, String], contentType: MediaType = APPLICATION_FORM_URLENCODED): RequestBody = {
+    val b = new StringBuilder
+    val encoding = contentType.charsetOrElse(HttpClient.UTF8)
+    var amp = ""
+    for ((key, value) <- data) {
+      b.append(amp)
+      b.append(URLEncoder.encode(key, encoding))
+      b.append('=')
+      b.append(URLEncoder.encode(value, encoding))
+      amp = "&"
+    }
+    new StringRequestBody(b.toString, contentType)
   }
 
   /**
    * Factory for request bodies sourced from input streams. This copies the content from the input stream,
    * which it leaves unclosed.
    */
-  def apply(inputStream: InputStream, mediaType: MediaType): RequestBody = {
-    new RequestBody (mediaType, (outputStream) => {
-      HttpUtil.copyBytes (inputStream, outputStream)
-    })
-  }
+  def apply(inputStream: InputStream, theContentType: MediaType): RequestBody =
+    new RequestBody {
+      def copyTo = (outputStream) => {
+        HttpUtil.copyBytes(inputStream, outputStream)
+      }
+
+      def contentType = theContentType
+
+      def toShortString = "..."
+    }
 
   /**
    * Factory for empty request bodies. An empty body differs from no body at all because it has a media type.
    */
-  def apply(mediaType: MediaType): RequestBody = new RequestBody (mediaType, (outputStream) => {}, "")
+  def apply(contentType: MediaType): RequestBody = new StringRequestBody("", contentType)
+}
+
+
+final class StringRequestBody(string: String, val contentType: MediaType) extends RequestBody {
+  def copyTo: (OutputStream) => Unit =
+    (outputStream) => {
+      val encoding = contentType.charsetOrElse(HttpClient.UTF8)
+      outputStream.write(string.getBytes(encoding))
+      outputStream.flush()
+    }
+
+  def toShortString = {
+    val sourceString = if (string.length > 125) string.substring(0, 125) + "..." else string
+    "(" + contentType + "," + sourceString + ")"
+  }
 }

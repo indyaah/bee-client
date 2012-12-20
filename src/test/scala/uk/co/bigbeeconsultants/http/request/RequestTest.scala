@@ -27,8 +27,8 @@ package uk.co.bigbeeconsultants.http.request
 import java.net.URL
 import uk.co.bigbeeconsultants.http.header.MediaType._
 import uk.co.bigbeeconsultants.http.header.HeaderName._
-import org.scalatest.FunSuite
 import uk.co.bigbeeconsultants.http.header.{Domain, CookieJar, Cookie}
+import org.scalatest.FunSuite
 
 class RequestTest extends FunSuite {
 
@@ -67,7 +67,7 @@ class RequestTest extends FunSuite {
     assert (url1 === r.url)
     assert ("PUT" === r.method)
     assert (b === r.body.get)
-    assert ("UTF-8" === r.body.get.mediaType.charsetOrElse ("UTF-8"))
+    assert ("UTF-8" === r.body.get.contentType.charsetOrElse ("UTF-8"))
   }
 
   test ("request with headers") {
