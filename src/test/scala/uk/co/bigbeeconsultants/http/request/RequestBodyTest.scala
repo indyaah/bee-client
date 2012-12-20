@@ -35,29 +35,31 @@ class RequestBodyTest extends FunSuite {
 
   val url1 = new URL("http://localhost/")
 
+  test("empty body") {
+    val mt = MediaType.APPLICATION_JSON
+    val b = RequestBody(mt)
+    assert(b.contentType === mt)
+    val baos = new ByteArrayOutputStream
+    b.copyTo(baos)
+    val result = baos.toString(HttpClient.UTF8)
+    assert(result === "")
+    assert(b.toShortString === "(,application/json)")
+    assert(b.toString === "RequestBody(,application/json)")
+  }
+
+
   test("body with string") {
     val mt = MediaType.APPLICATION_JSON
     val str = "[1, 2, 3]"
     val b = RequestBody(str, mt)
-    assert(mt === b.contentType)
+    assert(b.contentType === mt)
     val baos = new ByteArrayOutputStream
     b.copyTo(baos)
     val result = baos.toString(HttpClient.UTF8)
-    assert(str === result)
+    assert(result === str)
+    assert(b.toShortString === "([1, 2, 3],application/json)")
+    assert(b.toString === "RequestBody([1, 2, 3],application/json)")
   }
-
-
-//  test("body with string using the cache") {
-//    val mt = MediaType.APPLICATION_JSON
-//    val str = "[1, 2, 3]"
-//    val b = RequestBody(str, mt)
-//    assert(mt === b.contentType)
-//    assert(str === b.cachedString)
-//    val baos = new ByteArrayOutputStream
-//    b.copyTo(baos)
-//    val result = baos.toString(HttpClient.UTF8)
-//    assert(str === result)
-//  }
 
 
   test("body with input stream") {
@@ -65,11 +67,26 @@ class RequestBodyTest extends FunSuite {
     val inputStream = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
     val mt = MediaType.TEXT_PLAIN
     val b = RequestBody(inputStream, mt)
-    assert(mt === b.contentType)
+    assert(b.contentType === mt)
     val baos = new ByteArrayOutputStream
     b.copyTo(baos)
     val result = baos.toString(HttpClient.UTF8)
-    assert(s === result)
+    assert(result === s)
+    assert(b.toShortString === "(...,text/plain)")
+  }
+
+
+  test("body with binary data") {
+    val s = "So shaken as we are, so wan with care!"
+    val d = s.getBytes(HttpClient.UTF8)
+    val mt = MediaType.APPLICATION_OCTET_STREAM
+    val b = RequestBody(d, mt)
+    assert(b.contentType === mt)
+    val baos = new ByteArrayOutputStream
+    b.copyTo(baos)
+    val result = baos.toString(HttpClient.UTF8)
+    assert(result === s)
+    assert(b.toShortString === "(...,application/octet-stream)")
   }
 
 
@@ -78,36 +95,24 @@ class RequestBodyTest extends FunSuite {
     val inputStream = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
     val mt = MediaType.TEXT_PLAIN
     val b = RequestBody(inputStream, mt)
-    assert(mt === b.contentType)
+    assert(b.contentType === mt)
     val baos = new ByteArrayOutputStream
     b.copyTo(baos)
     intercept[IllegalStateException] {
       b.copyTo(baos)
     }
+    assert(b.toShortString === "(...,text/plain)")
   }
-
-
-//  test("body with input stream using the cache") {
-//    val s = "So shaken as we are, so wan with care!"
-//    val inputStream = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
-//    val mt = MediaType.TEXT_PLAIN
-//    val b = RequestBody(inputStream, mt)
-//    assert(mt === b.contentType)
-//    assert(s === b.cachedString)
-//    val baos = new ByteArrayOutputStream
-//    b.copyTo(baos)
-//    val result = baos.toString(HttpClient.UTF8)
-//    assert(s === result)
-//  }
 
 
   test("body with keyVal pairs") {
     val mt = MediaType.APPLICATION_JSON
     val b = RequestBody(ListMap("a" -> "1", "b" -> "2", "c" -> "3"), mt)
-    assert(mt === b.contentType)
+    assert(b.contentType === mt)
     val baos = new ByteArrayOutputStream
     b.copyTo(baos)
     val result = baos.toString(HttpClient.UTF8)
-    assert("a=1&b=2&c=3" === result)
+    assert(result === "a=1&b=2&c=3")
+    assert(b.toShortString === "(a=1&b=2&c=3,application/json)")
   }
 }

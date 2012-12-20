@@ -39,67 +39,20 @@ import util.HttpUtil
  * The companion object provides apply methods for common sources of body data.
  */
 trait RequestBody {
+  /** Gets the function that consumes this request body. */
   def copyTo: OutputStream => Unit
 
+  /** Gets the content type. */
   def contentType: MediaType
 
-  def toShortString: String
+  /** Gets a string representation of the body, if possible. */
+  def asString: String
 
-  override def toString = "RequestBody(" + contentType + "," + toShortString + ")"
+  /** Gets the string representation and the content type for diagnostic purposes. */
+  final def toShortString = "(" + asString + "," + contentType + ")"
+
+  override def toString = "RequestBody" + toShortString
 }
-
-//  @deprecated
-//  def this(contentType: MediaType, copyToFn: OutputStream => Unit, source: => Any = "") = this(copyToFn, contentType)
-//
-//  @deprecated
-//  def mediaType = contentType
-//
-//  private var consumed = false
-//  private var cache: Array[Byte] = null
-//
-//  /**
-//   * Gets the copyTo function that sends the body content. This method can only be invoked once.
-//   */
-//  def copyTo = {
-//    if (consumed) {
-//      if (cache != null) cachedCopyTo
-//      else throw new IllegalStateException("Cannont use the copyTo function more than once.")
-//    }
-//    else {
-//      consumed = true
-//      copyToFn
-//    }
-//  }
-//
-//  /**
-//   * Caches the body and gets the copyTo function that sends the body content. This method can be invoked many times.
-//   */
-//  def cachedCopyTo =
-//    (outputStream: OutputStream) => {
-//      outputStream.write(cachedBytes)
-//      outputStream.flush()
-//    }
-//
-//  /**
-//   * Gets the cache of bytes that will be sent to the HTTP server as the request body.
-//   */
-//  def cachedBytes: Array[Byte] = {
-//    if (cache == null) {
-//      val baos = new ByteArrayOutputStream(2048)
-//      copyTo(baos)
-//      cache = baos.toByteArray
-//    }
-//    cache
-//  }
-//
-//  /**
-//   * Gets the cached string that will be sent to the HTTP server as the request body.
-//   */
-//  lazy val cachedString = {
-//    if (source.isDefined) source.get
-//    else new String(cachedBytes, contentType.charsetOrUTF8)
-//  }
-//
 
 
 /**
@@ -108,10 +61,14 @@ trait RequestBody {
 object RequestBody {
 
   /**
+   * Factory for empty request bodies. An empty body differs from no body at all because it has a media type.
+   */
+  def apply(contentType: MediaType): RequestBody = new StringRequestBody("", contentType)
+
+  /**
    * Factory for request bodies sourced from strings.
    */
-  def apply(string: String, contentType: MediaType): RequestBody =
-    new StringRequestBody(string, contentType)
+  def apply(string: String, contentType: MediaType): RequestBody = new StringRequestBody(string, contentType)
 
   /**
    * Factory for request bodies sourced from key-value pairs, typical for POST requests.
@@ -131,24 +88,16 @@ object RequestBody {
   }
 
   /**
+   * Factory for request bodies sourced from binary data.
+   */
+  def apply(byteArray: Array[Byte], contentType: MediaType): RequestBody = new BinaryRequestBody(byteArray, contentType)
+
+  /**
    * Factory for request bodies sourced from input streams. This copies the content from the input stream,
    * which it leaves unclosed.
    */
-  def apply(inputStream: InputStream, theContentType: MediaType): RequestBody =
-    new RequestBody {
-      def copyTo = (outputStream) => {
-        HttpUtil.copyBytes(inputStream, outputStream)
-      }
-
-      def contentType = theContentType
-
-      def toShortString = "..."
-    }
-
-  /**
-   * Factory for empty request bodies. An empty body differs from no body at all because it has a media type.
-   */
-  def apply(contentType: MediaType): RequestBody = new StringRequestBody("", contentType)
+  def apply(inputStream: InputStream, contentType: MediaType): RequestBody =
+    new StreamRequestBody((outputStream) => HttpUtil.copyBytes(inputStream, outputStream), contentType)
 }
 
 
@@ -160,8 +109,29 @@ final class StringRequestBody(string: String, val contentType: MediaType) extend
       outputStream.flush()
     }
 
-  def toShortString = {
-    val sourceString = if (string.length > 125) string.substring(0, 125) + "..." else string
-    "(" + contentType + "," + sourceString + ")"
+  def asString = if (string.length > 125) string.substring(0, 125) + "..." else string
+}
+
+
+final class BinaryRequestBody(byteArray: Array[Byte], val contentType: MediaType) extends RequestBody {
+  def copyTo: (OutputStream) => Unit =
+    (outputStream) => {
+      outputStream.write(byteArray)
+      outputStream.flush()
+    }
+
+  def asString = "..."
+}
+
+
+final class StreamRequestBody(copyToFn: (OutputStream) => Unit, val contentType: MediaType) extends RequestBody {
+  private var consumed = false
+
+  def copyTo = {
+    if (consumed) throw new IllegalStateException("Cannot use the copyTo function more than once.")
+    consumed = true
+    copyToFn
   }
+
+  def asString = "..."
 }

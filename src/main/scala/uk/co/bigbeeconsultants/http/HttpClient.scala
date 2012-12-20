@@ -95,12 +95,12 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
         handleContent(httpURLConnection, request, status, responseHeadersWithoutCookies, responseCookies, responseBuilder)
       }
 
-      if (logger.isInfoEnabled)
-        logger.info("{} {}", request.toShortString, status.code + " " + timer)
+      if (logger.isInfoEnabled) logger.info("{} {}", request.toShortString, status.code.toString + " " + timer)
     } catch {
-      case e: Exception =>
-        if (logger.isInfoEnabled)
-          logger.info("{} - {}", request.toShortString, timer + " " + e.getMessage)
+      case e: Exception => {
+        if (logger.isInfoEnabled) logger.info("{} - {}", request.toShortString, timer.toString + " " + e.getMessage)
+        throw e
+      }
     } finally {
       httpURLConnection.disconnect()
     }
