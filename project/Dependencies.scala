@@ -27,8 +27,7 @@ import sbt._
 object Resolvers {
   //val localhost = URLRepository("local-nexus", Patterns("http://localhost:8081/nexus/"))
   val bigbeeRepo = URLRepository("bigbee", Patterns("http://bigbeeconsultants.co.uk/repo/"))
-  val resolvers = Seq(//localhost,
-    bigbeeRepo, ScalaToolsReleases, DefaultMavenRepository)
+  val resolvers = Seq(bigbeeRepo, DefaultMavenRepository)
 }
 
 object Dependencies {
