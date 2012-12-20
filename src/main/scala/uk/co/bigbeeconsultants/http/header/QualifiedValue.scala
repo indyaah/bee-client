@@ -44,6 +44,8 @@ case class NameVal(name: String, value: Option[String]) {
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 object NameVal {
   def apply(str: String) = {
     val s = str.indexOf('=')
@@ -56,6 +58,7 @@ object NameVal {
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * A qualified part is one list element in a [[uk.co.bigbeeconsultants.http.header.QualifiedValue]].
@@ -77,6 +80,8 @@ case class Qualifiers(qualifiers: List[NameVal] = Nil) extends Iterable[NameVal]
   override lazy val toString = qualifiers.mkString(";")
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 object Qualifiers {
   def apply(str: String): Qualifiers = {
     val t = HttpUtil.split(str.trim, ';')
@@ -87,6 +92,7 @@ object Qualifiers {
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Defines an HTTP header with a list of qualifiers. Typically, such values are used for the 'accept' category of

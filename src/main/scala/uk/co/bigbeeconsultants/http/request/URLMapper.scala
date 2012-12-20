@@ -51,11 +51,14 @@ class URLMapper {
   def rewriteResponse(body: String): String = body
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 object URLMapper {
   /** Singleton for no-op behaviour. */
   val noop = new URLMapper
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Provides newly constructed instances of [[uk.co.bigbeeconsultants.http.request.DefaultURLMapper]].
@@ -67,6 +70,7 @@ class URLMapperFactory(upstreamCpLength: Int, downstreamBase: PartialURL) {
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Extends [[uk.co.bigbeeconsultants.http.request.URLMapper]] to provide a convenient mapping from one URL

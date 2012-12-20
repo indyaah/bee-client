@@ -27,7 +27,7 @@ package uk.co.bigbeeconsultants.http.request
 import java.net.URL
 import uk.co.bigbeeconsultants.http.header.MediaType._
 import uk.co.bigbeeconsultants.http.header.HeaderName._
-import uk.co.bigbeeconsultants.http.header.{Domain, CookieJar, Cookie}
+import uk.co.bigbeeconsultants.http.header.{CookieJar, Cookie}
 import org.scalatest.FunSuite
 
 class RequestTest extends FunSuite {

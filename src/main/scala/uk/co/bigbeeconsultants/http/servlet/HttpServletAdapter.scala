@@ -60,6 +60,7 @@ class HttpServletRequestAdapter(req: HttpServletRequest) {
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Adapts HTTP Servlet response objects to the Light Http Client API. This allows a variety of solutions such as

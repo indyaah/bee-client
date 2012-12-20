@@ -27,7 +27,7 @@ package uk.co.bigbeeconsultants.http.response
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import uk.co.bigbeeconsultants.http.request._
-import uk.co.bigbeeconsultants.http.header.{Domain, Cookie, CookieJar, Headers}
+import uk.co.bigbeeconsultants.http.header.{Cookie, CookieJar, Headers}
 import uk.co.bigbeeconsultants.http.header.MediaType._
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.HttpClient

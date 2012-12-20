@@ -79,6 +79,8 @@ case class Config(connectTimeout: Int = 2000,
   require(maxRedirects > 1, maxRedirects + ": too few maxRedirects")
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 object Config {
   /**
    * Lists the setup steps applied to each request.

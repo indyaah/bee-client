@@ -215,6 +215,8 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 object HttpClient {
   val UTF8 = "UTF-8"
   val GZIP = "gzip"

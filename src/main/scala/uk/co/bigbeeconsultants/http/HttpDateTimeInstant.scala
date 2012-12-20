@@ -73,6 +73,8 @@ case class HttpDateTimeInstant(seconds: Long) extends Ordered[HttpDateTimeInstan
   def compare(that: HttpDateTimeInstant) = seconds.compare(that.seconds)
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 /**
  * HttpDateTimeInstant expresses the number of seconds since 1st Jan 1970, as used in HTTP date
  * headers. This companion object provides hand-optimised parsing functions.

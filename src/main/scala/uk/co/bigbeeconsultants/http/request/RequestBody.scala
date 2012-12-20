@@ -28,7 +28,7 @@ import java.net.URLEncoder
 import uk.co.bigbeeconsultants.http._
 import header.MediaType
 import header.MediaType._
-import java.io.{InputStream, OutputStream}
+import java.io.{ByteArrayOutputStream, InputStream, OutputStream}
 import util.HttpUtil
 
 /**
@@ -48,12 +48,22 @@ trait RequestBody {
   /** Gets a string representation of the body, if possible. */
   def asString: String
 
+  /** Gets a byte array representation of the body, if possible. Some implementations do not provide this. */
+  def asBytes: Array[Byte]
+
+  /**
+   * Gets a cached version of the body. The returned instance will provide an implementation of 'asBytes',
+   * which is needed during digest authentication for example.
+   */
+  def cachedBody: RequestBody
+
   /** Gets the string representation and the content type for diagnostic purposes. */
   final def toShortString = "(" + asString + "," + contentType + ")"
 
   override def toString = "RequestBody" + toShortString
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Factory for request bodies.
@@ -84,7 +94,7 @@ object RequestBody {
       b.append(URLEncoder.encode(value, encoding))
       amp = "&"
     }
-    new StringRequestBody(b.toString, contentType)
+    new StringRequestBody(b.toString(), contentType)
   }
 
   /**
@@ -100,18 +110,27 @@ object RequestBody {
     new StreamRequestBody((outputStream) => HttpUtil.copyBytes(inputStream, outputStream), contentType)
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 final class StringRequestBody(string: String, val contentType: MediaType) extends RequestBody {
   def copyTo: (OutputStream) => Unit =
     (outputStream) => {
-      val encoding = contentType.charsetOrElse(HttpClient.UTF8)
-      outputStream.write(string.getBytes(encoding))
+      outputStream.write(asBytes)
       outputStream.flush()
     }
 
   def asString = if (string.length > 125) string.substring(0, 125) + "..." else string
+
+  /** Gets a byte array representation of the body, if possible. Some implementations do not provide this. */
+  lazy val asBytes: Array[Byte] = {
+    val encoding = contentType.charsetOrElse(HttpClient.UTF8)
+    string.getBytes(encoding)
+  }
+
+  def cachedBody = this
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 final class BinaryRequestBody(byteArray: Array[Byte], val contentType: MediaType) extends RequestBody {
   def copyTo: (OutputStream) => Unit =
@@ -121,8 +140,14 @@ final class BinaryRequestBody(byteArray: Array[Byte], val contentType: MediaType
     }
 
   def asString = "..."
+
+  /** Gets a byte array representation of the body, if possible. Some implementations do not provide this. */
+  def asBytes = byteArray
+
+  def cachedBody = this
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 final class StreamRequestBody(copyToFn: (OutputStream) => Unit, val contentType: MediaType) extends RequestBody {
   private var consumed = false
@@ -134,4 +159,12 @@ final class StreamRequestBody(copyToFn: (OutputStream) => Unit, val contentType:
   }
 
   def asString = "..."
+
+  def asBytes = throw new UnsupportedOperationException("This request body has not yet been cached.")
+
+  def cachedBody: RequestBody = {
+    val baos = new ByteArrayOutputStream
+    copyTo(baos)
+    new BinaryRequestBody(baos.toByteArray, contentType)
+  }
 }

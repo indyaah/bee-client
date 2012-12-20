@@ -35,6 +35,7 @@ import org.scalatest.{BeforeAndAfter, FunSuite}
 import java.net.{UnknownHostException, ConnectException, Proxy, URL}
 import java.io.File
 import scala.Some
+import url.Domain
 import util.DumbTrustManager
 import header.{HeaderName, Headers}
 

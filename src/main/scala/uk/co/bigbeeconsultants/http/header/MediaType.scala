@@ -106,6 +106,8 @@ case class MediaType(contentType: String, subtype: String, charset: Option[Strin
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 /**
  * Provides some commonly-used `MediaType` instances and a factory constructor for new instances.
  */

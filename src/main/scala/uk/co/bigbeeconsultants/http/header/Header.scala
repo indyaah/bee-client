@@ -30,6 +30,8 @@ trait Value {
   def isValid: Boolean
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 /**
  * Provides an HTTP header. Bear in mind that header names are case-insensitive, but you are advised to stick to
  * the canonical capitalisation, which is as given by the HeaderName object values.
@@ -58,6 +60,8 @@ case class Header(name: String, value: String) {
 
   lazy val hasListValue = HeaderName.headersWithListValues.contains (name)
 }
+
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Provides a factory constructor for headers based on the strings typical in HTTP traffic.

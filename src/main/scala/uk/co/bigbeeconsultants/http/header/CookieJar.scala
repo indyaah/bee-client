@@ -159,6 +159,7 @@ case class CookieJar(cookies: List[Cookie]) extends Iterable[CookieIdentity] {
   def contains(c: CookieIdentity): Boolean = find(_ matches c).isDefined
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 /** Provides an easy way to create cookie jars and a constant empty instance. */
 object CookieJar {

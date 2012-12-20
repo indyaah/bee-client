@@ -35,6 +35,7 @@ package uk.co.bigbeeconsultants.http.header
 import java.net.URL
 import javax.servlet.http.{Cookie => ServletCookie}
 import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
+import uk.co.bigbeeconsultants.http.url.Domain
 
 /**
  * Defines the elements necessary to distinguish one cookie from another.
@@ -52,6 +53,8 @@ sealed trait CookieIdentity {
       path == cookie.path
   }
 }
+
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Provides an implementation of [[uk.co.bigbeeconsultants.http.header.CookieIdentity]] without any
@@ -79,6 +82,7 @@ case class CookieKey(name: String,
       secure, httpOnly, serverProtocol)
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Defines a complete cookie in terms of its identity and its value.

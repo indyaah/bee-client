@@ -48,6 +48,8 @@ case class CredentialSuite(credentials: Map[Credential.Realm, Credential]) {
   def updated(realm: Credential.Realm, credential: Credential) = new CredentialSuite(credentials updated(realm, credential))
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 object CredentialSuite {
   val empty = new CredentialSuite(Map())
 }

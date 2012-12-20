@@ -32,6 +32,7 @@ import java.net.{Proxy, URL}
 import header._
 import org.scalatest.Assertions
 import request.RequestBody
+import url.Domain
 import util.{JSONWrapper, DumbTrustManager}
 
 /**

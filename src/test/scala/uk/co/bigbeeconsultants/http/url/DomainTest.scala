@@ -22,7 +22,7 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.http.header
+package uk.co.bigbeeconsultants.http.url
 
 import java.net.URL
 import org.scalatest.FunSuite

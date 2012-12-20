@@ -118,6 +118,8 @@ case class Headers(list: List[Header]) {
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 /**
  * Provides support for creating `Headers` instances.
  */

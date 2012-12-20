@@ -47,6 +47,7 @@ trait PreRequest {
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Sets the "Connection: close" header if not a keep-alive connection.
@@ -60,6 +61,7 @@ object ConnectionControl extends PreRequest {
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Sets the "Connection: close" header if not a keep-alive connection.
@@ -72,6 +74,7 @@ object UserAgentString extends PreRequest {
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Automatically sends the Host header with every request made to a named host. This excludes localhost and
@@ -86,6 +89,7 @@ object AutomaticHostHeader extends PreRequest {
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Sends the following request headers with every request.
@@ -99,6 +103,7 @@ class RequestHeadersInjecter(requestHeaders: Headers) extends PreRequest {
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Sends the Config.commonRequestHeaders request headers with every request.
@@ -109,6 +114,7 @@ object DefaultRequestHeaders extends PreRequest {
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Injects a particular SSL Socket Factory into every HTTPS request using it.
@@ -123,6 +129,7 @@ object SSLSocketFactoryInjecter extends PreRequest {
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Injects a particular hostname verifier into every HTTPS request using it.

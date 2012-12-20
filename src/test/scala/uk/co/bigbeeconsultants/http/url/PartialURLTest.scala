@@ -32,42 +32,6 @@ class PartialURLTest extends FunSuite {
   val w3Org = "http://www.w3.org"
   val myserver8080 = "http://myserver:8080"
 
-  test("endpoint without port nor trailing slash") {
-    val endpoint = Endpoint(w3Org)
-    assert("http" === endpoint.scheme)
-    assert("www.w3.org" === endpoint.host)
-    assert(None === endpoint.port)
-    assert(w3Org === endpoint.toString)
-    assert("www.w3.org" === endpoint.hostAndPort)
-  }
-
-  test("endpoint without port but with trailing slash") {
-    val endpoint = Endpoint(w3Org + "/")
-    assert("http" === endpoint.scheme)
-    assert("www.w3.org" === endpoint.host)
-    assert(None === endpoint.port)
-    assert(w3Org === endpoint.toString)
-    assert("www.w3.org" === endpoint.hostAndPort)
-  }
-
-  test("endpoint with port but no trailing slash") {
-    val endpoint = Endpoint(myserver8080)
-    assert("http" === endpoint.scheme)
-    assert("myserver" === endpoint.host)
-    assert(Some(8080) === endpoint.port)
-    assert(myserver8080 === endpoint.toString)
-    assert("myserver:8080" === endpoint.hostAndPort)
-  }
-
-  test("endpoint with port and trailing slash") {
-    val endpoint = Endpoint(myserver8080 + "/")
-    assert("http" === endpoint.scheme)
-    assert("myserver" === endpoint.host)
-    assert(Some(8080) === endpoint.port)
-    assert(myserver8080 === endpoint.toString)
-    assert("myserver:8080" === endpoint.hostAndPort)
-  }
-
   test("absolute url without any path") {
     val u = new URL(w3Org)
     val purl = PartialURL(w3Org)

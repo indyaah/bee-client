@@ -24,6 +24,8 @@
 
 package uk.co.bigbeeconsultants.http.header
 
+import uk.co.bigbeeconsultants.http.url.Domain
+
 object `package` {
   implicit def toDomain(domain: String) = Domain(domain)
 }

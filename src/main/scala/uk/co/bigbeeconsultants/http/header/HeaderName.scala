@@ -38,6 +38,8 @@ case class HeaderName(name: String) {
   override def toString = name
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 /** General header names; also those used for both requests and responses. */
 sealed trait GeneralHeaderName {
   val ACCEPT_RANGES = HeaderName ("Accept-Ranges")
@@ -49,7 +51,11 @@ sealed trait GeneralHeaderName {
   val WARNING = HeaderName ("Warning") // String value (in ISO8859-1)
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 object GeneralHeaderName extends GeneralHeaderName
+
+//---------------------------------------------------------------------------------------------------------------------
 
 /** Header names used only for requests. */
 sealed trait RequestHeaderName {
@@ -76,7 +82,11 @@ sealed trait RequestHeaderName {
   val USER_AGENT = HeaderName ("User-Agent") // String
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 object RequestHeaderName extends RequestHeaderName
+
+//---------------------------------------------------------------------------------------------------------------------
 
 /** Header names used only for responses. */
 sealed trait ResponseHeaderName {
@@ -92,7 +102,11 @@ sealed trait ResponseHeaderName {
   val WWW_AUTHENTICATE = HeaderName ("WWW-Authenticate") // ListValue
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 object ResponseHeaderName extends ResponseHeaderName
+
+//---------------------------------------------------------------------------------------------------------------------
 
 /** Header names used only for entity metadata. */
 sealed trait EntityHeaderName {
@@ -108,7 +122,11 @@ sealed trait EntityHeaderName {
   val LAST_MODIFIED = HeaderName ("Last-Modified") // HttpDateTimeInstant
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 object EntityHeaderName extends EntityHeaderName
+
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Provides the header names in RFC2616 (inter alia) using the canonical capitalisation. These values are
@@ -130,6 +148,8 @@ object HeaderName extends GeneralHeaderName with RequestHeaderName with Response
     UPGRADE.name,
     VIA.name)
 }
+
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * These headers are used internally by HttpURLConnection and should not normally appear in client applications.

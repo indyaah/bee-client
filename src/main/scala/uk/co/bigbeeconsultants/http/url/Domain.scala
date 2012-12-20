@@ -22,9 +22,8 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.http.header
+package uk.co.bigbeeconsultants.http.url
 
-import java.util.regex.Pattern
 import java.net.{InetAddress, URL}
 import uk.co.bigbeeconsultants.http.util.IpUtil
 
@@ -75,6 +74,8 @@ class Domain(val domain: String) {
 
   override def toString = domain
 }
+
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Provides support methods for managing domains.

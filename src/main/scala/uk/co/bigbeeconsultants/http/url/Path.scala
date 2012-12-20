@@ -88,6 +88,8 @@ class Path(val isAbsolute: Boolean = true,
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 /**
  * Represents a file path or URL path as a sequence of strings.
  */

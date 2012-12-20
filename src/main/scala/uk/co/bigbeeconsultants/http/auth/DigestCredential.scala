@@ -165,6 +165,7 @@ class DigestCredential(username: String,
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 private class MD5 {
   private val md5 = MessageDigest.getInstance("MD5")
@@ -184,6 +185,7 @@ private class MD5 {
   def digest = md5.digest()
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 object DigestCredential {
   val lcHexTable = "0123456789abcdef".getBytes("ASCII")

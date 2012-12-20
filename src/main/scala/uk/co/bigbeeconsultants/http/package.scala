@@ -24,8 +24,8 @@
 
 package uk.co.bigbeeconsultants.http
 
-import header.Domain
 import java.net.{URL, MalformedURLException}
+import url.Domain
 
 object `package` {
   @throws(classOf[MalformedURLException])

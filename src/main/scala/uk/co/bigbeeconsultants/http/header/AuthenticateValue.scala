@@ -66,6 +66,7 @@ case class AuthenticateValue(authScheme: String, parts: ListMap[String, String])
   override lazy val toString = authScheme + " " + parts.map(kv => kv._1 + "=" + kv._2).mkString(", ")
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 object AuthenticateValue {
   def apply(headerValue: String): AuthenticateValue = {

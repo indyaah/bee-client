@@ -109,6 +109,8 @@ final class AuthenticationRegistry(credentialSuite: CredentialSuite = Credential
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 case class RealmMapping(realm: Credential.Realm, path: Path)
 
 case class NonceVal(nonce: String, count: Int) {

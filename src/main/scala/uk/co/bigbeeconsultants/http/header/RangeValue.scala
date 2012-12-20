@@ -68,6 +68,8 @@ case class Range(first: Option[Int], last: Option[Int]) {
   override def toString = if (first.isEmpty && last.isEmpty) "" else str (first) + "-" + str (last)
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 object Range {
   def apply(str: String) = {
     val t = HttpUtil.divide (str, '-')
@@ -76,6 +78,8 @@ object Range {
 
   private def toOptInt(num: String) = if (num.length == 0) None else Some (num.toInt)
 }
+
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Provides a single component of a range value. This is either a
@@ -91,6 +95,8 @@ case class RangePart(prefix: String, value: Either[Range, String]) {
 
   override def toString = prefix + (if (value.isLeft) value.left.get.toString else value.right.get.toString)
 }
+
+//---------------------------------------------------------------------------------------------------------------------
 
 object RangePart {
   private val numberPattern = Pattern.compile ("""[0-9\-]+""")
@@ -114,6 +120,7 @@ object RangePart {
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Defines an HTTP header value for a list of ranges. Typically, such values are

@@ -97,6 +97,8 @@ final case class Request(method: String,
   }
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 /**
  * Provides factory methods for creating request objects of various types. These include
  * <ul>
