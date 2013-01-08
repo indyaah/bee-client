@@ -65,10 +65,10 @@ object HttpBin extends App with Assertions {
     }
   }
 
-  //  headTest(httpClient, "http://" + serverUrl)
-  //  headTest(httpClient, "https://" + serverUrl)
-  //  headTest(httpBrowser, "http://" + serverUrl)
-  //  headTest(httpBrowser, "https://" + serverUrl)
+  headTest(httpClient, "http://" + serverUrl)
+  headTest(httpClient, "https://" + serverUrl)
+  headTest(httpBrowser, "http://" + serverUrl)
+  headTest(httpBrowser, "https://" + serverUrl)
 
   def headTest(http: Http, url: String) {
     println("HEAD " + url)
@@ -81,10 +81,10 @@ object HttpBin extends App with Assertions {
   }
 
 
-  //  htmlGet(httpClient, "http://" + serverUrl + "/headers")
-  //  htmlGet(httpClient, "https://" + serverUrl + "/headers")
-  //  htmlGet(httpBrowser, "http://" + serverUrl + "/headers")
-  //  htmlGet(httpBrowser, "https://" + serverUrl + "/headers")
+  htmlGet(httpClient, "http://" + serverUrl + "/headers")
+  htmlGet(httpClient, "https://" + serverUrl + "/headers")
+  htmlGet(httpBrowser, "http://" + serverUrl + "/headers")
+  htmlGet(httpBrowser, "https://" + serverUrl + "/headers")
 
   private def htmlGet(http: Http, url: String) {
     println("GET " + url)
@@ -110,10 +110,10 @@ object HttpBin extends App with Assertions {
   }
 
 
-  //  textHtmlGet204(httpClient, "http://" + serverUrl + "/status/204")
-  //  textHtmlGet204(httpClient, "https://" + serverUrl + "/status/204")
-  //  textHtmlGet204(httpBrowser, "http://" + serverUrl + "/status/204")
-  //  textHtmlGet204(httpBrowser, "https://" + serverUrl + "/status/204")
+  textHtmlGet204(httpClient, "http://" + serverUrl + "/status/204")
+  textHtmlGet204(httpClient, "https://" + serverUrl + "/status/204")
+  textHtmlGet204(httpBrowser, "http://" + serverUrl + "/status/204")
+  textHtmlGet204(httpBrowser, "https://" + serverUrl + "/status/204")
 
   private def textHtmlGet204(http: Http, url: String) {
     println("GET " + url)
@@ -128,10 +128,10 @@ object HttpBin extends App with Assertions {
 
   val cookieC1V1 = Cookie("c1", "v1", Domain(serverUrl))
   val configFollowRedirects = Config(followRedirects = true)
-  //  textPlainGetFollowingRedirect(new HttpClient(configFollowRedirects), "http://" + serverUrl + "/redirect/1")
-  //  textPlainGetFollowingRedirect(new HttpClient(configFollowRedirects), "https://" + serverUrl + "/redirect/1")
-  //  textPlainGetFollowingRedirect(new HttpBrowser(configFollowRedirects, CookieJar(cookieC1V1)), "http://" + serverUrl + "/redirect/1")
-  //  textPlainGetFollowingRedirect(new HttpBrowser(configFollowRedirects, CookieJar(cookieC1V1)), "https://" + serverUrl + "/redirect/1")
+  textPlainGetFollowingRedirect(new HttpClient(configFollowRedirects), "http://" + serverUrl + "/redirect/1")
+  textPlainGetFollowingRedirect(new HttpClient(configFollowRedirects), "https://" + serverUrl + "/redirect/1")
+  textPlainGetFollowingRedirect(new HttpBrowser(configFollowRedirects, CookieJar(cookieC1V1)), "http://" + serverUrl + "/redirect/1")
+  textPlainGetFollowingRedirect(new HttpBrowser(configFollowRedirects, CookieJar(cookieC1V1)), "https://" + serverUrl + "/redirect/1")
 
   private def textPlainGetFollowingRedirect(http: Http, url: String) {
     println("GET " + url)
@@ -145,7 +145,7 @@ object HttpBin extends App with Assertions {
   }
 
 
-  //  textPlainGetWithQueryString(httpClient, "http://" + serverUrl + "/get?A=1&B=2")
+  textPlainGetWithQueryString(httpClient, "http://" + serverUrl + "/get?A=1&B=2")
 
   private def textPlainGetWithQueryString(http: Http, url: String) {
     val response = http.get(new URL(url), gzipHeaders)
@@ -199,7 +199,7 @@ object HttpBin extends App with Assertions {
 
   val browserWithCreds = new HttpBrowser(config, CookieJar.empty, new CredentialSuite(Map("Fake Realm" -> fredBloggs)))
   automaticBasicAuth(browserWithCreds, "http://" + serverUrl + "/basic-auth/fred/bloggs")
-//  automaticBasicAuth(browserWithCreds, "https://" + serverUrl + "/basic-auth/fred/bloggs")
+  automaticBasicAuth(browserWithCreds, "https://" + serverUrl + "/basic-auth/fred/bloggs")
 
   private def automaticBasicAuth(http: Http, urlStr: String) {
     val url = new URL(urlStr)

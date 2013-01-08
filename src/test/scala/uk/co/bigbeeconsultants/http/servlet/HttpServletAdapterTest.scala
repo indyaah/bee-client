@@ -35,9 +35,8 @@ import javax.servlet.http.HttpServletResponse
 class HttpServletAdapterTest extends FunSuite {
 
   test("HttpServletRequestAdapter.url") {
-
     val splitUrl = PartialURL(Some(Endpoint("http", "localhost", None)), Path("/context/x/y/z"), None, Some("a=1"))
-    val s = splitUrl.toString
+    //val s = splitUrl.toString
     val req = new StubHttpServletRequest().copyFrom(splitUrl)
     req.contentType = MediaType.TEXT_PLAIN.value
 

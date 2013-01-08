@@ -1,3 +1,36 @@
+#### Thu, 20 Dec 2012
+* v0.18.9
+* Header classes clarify the usage of ignore-case comparison.
+* Domain tweaked slightly.
+
+
+#### Thu, 20 Dec 2012
+* Some tidying up.
+* Domain moved to url package.
+* Endpoint is in its own file.
+
+
+#### Thu, 20 Dec 2012
+* Some tidying up.
+* Domain moved to url package.
+* Endpoint is in its own file.
+
+
+#### Thu, 20 Dec 2012
+* Bug fixed: HttpClient propagates exceptions correctly now.
+* RequestBody rewritten as a trait and implementing classes.
+
+
+#### Thu, 20 Dec 2012
+* RequestBody rewritten to allow for caching when processing digest authentication
+
+
+#### Wed, 19 Dec 2012
+* v0.18.8
+* - small change in dependencies
+* - deflate algorithm tried out but not yet working (only gzip is supported)
+
+
 #### Fri, 14 Dec 2012
 * v0.18.7
 * commonRequestHeaders restored - now provided via Config

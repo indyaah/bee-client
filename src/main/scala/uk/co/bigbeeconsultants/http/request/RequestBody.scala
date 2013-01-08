@@ -25,10 +25,10 @@
 package uk.co.bigbeeconsultants.http.request
 
 import java.net.URLEncoder
+import java.io.{InputStream, OutputStream}
 import uk.co.bigbeeconsultants.http._
 import header.MediaType
 import header.MediaType._
-import java.io.{ByteArrayOutputStream, InputStream, OutputStream}
 import util.HttpUtil
 
 /**
@@ -40,7 +40,7 @@ import util.HttpUtil
  */
 trait RequestBody {
   /** Gets the function that consumes this request body. */
-  def copyTo: OutputStream => Unit
+  def copyTo(outputStream: OutputStream)
 
   /** Gets the content type. */
   def contentType: MediaType
@@ -113,11 +113,10 @@ object RequestBody {
 //---------------------------------------------------------------------------------------------------------------------
 
 final class StringRequestBody(string: String, val contentType: MediaType) extends RequestBody {
-  def copyTo: (OutputStream) => Unit =
-    (outputStream) => {
-      outputStream.write(asBytes)
-      outputStream.flush()
-    }
+  def copyTo(outputStream: OutputStream) {
+    outputStream.write(asBytes)
+    outputStream.flush()
+  }
 
   def asString = if (string.length > 125) string.substring(0, 125) + "..." else string
 
@@ -132,12 +131,30 @@ final class StringRequestBody(string: String, val contentType: MediaType) extend
 
 //---------------------------------------------------------------------------------------------------------------------
 
-final class BinaryRequestBody(byteArray: Array[Byte], val contentType: MediaType) extends RequestBody {
-  def copyTo: (OutputStream) => Unit =
-    (outputStream) => {
-      outputStream.write(byteArray)
-      outputStream.flush()
+final class StringSeqRequestBody(strings: TraversableOnce[String], val contentType: MediaType,
+                                 rewrite: TextFilter = NoChangeTextFilter) extends RequestBody {
+  def copyTo(outputStream: OutputStream) {
+    val encoding = contentType.charsetOrElse(HttpClient.UTF8)
+    strings.foreach {
+      s => outputStream.write(rewrite(s).getBytes(encoding))
     }
+    outputStream.flush()
+  }
+
+  def asString = "..."
+
+  def asBytes = throw new UnsupportedOperationException("This request body has not yet been cached.")
+
+  def cachedBody = this
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+
+final class BinaryRequestBody(byteArray: Array[Byte], val contentType: MediaType) extends RequestBody {
+  def copyTo(outputStream: OutputStream) {
+    outputStream.write(byteArray)
+    outputStream.flush()
+  }
 
   def asString = "..."
 
@@ -152,10 +169,10 @@ final class BinaryRequestBody(byteArray: Array[Byte], val contentType: MediaType
 final class StreamRequestBody(copyToFn: (OutputStream) => Unit, val contentType: MediaType) extends RequestBody {
   private var consumed = false
 
-  def copyTo = {
+  def copyTo(outputStream: OutputStream) {
     if (consumed) throw new IllegalStateException("Cannot use the copyTo function more than once.")
     consumed = true
-    copyToFn
+    copyToFn(outputStream)
   }
 
   def asString = "..."
@@ -163,8 +180,6 @@ final class StreamRequestBody(copyToFn: (OutputStream) => Unit, val contentType:
   def asBytes = throw new UnsupportedOperationException("This request body has not yet been cached.")
 
   def cachedBody: RequestBody = {
-    val baos = new ByteArrayOutputStream
-    copyTo(baos)
-    new BinaryRequestBody(baos.toByteArray, contentType)
+    new BinaryRequestBody(HttpUtil.captureBytes(copyTo), contentType)
   }
 }

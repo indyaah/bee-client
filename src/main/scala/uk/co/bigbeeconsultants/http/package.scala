@@ -24,6 +24,7 @@
 
 package uk.co.bigbeeconsultants.http
 
+import header.MediaType
 import java.net.{URL, MalformedURLException}
 import url.Domain
 
@@ -32,4 +33,13 @@ object `package` {
   implicit def toURL(url: String) = new URL(url)
 
   implicit def toDomain(domain: String) = new Domain(domain)
+
+  type TextFilter = (String) => String
+
+  val NoChangeTextFilter: TextFilter = (x) => x
+
+  type MediaFilter = (MediaType) => Boolean
+
+  val AllTextualMediaTypes: MediaFilter = (mt) => mt.isTextual
+  val NoMediaTypes: MediaFilter = (mt) => false
 }

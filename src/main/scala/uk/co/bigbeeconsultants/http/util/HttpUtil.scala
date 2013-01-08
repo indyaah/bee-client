@@ -39,7 +39,7 @@ object HttpUtil {
    * Removes surrounding double quotes from a string.
    */
   def unquote(str: String): String = {
-    if (str.length >= 2 && str(0) == '"' && str(str.length - 1) == '"') str.substring(1, str.length-1)
+    if (str.length >= 2 && str(0) == '"' && str(str.length - 1) == '"') str.substring(1, str.length - 1)
     else str
   }
 
@@ -72,17 +72,17 @@ object HttpUtil {
     var inQuotes = false
     for (c <- str.toCharArray) {
       if (c == sep) {
-          if (inQuotes) {
-            part += c
-          } else {
-            list += part.toString()
-            part.setLength(0)
-          }
+        if (inQuotes) {
+          part += c
+        } else {
+          list += part.toString()
+          part.setLength(0)
+        }
       } else if (c == quoteMark) {
-          inQuotes = !inQuotes
-          part += c
+        inQuotes = !inQuotes
+        part += c
       } else {
-          part += c
+        part += c
       }
     }
     list += part.toString()
@@ -122,16 +122,16 @@ object HttpUtil {
    */
   @throws(classOf[IOException])
   def copyToByteBufferAndClose(inputStream: InputStream, initialSize: Int): ByteBuffer = {
-//    if (initialSize > 0) {
+    if (initialSize > 0) {
       val outStream = new ByteArrayOutputStream(initialSize)
       if (inputStream != null) {
         copyBytes(inputStream, outStream)
         inputStream.close()
       }
       ByteBuffer.wrap(outStream.toByteArray)
-//    } else {
-//      emptyBuffer
-//    }
+    } else {
+      emptyBuffer
+    }
   }
 
   /**
@@ -178,5 +178,16 @@ object HttpUtil {
       }
       out.flush()
     }
+  }
+
+  /**
+   * Captures the bytes from an output stream in a buffer.
+   * @param copyTo the function that recevies an output stream
+   * @return the byte array
+   */
+  def captureBytes(copyTo: (OutputStream) => Unit) = {
+    val baos = new ByteArrayOutputStream
+    copyTo(baos)
+    baos.toByteArray
   }
 }

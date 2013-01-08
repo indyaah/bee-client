@@ -25,19 +25,27 @@
 package uk.co.bigbeeconsultants.http.servlet
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
-import uk.co.bigbeeconsultants.http.header._
-import uk.co.bigbeeconsultants.http.header.HeaderName._
 import java.io.InputStream
-import uk.co.bigbeeconsultants.http.response.{Status, ResponseBuilder}
-import uk.co.bigbeeconsultants.http.util.HttpUtil
-import uk.co.bigbeeconsultants.http.request.{Request, RequestBody}
-import uk.co.bigbeeconsultants.http.url.{Endpoint, Path, PartialURL}
+import uk.co.bigbeeconsultants.http._
+import header._
+import header.HeaderName._
+import response.{Status, ResponseBuilder}
+import util.HttpUtil
+import request.{StringSeqRequestBody, Request, RequestBody}
+import url.{Endpoint, Path, PartialURL}
 
 /**
  * Adapts HTTP Servlet request objects to the Light Http Client API. This allows a variety of solutions such as
  * reverse proxying to be implemented easily.
+ * @param rewrite an optional mutation function that is applied to every line of the body content.
+ *                This is used only when the content is treated as text (see `processAsText`)
+ * @param processAsText an optional condition that limits when the rewrite function will be used. By default,
+ *                      the response body is simply copied verbatim as binary data; therefore the rewrite
+ *                      function is ignored. A suggested alternative value is `AllTextualMediaTypes`.
  */
-class HttpServletRequestAdapter(req: HttpServletRequest) {
+class HttpServletRequestAdapter(req: HttpServletRequest,
+                                rewrite: TextFilter = NoChangeTextFilter,
+                                processAsText: MediaFilter = NoMediaTypes) {
 
   def url: PartialURL = {
     val port = if (req.getServerPort < 0) None else Some(req.getServerPort)
@@ -54,9 +62,15 @@ class HttpServletRequestAdapter(req: HttpServletRequest) {
   }
 
   def requestBody: RequestBody = {
-    val contentType = req.getContentType
-    val mediaType = if (contentType != null) MediaType(contentType) else MediaType.TEXT_PLAIN
-    RequestBody(req.getInputStream, mediaType)
+    val rawContentType = req.getContentType
+    val contentType = if (rawContentType != null) MediaType(rawContentType) else MediaType.TEXT_PLAIN
+    val streamRequestBody = RequestBody(req.getInputStream, contentType)
+    if (processAsText(contentType)) {
+      val encoding = contentType.charsetOrElse(HttpClient.UTF8)
+      val body = new String(streamRequestBody.cachedBody.asBytes, encoding)
+      new StringSeqRequestBody(body.split('\n'), contentType, rewrite)
+    }
+    else streamRequestBody
   }
 }
 
@@ -67,14 +81,14 @@ class HttpServletRequestAdapter(req: HttpServletRequest) {
  * reverse proxying to be implemented easily.
  * @param resp the response to be created
  * @param rewrite an optional mutation function that is applied to every line of the body content.
- *                This is used only when the content is treated as text (see `condition`)
- * @param condition an optional condition that limits when the rewrite function will be used. By default,
- *                  any media type that returns `true` for `isTextual` will be processed as text and this
- *                  may imply transcoding. Otherwise the response body is processed as binary data.
+ *                This is used only when the content is treated as text (see `processAsText`)
+ * @param processAsText an optional condition that limits when the rewrite function will be used. By default,
+ *                      the response body is simply copied verbatim as binary data; therefore the rewrite
+ *                      function is ignored. A suggested alternative value is `AllTextualMediaTypes`.
  */
 class HttpServletResponseAdapter(resp: HttpServletResponse,
-                                 rewrite: (String) => String = (x) => x,
-                                 condition: (MediaType) => Boolean = (mt) => mt.isTextual) extends ResponseBuilder {
+                                 rewrite: TextFilter = NoChangeTextFilter,
+                                 processAsText: MediaFilter = NoMediaTypes) extends ResponseBuilder {
 
   private[this] var _request: Request = _
   private[this] var _status: Status = _
@@ -94,12 +108,12 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
     }
   }
 
-  def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
+  def captureResponse(request: Request, status: Status, contentType: Option[MediaType],
                       headers: Headers, cookies: Option[CookieJar], inputStream: InputStream) {
     try {
       _request = request
       _status = status
-      _mediaType = mediaType
+      _mediaType = contentType
       _headers = headers
 
       resp.setStatus(status.code, status.message)
@@ -110,8 +124,8 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
         setResponseCookies(cookies.get)
       }
 
-      if (mediaType.isDefined && condition(mediaType.get)) {
-        HttpUtil.copyText(inputStream, resp.getOutputStream, mediaType.get.charsetOrUTF8, rewrite)
+      if (contentType.isDefined && processAsText(contentType.get)) {
+        HttpUtil.copyText(inputStream, resp.getOutputStream, contentType.get.charsetOrUTF8, rewrite)
       }
       else {
         HttpUtil.copyBytes(inputStream, resp.getOutputStream)
