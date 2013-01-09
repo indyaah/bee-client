@@ -25,7 +25,7 @@
 package uk.co.bigbeeconsultants.http.request
 
 import java.util.regex.Pattern
-import uk.co.bigbeeconsultants.http.url.{Path, PartialURL}
+import uk.co.bigbeeconsultants.http.url.{Path, Href}
 
 /**
  * Provides a convenient decoupling between an application's upstream hrefs and the downstream URLs that need to
@@ -38,13 +38,13 @@ import uk.co.bigbeeconsultants.http.url.{Path, PartialURL}
  * This base class simply passes through all requests unchanged. It simply provides a hook for subclassing.
  */
 class URLMapper {
-  def mapToDownstream(href: String): PartialURL = mapToDownstream(PartialURL(href))
+  def mapToDownstream(href: String): Href = mapToDownstream(Href(href))
 
-  def mapToDownstream(href: PartialURL): PartialURL = href
+  def mapToDownstream(href: Href): Href = href
 
-  def mapToUpstream(href: String): PartialURL = mapToUpstream(PartialURL(href))
+  def mapToUpstream(href: String): Href = mapToUpstream(Href(href))
 
-  def mapToUpstream(href: PartialURL): PartialURL = href
+  def mapToUpstream(href: Href): Href = href
 
   def rewriteRequest(body: String): String = body
 
@@ -63,8 +63,8 @@ object URLMapper {
 /**
  * Provides newly constructed instances of [[uk.co.bigbeeconsultants.http.request.DefaultURLMapper]].
  */
-class URLMapperFactory(upstreamCpLength: Int, downstreamBase: PartialURL) {
-  def getMapper(requestUrl: PartialURL): URLMapper = {
+class URLMapperFactory(upstreamCpLength: Int, downstreamBase: Href) {
+  def getMapper(requestUrl: Href): URLMapper = {
     val upstreamBase = requestUrl.copy(path = requestUrl.path.take(upstreamCpLength), query = None, fragment = None)
     new DefaultURLMapper(upstreamBase, downstreamBase)
   }
@@ -76,7 +76,7 @@ class URLMapperFactory(upstreamCpLength: Int, downstreamBase: PartialURL) {
  * Extends [[uk.co.bigbeeconsultants.http.request.URLMapper]] to provide a convenient mapping from one URL
  * namespace to another.
  */
-class DefaultURLMapper(upstreamBase: PartialURL, downstreamBase: PartialURL) extends URLMapper {
+class DefaultURLMapper(upstreamBase: Href, downstreamBase: Href) extends URLMapper {
   require(upstreamBase.isURL == downstreamBase.isURL,
     upstreamBase + " and " + downstreamBase + " : upstream and downstream sides must be compatible.")
 
@@ -90,21 +90,21 @@ class DefaultURLMapper(upstreamBase: PartialURL, downstreamBase: PartialURL) ext
   private val compiledUpstreamAbs = Pattern.compile(upstreamBaseStr)
   private val compiledUpstreamRel = Pattern.compile(upstreamPath)
 
-  private def map(from: PartialURL, to: PartialURL, href: PartialURL): PartialURL = {
+  private def map(from: Href, to: Href, href: Href): Href = {
     val path = new Path(true, to.path.segments ++ href.path.segments.drop(from.path.size))
     val ep = to.endpoint.get
     if (to.endpoint.isDefined) {
-      new PartialURL(to.endpoint, path, href.fragment, href.query)
+      new Href(to.endpoint, path, href.fragment, href.query)
     } else {
-      new PartialURL(href.endpoint, path, href.fragment, href.query)
+      new Href(href.endpoint, path, href.fragment, href.query)
     }
   }
 
-  override def mapToDownstream(href: PartialURL): PartialURL = {
+  override def mapToDownstream(href: Href): Href = {
     map(upstreamBase, downstreamBase, href)
   }
 
-  override def mapToUpstream(href: PartialURL): PartialURL = {
+  override def mapToUpstream(href: Href): Href = {
     map(downstreamBase, upstreamBase, href)
   }
 

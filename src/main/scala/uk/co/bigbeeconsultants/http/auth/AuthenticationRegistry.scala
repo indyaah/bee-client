@@ -25,7 +25,7 @@
 package uk.co.bigbeeconsultants.http.auth
 
 import collection.JavaConversions
-import uk.co.bigbeeconsultants.http.url.{Path, PartialURL, Endpoint}
+import uk.co.bigbeeconsultants.http.url.{Path, Href, Endpoint}
 import java.util.concurrent.ConcurrentHashMap
 import uk.co.bigbeeconsultants.http.header.{AuthenticateValue, Header}
 import uk.co.bigbeeconsultants.http.request.Request
@@ -82,7 +82,7 @@ final class AuthenticationRegistry(credentialSuite: CredentialSuite = Credential
     }
   }
 
-  private def updateKnownRealms(url: PartialURL, wwwAuthenticateHeaders: List[AuthenticateValue], existingRealmMappings: Set[RealmMapping]) {
+  private def updateKnownRealms(url: Href, wwwAuthenticateHeaders: List[AuthenticateValue], existingRealmMappings: Set[RealmMapping]) {
     for (wah <- wwwAuthenticateHeaders) {
       val realm = wah.realm.get
       val (thisOne, others) = existingRealmMappings.partition(_.realm == realm)

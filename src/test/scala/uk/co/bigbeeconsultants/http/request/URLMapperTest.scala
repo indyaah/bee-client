@@ -25,14 +25,14 @@
 package uk.co.bigbeeconsultants.http.request
 
 import org.scalatest.FunSuite
-import uk.co.bigbeeconsultants.http.url.PartialURL
+import uk.co.bigbeeconsultants.http.url.Href
 
 class URLMapperTest extends FunSuite {
 
   val upstreamStr = "http://wombat/zzz"
   val downstreamStr = "http://localhost/a/b/c"
-  val upstreamBase = PartialURL(upstreamStr)
-  val downstreamBase = PartialURL(downstreamStr)
+  val upstreamBase = Href(upstreamStr)
+  val downstreamBase = Href(downstreamStr)
 
   test("DefaultURLMapper.mapToDownstream") {
     val m = new DefaultURLMapper(upstreamBase, downstreamBase)

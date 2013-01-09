@@ -55,7 +55,6 @@ object HttpIntegration {
   val serverUrl = "//beeclient/"
 
   val gzipHeaders = Headers(ACCEPT_ENCODING -> GZIP)
-  val deflateHeaders = Headers(ACCEPT_ENCODING -> DEFLATE)
 
   val dir = new File("src/test/resources")
   val testHtmlSize = 1497

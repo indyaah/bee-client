@@ -28,7 +28,7 @@ import javax.servlet.http.HttpServletRequest
 import java.{util => ju}
 import java.util.Locale
 import uk.co.bigbeeconsultants.http.header.Headers
-import uk.co.bigbeeconsultants.http.url.PartialURL
+import uk.co.bigbeeconsultants.http.url.Href
 
 /**
  * Provides a testing implementation of HttpServletRequest that doesn't suffer from the pre-Java-generics
@@ -180,7 +180,7 @@ class StubHttpServletRequest extends HttpServletRequest {
 
   def isRequestedSessionIdFromUrl = false
 
-  def copyFrom(url: PartialURL) = {
+  def copyFrom(url: Href) = {
     require (url.isURL)
     require (url.path.size > 1)
     val endpoint = url.endpoint.get

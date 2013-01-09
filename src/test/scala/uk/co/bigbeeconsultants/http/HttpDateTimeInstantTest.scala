@@ -1,5 +1,3 @@
-package uk.co.bigbeeconsultants.http
-
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -23,6 +21,8 @@ package uk.co.bigbeeconsultants.http
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
+
+package uk.co.bigbeeconsultants.http
 
 import javax.xml.bind.DatatypeConverter
 import org.scalatest.FunSuite

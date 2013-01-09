@@ -27,9 +27,7 @@ package uk.co.bigbeeconsultants.http.servlet
 import org.scalatest.FunSuite
 import org.mockito.Mockito._
 import uk.co.bigbeeconsultants.http.header.HeaderName._
-import uk.co.bigbeeconsultants.http.header.{MediaType, Headers}
-import uk.co.bigbeeconsultants.http.util.StubHttpServletRequest
-import uk.co.bigbeeconsultants.http.url.{Endpoint, Path, PartialURL}
+import uk.co.bigbeeconsultants.http.header.Headers
 import javax.servlet.http.HttpServletResponse
 
 class HttpServletResponseAdapterTest extends FunSuite {

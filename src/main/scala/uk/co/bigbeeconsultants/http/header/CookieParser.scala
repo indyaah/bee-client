@@ -33,7 +33,7 @@ package uk.co.bigbeeconsultants.http.header
 // - IPv6 addresses - http://tools.ietf.org/html/rfc2732
 
 import java.net.URL
-import uk.co.bigbeeconsultants.http.util.HttpUtil
+import uk.co.bigbeeconsultants.http.util.HttpUtil._
 import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 import uk.co.bigbeeconsultants.http.url.Domain
 
@@ -56,9 +56,9 @@ private[header] object CookieParser {
     var httpOnly = false
     var maxAge: Option[Int] = None
 
-    for (attr <- HttpUtil.split(line, ';')) {
+    for (attr <- split(line, ';')) {
 
-      val t = HttpUtil.divide(attr, '=')
+      val t = divide(attr, '=')
       val a = t._1.trim
       val v = t._2.trim
 
@@ -114,7 +114,7 @@ private[header] object CookieParser {
     val now = new HttpDateTimeInstant()
 
     for (header <- setcookies) {
-      for (line <- HttpUtil.split(header.value, '\n')) {
+      for (line <- split(header.value, '\n')) {
         val optCookie = parseOneCookie(line, from, path, now)
         if (optCookie.isDefined) {
           val cookie = optCookie.get

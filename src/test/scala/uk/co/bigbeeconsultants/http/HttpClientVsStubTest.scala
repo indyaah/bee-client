@@ -35,7 +35,7 @@ import java.io._
 import java.util.zip._
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import java.net.URL
-import util.HttpUtil
+import util.HttpUtil._
 
 
 class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
@@ -252,7 +252,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
   test("soak test jpg image 200-OK") {
     val http = new HttpClient(config)
     val is = getClass.getClassLoader.getResourceAsStream("plataria-sunset.jpg")
-    val jpgBytes = HttpUtil.copyToByteBufferAndClose(is).array()
+    val jpgBytes = copyToByteBufferAndClose(is).array()
     val size = jpgBytes.length
     val loops = 700
     val before = System.currentTimeMillis()
@@ -319,7 +319,7 @@ object HttpClientTestUtils {
     val is = new ByteArrayInputStream(s.getBytes("UTF-8"))
     val baos = new ByteArrayOutputStream
     val gos = new GZIPOutputStream(baos)
-    HttpUtil.copyBytes(is, gos)
+    copyBytes(is, gos)
     gos.close()
     baos.toByteArray
   }

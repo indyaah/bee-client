@@ -24,7 +24,7 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import uk.co.bigbeeconsultants.http.util.HttpUtil
+import uk.co.bigbeeconsultants.http.util.HttpUtil._
 import java.util.regex.Pattern
 
 /**
@@ -33,8 +33,8 @@ import java.util.regex.Pattern
  */
 case class Range(first: Option[Int], last: Option[Int]) {
 
-  require (first.getOrElse (0) >= 0, first.toString)
-  require (last.getOrElse (0) >= 0, last.toString)
+  require(first.getOrElse(0) >= 0, first.toString)
+  require(last.getOrElse(0) >= 0, last.toString)
 
   def isValid =
     if (first.isEmpty && last.isEmpty)
@@ -46,9 +46,9 @@ case class Range(first: Option[Int], last: Option[Int]) {
     else
       first.get <= last.get
 
-  /**Calculates the start,length tuple when this range is applied to an entity of a particular length. */
+  /** Calculates the start,length tuple when this range is applied to an entity of a particular length. */
   def of(totalLength: Int): (Int, Int) = {
-    require (isValid, toString)
+    require(isValid, toString)
     if (first.isEmpty && last.isEmpty)
       (0, totalLength)
     else if (first.isDefined && last.isEmpty)
@@ -61,22 +61,22 @@ case class Range(first: Option[Int], last: Option[Int]) {
 
   private def str(cpt: Option[Int]) = if (cpt.isEmpty) "" else cpt.get.toString
 
-  def firstBytePos = str (first)
+  def firstBytePos = str(first)
 
-  def lastBytePos = str (last)
+  def lastBytePos = str(last)
 
-  override def toString = if (first.isEmpty && last.isEmpty) "" else str (first) + "-" + str (last)
+  override def toString = if (first.isEmpty && last.isEmpty) "" else str(first) + "-" + str(last)
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 
 object Range {
   def apply(str: String) = {
-    val t = HttpUtil.divide (str, '-')
-    new Range (toOptInt (t._1), toOptInt (t._2))
+    val t = divide(str, '-')
+    new Range(toOptInt(t._1), toOptInt(t._2))
   }
 
-  private def toOptInt(num: String) = if (num.length == 0) None else Some (num.toInt)
+  private def toOptInt(num: String) = if (num.length == 0) None else Some(num.toInt)
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -99,23 +99,23 @@ case class RangePart(prefix: String, value: Either[Range, String]) {
 //---------------------------------------------------------------------------------------------------------------------
 
 object RangePart {
-  private val numberPattern = Pattern.compile ("""[0-9\-]+""")
+  private val numberPattern = Pattern.compile( """[0-9\-]+""")
 
   def parse(str: String) = {
     val tr = str.trim
-    if (tr.startsWith ("bytes=")) {
-      doApply ("bytes=", tr.substring (6))
+    if (tr.startsWith("bytes=")) {
+      doApply("bytes=", tr.substring(6))
     } else {
-      doApply ("", tr)
+      doApply("", tr)
     }
   }
 
   private def doApply(prefix: String, str: String) = {
-    if (numberPattern.matcher (str).matches ()) {
-      val r = Range (str)
-      if (r.isValid) new RangePart (prefix, Left (r)) else new RangePart (prefix, Right (str))
+    if (numberPattern.matcher(str).matches()) {
+      val r = Range(str)
+      if (r.isValid) new RangePart(prefix, Left(r)) else new RangePart(prefix, Right(str))
     } else {
-      new RangePart (prefix, Right (str))
+      new RangePart(prefix, Right(str))
     }
   }
 }
@@ -132,13 +132,13 @@ object RangePart {
 case class RangeValue(value: String) extends Value {
 
   val parts: List[RangePart] =
-    HttpUtil.split (value, ',').map {
-      v: String => RangePart.parse (v)
+    split(value, ',').map {
+      v: String => RangePart.parse(v)
     }.toList
 
-  def apply(i: Int) = parts (i).value
+  def apply(i: Int) = parts(i).value
 
-  def isValid = parts.forall (_.isValid)
+  def isValid = parts.forall(_.isValid)
 
-  override val toString = parts.mkString (",")
+  override val toString = parts.mkString(",")
 }

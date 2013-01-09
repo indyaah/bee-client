@@ -30,7 +30,7 @@ import java.net.URL
 import uk.co.bigbeeconsultants.http.header.{AuthenticateValue, Headers, MediaType}
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.response.{EmptyResponseBody, Status, Response}
-import uk.co.bigbeeconsultants.http.url.{PartialURL, Endpoint}
+import uk.co.bigbeeconsultants.http.url.{Href, Endpoint}
 import collection.immutable.ListMap
 
 class AuthenticationRegistryTest extends FunSuite {
@@ -102,7 +102,7 @@ class AuthenticationRegistryTest extends FunSuite {
 
   test("findKnownAuthHeader should return nothing with non-matching path") {
     val request = getExampleOneTwo
-    val mappings = Set(RealmMapping(fbRealm, PartialURL("http://w3.org/a/b/c").path))
+    val mappings = Set(RealmMapping(fbRealm, Href("http://w3.org/a/b/c").path))
     val authenticationRegistry = new AuthenticationRegistry(credentials, true)
     authenticationRegistry.put(request.split.endpoint.get, mappings)
 

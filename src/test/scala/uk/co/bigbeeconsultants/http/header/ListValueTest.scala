@@ -22,33 +22,26 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.http.servlet
+package uk.co.bigbeeconsultants.http.header
 
 import org.scalatest.FunSuite
-import uk.co.bigbeeconsultants.http.header.HeaderName._
-import uk.co.bigbeeconsultants.http.header.{MediaType, Headers}
-import uk.co.bigbeeconsultants.http.util.StubHttpServletRequest
-import uk.co.bigbeeconsultants.http.url.{Endpoint, Path, Href}
 
-class HttpServletRequestAdapterTest extends FunSuite {
+class ListValueTest extends FunSuite {
 
-  test("HttpServletRequestAdapter.url") {
-    val splitUrl = Href(Some(Endpoint("http", "localhost", None)), Path("/context/x/y/z"), None, Some("a=1"))
-    val req = new StubHttpServletRequest().copyFrom(splitUrl)
-    req.contentType = MediaType.TEXT_PLAIN.value
-
-    val adapterUrl = new HttpServletRequestAdapter(req).url
-    assert(splitUrl === adapterUrl)
+  test("CommaListValue with three items") {
+    val v = CommaListValue("gzip, deflate, sdhc")
+    assert(3 === v.parts.size)
+    assert("gzip" === v(0))
+    assert("gzip" === v.parts(0))
+    assert("gzip, deflate, sdhc" === v.toString)
   }
 
-  test("HttpServletRequestAdapter.requestBody with default binary body") {
-    val headers = Headers(List(HOST -> "localhost", ACCEPT -> "foo", ACCEPT_LANGUAGE -> "en", CONTENT_TYPE -> "application/octet-stream"))
-    val req = new StubHttpServletRequest().copyFrom(headers)
-    req.contentType = MediaType.APPLICATION_OCTET_STREAM.value
-
-    val adapter = new HttpServletRequestAdapter(req)
-
-    assert(headers === adapter.headers)
-    assert(MediaType.APPLICATION_OCTET_STREAM === adapter.requestBody.contentType)
+  test("SemicolonListValue with three items") {
+    val v = SemicolonListValue("x=1; y=2; z=3")
+    assert(3 === v.parts.size)
+    assert("x=1" === v(0))
+    assert("x=1" === v.parts(0))
+    assert("x=1; y=2; z=3" === v.toString)
   }
+
 }

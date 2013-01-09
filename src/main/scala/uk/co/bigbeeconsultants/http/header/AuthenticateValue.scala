@@ -24,7 +24,7 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import uk.co.bigbeeconsultants.http.util.HttpUtil
+import uk.co.bigbeeconsultants.http.util.HttpUtil._
 import collection.immutable.ListMap
 
 /**
@@ -43,7 +43,7 @@ case class AuthenticateValue(authScheme: String, parts: ListMap[String, String])
 
   lazy val realm: Option[String] = unquoted("realm")
 
-  lazy val domain: List[String] = unquoted("domain").map(HttpUtil.split(_, ' ')).getOrElse(Nil)
+  lazy val domain: List[String] = unquoted("domain").map(split(_, ' ')).getOrElse(Nil)
 
   lazy val nonce: Option[String] = unquoted("nonce")
 
@@ -53,7 +53,7 @@ case class AuthenticateValue(authScheme: String, parts: ListMap[String, String])
 
   lazy val algorithm: Option[String] = unquoted("algorithm")
 
-  lazy val qop: List[String] = unquoted("qop").map(HttpUtil.split(_, ',')).getOrElse(Nil)
+  lazy val qop: List[String] = unquoted("qop").map(split(_, ',')).getOrElse(Nil)
 
   lazy val isValid = {
     if (authScheme == "Basic") realm.isDefined
@@ -61,7 +61,7 @@ case class AuthenticateValue(authScheme: String, parts: ListMap[String, String])
     else false
   }
 
-  private def unquoted(key: String) = parts.get(key).map(HttpUtil.unquote(_))
+  private def unquoted(key: String) = parts.get(key).map(unquote(_))
 
   override lazy val toString = authScheme + " " + parts.map(kv => kv._1 + "=" + kv._2).mkString(", ")
 }
@@ -70,10 +70,10 @@ case class AuthenticateValue(authScheme: String, parts: ListMap[String, String])
 
 object AuthenticateValue {
   def apply(headerValue: String): AuthenticateValue = {
-    val sections = HttpUtil.divide(headerValue.replace('\n', ' '), ' ')
+    val sections = divide(headerValue.replace('\n', ' '), ' ')
 
-    val parts = HttpUtil.splitQuoted(sections._2, ',') map {
-      v => HttpUtil.divide(v.trim, '=')
+    val parts = splitQuoted(sections._2, ',') map {
+      v => divide(v.trim, '=')
     } map {
       kv => (kv._1.toLowerCase -> kv._2)
     }

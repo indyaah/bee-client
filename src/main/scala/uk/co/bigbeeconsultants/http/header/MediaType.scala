@@ -25,7 +25,7 @@
 package uk.co.bigbeeconsultants.http.header
 
 import uk.co.bigbeeconsultants.http.HttpClient
-import uk.co.bigbeeconsultants.http.util.HttpUtil
+import uk.co.bigbeeconsultants.http.util.HttpUtil._
 
 /**
  * Provides a media type. Also known as a MIME type or content type.
@@ -100,10 +100,16 @@ case class MediaType(contentType: String, subtype: String, charset: Option[Strin
   def isTextual = {
     contentType match {
       case "text" => true
-      case "application" => subtype == "json" || subtype == "xml" || (subtype endsWith "+xml")
+      case "application" => isApplicationTextual
       case _ => false
     }
   }
+
+  private def isApplicationTextual = {
+    knownApplicationTypes.contains(subtype) || (subtype endsWith "+xml")
+  }
+
+  private val knownApplicationTypes = Set("json", "javascript", "ecmascript", "xml")
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -117,6 +123,8 @@ object MediaType {
 
   val STAR_STAR = MediaType(WILDCARD, WILDCARD)
   val APPLICATION_JSON = MediaType("application", "json")
+  val APPLICATION_JAVASCRIPT = MediaType("application", "javascript")
+  val APPLICATION_ECMASCRIPT = MediaType("application", "ecmascript")
   val APPLICATION_XML = MediaType("application", "xml")
   val APPLICATION_SVG_XML = MediaType("application", "svg+xml")
   val APPLICATION_ATOM_XML = MediaType("application", "atom+xml")
@@ -137,7 +145,7 @@ object MediaType {
    */
   def apply(str: String): MediaType = {
     val qp = Qualifiers(str)
-    val t2 = HttpUtil.divide(qp(0).name, '/')
+    val t2 = divide(qp(0).name, '/')
     if (qp.qualifiers.size == 1) {
       new MediaType(orWildcard(t2._1), orWildcard(t2._2), None)
     } else {

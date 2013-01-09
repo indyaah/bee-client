@@ -33,11 +33,10 @@ import uk.co.bigbeeconsultants.http.HttpClient
  *
  * Use the case-class 'copy' method to alter components.
  */
-@deprecated("Replaced by Href", "Since v0.18.11")
-case class PartialURL(endpoint: Option[Endpoint],
-                      path: Path = Path.empty,
-                      fragment: Option[String] = None,
-                      query: Option[String] = None) {
+case class Href(endpoint: Option[Endpoint],
+                path: Path = Path.empty,
+                fragment: Option[String] = None,
+                query: Option[String] = None) {
 
   require(endpoint != null && path != null && fragment != null && query != null)
 
@@ -61,9 +60,9 @@ case class PartialURL(endpoint: Option[Endpoint],
 
   /**
    * Tests whether this instances starts with another instance. This is true if both endpoints are the same
-   * (possibly None) and this path starts with thie other path.
+   * (possibly None) and this path starts with the other path.
    */
-  def startsWith(other: PartialURL): Boolean = {
+  def startsWith(other: Href): Boolean = {
     this.endpoint == other.endpoint && this.path.startsWith(other.path)
   }
 
@@ -118,23 +117,21 @@ case class PartialURL(endpoint: Option[Endpoint],
     copy(query = newValue)
   }
 
-  // backward-compatibility adaptation methods
-  def toHref: Href = new Href(endpoint, path, fragment, query)
+  def toPartialURL = new PartialURL(endpoint, path, fragment, query)
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 
-@deprecated("Replaced by Href", "Since v0.18.11")
-object PartialURL {
+object Href {
   /**
    * Factory method creates an instance from a URL.
    */
-  def apply(url: URL): PartialURL = apply(url.toString)
+  def apply(url: URL): Href = apply(url.toString)
 
   /**
    * Factory method creates an instance from a string containing a URL.
    */
-  def apply(url: String): PartialURL = {
+  def apply(url: String): Href = {
     val hash = url.lastIndexOf('#')
     val query = url.lastIndexOf('?')
     val p1 = url.indexOf(Endpoint.DoubleSlash)
@@ -148,12 +145,12 @@ object PartialURL {
     val s3 = if (p2 < 0) url.length else p2
     val path = if (p2 < 0) root else Path(pathStr(url, p2, hash, query))
     val endpoint = Endpoint(url.substring(0, s3))
-    new PartialURL(Some(endpoint), path, fragment(url, p2, hash, query), qs(url, p2, hash, query))
+    new Href(Some(endpoint), path, fragment(url, p2, hash, query), qs(url, p2, hash, query))
   }
 
   private def parsePartialURL(url: String, hash: Int, query: Int) = {
     val path = Path(pathStr(url, 0, hash, query))
-    new PartialURL(None, path, fragment(url, 0, hash, query), qs(url, 0, hash, query))
+    new Href(None, path, fragment(url, 0, hash, query), qs(url, 0, hash, query))
   }
 
   private def pathStr(url: String, slash: Int, hash: Int, query: Int) = {
@@ -190,8 +187,4 @@ object PartialURL {
   //  private def portAsOption(port: Int) = if (port < 0) None else Some(port)
   //
   //  private def strAsOption(str: String) = if (str != null && str.length > 0) Some(str) else None
-
-  // backward-compatibility adaptation methods
-  implicit def toHref(url: PartialURL): Href = url.toHref
-  implicit def toPartialURL(url: Href): PartialURL = url.toPartialURL
 }

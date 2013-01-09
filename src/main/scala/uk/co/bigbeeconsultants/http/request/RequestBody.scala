@@ -29,7 +29,7 @@ import java.io.{InputStream, OutputStream}
 import uk.co.bigbeeconsultants.http._
 import header.MediaType
 import header.MediaType._
-import util.HttpUtil
+import util.HttpUtil._
 
 /**
  * Carries body data on a request. The body data is supplied by a closure using the
@@ -107,7 +107,7 @@ object RequestBody {
    * which it leaves unclosed.
    */
   def apply(inputStream: InputStream, contentType: MediaType): RequestBody =
-    new StreamRequestBody((outputStream) => HttpUtil.copyBytes(inputStream, outputStream), contentType)
+    new StreamRequestBody((outputStream) => copyBytes(inputStream, outputStream), contentType)
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -180,6 +180,6 @@ final class StreamRequestBody(copyToFn: (OutputStream) => Unit, val contentType:
   def asBytes = throw new UnsupportedOperationException("This request body has not yet been cached.")
 
   def cachedBody: RequestBody = {
-    new BinaryRequestBody(HttpUtil.captureBytes(copyTo), contentType)
+    new BinaryRequestBody(captureBytes(copyTo), contentType)
   }
 }

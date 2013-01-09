@@ -30,9 +30,9 @@ import java.io.InputStream
 import java.net.URL
 import uk.co.bigbeeconsultants.http.header.MediaType
 import uk.co.bigbeeconsultants.http.header.MediaType._
-import uk.co.bigbeeconsultants.http.util.HttpUtil
+import uk.co.bigbeeconsultants.http.util.HttpUtil._
 import uk.co.bigbeeconsultants.http.HttpClient
-import uk.co.bigbeeconsultants.http.url.PartialURL
+import uk.co.bigbeeconsultants.http.url.Href
 
 /**
  * Provides a body implementation that copies the whole response from the response input stream into a ByteBuffer.
@@ -49,7 +49,7 @@ final class ByteBufferResponseBody(requestUrl: Option[URL],
                                    inputStream: InputStream,
                                    suppliedContentLength: Int = 0x10000) extends ResponseBody {
 
-  private[this] val byteData: ByteBuffer = HttpUtil.copyToByteBufferAndClose(inputStream, suppliedContentLength)
+  private[this] val byteData: ByteBuffer = copyToByteBufferAndClose(inputStream, suppliedContentLength)
 
   private[this] var converted: Option[String] = None
 
@@ -69,7 +69,7 @@ final class ByteBufferResponseBody(requestUrl: Option[URL],
 
   // edge case for undefined content type
   private def guessMediaTypeFromContent: MediaType = {
-    val extension = requestUrl.flatMap(PartialURL(_).extension)
+    val extension = requestUrl.flatMap(Href(_).extension)
     if (extension.isDefined) {
       MimeTypeRegistry.table.get(extension.get).getOrElse(guessMediaTypeFromBodyData)
     } else {

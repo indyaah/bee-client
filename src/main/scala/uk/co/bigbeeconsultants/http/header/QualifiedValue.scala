@@ -24,8 +24,7 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import uk.co.bigbeeconsultants.http.util.HttpUtil
-import collection.immutable.LinearSeq
+import uk.co.bigbeeconsultants.http.util.HttpUtil._
 
 /**
  * Specifies a key/value pair used as one of (potentially many) parameters attached to a compound header value.
@@ -40,7 +39,7 @@ case class NameVal(name: String, value: Option[String]) {
 
   def valueWithoutQuotes: Option[String] = {
     if (value.isEmpty) None
-    else Some(HttpUtil.unquote(value.get))
+    else Some(unquote(value.get))
   }
 }
 
@@ -61,9 +60,9 @@ object NameVal {
 //---------------------------------------------------------------------------------------------------------------------
 
 /**
- * A qualified part is one list element in a [[uk.co.bigbeeconsultants.http.header.QualifiedValue]].
- * It consists of a semi-colon delimited list of [[uk.co.bigbeeconsultants.http.header.NameVal]]s.
+ * Qualifiers consists of a semi-colon delimited list of [[uk.co.bigbeeconsultants.http.header.NameVal]]s.
  * Often, the first of these is a label without a value.
+ * Qualifiers is itself one list element in a [[uk.co.bigbeeconsultants.http.header.QualifiedValue]].
  */
 case class Qualifiers(qualifiers: List[NameVal] = Nil) extends Iterable[NameVal] {
 
@@ -83,9 +82,10 @@ case class Qualifiers(qualifiers: List[NameVal] = Nil) extends Iterable[NameVal]
 //---------------------------------------------------------------------------------------------------------------------
 
 object Qualifiers {
-  def apply(str: String): Qualifiers = {
-    val t = HttpUtil.split(str.trim, ';')
-    val qualifiers = t.map {
+  def apply(str: String): Qualifiers = apply(SemicolonListValue(str))
+
+  def apply(list: SemicolonListValue): Qualifiers = {
+    val qualifiers = list.parts.map {
       q => NameVal(q.trim)
     }
     new Qualifiers(qualifiers.toList)
@@ -95,9 +95,9 @@ object Qualifiers {
 //---------------------------------------------------------------------------------------------------------------------
 
 /**
- * Defines an HTTP header with a list of qualifiers. Typically, such values are used for the 'accept' category of
- * headers. These are some of the most complex of HTTP headers, consisting of a comma-separated list of
- * [[uk.co.bigbeeconsultants.http.header.Qualifiers]]s.
+ * Defines an HTTP header with a list of qualifiers. These are derived from a CommaListValue and are typically
+ * used for the 'accept' category of headers. These are some of the most complex of HTTP headers, consisting of
+ * a comma-separated list of [[uk.co.bigbeeconsultants.http.header.Qualifiers]]s.
  * Each qualified part is a value and a list of qualifiers. Each qualifier is a key=value pair.
  *
  * Example value:
@@ -109,13 +109,11 @@ object Qualifiers {
  * [[uk.co.bigbeeconsultants.http.header.Qualifiers]]s and the second
  * [[uk.co.bigbeeconsultants.http.header.NameVal]]s.
  */
-case class QualifiedValue(value: String) extends Iterable[Qualifiers] with Value {
+case class QualifiedValue(list: CommaListValue) extends Iterable[Qualifiers] with Value {
 
-  val parts: List[Qualifiers] = {
-    HttpUtil.split(value, ',').map {
-      v: String => Qualifiers(v)
-    }.toList
-  }
+  def this(value: String) = this(CommaListValue(value))
+
+  val parts: List[Qualifiers] = list.map(Qualifiers(_)).toList
 
   lazy val isValid = parts.forall(_.isValid)
 
@@ -126,4 +124,10 @@ case class QualifiedValue(value: String) extends Iterable[Qualifiers] with Value
   override def iterator = parts.iterator
 
   override lazy val toString = parts.mkString(", ")
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+
+object QualifiedValue {
+  def apply(str: String) = new QualifiedValue(CommaListValue(str))
 }

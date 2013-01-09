@@ -43,12 +43,17 @@ import collection.mutable.ListBuffer
  * In the latter case, once a request has completed, a new instance is created based on the prior cookies and any
  * new ones that were set by the server.
  */
-case class CookieJar(cookies: List[Cookie]) extends Iterable[CookieIdentity] {
+case class CookieJar(cookies: List[Cookie]) extends Seq[CookieIdentity] {
+
+  override def apply(i: Int) = cookies(i)
 
   override def isEmpty = cookies.isEmpty
 
   /** The number of cookies in this jar. */
   override def size = cookies.size
+
+  /** The number of cookies in this jar. */
+  override def length = cookies.length
 
   override def iterator = cookies.iterator
 
@@ -107,28 +112,28 @@ case class CookieJar(cookies: List[Cookie]) extends Iterable[CookieIdentity] {
   /**
    * Gets a filtered collection of cookies from this jar that match a certain predicate.
    */
-  override def filter(f: (CookieIdentity) => Boolean): Iterable[Cookie] = {
+  override def filter(f: (CookieIdentity) => Boolean): Seq[Cookie] = {
     cookies.filter(cookie => f(cookie))
   }
 
   /**
    * Gets a filtered collection of cookies from this jar that match a certain predicate.
    */
-  def filter(cookie: CookieIdentity): Iterable[Cookie] = {
+  def filter(cookie: CookieIdentity): Seq[Cookie] = {
     cookies.filter(_ matches cookie)
   }
 
   /**
    * Gets a filtered collection of cookies from this jar that do not match a certain predicate.
    */
-  override def filterNot(f: (CookieIdentity) => Boolean): Iterable[Cookie] = {
+  override def filterNot(f: (CookieIdentity) => Boolean): Seq[Cookie] = {
     cookies.filterNot(cookie => f(cookie))
   }
 
   /**
    * Gets a filtered collection of cookies from this jar that do not match a certain predicate.
    */
-  def filterNot(cookie: CookieIdentity): Iterable[Cookie] = {
+  def filterNot(cookie: CookieIdentity): Seq[Cookie] = {
     cookies.filterNot(_ matches cookie)
   }
 

@@ -24,7 +24,7 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import uk.co.bigbeeconsultants.http.util.HttpUtil
+import uk.co.bigbeeconsultants.http.util.HttpUtil._
 
 trait Value {
   def isValid: Boolean
@@ -39,22 +39,25 @@ trait Value {
 case class Header(name: String, value: String) {
 
   /** Converts the value to an integer number. */
-  def toNumber = NumberValue (value)
+  def toNumber = NumberValue(value)
 
   /** Converts the value to an HttpDateTimeInstant. */
-  def toDate: DateValue = DateValue (value)
+  def toDate: DateValue = DateValue(value)
+
+  /** Converts the value to a comma-separated list value. */
+  def toListValue = CommaListValue(value)
 
   /** Converts the value to a qualified value. */
-  def toQualifiedValue = QualifiedValue (value)
+  def toQualifiedValue = toListValue.toQualifiedValue
 
   /** Converts the value to an authenticate value. */
-  def toAuthenticateValue = AuthenticateValue (value)
+  def toAuthenticateValue = AuthenticateValue(value)
 
   /** Converts the value to a range value. */
-  def toRangeValue = RangeValue (value)
+  def toRangeValue = RangeValue(value)
 
   /** Converts the value to a media type. */
-  def toMediaType = MediaType (value)
+  def toMediaType = MediaType(value)
 
   /** Header name equalsIgnoreCase other name. */
   def =~=(other: String) = name equalsIgnoreCase other
@@ -67,7 +70,7 @@ case class Header(name: String, value: String) {
 
   override def toString = name + ": " + value
 
-  lazy val hasListValue = HeaderName.headersWithListValues.contains (name)
+  lazy val hasListValue = HeaderName.headersWithListValues.contains(name)
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -80,7 +83,7 @@ object Header {
    * Constructs a header by splitting a raw string at the first ':'.
    */
   def apply(raw: String): Header = {
-    val t = HttpUtil.divide (raw, ':')
-    apply (t._1.trim, t._2.trim)
+    val t = divide(raw, ':')
+    apply(t._1.trim, t._2.trim)
   }
 }

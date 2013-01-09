@@ -34,6 +34,7 @@ import org.slf4j.{LoggerFactory, Logger}
 import collection.mutable.ListBuffer
 import java.io.IOException
 import util.DiagnosticTimer
+import util.HttpUtil._
 
 /**
  * Constructs an instance for handling any number of HTTP requests with any level of concurrency.
@@ -173,12 +174,9 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
   private def getBodyStream(contEnc: Option[Header], httpURLConnection: HttpURLConnection) = {
     val iStream = selectStream(httpURLConnection)
     if (!contEnc.isEmpty) {
-      val encodings = contEnc.get.toQualifiedValue.parts.map(_.value)
-      if (encodings.contains(HttpClient.GZIP)) {
+      val enc = contEnc.get.toListValue
+      if (enc.contains(HttpClient.GZIP)) {
         new GZIPInputStream(iStream)
-        // not working
-        //      } else if (encodings.contains(HttpClient.DEFLATE)) {
-        //        new InflaterInputStream (iStream, new Inflater (true))
       } else {
         iStream
       }
@@ -219,8 +217,7 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
 
 object HttpClient {
   val UTF8 = "UTF-8"
-  val GZIP = "gzip"
-  val DEFLATE = "deflate"
+  val GZIP = "gzip" // only is supported
 
   final def setRequestHeader(urlConnection: URLConnection, header: Header, logger: Logger) {
     urlConnection.setRequestProperty(header.name, header.value)
