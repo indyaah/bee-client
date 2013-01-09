@@ -159,4 +159,12 @@ class HttpUtilTest extends FunSuite {
     val bais = new ByteArrayInputStream(bytes)
     HttpUtil.copyText(bais, null)
   }
+
+  test("captureBytes") {
+    val str = "short string"
+    val bytes = str.getBytes
+    val bais = new ByteArrayInputStream(bytes)
+    val captured = HttpUtil.captureBytes(HttpUtil.copyBytes(bais, _))
+    assert(captured === bytes)
+  }
 }

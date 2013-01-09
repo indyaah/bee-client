@@ -32,28 +32,7 @@ import uk.co.bigbeeconsultants.http.util.StubHttpServletRequest
 import uk.co.bigbeeconsultants.http.url.{Endpoint, Path, PartialURL}
 import javax.servlet.http.HttpServletResponse
 
-class HttpServletAdapterTest extends FunSuite {
-
-  test("HttpServletRequestAdapter.url") {
-    val splitUrl = PartialURL(Some(Endpoint("http", "localhost", None)), Path("/context/x/y/z"), None, Some("a=1"))
-    //val s = splitUrl.toString
-    val req = new StubHttpServletRequest().copyFrom(splitUrl)
-    req.contentType = MediaType.TEXT_PLAIN.value
-
-    val adapterUrl = new HttpServletRequestAdapter(req).url
-    assert(splitUrl === adapterUrl)
-  }
-
-  test("HttpServletRequestAdapter.requestBody") {
-    val headers = Headers(List(HOST -> "localhost", ACCEPT -> "foo", ACCEPT_LANGUAGE -> "en", CONTENT_TYPE -> "text/plain"))
-    val req = new StubHttpServletRequest().copyFrom(headers)
-    req.contentType = MediaType.TEXT_PLAIN.value
-
-    val adapter = new HttpServletRequestAdapter(req)
-
-    assert(headers === adapter.headers)
-    assert(MediaType.TEXT_PLAIN === adapter.requestBody.contentType)
-  }
+class HttpServletResponseAdapterTest extends FunSuite {
 
   test("HttpServletResponseAdapter setResponseHeaders") {
     val res = mock(classOf[HttpServletResponse])
