@@ -1,3 +1,35 @@
+#### Thu, 10 Jan 2013
+* v0.18.11
+* The RequestBody implementation classes have been changed considerably.
+* HttpServletRequestAdapter and HttpServletResponseAdapter have been rewritten.
+* new TextualBodyFilter
+
+
+#### Wed, 09 Jan 2013
+* v0.18.11
+* new Splitter for low-memory extraction of substrings in a string.
+
+
+#### Wed, 09 Jan 2013
+* v0.18.11
+* PartialURL is replaced by an identical class called Href. PartialURL is still available but is now deprecated and will be removed later.
+* CookieJar is now a Seq.
+* New header value classes CommaListValue and SemicolonListValue.
+* MediaType now treats application/javascript and application/ecmascript as textual types.
+* some more tidying up
+
+
+#### Wed, 09 Jan 2013
+* HttpUtilTest tests captureBytes now
+
+
+#### Tue, 08 Jan 2013
+* v0.18.10
+* Some simplification to RequestBody
+* new StringSeqRequestBody
+* HttpServletRequestAdapter now has filtering capability like HttpServletResponseAdapter
+
+
 #### Thu, 20 Dec 2012
 * v0.18.9
 * Header classes clarify the usage of ignore-case comparison.

@@ -138,6 +138,7 @@ final class StringRequestBody(string: String, val contentType: MediaType,
     splitter.foreach {
       s => pw.println(filter(s))
     }
+    pw.flush()
     outputStream.flush()
   }
 
