@@ -25,11 +25,12 @@
 package uk.co.bigbeeconsultants.http.request
 
 import java.net.URLEncoder
-import java.io.{InputStream, OutputStream}
+import java.io.{OutputStreamWriter, PrintWriter, InputStream, OutputStream}
 import uk.co.bigbeeconsultants.http._
 import header.MediaType
 import header.MediaType._
 import util.HttpUtil._
+import util.Splitter
 
 /**
  * Carries body data on a request. The body data is supplied by a closure using the
@@ -45,8 +46,8 @@ trait RequestBody {
   /** Gets the content type. */
   def contentType: MediaType
 
-  /** Gets a string representation of the body, if possible. */
-  def asString: String
+  /** Gets a string representation of the body, if possible. Otherwise, "..." is returned. */
+  def asString: String = "..."
 
   /** Gets a byte array representation of the body, if possible. Some implementations do not provide this. */
   def asBytes: Array[Byte]
@@ -58,7 +59,11 @@ trait RequestBody {
   def cachedBody: RequestBody
 
   /** Gets the string representation and the content type for diagnostic purposes. */
-  final def toShortString = "(" + asString + "," + contentType + ")"
+  final def toShortString = {
+    val as = asString
+    val s = if (as.length > 125) as.substring(0, 125) + "..." else as
+    "(" + s + "," + contentType + ")"
+  }
 
   override def toString = "RequestBody" + toShortString
 }
@@ -112,13 +117,36 @@ object RequestBody {
 
 //---------------------------------------------------------------------------------------------------------------------
 
-final class StringRequestBody(string: String, val contentType: MediaType) extends RequestBody {
-  def copyTo(outputStream: OutputStream) {
+/**
+ * Provides a request body based simply on a string.
+ * It is normally more convenient to construct instances via `RequestBody`.
+ * @param string the source data
+ * @param contentType the media type
+ */
+final class StringRequestBody(string: String, val contentType: MediaType,
+                              rewrite: Option[TextFilter] = None) extends RequestBody {
+  private def binaryCopyTo(outputStream: OutputStream) {
     outputStream.write(asBytes)
     outputStream.flush()
   }
 
-  def asString = if (string.length > 125) string.substring(0, 125) + "..." else string
+  private def textCopyTo(outputStream: OutputStream) {
+    val encoding = contentType.charsetOrElse(HttpClient.UTF8)
+    val splitter = new Splitter(string, '\n')
+    val pw = new PrintWriter(new OutputStreamWriter(outputStream, encoding))
+    val filter = rewrite.get
+    splitter.foreach {
+      s => pw.println(filter(s))
+    }
+    outputStream.flush()
+  }
+
+  def copyTo(outputStream: OutputStream) {
+    if (rewrite.isDefined) textCopyTo(outputStream)
+    else (binaryCopyTo(outputStream))
+  }
+
+  override def asString = string
 
   /** Gets a byte array representation of the body, if possible. Some implementations do not provide this. */
   lazy val asBytes: Array[Byte] = {
@@ -126,60 +154,66 @@ final class StringRequestBody(string: String, val contentType: MediaType) extend
     string.getBytes(encoding)
   }
 
-  def cachedBody = this
+  /** Returns `this` because the implementation already contains cached data. */
+  override def cachedBody = this
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 
-final class StringSeqRequestBody(strings: TraversableOnce[String], val contentType: MediaType,
-                                 rewrite: TextFilter = NoChangeTextFilter) extends RequestBody {
-  def copyTo(outputStream: OutputStream) {
-    val encoding = contentType.charsetOrElse(HttpClient.UTF8)
-    strings.foreach {
-      s => outputStream.write(rewrite(s).getBytes(encoding))
-    }
-    outputStream.flush()
-  }
-
-  def asString = "..."
-
-  def asBytes = throw new UnsupportedOperationException("This request body has not yet been cached.")
-
-  def cachedBody = this
-}
-
-//---------------------------------------------------------------------------------------------------------------------
-
+/**
+ * Provides a request body based on an array of bytes that constitutes arbitrary data.
+ * @param byteArray the data, whether binary or textual
+ * @param contentType the media type
+ */
 final class BinaryRequestBody(byteArray: Array[Byte], val contentType: MediaType) extends RequestBody {
   def copyTo(outputStream: OutputStream) {
     outputStream.write(byteArray)
     outputStream.flush()
   }
 
-  def asString = "..."
+  /**
+   * If the content type is textual, this gets the byte array converted to a string. Otherwise it returns
+   * a terse representation.
+   */
+  override def asString = {
+    if (contentType.isTextual) {
+      val encoding = contentType.charsetOrElse(HttpClient.UTF8)
+      new String(byteArray, encoding)
+    }
+    else if (byteArray.length > 0) "..."
+    else ""
+  }
 
   /** Gets a byte array representation of the body, if possible. Some implementations do not provide this. */
-  def asBytes = byteArray
+  override def asBytes = byteArray
 
-  def cachedBody = this
+  /** Returns `this` because the implementation already contains cached data. */
+  override def cachedBody = this
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 
+/**
+ * Provides a request body based on an arbitrary function that writes data to an output stream, without any
+ * inherent caching of the body data.
+ * It is possible to obtain a cached version of this body; a `BinaryRequestBody` will be returned.
+ * It is normally more convenient to construct instances via `RequestBody`.
+ * @param copyToFn the writer function
+ * @param contentType the media type
+ */
 final class StreamRequestBody(copyToFn: (OutputStream) => Unit, val contentType: MediaType) extends RequestBody {
   private var consumed = false
 
   def copyTo(outputStream: OutputStream) {
-    if (consumed) throw new IllegalStateException("Cannot use the copyTo function more than once.")
+    if (consumed) throw new IllegalStateException("Cannot use the copyTo function more than once. Obtain a cachedBody and then use it instead.")
     consumed = true
     copyToFn(outputStream)
   }
 
-  def asString = "..."
+  override def asBytes = throw new UnsupportedOperationException("This request body has not yet been cached.")
 
-  def asBytes = throw new UnsupportedOperationException("This request body has not yet been cached.")
-
-  def cachedBody: RequestBody = {
+  /** Converts this body to a new `BinaryRequestBody`. */
+  override def cachedBody: RequestBody = {
     new BinaryRequestBody(captureBytes(copyTo), contentType)
   }
 }

@@ -22,30 +22,18 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.http
+package uk.co.bigbeeconsultants.http.servlet
 
-import header.MediaType
-import java.net.{URL, MalformedURLException}
-import url.Domain
+import uk.co.bigbeeconsultants.http._
 
-object `package` {
-  @throws(classOf[MalformedURLException])
-  implicit def toURL(url: String) = new URL(url)
-
-  implicit def toDomain(domain: String) = new Domain(domain)
-
-  /** Instances of this type are functions that mutate a string in some way. */
-  type TextFilter = (String) => String
-
-  /** A text filter that simply returns the source text unchanged. */
-  val NoChangeTextFilter: TextFilter = (x) => x
-
-  /** Instances of this type are predicates that indicate which media types will be included in some operation. */
-  type MediaFilter = (MediaType) => Boolean
-
-  /** A predicate that indicates all media types that are known to be textual. */
-  val AllTextualMediaTypes: MediaFilter = (mt) => mt.isTextual
-
-  /** A predicate that returns false for all media types. */
-  val NoMediaTypes: MediaFilter = (mt) => false
-}
+/**
+ * Provides hooks to modify a textual body in transit. This can be applied both to request bodies and response bodies.
+ * @param lineProcessor the mutation function that is applied to every line of the body content.
+ *                When applied to a body, this is used only when the content is treated as text (see `processAsText`).
+ * @param processAsText an optional condition that limits when the rewrite function will be used. By default,
+ *                      the response body is simply copied verbatim as binary data; therefore the rewrite
+ *                      function is ignored. A suggested alternative value is `AllTextualMediaTypes`. Note that there
+ *                      are no possible values that will force the conversion of binary content to text.
+ */
+case class TextualBodyFilter(lineProcessor: TextFilter = NoChangeTextFilter,
+                             processAsText: MediaFilter = NoMediaTypes)

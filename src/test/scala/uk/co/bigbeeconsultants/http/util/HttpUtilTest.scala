@@ -108,7 +108,7 @@ class HttpUtilTest extends FunSuite {
     assert("" === result)
   }
 
-  test("copyBytesShort") {
+  test("copyBytes short") {
     val str = "short string"
     val bytes = str.getBytes
     val bais = new ByteArrayInputStream(bytes)
@@ -119,7 +119,7 @@ class HttpUtilTest extends FunSuite {
     assert(str === result)
   }
 
-  test("copyBytesLong") {
+  test("copyBytes long") {
     val sb = new StringBuilder
     for (i <- 1 to 10000) sb.append(i + " this is my string of text which will be repeated many times.\n")
     val str = sb.toString()
@@ -127,6 +127,28 @@ class HttpUtilTest extends FunSuite {
     val bais = new ByteArrayInputStream(bytes)
     val baos = new ByteArrayOutputStream
     val count = HttpUtil.copyBytes(bais, baos)
+    val result = new String(baos.toByteArray)
+    assert(bytes.length === count)
+    assert(str === result)
+  }
+
+  test("copyArray short") {
+    val str = "short string"
+    val bytes = str.getBytes
+    val baos = new ByteArrayOutputStream
+    val count = HttpUtil.copyArray(bytes, baos)
+    val result = new String(baos.toByteArray)
+    assert(bytes.length === count)
+    assert(str === result)
+  }
+
+  test("copyArray long") {
+    val sb = new StringBuilder
+    for (i <- 1 to 10000) sb.append(i + " this is my string of text which will be repeated many times.\n")
+    val str = sb.toString()
+    val bytes = str.getBytes
+    val baos = new ByteArrayOutputStream
+    val count = HttpUtil.copyArray(bytes, baos)
     val result = new String(baos.toByteArray)
     assert(bytes.length === count)
     assert(str === result)
@@ -152,12 +174,23 @@ class HttpUtilTest extends FunSuite {
   }
 
   test("copyText with null output stream") {
+    val bytes = "hello".getBytes
+    val bais = new ByteArrayInputStream(bytes)
+    HttpUtil.copyText(bais, null)
+  }
+
+  test("copyString") {
     val sb = new StringBuilder
     for (i <- 1 to 5) sb.append(i + " this is my string of text which will be repeated many times.\n")
     val str = sb.toString()
-    val bytes = str.getBytes
-    val bais = new ByteArrayInputStream(bytes)
-    HttpUtil.copyText(bais, null)
+    val baos = new ByteArrayOutputStream
+    HttpUtil.copyString(str, baos)
+    val result = new String(baos.toByteArray)
+    assert(str === result)
+  }
+
+  test("copyString with null output stream") {
+    HttpUtil.copyString("hello", null)
   }
 
   test("captureBytes") {

@@ -54,7 +54,7 @@ class SplitterTest extends FunSuite {
   }
 
   test("several lines with extremities") {
-    val splitter = new Splitter("\nline 1\nline 2\nline 3\n", '\n')
+    val splitter = new Splitter("\nline 1\nline 2\n\nline 4\n", '\n')
     assert(splitter.hasNext)
     assert(splitter.next === "")
     assert(splitter.hasNext)
@@ -62,7 +62,9 @@ class SplitterTest extends FunSuite {
     assert(splitter.hasNext)
     assert(splitter.next === "line 2")
     assert(splitter.hasNext)
-    assert(splitter.next === "line 3")
+    assert(splitter.next === "")
+    assert(splitter.hasNext)
+    assert(splitter.next === "line 4")
     assert(splitter.hasNext)
     assert(splitter.next === "")
     assert(!splitter.hasNext)

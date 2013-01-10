@@ -22,30 +22,17 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.http
+package uk.co.bigbeeconsultants.http.servlet
 
-import header.MediaType
-import java.net.{URL, MalformedURLException}
-import url.Domain
+import javax.servlet.ServletOutputStream
+import java.io.ByteArrayOutputStream
 
-object `package` {
-  @throws(classOf[MalformedURLException])
-  implicit def toURL(url: String) = new URL(url)
+class CaptureOutputStream extends ServletOutputStream {
+  val baos = new ByteArrayOutputStream
 
-  implicit def toDomain(domain: String) = new Domain(domain)
+  def write(b: Int) {
+    baos.write(b.asInstanceOf[Byte])
+  }
 
-  /** Instances of this type are functions that mutate a string in some way. */
-  type TextFilter = (String) => String
-
-  /** A text filter that simply returns the source text unchanged. */
-  val NoChangeTextFilter: TextFilter = (x) => x
-
-  /** Instances of this type are predicates that indicate which media types will be included in some operation. */
-  type MediaFilter = (MediaType) => Boolean
-
-  /** A predicate that indicates all media types that are known to be textual. */
-  val AllTextualMediaTypes: MediaFilter = (mt) => mt.isTextual
-
-  /** A predicate that returns false for all media types. */
-  val NoMediaTypes: MediaFilter = (mt) => false
+  def toByteArray = baos.toByteArray
 }

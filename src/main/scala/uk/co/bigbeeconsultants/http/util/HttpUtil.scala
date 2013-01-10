@@ -27,7 +27,7 @@ package uk.co.bigbeeconsultants.http.util
 import collection.mutable.ListBuffer
 import java.nio.ByteBuffer
 import java.io._
-import uk.co.bigbeeconsultants.http.HttpClient
+import uk.co.bigbeeconsultants.http._
 
 object HttpUtil {
   // Known to be immutable.
@@ -135,7 +135,7 @@ object HttpUtil {
   }
 
   /**
-   * Directly copies the bytes from an input stream to an output stream, using only a small buffer.
+   * Directly copies the bytes from an input stream to an output stream, using only a small intermediate buffer.
    * @param input the input stream
    * @param output the output stream
    * @return the number of bytes copied
@@ -157,6 +157,19 @@ object HttpUtil {
   }
 
   /**
+   * Directly copies the bytes from a buffer to an output stream.
+   * @param bytes the input stream
+   * @param output the output stream
+   * @return the number of bytes copied
+   */
+  @throws(classOf[IOException])
+  def copyArray(bytes: Array[Byte], output: OutputStream): Long = {
+    output.write(bytes)
+    output.flush()
+    bytes.length
+  }
+
+  /**
    * Copies the text from an input stream to an output stream line by line, allowing alteration of the text.
    * This might be used to rewrite URLs in body content, for example.
    * @param input the input stream
@@ -167,7 +180,7 @@ object HttpUtil {
    */
   @throws(classOf[IOException])
   def copyText(input: InputStream, output: OutputStream, charset: String = HttpClient.UTF8,
-               alter: (String) => String = (x) => x) {
+               alter: TextFilter = NoChangeTextFilter) {
     if (input != null && output != null) {
       val in = new BufferedReader(new InputStreamReader(input, charset))
       val out = new PrintWriter(new OutputStreamWriter(output, charset))
@@ -175,6 +188,29 @@ object HttpUtil {
       while (line != null) {
         out.println(alter(line))
         line = in.readLine
+      }
+      out.flush()
+    }
+  }
+
+  /**
+   * Copies the text from a string to an output stream line by line, allowing alteration of the text.
+   * This might be used to rewrite URLs in body content, for example.
+   * @param string the source text
+   * @param output the output stream
+   * @param charset the character set, default UTF-8
+   * @param alter an optional function for changing each line of text before writing it out. This is applied
+   *              line by line.
+   */
+  @throws(classOf[IOException])
+  def copyString(string: String, output: OutputStream, charset: String = HttpClient.UTF8,
+                 alter: TextFilter = NoChangeTextFilter) {
+    if (output != null) {
+      val out = new PrintWriter(new OutputStreamWriter(output, charset))
+      val last = string.length - 1
+      val s = if (last >= 0 && string.charAt(last) == '\n') string.substring(0, last) else string
+      for (line <- new Splitter(s, '\n')) {
+        out.println(alter(line))
       }
       out.flush()
     }

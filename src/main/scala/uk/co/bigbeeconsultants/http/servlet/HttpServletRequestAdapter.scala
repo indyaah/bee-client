@@ -27,21 +27,16 @@ package uk.co.bigbeeconsultants.http.servlet
 import javax.servlet.http.HttpServletRequest
 import uk.co.bigbeeconsultants.http._
 import header._
-import request.{StringSeqRequestBody, RequestBody}
+import request.{StringRequestBody, RequestBody}
 import url.{Endpoint, Path, Href}
 
 /**
  * Adapts HTTP Servlet request objects to the Light Http Client API. This allows a variety of solutions such as
  * reverse proxying to be implemented easily.
- * @param rewrite an optional mutation function that is applied to every line of the body content.
- *                This is used only when the content is treated as text (see `processAsText`)
- * @param processAsText an optional condition that limits when the rewrite function will be used. By default,
- *                      the response body is simply copied verbatim as binary data; therefore the rewrite
- *                      function is ignored. A suggested alternative value is `AllTextualMediaTypes`.
+ * @param textualBodyFilter an optional mutation that may be applied to every line of the body content.
  */
 class HttpServletRequestAdapter(req: HttpServletRequest,
-                                rewrite: TextFilter = NoChangeTextFilter,
-                                processAsText: MediaFilter = NoMediaTypes) {
+                                textualBodyFilter: Option[TextualBodyFilter] = None) {
 
   def url: Href = {
     val port = if (req.getServerPort < 0) None else Some(req.getServerPort)
@@ -57,15 +52,29 @@ class HttpServletRequestAdapter(req: HttpServletRequest,
     }.toList)
   }
 
+  /**
+   * Gets the request body.
+   * @return the request body which will be a low-footprint streaming implementation by default. However, it
+   *         is possible to access the body by first caching it, e.g.
+   *         {{{
+   *           val adapter = new HttpServletRequestAdapter(req)
+   *           val body = adapter.requestBody.cachedBody
+   *           println(body.asString)
+   *           val request = Request.post(url, Some(body))
+   *           ...
+   *         }}}
+   */
   def requestBody: RequestBody = {
     val rawContentType = req.getContentType
     val contentType = if (rawContentType != null) MediaType(rawContentType) else MediaType.TEXT_PLAIN
     val streamRequestBody = RequestBody(req.getInputStream, contentType)
-    if (processAsText(contentType)) {
-      val encoding = contentType.charsetOrElse(HttpClient.UTF8)
-      val body = new String(streamRequestBody.cachedBody.asBytes, encoding)
-      new StringSeqRequestBody(body.split('\n'), contentType, rewrite)
+
+    if (textualBodyFilter.isDefined && textualBodyFilter.get.processAsText(contentType)) {
+      val body = streamRequestBody.cachedBody.asString
+      new StringRequestBody(body, contentType, textualBodyFilter.map(_.lineProcessor))
     }
-    else streamRequestBody
+    else {
+      streamRequestBody
+    }
   }
 }

@@ -27,37 +27,37 @@ package uk.co.bigbeeconsultants.http.servlet
 import org.scalatest.FunSuite
 import org.mockito.Mockito._
 import uk.co.bigbeeconsultants.http.header.HeaderName._
-import uk.co.bigbeeconsultants.http.header.Headers
+import uk.co.bigbeeconsultants.http.header.{MediaType, Headers}
 import javax.servlet.http.HttpServletResponse
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import uk.co.bigbeeconsultants.http.HttpClient
+import uk.co.bigbeeconsultants.http.request.Request
+import java.net.URL
+import uk.co.bigbeeconsultants.http.response.Status
 
 class HttpServletResponseAdapterTest extends FunSuite {
 
   test("HttpServletResponseAdapter setResponseHeaders") {
-    val res = mock(classOf[HttpServletResponse])
-    val adapter = new HttpServletResponseAdapter(res)
+    val servletResponse = mock(classOf[HttpServletResponse])
+    val adapter = new HttpServletResponseAdapter(servletResponse, None)
     adapter.setResponseHeaders(Headers(HOST -> "krum"))
-    verify(res).setHeader("Host", "krum")
+    verify(servletResponse).setHeader("Host", "krum")
   }
 
-  //  test("CopyStreamResponseBody") {
-  //    val s = """So shaken as we are, so wan with care!"""
-  //    val baos = new ByteArrayOutputStream
-  //    val inputStream = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
-  //    val mt = MediaType.TEXT_PLAIN
-  //    val body = new CopyStreamResponseBody(baos, mt, inputStream)
-  //
-  //    body.contentType should be(mt)
-  //    val result = new String(baos.toByteArray, HttpClient.UTF8)
-  //    result should be (s)
-  //  }
+  test("HttpServletResponseAdapter copy content") {
+    val s = """So shaken as we are, so wan with care!"""
+    val inputStream = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
+    val request = Request.get(new URL("http://krum/"))
+    val servletResponse = mock(classOf[HttpServletResponse])
+    val sos = new CaptureOutputStream
+    when(servletResponse.getOutputStream) thenReturn sos
 
-
-  test("convertRequestHeaders") {
-
-  }
-
-
-  test("copyResponse") {
-
+    val adapter = new HttpServletResponseAdapter(servletResponse, None)
+    adapter.responseBuilder.captureResponse(request, Status.S200_OK, Some(MediaType.TEXT_PLAIN), Headers(), None, inputStream)
+    adapter.sendResponse()
+    verify(servletResponse).setStatus(200, "OK")
+    verify(servletResponse, times(2)).getOutputStream
+    assert(new String(sos.toByteArray) === s)
+    verifyNoMoreInteractions(servletResponse)
   }
 }

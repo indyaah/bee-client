@@ -26,7 +26,9 @@ package uk.co.bigbeeconsultants.http.util
 
 /**
  * This simple splitter provides a low-memory way of splitting large strings. No copying is needed;
- * instead the string is indexed to obtain successive sub-strings between separator characters.
+ * instead the string is indexed to obtain successive sub-strings between separator characters. The
+ * behaviour is essentially the same as String.split(Char), except that it is presented as an Iterator[String]
+ * instead of as an array.
  */
 class Splitter(string: String, separator: Char) extends Iterator[String] {
   private var s = 0
