@@ -28,6 +28,7 @@ import java.nio.charset.Charset
 import uk.co.bigbeeconsultants.http.header.MediaType
 import uk.co.bigbeeconsultants.http.HttpClient
 import java.nio.ByteBuffer
+import uk.co.bigbeeconsultants.http.util.Splitter
 
 /**
  * Defines the outline of a response body. This may or may not be buffered in memory or streamed directly
@@ -53,10 +54,15 @@ trait ResponseBody {
   def asBytes: Array[Byte] = new Array[Byte](0)
 
   /**
-   * Gets the body as a string if available. By default, this merely returns an empty string, which may not be
-   * much use.
+   * Gets the body as a string, if available. If the data is binary, this method always returns a blank string.
    */
   def asString: String = ""
+
+  /**
+   * Gets the body as a string split into lines, if available. If the data is binary, this method always returns
+   * an empty iterator.
+   */
+  def iterator: Iterator[String] = if (isTextual && asString.length > 0) new Splitter(asString, '\n') else Nil.iterator
 
   /**
    * Tests whether this response body can be represented as text, or whether the data is binary.

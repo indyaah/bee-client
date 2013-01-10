@@ -45,6 +45,10 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.asBytes should be(bytes)
     body.isTextual should be(true)
     body.toString should be(s)
+    val it = body.iterator
+    it.hasNext should be(true)
+    it.next should be(s)
+    it.hasNext should be(false)
   }
 
   test("ByteBufferResponseBody with text but without a body") {
@@ -56,6 +60,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.asBytes should be(new Array[Byte](0))
     body.isTextual should be(true)
     body.toString should be("")
+    body.iterator.hasNext should be(false)
   }
 
   test("ByteBufferResponseBody with binary but without a body") {
@@ -67,6 +72,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.asBytes should be(new Array[Byte](0))
     body.isTextual should be(false)
     body.toString should be("")
+    body.iterator.hasNext should be(false)
   }
 
   test("ByteBufferResponseBody with binary and a body") {
@@ -80,6 +86,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.asBytes should be(bytes)
     body.isTextual should be(false)
     body.toString should be("")
+    body.iterator.hasNext should be(false)
   }
 
   test("ByteBufferResponseBody with plain text but no media type") {
