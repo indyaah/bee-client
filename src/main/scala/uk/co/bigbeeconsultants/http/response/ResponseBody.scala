@@ -33,8 +33,11 @@ import uk.co.bigbeeconsultants.http.util.Splitter
 /**
  * Defines the outline of a response body. This may or may not be buffered in memory or streamed directly
  * to where it is needed, depending on the implementation.
+ *
+ * When the content is textual, instances may be useful as an Iterable[String], providing a way of
+ * accessing the text line by line.
  */
-trait ResponseBody {
+trait ResponseBody extends Iterable[String] {
   /**
    * Gets the content type and encoding of the response.
    */
