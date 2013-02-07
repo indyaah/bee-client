@@ -1,5 +1,5 @@
 #!/bin/bash -e
-V=0.12.1
+V=0.12.2
 
 cd $(dirname $0)
 if [ ! -f xsbt/bin/sbt-launch.jar ]; then
