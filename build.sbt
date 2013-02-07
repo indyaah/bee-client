@@ -26,9 +26,9 @@ name := "bee-client"
 
 organization := "uk.co.bigbeeconsultants"
 
-version := "0.18.12"
+version := "0.19.0"
 
-crossScalaVersions := Seq("2.9.0", "2.9.1", "2.9.2")
+crossScalaVersions := Seq("2.9.0", "2.9.1", "2.9.2", "2.10.0")
 
 //publishMavenStyle := true
 

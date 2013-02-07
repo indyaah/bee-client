@@ -54,7 +54,7 @@ object Dependencies {
 
   // ========== Test ==========
 
-  val scalatest = "org.scalatest" %% "scalatest" % "1.8" % "test" withSources()
+  val scalatest = "org.scalatest" %% "scalatest" % "1.9.1" % "test" withSources()
 
   val jsontools = "com.sdicons.jsontools" % "jsontools-core" % "1.7" % "test" withSources()
 
