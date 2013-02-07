@@ -1,3 +1,27 @@
+#### Thu, 07 Feb 2013
+* v1.0.1
+
+
+#### Thu, 07 Feb 2013
+* v1.0.1
+* Now supports Scala 2.10 and uses Sbt 0.12.2
+
+
+#### Thu, 07 Feb 2013
+* v0.19.0
+* Support for Scala 2.10
+
+
+#### Fri, 11 Jan 2013
+* ResponseBody is now an Iterable.
+
+
+#### Thu, 10 Jan 2013
+* v0.18.12
+* ResponseBody has new iterator method that returns the lines of the body via an iterator
+* sbt now uses v0.12.1
+
+
 #### Thu, 10 Jan 2013
 * v0.18.11
 * StringRequestBody extra flush`
