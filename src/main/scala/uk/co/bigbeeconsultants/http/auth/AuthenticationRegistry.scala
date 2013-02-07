@@ -34,10 +34,11 @@ import uk.co.bigbeeconsultants.http.header.HeaderName._
 
 final class AuthenticationRegistry(credentialSuite: CredentialSuite = CredentialSuite.empty, cacheRealms: Boolean = false) {
 
-  // mutable state is required for (a) automatic realm lookup to reduce network traffic by reducing 401s
+  // Mutable state is required for
+  // (a) automatic realm lookup to reduce network traffic by reducing 401s
   // (b) digest authentication nonce counters
   private val knownRealms = JavaConversions.asScalaConcurrentMap(new ConcurrentHashMap[Endpoint, Set[RealmMapping]]())
-  private val nonces = JavaConversions.asScalaConcurrentMap(new ConcurrentHashMap[Credential.Realm, NonceVal]())
+  private val nonces = JavaConversions.asScalaConcurrentMap(new ConcurrentHashMap[String, NonceVal]())
 
   def findRealmMappings(endpoint: Endpoint): Set[RealmMapping] = knownRealms.get(endpoint) getOrElse Set()
 
@@ -45,7 +46,7 @@ final class AuthenticationRegistry(credentialSuite: CredentialSuite = Credential
 
   def findKnownAuthHeaderFromMappings(request: Request, realmMappings: Iterable[RealmMapping]): Option[Header] = {
     val url = request.split
-    val matchingRealm: Option[Credential.Realm] = realmMappings find (rm => url.path.startsWith(rm.path)) map (_.realm)
+    val matchingRealm: Option[String] = realmMappings find (rm => url.path.startsWith(rm.path)) map (_.realm)
     val matchingCredential: Option[Credential] = matchingRealm flatMap (credentialSuite.credentials.get(_))
     matchingCredential map (_.toBasicAuthHeader)
   }
@@ -111,7 +112,7 @@ final class AuthenticationRegistry(credentialSuite: CredentialSuite = Credential
 
 //---------------------------------------------------------------------------------------------------------------------
 
-case class RealmMapping(realm: Credential.Realm, path: Path)
+case class RealmMapping(realm: String, path: Path)
 
 case class NonceVal(nonce: String, count: Int) {
   def next = copy(count = count + 1)

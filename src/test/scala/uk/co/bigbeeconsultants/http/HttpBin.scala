@@ -197,11 +197,13 @@ object HttpBin extends App with Assertions {
   }
 
 
-  val browserWithCreds = new HttpBrowser(config, CookieJar.empty, new CredentialSuite(Map("Fake Realm" -> fredBloggs)))
-  automaticBasicAuth(browserWithCreds, "http://" + serverUrl + "/basic-auth/fred/bloggs")
-  automaticBasicAuth(browserWithCreds, "https://" + serverUrl + "/basic-auth/fred/bloggs")
+  val browserWithCreds = new HttpBrowser(config, CookieJar.empty, new CredentialSuite(Map("Fake Realm" -> fredBloggs, realm -> fredBloggs)))
+  automaticAuth(browserWithCreds, "http://" + serverUrl + "/basic-auth/fred/bloggs")
+  automaticAuth(browserWithCreds, "https://" + serverUrl + "/basic-auth/fred/bloggs")
+  automaticAuth(browserWithCreds, "http://" + serverUrl + "/digest-auth/auth/fred/bloggs")
+  automaticAuth(browserWithCreds, "https://" + serverUrl + "/digest-auth/auth/fred/bloggs")
 
-  private def automaticBasicAuth(http: Http, urlStr: String) {
+  private def automaticAuth(http: Http, urlStr: String) {
     val url = new URL(urlStr)
     val response = http.get(url, gzipHeaders)
     assert(200 === response.status.code, urlStr)

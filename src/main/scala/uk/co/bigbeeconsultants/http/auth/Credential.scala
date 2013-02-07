@@ -36,8 +36,6 @@ class Credential(val username: String, val password: String) {
     val credential = "Basic " + Base64.encodeBytes(value.getBytes("UTF-8"))
     HeaderName.AUTHORIZATION -> credential
   }
-}
 
-object Credential {
-  type Realm = String
+  override def toString = "Credential(" + username + ", *********)"
 }

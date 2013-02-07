@@ -27,7 +27,7 @@ package uk.co.bigbeeconsultants.http.auth
 import uk.co.bigbeeconsultants.http.header.{AuthenticateValue, Header}
 import uk.co.bigbeeconsultants.http.request.Request
 
-case class CredentialSuite(credentials: Map[Credential.Realm, Credential]) {
+case class CredentialSuite(credentials: Map[String, Credential]) {
 
   def authHeader(authenticate: AuthenticateValue, request: Request, nonceCount: Int): Option[Header] = {
     val credential = credentials.get(authenticate.realm.get)
@@ -45,7 +45,7 @@ case class CredentialSuite(credentials: Map[Credential.Realm, Credential]) {
     }
   }
 
-  def updated(realm: Credential.Realm, credential: Credential) = new CredentialSuite(credentials updated(realm, credential))
+  def updated(realm: String, credential: Credential) = new CredentialSuite(credentials updated(realm, credential))
 }
 
 //---------------------------------------------------------------------------------------------------------------------

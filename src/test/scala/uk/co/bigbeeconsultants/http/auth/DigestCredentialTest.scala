@@ -58,6 +58,8 @@ class DigestCredentialTest extends FunSuite {
     assert(sample.replace('\n', ' ') === authenticateValue.toString)
     assert(authenticateValue.isValid)
     assert(!authenticateValue.stale)
+    assert("""DigestCredential(Mufasa, *********, Digest realm="testrealm@host.com", qop="auth,auth-int", nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093", opaque="5ccc069c403ebaf9f0171e9517f40e41", 0a4f113b)"""
+      === digestCredential.toString)
   }
 
 

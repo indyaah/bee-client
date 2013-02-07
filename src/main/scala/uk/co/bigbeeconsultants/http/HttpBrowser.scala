@@ -85,9 +85,9 @@ class HttpBrowser(commonConfig: Config = Config(),
           authHeader = authenticationRegistry.processResponse(resp, realmMappings)
           if (authHeader.isDefined) remainingRetries -= 1 else remainingRetries = 0
 
-        case Some(resp) if resp.status.code != Status.S401_Unauthorized.code =>
+//        case Some(resp) if resp.status.code != Status.S401_Unauthorized.code =>
           // authentication succeeded or is not used
-          remainingRetries = 0
+//          remainingRetries = 0
 
         case _ =>
           // responseBuilder failed to capture a response or authentication succeeded or is not used

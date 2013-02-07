@@ -163,6 +163,8 @@ class DigestCredential(username: String,
   def toDigestAuthHeader(request: Request, nonceCount: Int): Header = {
     HeaderName.AUTHORIZATION -> toDigestAuthHeaderValue(request, nonceCount)
   }
+
+  override def toString = "DigestCredential(" + username + ", *********, " + authenticate + ", " + cnonce + ")"
 }
 
 //---------------------------------------------------------------------------------------------------------------------
