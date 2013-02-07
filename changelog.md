@@ -1,5 +1,10 @@
 #### Thu, 10 Jan 2013
 * v0.18.11
+* StringRequestBody extra flush`
+
+
+#### Thu, 10 Jan 2013
+* v0.18.11
 * The RequestBody implementation classes have been changed considerably.
 * HttpServletRequestAdapter and HttpServletResponseAdapter have been rewritten.
 * new TextualBodyFilter
