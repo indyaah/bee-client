@@ -43,6 +43,8 @@ final case class Request(method: String,
   require(headers != null, "Headers cannot be null.")
 
   /** Gets the URL split into its component parts. */
+  lazy val href = Href(url)
+  @deprecated
   lazy val split = Href(url)
 
   /** Gets the request without any headers. */

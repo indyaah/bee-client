@@ -24,11 +24,10 @@
 
 package uk.co.bigbeeconsultants.http.response
 
-import java.nio.charset.Charset
 import uk.co.bigbeeconsultants.http.header.MediaType
-import uk.co.bigbeeconsultants.http.HttpClient
-import java.nio.ByteBuffer
 import uk.co.bigbeeconsultants.http.util.Splitter
+import uk.co.bigbeeconsultants.http.header.MediaType._
+import uk.co.bigbeeconsultants.http.request.Request
 
 /**
  * Defines the outline of a response body. This may or may not be buffered in memory or streamed directly
@@ -51,6 +50,12 @@ trait ResponseBody extends Iterable[String] {
   def contentLength = 0
 
   /**
+   * Converts this response body into a buffered form if necessary. If it is already buffered, this method returns
+   * `this`.
+   */
+  def toBufferedBody: ResponseBody
+
+  /**
    * Gets the body as an array of raw bytes if available. By default, this merely returns an empty array,
    * which may not be much use.
    */
@@ -65,49 +70,42 @@ trait ResponseBody extends Iterable[String] {
    * Gets the body as a string split into lines, if available. If the data is binary, this method always returns
    * an empty iterator.
    */
-  def iterator: Iterator[String] = if (isTextual && asString.length > 0) new Splitter(asString, '\n') else Nil.iterator
+  def iterator: Iterator[String] = {
+    val body = asString
+    if (isTextual && body.length > 0) new Splitter(body, '\n') else Nil.iterator
+  }
 
   /**
    * Tests whether this response body can be represented as text, or whether the data is binary.
    */
-  def isTextual = true
+  def isTextual = contentType.isTextual
+
+  // helper for the edge case for undefined content type
+  private[response] def guessMediaTypeFromContent(request: Request, status: Status): MediaType = {
+    val successfulGetUrlExtension =
+      if (status.isSuccess && request.isGet) request.href.extension
+      else None
+    if (successfulGetUrlExtension.isDefined) {
+      MimeTypeRegistry.table.get(successfulGetUrlExtension.get) getOrElse guessMediaTypeFromBodyData
+    } else {
+      guessMediaTypeFromBodyData
+    }
+  }
+
+  // basic helper for cases where the media type must be guessed and body data is initially unavailable
+  private[response] def guessMediaTypeFromBodyData: MediaType = APPLICATION_OCTET_STREAM
 }
 
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Provides an empty Body implementation.
  */
 final class EmptyResponseBody(val contentType: MediaType) extends ResponseBody {
-  override def toString = asString
-}
-
-
-/**
- * Provides a body implementation based simply on a string.
- */
-final class StringResponseBody(val bodyText: String, val contentType: MediaType) extends ResponseBody {
-
-  @deprecated
-  def this(contentType: MediaType, bodyText: String) = this(bodyText, contentType)
+  override def toString() = asString
 
   /**
-   * Converts the body of the response into an array of bytes.
-   * This uses the character encoding of the contentType, or UTF-8 as a default.
+   * Returns `this`.
    */
-  override def asBytes: Array[Byte] = {
-    val charset = contentType.charset.getOrElse (HttpClient.UTF8)
-    val buf = Charset.forName (charset).encode (bodyText)
-    val bytes = new Array[Byte](buf.limit ())
-    buf.get (bytes, 0, buf.limit ())
-    bytes
-  }
-
-  /**
-   * Get the body of the response as a string.
-   */
-  override def asString: String = bodyText
-
-  override def toString = asString
-
-  override lazy val contentLength = asBytes.length
+  override def toBufferedBody = this
 }

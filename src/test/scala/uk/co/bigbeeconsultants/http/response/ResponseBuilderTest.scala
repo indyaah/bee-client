@@ -32,53 +32,14 @@ import uk.co.bigbeeconsultants.http.header.MediaType._
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.HttpClient
 import java.io.ByteArrayInputStream
-import java.net.URL
 
 class ResponseBuilderTest extends FunSuite with ShouldMatchers {
-
-  test("buffer size should be chosen using the content-length when it is available") {
-    val headers = Headers(CONTENT_LENGTH -> "1234")
-    val builder = new BufferedResponseBuilder
-    val size = builder.bufferSize(headers)
-    size should be(1234)
-  }
-
-  test("buffer size should be defaulted when the content-length is not available") {
-    val headers = Headers.empty
-    val builder = new BufferedResponseBuilder
-    val size = builder.bufferSize(headers)
-    size should be(BufferedResponseBuilder.DefaultBufferSize)
-  }
-
-  test("conditionalUrl should return the request's URL for a successful GET request") {
-    val url = new URL("http://localhost/1234")
-    val request = Request.get(url)
-    val builder = new BufferedResponseBuilder
-    val result = builder.conditionalUrl(request, Status.S200_OK)
-    result.get should be(url)
-  }
-
-  test("conditionalUrl should not return the request's URL for an unsuccessful GET request") {
-    val url = new URL("http://localhost/1234")
-    val request = Request.get(url)
-    val builder = new BufferedResponseBuilder
-    val result = builder.conditionalUrl(request, Status.S400_BadRequest)
-    result should be(None)
-  }
-
-  test("conditionalUrl should not return the request's URL for a successful POST request") {
-    val url = new URL("http://localhost/1234")
-    val request = Request.post(url, None)
-    val builder = new BufferedResponseBuilder
-    val result = builder.conditionalUrl(request, Status.S200_OK)
-    result should be(None)
-  }
 
   test("BufferedResponseBuilder should capture response data correctly") {
     val builder = new BufferedResponseBuilder
     builder.response should be(None)
 
-    val s = """Hello world]"""
+    val s = """Hello world"""
     val bytes = s.getBytes(HttpClient.UTF8)
     val bais = new ByteArrayInputStream(bytes)
 
@@ -93,6 +54,28 @@ class ResponseBuilderTest extends FunSuite with ShouldMatchers {
     response.headers should be(headers)
     response.cookies should be(cookies)
     response.body.asString should be(s)
+    response.body.toBufferedBody.asString should be(s)
+  }
+
+  test("UnbufferedResponseBuilder should capture response data correctly") {
+    val builder = new UnbufferedResponseBuilder
+    builder.response should be(None)
+
+    val s = """Hello world"""
+    val bytes = s.getBytes(HttpClient.UTF8)
+    val bais = new ByteArrayInputStream(bytes)
+
+    val request = Request.get("http://localhost/foo/bar")
+    val headers = Headers(HOST -> "localhost")
+    val cookies = Some(CookieJar(Cookie("n", "v")))
+    builder.captureResponse(request, Status.S200_OK, Some(TEXT_PLAIN), headers, cookies, bais)
+
+    val response = builder.response.get
+    response.request should be(request)
+    response.status should be(Status.S200_OK)
+    response.headers should be(headers)
+    response.cookies should be(cookies)
+    response.body.toBufferedBody.asString should be(s)
   }
 
 }

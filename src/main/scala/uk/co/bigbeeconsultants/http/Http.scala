@@ -28,7 +28,7 @@ import header.{CookieJar, Headers}
 import java.io.IOException
 import java.net.URL
 import request.{RequestBody, Request}
-import response.{BufferedResponseBuilder, ResponseBuilder, Response}
+import response.{UnbufferedResponseBuilder, BufferedResponseBuilder, ResponseBuilder, Response}
 
 /**
  * Describes an API for making HTTP requests.
@@ -166,6 +166,24 @@ abstract class Http(val commonConfig: Config = Config()) {
   @throws(classOf[IOException])
   def makeRequest(request: Request, config: Config = commonConfig): Response = {
     val responseBuilder = new BufferedResponseBuilder
+    execute(request, responseBuilder, config)
+    responseBuilder.response.get
+  }
+
+
+  /**
+   * Makes an arbitrary request and returns the response, which contains the source input stream from which the
+   * response can be read.
+   * @param request the request
+   * @param config the particular configuration being used for this request; defaults to the commonConfiguration
+   *               supplied to this instance of HttpClient
+   * @throws IOException (or ConnectException subclass) if an IO exception occurred
+   * @return the response (for all outcomes including 4xx and 5xx status codes) if
+   *         no exception occurred
+   */
+  @throws(classOf[IOException])
+  def makeUnbufferedRequest(request: Request, config: Config = commonConfig): Response = {
+    val responseBuilder = new UnbufferedResponseBuilder
     execute(request, responseBuilder, config)
     responseBuilder.response.get
   }

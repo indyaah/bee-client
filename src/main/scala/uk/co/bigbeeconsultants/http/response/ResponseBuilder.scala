@@ -24,10 +24,10 @@
 
 package uk.co.bigbeeconsultants.http.response
 
-import uk.co.bigbeeconsultants.http.header.{HeaderName, CookieJar, Headers, MediaType}
-import uk.co.bigbeeconsultants.http.request.Request
+import uk.co.bigbeeconsultants.http._
+import header.{CookieJar, Headers, MediaType}
+import request.Request
 import java.io.InputStream
-import java.net.URL
 
 /**
  * Defines how responses will be handled. The 'standard' implementation is BufferedResponseBuilder,
@@ -45,11 +45,34 @@ trait ResponseBuilder {
   def response: Option[Response] = None
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
+/**
+ * Provides a response builder implementation that returns unbuffered responses along wtih the InputStream
+ * that provides data from the origin HTTP server. This input stream must be closed before
+ *
+ * This is not thread safe so a new instance is required for every request.
+ * @see InputStreamResponseBody
+ */
+final class UnbufferedResponseBuilder extends ResponseBuilder {
+  private var _response: Option[Response] = None
+
+  def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
+                      headers: Headers, cookies: Option[CookieJar], stream: InputStream) {
+    val body = new InputStreamResponseBody(request, status, mediaType, headers, stream)
+    _response = Some(new Response(request, status, body, headers, cookies))
+  }
+
+  override def response = _response
+}
+
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
  * Provides a response builder implementation that returns responses buffered in byte
- * arrays (and also strings), using ByteBufferResponseBody. This is not thread safe so
- * a new instance is required for every request.
+ * arrays (and also strings), using ByteBufferResponseBody.
+ *
+ * This is not thread safe so a new instance is required for every request.
  * @see ByteBufferResponseBody
  */
 final class BufferedResponseBuilder extends ResponseBuilder {
@@ -57,21 +80,9 @@ final class BufferedResponseBuilder extends ResponseBuilder {
 
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
                       headers: Headers, cookies: Option[CookieJar], stream: InputStream) {
-    val body = new ByteBufferResponseBody(conditionalUrl(request, status), mediaType, stream, bufferSize(headers))
+    val body = ByteBufferResponseBody(request, status, mediaType, stream, headers)
     _response = Some(new Response(request, status, body, headers, cookies))
   }
 
   override def response = _response
-
-  private[response] def bufferSize(headers: Headers) = {
-    headers.get(HeaderName.CONTENT_LENGTH).map(_.toNumber.toInt).getOrElse(BufferedResponseBuilder.DefaultBufferSize)
-  }
-
-  private[response] def conditionalUrl(request: Request, status: Status): Option[URL] = {
-    if (status.isSuccess && request.isGet) Some(request.url) else None
-  }
-}
-
-object BufferedResponseBuilder {
-  val DefaultBufferSize = 1024
 }

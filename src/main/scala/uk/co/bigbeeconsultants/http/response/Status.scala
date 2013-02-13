@@ -48,6 +48,8 @@ case class Status(code: Int, message: String) {
   private def bodyForbidden = code == 204 || code == 205 || code == 304
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
 /**
  * Lists the official status codes as defined in RFC2616.
  * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.1

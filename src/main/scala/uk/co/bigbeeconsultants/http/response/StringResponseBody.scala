@@ -22,24 +22,45 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "bee-client"
+package uk.co.bigbeeconsultants.http.response
 
-organization := "uk.co.bigbeeconsultants"
+import java.nio.charset.Charset
+import uk.co.bigbeeconsultants.http.header.MediaType
+import uk.co.bigbeeconsultants.http.HttpClient
+import java.nio.ByteBuffer
+import uk.co.bigbeeconsultants.http.util.Splitter
 
-version := "0.20.0"
+/**
+ * Provides a body implementation based simply on a string.
+ */
+final class StringResponseBody(val bodyText: String, val contentType: MediaType) extends ResponseBody {
 
-crossScalaVersions := Seq("2.9.0", "2.9.1", "2.9.2", "2.10.0")
+  @deprecated
+  def this(contentType: MediaType, bodyText: String) = this(bodyText, contentType)
 
-//publishMavenStyle := true
+  /**
+   * Returns `this`.
+   */
+  override def toBufferedBody = this
 
-//publishTo := Some(Resolver.file("file", new File("/home/websites/your/releases"))
+  /**
+   * Converts the body of the response into an array of bytes.
+   * This uses the character encoding of the contentType, or UTF-8 as a default.
+   */
+  override def asBytes: Array[Byte] = {
+    val charset = contentType.charset.getOrElse (HttpClient.UTF8)
+    val buf = Charset.forName (charset).encode (bodyText)
+    val bytes = new Array[Byte](buf.limit ())
+    buf.get (bytes, 0, buf.limit ())
+    bytes
+  }
 
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+  /**
+   * Get the body of the response as a string.
+   */
+  override def asString: String = bodyText
 
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
+  override def toString() = asString
 
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+  override lazy val contentLength = asBytes.length
+}

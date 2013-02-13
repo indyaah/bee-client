@@ -27,29 +27,37 @@ package uk.co.bigbeeconsultants.http.response
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.io.InputStream
-import java.net.URL
-import uk.co.bigbeeconsultants.http.header.MediaType
+import uk.co.bigbeeconsultants.http.header.{HeaderName, Headers, MediaType}
 import uk.co.bigbeeconsultants.http.header.MediaType._
-import uk.co.bigbeeconsultants.http.util.HttpUtil._
+import uk.co.bigbeeconsultants.http.util.HttpUtil
 import uk.co.bigbeeconsultants.http.HttpClient
-import uk.co.bigbeeconsultants.http.url.Href
+import uk.co.bigbeeconsultants.http.request.Request
 
 /**
  * Provides a body implementation that copies the whole response from the response input stream into a ByteBuffer.
  * This is also available as a string without much performance penalty.
  *
  * If no media type was specified in the response from the server, this class attempts to guess a sensible fallback.
- * This works via the following steps: 1. Empty data is application/octet-stream. 2. Data containing control codes is
- * application/octet-stream. 3. Data starting with '<' is text/html. 4. Otherwise text/plain is assumed.
+ * This works via the following steps:
+ * 1. If the request was a GET request and was successful and the URL ended with a file extension, use a MIME
+ * type table to look up the content type.
+ * 2. Empty data is application/octet-stream.
+ * 3. Data containing control codes is application/octet-stream.
+ * 4. Data starting with '<' is text/html.
+ * 5. Otherwise text/plain is assumed.
  *
  * Take care because the memory footprint will be large when dealing with large volumes of response data.
+ *
+ * It is not safe to share instances between threads.
  */
-final class ByteBufferResponseBody(requestUrl: Option[URL],
+final class ByteBufferResponseBody(request: Request,
+                                   status: Status,
                                    optionalContentType: Option[MediaType],
                                    inputStream: InputStream,
-                                   suppliedContentLength: Int = 0x10000) extends ResponseBody {
+                                   suppliedContentLength: Int = ByteBufferResponseBody.DefaultBufferSize)
+  extends ResponseBody {
 
-  private[this] val byteData: ByteBuffer = copyToByteBufferAndClose(inputStream, suppliedContentLength)
+  private[this] val byteData: ByteBuffer = HttpUtil.copyToByteBufferAndClose(inputStream, suppliedContentLength)
 
   private[this] var converted: Option[String] = None
 
@@ -65,19 +73,14 @@ final class ByteBufferResponseBody(requestUrl: Option[URL],
     }
   }
 
-  lazy val contentType: MediaType = optionalContentType.getOrElse(guessMediaTypeFromContent)
+  /**
+   * Returns `this`.
+   */
+  override def toBufferedBody = this
 
-  // edge case for undefined content type
-  private def guessMediaTypeFromContent: MediaType = {
-    val extension = requestUrl.flatMap(Href(_).extension)
-    if (extension.isDefined) {
-      MimeTypeRegistry.table.get(extension.get).getOrElse(guessMediaTypeFromBodyData)
-    } else {
-      guessMediaTypeFromBodyData
-    }
-  }
+  lazy val contentType: MediaType = optionalContentType getOrElse guessMediaTypeFromContent(request, status)
 
-  def guessMediaTypeFromBodyData: MediaType = {
+  private[response] override def guessMediaTypeFromBodyData: MediaType = {
     if (byteData.limit() == 0) {
       APPLICATION_OCTET_STREAM
 
@@ -123,7 +126,18 @@ final class ByteBufferResponseBody(requestUrl: Option[URL],
     converted.get
   }
 
-  override def toString = asString
+  override def toString() = asString
 
   override lazy val contentLength = asBytes.length
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+
+object ByteBufferResponseBody {
+  val DefaultBufferSize = 0x10000
+
+  def apply(request: Request, status: Status, optionalContentType: Option[MediaType], inputStream: InputStream, headers: Headers) = {
+    val length = headers.get(HeaderName.CONTENT_LENGTH).map(_.toNumber.toInt) getOrElse DefaultBufferSize
+    new ByteBufferResponseBody(request, status, optionalContentType, inputStream, length)
+  }
 }

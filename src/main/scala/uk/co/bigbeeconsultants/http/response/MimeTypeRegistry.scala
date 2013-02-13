@@ -33,7 +33,7 @@ object MimeTypeRegistry {
   lazy val table: Map[String, MediaType] = {
     val map = new mutable.HashMap[String, MediaType]
     val is = getClass.getClassLoader.getResourceAsStream("mime-types.txt")
-    require(is != null)
+    require(is != null, "Failed to load mime-types.txt")
     try {
       val source = Source.fromInputStream(is, "utf-8")
       for (line <- source.getLines()) {
