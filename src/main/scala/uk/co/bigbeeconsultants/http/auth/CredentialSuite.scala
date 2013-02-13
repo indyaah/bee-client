@@ -29,19 +29,20 @@ import uk.co.bigbeeconsultants.http.request.Request
 
 case class CredentialSuite(credentials: Map[String, Credential]) {
 
-  def authHeader(authenticate: AuthenticateValue, request: Request, nonceCount: Int): Option[Header] = {
+  def basicAuthHeader(authenticate: AuthenticateValue, request: Request, nonceCount: Int): Option[Header] = {
     val credential = credentials.get(authenticate.realm.get)
     if (credential.isEmpty) None
     else {
-      authenticate.authScheme match {
-        case "Basic" =>
-          Some(credential.get.toBasicAuthHeader)
-        case "Digest" =>
-          val dc = DigestCredential(credential.get, authenticate, authenticate.opaque.getOrElse("TODO cnonce"))
-          Some(dc.toDigestAuthHeader(request, nonceCount))
-        case _ =>
-          None
-      }
+      Some(credential.get.toBasicAuthHeader)
+    }
+  }
+
+  def digestAuthHeader(authenticate: AuthenticateValue, request: Request, nonceCount: Int): Option[Header] = {
+    val credential = credentials.get(authenticate.realm.get)
+    if (credential.isEmpty) None
+    else {
+      val dc = DigestCredential(credential.get, authenticate, authenticate.opaque.getOrElse("TODO cnonce"))
+      Some(dc.toDigestAuthHeader(request, nonceCount))
     }
   }
 

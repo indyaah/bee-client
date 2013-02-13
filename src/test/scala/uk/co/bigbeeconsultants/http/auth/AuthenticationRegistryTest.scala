@@ -137,7 +137,7 @@ class AuthenticationRegistryTest extends FunSuite {
     val authenticationRegistry = new AuthenticationRegistry(credentials, true)
     authenticationRegistry.put(request.split.endpoint.get, mappings)
 
-    val challengeValue = AuthenticateValue("Basic realm=\"Somewhere Else\"")
+    val challengeValue = AuthenticateValue("""Basic realm="Somewhere Else"""")
     assert(challengeValue.isValid)
     val challenge = WWW_AUTHENTICATE -> challengeValue.toString
     val response = Response(request, Status.S401_Unauthorized, new EmptyResponseBody(MediaType.APPLICATION_JSON), Headers(challenge), None)
@@ -145,7 +145,7 @@ class AuthenticationRegistryTest extends FunSuite {
     assert(authHeader.isEmpty)
   }
 
-  test("processResponse should return authorisation header if the response challenge is satisfied by the credentials and the size should increase") {
+  test("processResponse should return authorisation header if the response challenge is satisfied by the credentials and the size should increase up to 1") {
     val request1 = getExampleOneTwo
     val request2 = getExampleOne
     val fbMapping = RealmMapping(fbRealm, request1.split.path)

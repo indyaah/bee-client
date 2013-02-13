@@ -1,4 +1,13 @@
 #### Thu, 07 Feb 2013
+* v0.19.1
+* Some more work done on digest authentication, particularly testing.
+
+
+#### Thu, 07 Feb 2013
+* v0.19.0
+
+
+#### Thu, 07 Feb 2013
 * v1.0.1
 
 

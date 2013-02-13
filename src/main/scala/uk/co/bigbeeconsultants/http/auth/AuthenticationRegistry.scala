@@ -74,10 +74,10 @@ final class AuthenticationRegistry(credentialSuite: CredentialSuite = Credential
             NonceVal(wah.nonce.get, 1)
         }
         nonces update(wah.realm.get, newNonceVal)
-        credentialSuite.authHeader(wah, request, newNonceVal.count)
+        credentialSuite.digestAuthHeader(wah, request, newNonceVal.count)
 
       case wah :: xs if (wah.authScheme == "Basic") =>
-        credentialSuite.authHeader(wah, request, 0)
+        credentialSuite.basicAuthHeader(wah, request, 0)
 
       case _ => None
     }
@@ -102,6 +102,7 @@ final class AuthenticationRegistry(credentialSuite: CredentialSuite = Credential
 
   def clear() {
     knownRealms.clear()
+    nonces.clear()
   }
 
   // a testing seam
