@@ -29,16 +29,14 @@ import header.{Headers, MediaType}
 import request.Request
 import java.io._
 import java.nio.charset.Charset
-import scala.Left
-import scala.Right
 
 /**
  * Provides a body implementation that holds the HTTP server's input stream as obtained from the HttpURLConnection.
  * This provides access to the underlying InputStream, with or without a filtering function to transform the text,
  * Also, is can also easily be iterated over as a sequence of strings.
  *
- * Alternatively, it can be converted into a [[uk.co.bigbeeconsultants.http.response.ByteBufferResponseBody]] if
- * the whole body is required as a unit.
+ * Alternatively, it can be converted into a [[uk.co.bigbeeconsultants.http.response.ByteBufferResponseBody]]
+ * (which is simpler to use) if the whole body is required as a block of bytes or a string.
  *
  * It is not safe to share instances between threads.
  */
@@ -46,9 +44,10 @@ final class InputStreamResponseBody(request: Request, status: Status, mediaType:
                                     headers: Headers, stream: InputStream)
   extends ResponseBody {
 
-  private var state: Either[InputStream, ByteBufferResponseBody] = Left(stream)
+  private var bufferedBody: Option[ByteBufferResponseBody] = None
 
-  def isBuffered = state.isRight
+  /** Tests whether the content has been buffered yet. */
+  override def isBuffered = bufferedBody.isDefined
 
   /**
    * Gets the response body in a buffer. This consumes the data from the input stream, which cannot subsequently
@@ -56,19 +55,17 @@ final class InputStreamResponseBody(request: Request, status: Status, mediaType:
    * @return the response data stored in a buffer
    */
   override def toBufferedBody: ResponseBody = {
-    if (state.isLeft)
-      state = Right(ByteBufferResponseBody(request, status, mediaType, stream, headers))
-    state.right.get
+    if (bufferedBody.isEmpty)
+      bufferedBody = Some(ByteBufferResponseBody(request, status, mediaType, stream, headers))
+    bufferedBody.get
   }
 
   /**
-   * Gets the length of the content as the number of bytes received, if known. This requires that the response has
-   * been buffered. Otherwise, an illegal state is encountered; avoid this by testing via `isBuffered`.
+   * Throws an illegal state exception. The actual content length is only known once the response body has been
+   * buffered. Therefore, use `toBufferedBody.contentLength` instead.
    */
-  override def contentLength = {
-    if (state.isLeft)
-      throw new IllegalStateException("The actual content length has not yet been determined.")
-    state.right.get.contentLength
+  override def contentLength: Int = {
+    throw new IllegalStateException("The content length has not yet been determined.")
   }
 
   /**
@@ -76,24 +73,35 @@ final class InputStreamResponseBody(request: Request, status: Status, mediaType:
    * by the HTTP server so may not yet be known, in which case the default is "application/octet-stream".
    */
   override def contentType = {
-    if (state.isLeft)
+    if (bufferedBody.isEmpty)
       mediaType getOrElse MediaType.APPLICATION_OCTET_STREAM
     else
-      state.right.get.contentType
+      bufferedBody.get.contentType
   }
 
   /**
-   * Gets a proxy for the HTTP resposne input stream in which each line is transformed using a specified function.
+   * Throws an illegal state exception. The actual content is only known once the response body has been
+   * buffered. Therefore, use `toBufferedBody.asBytes` instead.
+   */
+  override def asBytes: Array[Byte] = {
+    throw new IllegalStateException("The content has not yet been buffered.")
+  }
+
+  /**
+   * Gets the HTTP response input stream. If you read from this stream, it would be unwise later to buffer
+   * the body using `toBufferedBody`, because only the remainder would get buffered.
    * @return the proxied input stream
    */
   def rawStream: InputStream = {
-    if (state.isRight)
+    if (bufferedBody.isDefined)
       throw new IllegalStateException("Cannot access HTTP input stream once the content has been buffered.")
-    state.left.get
+    stream
   }
 
   /**
    * Gets a proxy for the HTTP resposne input stream in which each line is transformed using a specified function.
+   * Be careful about the potential impact on performance of your filter on line-by-line processing; you may need to
+   * measure this approach in comparison with other alternatives.
    * @param lineFilter the function to be applied to each line.
    * @return the proxied input stream
    */
@@ -105,6 +113,9 @@ final class InputStreamResponseBody(request: Request, status: Status, mediaType:
   /**
    * Gets the body as a string split into lines of text, if possible. If the data is binary, this method always returns
    * an empty iterator.
+   *
+   * If the content is textual, this method will throw an illegal state exception if `toBufferedBody` has already
+   * been used.
    */
   @throws(classOf[IOException])
   override def iterator = {
@@ -136,9 +147,9 @@ final class InputStreamResponseBody(request: Request, status: Status, mediaType:
 
   @throws(classOf[IOException])
   def close() {
-    if (state.isLeft)
+    if (bufferedBody.isEmpty)
       stream.close()
   }
 
-  override def toString() = if (state.isLeft) "(unbuffered input stream)" else state.right.get.asString
+  override def toString() = if (bufferedBody.isEmpty) "(unbuffered input stream)" else bufferedBody.get.asString
 }

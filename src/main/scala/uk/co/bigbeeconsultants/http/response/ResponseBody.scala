@@ -33,7 +33,7 @@ import uk.co.bigbeeconsultants.http.request.Request
  * Defines the outline of a response body. This may or may not be buffered in memory or streamed directly
  * to where it is needed, depending on the implementation.
  *
- * When the content is textual, instances may be useful as an Iterable[String], providing a way of
+ * When the content is textual, instances may be used as an Iterable[String], which provides a way of
  * accessing the text line by line.
  */
 trait ResponseBody extends Iterable[String] {
@@ -43,15 +43,26 @@ trait ResponseBody extends Iterable[String] {
   def contentType: MediaType
 
   /**
+   * Tests whether this response body can be represented as text, or whether the data is binary.
+   */
+  final def isTextual = contentType.isTextual
+
+  /**
    * Gets the length of the content as the number of bytes received. If compressed on the wire,
    * this will be the uncompressed length so will differ from the 'Content-Length' header. Because
    * 'contentLength' represents the byte array size, 'asString.length' will probably compute a different value.
    */
-  def contentLength = 0
+  def contentLength: Int
 
   /**
-   * Converts this response body into a buffered form if necessary. If it is already buffered, this method returns
-   * `this`.
+   * Tests whether the implementation has buffered the whole response body. If this returns false, `toBufferedBody`
+   * provides an easy route to accumulate the entire body in a buffer.
+   */
+  def isBuffered = true
+
+  /**
+   * Converts this response body into a buffered form if necessary. If it is already buffered, this method simply
+   * returns `this`.
    */
   def toBufferedBody: ResponseBody
 
@@ -59,12 +70,17 @@ trait ResponseBody extends Iterable[String] {
    * Gets the body as an array of raw bytes if available. By default, this merely returns an empty array,
    * which may not be much use.
    */
-  def asBytes: Array[Byte] = new Array[Byte](0)
+  def asBytes: Array[Byte]
 
   /**
    * Gets the body as a string, if available. If the data is binary, this method always returns a blank string.
    */
   def asString: String = ""
+
+  /**
+   * Gets the response body as a string for diagnostic purposes.
+   */
+  override def toString() = asString
 
   /**
    * Gets the body as a string split into lines, if available. If the data is binary, this method always returns
@@ -74,11 +90,6 @@ trait ResponseBody extends Iterable[String] {
     val body = asString
     if (isTextual && body.length > 0) new Splitter(body, '\n') else Nil.iterator
   }
-
-  /**
-   * Tests whether this response body can be represented as text, or whether the data is binary.
-   */
-  def isTextual = contentType.isTextual
 
   // helper for the edge case for undefined content type
   private[response] def guessMediaTypeFromContent(request: Request, status: Status): MediaType = {
@@ -102,10 +113,13 @@ trait ResponseBody extends Iterable[String] {
  * Provides an empty Body implementation.
  */
 final class EmptyResponseBody(val contentType: MediaType) extends ResponseBody {
-  override def toString() = asString
 
   /**
    * Returns `this`.
    */
   override def toBufferedBody = this
+
+  override def contentLength = 0
+
+  override val asBytes = new Array[Byte](0)
 }

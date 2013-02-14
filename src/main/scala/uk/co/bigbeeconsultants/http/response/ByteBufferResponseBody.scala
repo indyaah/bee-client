@@ -46,7 +46,9 @@ import uk.co.bigbeeconsultants.http.request.Request
  * 4. Data starting with '<' is text/html.
  * 5. Otherwise text/plain is assumed.
  *
- * Take care because the memory footprint will be large when dealing with large volumes of response data.
+ * This implementation of [[uk.co.bigbeeconsultants.http.response.ResponseBody]] has the advantage of being simple
+ * to use. However, take care because the memory footprint will be large when dealing with large volumes of
+ * response data. As an alternative, consider [[uk.co.bigbeeconsultants.http.response.InputStreamResponseBody]].
  *
  * It is not safe to share instances between threads.
  */
@@ -101,11 +103,6 @@ final class ByteBufferResponseBody(request: Request,
       if (maybeHtml) TEXT_HTML else if (maybeText) TEXT_PLAIN else APPLICATION_OCTET_STREAM
     }
   }
-
-  /**
-   * Tests whether this response body can be represented as text, or whether the data is binary.
-   */
-  override def isTextual = contentType.isTextual
 
   /**
    * Get the body of the response as an array of bytes.

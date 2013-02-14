@@ -31,8 +31,9 @@ import java.nio.ByteBuffer
 import uk.co.bigbeeconsultants.http.util.Splitter
 
 /**
- * Provides a body implementation based simply on a string. This is immutable and therefore can be
- * safely shared between threads.
+ * Provides a body implementation based simply on a string.
+ *
+ * This is immutable and therefore can be safely shared between threads.
  */
 case class StringResponseBody(bodyText: String, contentType: MediaType) extends ResponseBody {
 
@@ -59,7 +60,7 @@ case class StringResponseBody(bodyText: String, contentType: MediaType) extends 
   /**
    * Get the body of the response as a string.
    */
-  override def asString: String = bodyText
+  override def asString = bodyText
 
   override def toString() = asString
 

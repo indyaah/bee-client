@@ -51,7 +51,6 @@ class InputStreamResponseBodyTest extends FunSuite with ShouldMatchers {
     body.toBufferedBody
     body.isBuffered should be(true)
     body.contentType should be(mt)
-    body.contentLength should be(bytes.length)
     body.isTextual should be(true)
     body.asString should be("")
     body.toString should be(s)
@@ -64,7 +63,14 @@ class InputStreamResponseBodyTest extends FunSuite with ShouldMatchers {
     it.hasNext should be(true)
     it.next should be(s)
     it.hasNext should be(false)
-  }
+
+    intercept[IllegalStateException] {
+      body.contentLength
+    }
+    intercept[IllegalStateException] {
+      body.asBytes
+    }
+   }
 
   test("InputStreamResponseBody with stream filter") {
     val s = "[ \"Some json message text\",\n" + " 123 ]"

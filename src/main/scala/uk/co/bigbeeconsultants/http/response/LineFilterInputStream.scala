@@ -30,7 +30,7 @@ import java.nio.charset.Charset
 import java.nio.{CharBuffer, ByteBuffer}
 
 /**
- * Implements an InputStream filter that allows line-by-line processing and (optionally) transcoding of the content.
+ * Implements an InputStream filter that allows line-by-line processing and/or transcoding of the content.
  * @param source the upstream input filter
  * @param lineFilter a mutation function that will be applied to each line of text
  * @param sourceEncoding the upstream character encoding
@@ -40,19 +40,30 @@ class LineFilterInputStream(source: InputStream, lineFilter: TextFilter,
                             sourceEncoding: Charset, downstreamEncoding: Charset) extends InputStream {
 
   /**
+   * Implements an InputStream filter that allows transcoding of the content.
+   * @param source the upstream input filter
+   * @param sourceEncoding the upstream character encoding
+   * @param downstreamEncoding the downstream character encoding
+   */
+  def this(source: InputStream, sourceEncoding: Charset, downstreamEncoding: Charset) =
+    this(source, NoChangeTextFilter, sourceEncoding, downstreamEncoding)
+
+  /**
    * Implements an InputStream filter that allows line-by-line processing of the content.
    * @param source the upstream input filter
    * @param lineFilter a mutation function that will be applied to each line of text
    * @param encoding the character encoding
    */
-  def this(source: InputStream, lineFilter: TextFilter, encoding: Charset) = this(source, lineFilter, encoding, encoding)
+  def this(source: InputStream, lineFilter: TextFilter, encoding: Charset) =
+    this(source, lineFilter, encoding, encoding)
 
   /**
    * Implements an InputStream filter that allows line-by-line processing of the content, using UTF-8 encoding.
    * @param source the upstream input filter
    * @param lineFilter a mutation function that will be applied to each line of text
    */
-  def this(source: InputStream, lineFilter: TextFilter) = this(source, lineFilter, Charset.forName("UTF-8"))
+  def this(source: InputStream, lineFilter: TextFilter) =
+    this(source, lineFilter, Charset.forName("UTF-8"))
 
   private val reader = new BufferedReader(new InputStreamReader(source, sourceEncoding))
   private val encoder = downstreamEncoding.newEncoder()

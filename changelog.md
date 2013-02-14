@@ -1,3 +1,8 @@
+#### Thu, 14 Feb 2013
+* v0.20.1
+* InputStreamResponseBody now provides an iterator correctly..
+
+
 #### Wed, 13 Feb 2013
 * v0.20.0
 * Rework of ResponseBody - it's now possible to get access to the InputStream, possibly filtered line by line.

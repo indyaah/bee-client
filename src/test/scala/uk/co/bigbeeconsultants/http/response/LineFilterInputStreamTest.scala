@@ -27,6 +27,8 @@ package uk.co.bigbeeconsultants.http.response
 import org.scalatest.FunSuite
 import java.io.{BufferedReader, InputStreamReader, ByteArrayInputStream}
 import uk.co.bigbeeconsultants.http._
+import util.DiagnosticTimer
+import java.nio.charset.Charset
 
 class LineFilterInputStreamTest extends FunSuite {
 
@@ -50,6 +52,56 @@ class LineFilterInputStreamTest extends FunSuite {
     assert(reader.readLine() === null)
   }
 
+  test("transcoding with no substitution") {
+    val str = "£" // takes two bytes in UTF-8
+    val bais = new ByteArrayInputStream(str.getBytes(Charset.forName("ISO-8859-1")))
+    val fis = new LineFilterInputStream(bais, Charset.forName("ISO-8859-1"), Charset.forName("UTF-8"))
+    val reader = new BufferedReader(new InputStreamReader(fis, "UTF-8"))
+    assert(reader.readLine() === "£")
+    assert(reader.readLine() === null)
+  }
+
+  test("basic no-op for timing comparison") {
+    val n = 1000
+    val s0 = " - this is rather longer than in the earlier tests and includes weird characters £ê¬"
+    val str = new StringBuilder
+    for (i <- 1 to n) {
+      str.append(i)
+      str.append(s0)
+      str.append('\n')
+    }
+    val t1 = new DiagnosticTimer
+    val bais = new ByteArrayInputStream(str.toString().getBytes)
+    val reader = new BufferedReader(new InputStreamReader(bais, "UTF-8"))
+    for (i <- 1 to n) {
+      val expected = i + s0
+      assert(reader.readLine() === expected)
+    }
+    assert(reader.readLine() === null)
+    println("basic no-op for timing comparison " + t1)
+  }
+
+  test("longer string without substitution") {
+    val n = 1000
+    val s0 = " - this is rather longer than in the earlier tests and includes weird characters £ê¬"
+    val str = new StringBuilder
+    for (i <- 1 to n) {
+      str.append(i)
+      str.append(s0)
+      str.append('\n')
+    }
+    val t1 = new DiagnosticTimer
+    val bais = new ByteArrayInputStream(str.toString().getBytes)
+    val fis = new LineFilterInputStream(bais, NoChangeTextFilter)
+    val reader = new BufferedReader(new InputStreamReader(fis, "UTF-8"))
+    for (i <- 1 to n) {
+      val expected = i + s0
+      assert(reader.readLine() === expected)
+    }
+    assert(reader.readLine() === null)
+    println("longer string without substitution " + t1)
+  }
+
   test("longer string with substitution") {
     val n = 1000
     val s0 = " - this is rather longer than in the earlier tests and includes weird characters £ê¬"
@@ -59,6 +111,7 @@ class LineFilterInputStreamTest extends FunSuite {
       str.append(s0)
       str.append('\n')
     }
+    val t1 = new DiagnosticTimer
     val bais = new ByteArrayInputStream(str.toString().getBytes)
     val fis = new LineFilterInputStream(bais, (s) => s.replace("a", "â"))
     val reader = new BufferedReader(new InputStreamReader(fis, "UTF-8"))
@@ -68,12 +121,15 @@ class LineFilterInputStreamTest extends FunSuite {
       assert(reader.readLine() === expected)
     }
     assert(reader.readLine() === null)
+    println("longer string with substitution " + t1)
   }
 
   test("close method is called through") {
     var closed = false
     val bais = new ByteArrayInputStream("".getBytes) {
-      override def close() { closed = true }
+      override def close() {
+        closed = true
+      }
     }
     val fis = new LineFilterInputStream(bais, NoChangeTextFilter)
     fis.close()
