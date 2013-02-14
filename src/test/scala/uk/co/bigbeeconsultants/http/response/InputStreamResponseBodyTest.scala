@@ -28,10 +28,9 @@ import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import uk.co.bigbeeconsultants.http.header.{Headers, HeaderName, MediaType}
 import uk.co.bigbeeconsultants.http.request.Request
+import uk.co.bigbeeconsultants.http.util.HttpUtil
 import java.io.ByteArrayInputStream
 import java.net.URL
-import uk.co.bigbeeconsultants.http.util.HttpUtil
-import java.nio.ByteBuffer
 
 class InputStreamResponseBodyTest extends FunSuite with ShouldMatchers {
   val head = Request.head(new URL("http://localhost/"))

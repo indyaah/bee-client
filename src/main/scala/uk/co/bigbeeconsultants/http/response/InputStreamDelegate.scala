@@ -24,44 +24,20 @@
 
 package uk.co.bigbeeconsultants.http.response
 
-import java.nio.charset.Charset
-import uk.co.bigbeeconsultants.http.header.MediaType
-import uk.co.bigbeeconsultants.http.HttpClient
-import java.nio.ByteBuffer
-import uk.co.bigbeeconsultants.http.util.Splitter
+import java.io.{IOException, InputStream}
+import java.net.HttpURLConnection
 
-/**
- * Provides a body implementation based simply on a string. This is immutable and therefore can be
- * safely shared between threads.
- */
-case class StringResponseBody(bodyText: String, contentType: MediaType) extends ResponseBody {
+class InputStreamDelegate(in: InputStream, connection: HttpURLConnection) extends InputStream {
 
-  @deprecated
-  def this(contentType: MediaType, bodyText: String) = this(bodyText, contentType)
+  def read() = in.read()
 
-  /**
-   * Returns `this`.
-   */
-  override def toBufferedBody = this
-
-  /**
-   * Converts the body of the response into an array of bytes.
-   * This uses the character encoding of the contentType, or UTF-8 as a default.
-   */
-  override def asBytes: Array[Byte] = {
-    val charset = contentType.charset.getOrElse (HttpClient.UTF8)
-    val buf = Charset.forName (charset).encode (bodyText)
-    val bytes = new Array[Byte](buf.limit ())
-    buf.get (bytes, 0, buf.limit ())
-    bytes
+  @throws(classOf[IOException])
+  override def close() {
+    try {
+      in.close()
+    }
+    finally {
+      connection.disconnect()
+    }
   }
-
-  /**
-   * Get the body of the response as a string.
-   */
-  override def asString: String = bodyText
-
-  override def toString() = asString
-
-  override lazy val contentLength = asBytes.length
 }

@@ -24,44 +24,46 @@
 
 package uk.co.bigbeeconsultants.http.response
 
-import java.nio.charset.Charset
-import uk.co.bigbeeconsultants.http.header.MediaType
-import uk.co.bigbeeconsultants.http.HttpClient
-import java.nio.ByteBuffer
-import uk.co.bigbeeconsultants.http.util.Splitter
+import org.scalatest.FunSuite
+import org.mockito.Mockito._
+import java.net.HttpURLConnection
+import java.io.{IOException, InputStream}
 
-/**
- * Provides a body implementation based simply on a string. This is immutable and therefore can be
- * safely shared between threads.
- */
-case class StringResponseBody(bodyText: String, contentType: MediaType) extends ResponseBody {
+class InputStreamDelegateTest extends FunSuite {
 
-  @deprecated
-  def this(contentType: MediaType, bodyText: String) = this(bodyText, contentType)
+  test("read method should call read on the underlying stream") {
+    val is = mock(classOf[InputStream])
+    val connection = mock(classOf[HttpURLConnection])
+    val isd = new InputStreamDelegate(is, connection)
 
-  /**
-   * Returns `this`.
-   */
-  override def toBufferedBody = this
+    isd.read()
 
-  /**
-   * Converts the body of the response into an array of bytes.
-   * This uses the character encoding of the contentType, or UTF-8 as a default.
-   */
-  override def asBytes: Array[Byte] = {
-    val charset = contentType.charset.getOrElse (HttpClient.UTF8)
-    val buf = Charset.forName (charset).encode (bodyText)
-    val bytes = new Array[Byte](buf.limit ())
-    buf.get (bytes, 0, buf.limit ())
-    bytes
+    verify(is).read()
+    verifyZeroInteractions(connection)
   }
 
-  /**
-   * Get the body of the response as a string.
-   */
-  override def asString: String = bodyText
+  test("close method should close the underlying stream and also disconnect the connection") {
+    val is = mock(classOf[InputStream])
+    val connection = mock(classOf[HttpURLConnection])
+    val isd = new InputStreamDelegate(is, connection)
 
-  override def toString() = asString
+    isd.close()
 
-  override lazy val contentLength = asBytes.length
+    verify(is).close()
+    verify(connection).disconnect()
+  }
+
+  test("close method should disconnect the connection even if it fails to close the underlying stream") {
+    val is = mock(classOf[InputStream])
+    val connection = mock(classOf[HttpURLConnection])
+    val isd = new InputStreamDelegate(is, connection)
+    when(is.close()) thenThrow new IOException()
+
+    intercept[IOException] {
+      isd.close()
+    }
+
+    verify(is).close()
+    verify(connection).disconnect()
+  }
 }

@@ -34,7 +34,6 @@ import org.slf4j.{LoggerFactory, Logger}
 import collection.mutable.ListBuffer
 import java.io.IOException
 import util.DiagnosticTimer
-import util.HttpUtil._
 
 /**
  * Constructs an instance for handling any number of HTTP requests with any level of concurrency.
@@ -102,8 +101,6 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
         if (logger.isInfoEnabled) logger.info("{} - {}", request.toShortString, timer.toString + " " + e.getMessage)
         throw e
       }
-    } finally {
-      httpURLConnection.disconnect()
     }
 
     redirect
@@ -121,7 +118,8 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
     } else {
       getBodyStream(contEnc, httpURLConnection)
     }
-    responseBuilder.captureResponse(request, status, mediaType, responseHeaders, responseCookies, stream)
+    val delegate = new InputStreamDelegate(stream, httpURLConnection)
+    responseBuilder.captureResponse(request, status, mediaType, responseHeaders, responseCookies, delegate)
   }
 
 

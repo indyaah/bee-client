@@ -74,9 +74,10 @@ final class ByteBufferResponseBody(request: Request,
   }
 
   /**
-   * Returns `this`.
+   * Returns a new StringResponseBody containing the text in this body in immutable form. The returned
+   * object is safe for sharing between threads.
    */
-  override def toBufferedBody = this
+  override def toBufferedBody = new StringResponseBody(asString, contentType)
 
   lazy val contentType: MediaType = optionalContentType getOrElse guessMediaTypeFromContent(request, status)
 

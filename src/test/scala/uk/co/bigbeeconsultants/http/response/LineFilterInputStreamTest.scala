@@ -25,7 +25,7 @@
 package uk.co.bigbeeconsultants.http.response
 
 import org.scalatest.FunSuite
-import java.io.{InputStream, BufferedReader, InputStreamReader, ByteArrayInputStream}
+import java.io.{BufferedReader, InputStreamReader, ByteArrayInputStream}
 import uk.co.bigbeeconsultants.http._
 
 class LineFilterInputStreamTest extends FunSuite {
