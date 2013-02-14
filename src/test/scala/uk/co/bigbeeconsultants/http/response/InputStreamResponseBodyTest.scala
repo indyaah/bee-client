@@ -35,7 +35,6 @@ import java.nio.ByteBuffer
 
 class InputStreamResponseBodyTest extends FunSuite with ShouldMatchers {
   val head = Request.head(new URL("http://localhost/"))
-  val getPng = Request.get(new URL("http://localhost/x.png"))
   val headersWithLength = Headers(HeaderName.CONTENT_LENGTH -> "1234")
 
   test("InputStreamResponseBody with json body") {
@@ -56,8 +55,11 @@ class InputStreamResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentLength should be(bytes.length)
     body.isTextual should be(true)
     body.asString should be("")
-    body.toBufferedBody.asString should be(s)
     body.toString should be(s)
+
+    body.toBufferedBody.contentType should be(mt)
+    body.toBufferedBody.contentLength should be(bytes.length)
+    body.toBufferedBody.asString should be(s)
     body.toBufferedBody.toString should be(s)
     val it = body.toBufferedBody.iterator
     it.hasNext should be(true)
@@ -78,6 +80,22 @@ class InputStreamResponseBodyTest extends FunSuite with ShouldMatchers {
     val buffer = HttpUtil.copyToByteBufferAndClose(body.transformedStream((s) => s.replace("Some", "Fantastic")))
     val result = new String(buffer.array(), "UTF-8")
     result should be("[ \"Fantastic json message text\",\n" + " 123 ]")
+  }
+
+  test("InputStreamResponseBody iterator") {
+    val s = "line one\nline two\nline three\n"
+    val mt = MediaType.TEXT_PLAIN
+    val bytes = s.getBytes("UTF-8")
+    val bais = new ByteArrayInputStream(bytes)
+    val body = new InputStreamResponseBody(head, Status.S200_OK, Some(mt), headersWithLength, bais)
+
+    // unbuffered state
+    body.isBuffered should be(false)
+    val it = body.iterator
+    it.next() should be("line one")
+    it.next() should be("line two")
+    it.next() should be("line three")
+    it.hasNext should be(false)
   }
 
   test("unknown content type") {

@@ -27,12 +27,18 @@ package uk.co.bigbeeconsultants.http.response
 import uk.co.bigbeeconsultants.http._
 import header.{Headers, MediaType}
 import request.Request
-import java.io.InputStream
+import java.io._
 import java.nio.charset.Charset
+import scala.Left
+import scala.Right
 
 /**
  * Provides a body implementation that holds the HTTP server's input stream as obtained from the HttpURLConnection.
- * This can easily be converted into a ByteBufferResponseBody.
+ * This provides access to the underlying InputStream, with or without a filtering function to transform the text,
+ * Also, is can also easily be iterated over as a sequence of strings.
+ *
+ * Alternatively, it can be converted into a [[uk.co.bigbeeconsultants.http.response.ByteBufferResponseBody]] if
+ * the whole body is required as a unit.
  *
  * It is not safe to share instances between threads.
  */
@@ -96,8 +102,42 @@ final class InputStreamResponseBody(request: Request, status: Status, mediaType:
     new LineFilterInputStream(rawStream, lineFilter, charset)
   }
 
+  /**
+   * Gets the body as a string split into lines of text, if possible. If the data is binary, this method always returns
+   * an empty iterator.
+   */
+  @throws(classOf[IOException])
+  override def iterator = {
+    if (!isTextual)
+      Nil.iterator
+    else
+      new Iterator[String] {
+        val reader = new BufferedReader(new InputStreamReader(rawStream, contentType.charsetOrUTF8))
+        var line: String = _
+
+        lookAhead()
+
+        @throws(classOf[IOException])
+        private def lookAhead() {
+          line = reader.readLine()
+          if (line == null) reader.close()
+        }
+
+        def hasNext = line != null
+
+        @throws(classOf[IOException])
+        def next() = {
+          val next = line
+          lookAhead()
+          next
+        }
+      }
+  }
+
+  @throws(classOf[IOException])
   def close() {
-    stream.close()
+    if (state.isLeft)
+      stream.close()
   }
 
   override def toString() = if (state.isLeft) "(unbuffered input stream)" else state.right.get.asString

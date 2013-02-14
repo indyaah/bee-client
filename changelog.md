@@ -1,3 +1,13 @@
+#### Wed, 13 Feb 2013
+* v0.20.0
+* Rework of ResponseBody - it's now possible to get access to the InputStream, possibly filtered line by line.
+
+
+#### Wed, 13 Feb 2013
+* v0.19.1
+* More minor authentication work done.
+
+
 #### Thu, 07 Feb 2013
 * v0.19.1
 * Some more work done on digest authentication, particularly testing.
