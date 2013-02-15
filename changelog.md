@@ -1,4 +1,14 @@
 #### Thu, 14 Feb 2013
+* v0.20.3
+* Tweaks made to ResposneBody and its implementations..
+
+
+#### Thu, 14 Feb 2013
+* v0.20.2
+* Bug fixed: when the streamed response body is used, the URL connection 'disconnect()' would immediately close the stream before it could be used. This is now fixed: the input stream is wrapped in a decorator that automatically disconnects the connection after the stream is closed.
+
+
+#### Thu, 14 Feb 2013
 * v0.20.1
 * InputStreamResponseBody now provides an iterator correctly..
 
