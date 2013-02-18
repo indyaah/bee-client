@@ -155,7 +155,13 @@ abstract class Http(val commonConfig: Config = Config()) {
 
 
   /**
-   * Makes an arbitrary request and returns the response. The entire response body is read into memory.
+   * Makes an arbitrary request and returns the response, which contains the entire response body in a buffer. All the
+   * convenience methods (head, get, put, post, trace, options) use this buffered method.
+   *
+   * It is the 'normal' way to make HTTP requests. Bit it may be inappropriate when the response body is too large to
+   * be buffered in memory, or if it is desirable to start processing the body whilst it is still being read in, in
+   * which case use 'makeUnbufferedRequest' instead.
+   *
    * @param request the request
    * @param config the particular configuration being used for this request; defaults to the commonConfiguration
    *               supplied to this instance of HttpClient
@@ -172,8 +178,8 @@ abstract class Http(val commonConfig: Config = Config()) {
 
 
   /**
-   * Makes an arbitrary request and returns the response, which contains the source input stream from which the
-   * response can be read.
+   * Makes an arbitrary request and returns an unbuffered response that contains the source input stream from which the
+   * response body can be read.
    * @param request the request
    * @param config the particular configuration being used for this request; defaults to the commonConfiguration
    *               supplied to this instance of HttpClient

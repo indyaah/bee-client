@@ -54,6 +54,10 @@ object HttpIntegration {
 
   val serverUrl = "//beeclient/"
 
+  //  val proxyAddress = new InetSocketAddress("localhost", 8888)
+  //  val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
+  val proxy = Proxy.NO_PROXY
+
   val gzipHeaders = Headers(ACCEPT_ENCODING -> GZIP)
 
   val dir = new File("src/test/resources")
@@ -61,23 +65,68 @@ object HttpIntegration {
   val testTxtSize = new File(dir, testTxtFile).length
   val testImageSize = 497
   val testPhotoSize = 1605218
-}
-
-class HttpIntegration extends FunSuite with BeforeAndAfter {
-
-  import HttpIntegration._
-
-  //  val proxyAddress = new InetSocketAddress("localhost", 8888)
-  //  val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
-  val proxy = Proxy.NO_PROXY
-
-  DumbTrustManager.install()
 
   private val jsonSample = """{ "x": 1, "y": true }"""
   private val jsonBody = RequestBody(jsonSample, APPLICATION_JSON)
 
   val configNoRedirects = Config(followRedirects = false, proxy = proxy)
 
+  /** Provides a single-threaded soak-tester. */
+  def main(args: Array[String]) {
+    val h = new HttpIntegration
+    val hc = new HttpClient(configNoRedirects)
+    val bigbee = new Credential("bigbee", "HelloWorld")
+    val hb = new HttpBrowser(configNoRedirects, CookieJar.empty, new CredentialSuite(Map("Restricted" -> bigbee)))
+
+    for (i <- 1 to 1000) {
+      h.headTest(hc, "http:" + serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
+      h.headTest(hc, "https:" + serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
+
+      h.htmlGet(hc, "http:" + serverUrl + testHtmlFile + "?LOREM=" + i, GZIP, testHtmlSize)
+      h.htmlGet(hc, "https:" + serverUrl + testHtmlFile + "?LOREM=" + i, GZIP, testHtmlSize)
+
+      h.textHtmlGet204("http:" + serverUrl + test204File)
+
+      h.imagePngGet("http:" + serverUrl + testImageFile)
+      h.imagePngGet("https:" + serverUrl + testImageFile)
+
+      h.textPlainGet("http:" + serverUrl + testTxtFile)
+      h.textPlainGet("https:" + serverUrl + testTxtFile)
+
+      h.textPlainGetFollowingRedirect("http:" + serverUrl + testRedirect1File + "?TO=" + testRedirect2File)
+
+      h.textPlainGetWithQueryString("http:" + serverUrl + testEchoFile + "?A=1&B=2")
+
+      h.textPlainGetAcquiringCookie("http:" + serverUrl + testCookieFile)
+
+      h.textPlainOptions("http:" + serverUrl + testPhpFile + "?CT=text/plain")
+
+      h.textPlainPost("http:" + serverUrl + testEchoFile)
+
+      h.textPlainPut("http:" + serverUrl + testEchoFile)
+
+      h.textHtmlDelete("http:" + serverUrl + testEchoFile)
+
+      h.textHtmlOptions("http:" + serverUrl + testEchoFile)
+
+      h.imageJpegGet("http:" + serverUrl + testPhotoFile)
+
+      h.textHtmlGet100("http:" + serverUrl + testPhpFile)
+
+      h.textPlainGetBasicAuth401("http:" + serverUrl + "private/lorem2.txt")
+      h.textPlainGetBasicAuth401("https:" + serverUrl + "private/lorem2.txt")
+      h.textPlainGetBasicAuth("http:" + serverUrl + "private/lorem2.txt")
+
+      h.textPlainGetAutomaticBasicAuth(hb, "http:" + serverUrl + "private/lorem2.txt")
+    }
+  }
+}
+
+class HttpIntegration extends FunSuite with BeforeAndAfter {
+
+  import HttpIntegration._
+
+  DumbTrustManager.install()
 
   def headTest(http: Http, url: String, size: Long) {
     try {

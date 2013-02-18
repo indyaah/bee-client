@@ -42,6 +42,17 @@ class InputStreamDelegateTest extends FunSuite {
     verifyZeroInteractions(connection)
   }
 
+  test("null input stream should not cause failure") {
+    val is: InputStream = null
+    val connection = mock(classOf[HttpURLConnection])
+    val isd = new InputStreamDelegate(is, connection)
+
+    isd.read()
+    isd.close()
+
+    verify(connection).disconnect()
+  }
+
   test("close method should close the underlying stream and also disconnect the connection") {
     val is = mock(classOf[InputStream])
     val connection = mock(classOf[HttpURLConnection])
