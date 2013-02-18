@@ -1,3 +1,13 @@
+#### Mon, 18 Feb 2013
+* v0.20.4
+* Bug fix: NPE in InputStreamDelegate.
+* HttpClient documentation.
+
+
+#### Fri, 15 Feb 2013
+* v0.20.3
+
+
 #### Thu, 14 Feb 2013
 * v0.20.3
 * Tweaks made to ResposneBody and its implementations..
