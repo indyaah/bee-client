@@ -1,5 +1,9 @@
 #### Mon, 18 Feb 2013
 * v0.20.4
+
+
+#### Mon, 18 Feb 2013
+* v0.20.4
 * Bug fix: NPE in InputStreamDelegate.
 * HttpClient documentation.
 
