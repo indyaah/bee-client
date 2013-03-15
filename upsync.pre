@@ -59,11 +59,11 @@ function writeLatest
   echo "</head><body><a href='$2'>Latest</a></body></html>" >>$1
 }
 
-SCALA=2.9.2
+SCALA=2.10
 
 do_docs
 
-for SCALA in 2.9.0 2.9.1 2.9.2; do
+for SCALA in 2.9.0 2.9.1 2.9.2 2.10; do
   do_repo
 done
 

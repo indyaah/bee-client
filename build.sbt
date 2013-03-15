@@ -28,9 +28,17 @@ organization := "uk.co.bigbeeconsultants"
 
 version := "0.20.4"
 
-crossScalaVersions := Seq("2.9.0", "2.9.1", "2.9.2", "2.9.3", "2.10.0", "2.10.1")
+crossScalaVersions := Seq("2.9.0", "2.9.1", "2.9.2", "2.9.3", "2.10.1")
 
-//publishMavenStyle := true
+publishMavenStyle := true
+
+publishArtifact in Test := false
+
+pomIncludeRepository := { _ => false }
+
+licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
+
+homepage := Some(url("http://www.bigbeeconsultants.co.uk/bee-client"))
 
 //publishTo := Some(Resolver.file("file", new File("/home/websites/your/releases"))
 

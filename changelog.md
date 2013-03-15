@@ -1,3 +1,7 @@
+#### Fri, 15 Mar 2013
+* Now supports Scala 2.9.3 and 2.10.1
+
+
 #### Mon, 18 Feb 2013
 * v0.20.4
 
