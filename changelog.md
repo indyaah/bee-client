@@ -1,4 +1,8 @@
 #### Fri, 15 Mar 2013
+* Changes to the build scripts only.
+
+
+#### Fri, 15 Mar 2013
 * Now supports Scala 2.9.3 and 2.10.1
 
 

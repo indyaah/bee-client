@@ -1,8 +1,5 @@
 #USERNAME=
-PROJECT=bee-client
-GROUPID=uk.co.bigbeeconsultants
-GROUPDIR=uk/co/bigbeeconsultants
-VNUM=$(grep version build.sbt | sed 's/.*:= *//' | tr -d '"')
+. metadata.info
 DEST=/home/websites/bigbeeconsultants
 DIR=$PWD
 SOURCES="docs repo"
@@ -17,8 +14,9 @@ function symlink
 
 function do_docs
 {
+  echo ............ Docs $SCALA .............
   if [ -d $DIR/target/scala-${SCALA} ]; then
-    rsync -av --delete $DIR/target/scala-${SCALA}/api/ $DEST/docs/${PROJECT}/${VNUM}
+    rsync -av $DIR/target/scala-${SCALA}/api/ $DEST/docs/${PROJECT}/${VNUM}
     cd $DEST/docs/${PROJECT}
     symlink ${VNUM} latest
   fi
@@ -33,6 +31,7 @@ function linkOneArtefact
 
 function do_repo
 {
+  echo ............ Repo $SCALA .............
   if [ -d $DIR/target/scala-${SCALA} ]; then
     cd $DEST
     rsync -av $HOME/.ivy2/local/${GROUPID}/ repo/${GROUPDIR}
@@ -59,7 +58,7 @@ function writeLatest
   echo "</head><body><a href='$2'>Latest</a></body></html>" >>$1
 }
 
-SCALA=2.10
+SCALA=$SCALA_CURRENT
 
 do_docs
 
@@ -67,6 +66,10 @@ for SCALA in 2.9.0 2.9.1 2.9.2 2.10; do
   do_repo
 done
 
+cd $DIR
+cp target/scala-${SCALA_CURRENT}/maven-metadata.xml $DEST/repo/$GROUPDIR/${PROJECT}_${SCALA_CURRENT}
+
+echo ............ Latest .............
 cd $DEST
 writeLatest docs/${PROJECT}/latest.html "http://www.bigbeeconsultants.co.uk/docs/${PROJECT}/${VNUM}/"
 writeLatest repo/${GROUPDIR}/${PROJECT}-latest.html "http://www.bigbeeconsultants.co.uk/repo/${GROUPDIR}/${PROJECT}_${SCALA}/${VNUM}/"
