@@ -15,19 +15,22 @@ rm -f versions.$$.txt
 
 # 2. Write the metadata file
 DATE=$(date '+%Y%m%d%H%M%S')
-mkdir -p target/scala-$SCALA_CURRENT
-F=target/scala-$SCALA_CURRENT/maven-metadata.xml
-echo "<metadata>" > $F
-echo " <groupId>${GROUPID}</groupId>" >> $F
-echo " <artifactId>${PROJECT}_${SCALA_CURRENT}</artifactId>" >> $F
-echo " <versioning>" >> $F
-echo "  <latest>${VNUM}</latest>" >> $F
-echo "  <release>${VNUM}</release>" >> $F
-echo "  <versions>" >> $F
-for V in $(cat versions.txt); do
-  echo "   <version>${V}</version>" >> $F
+for target in target/scala-*; do
+  scala=$(basename $target)
+  v=${scala#scala-}
+  F=$target/maven-metadata.xml
+  echo "<metadata>" > $F
+  echo " <groupId>${GROUPID}</groupId>" >> $F
+  echo " <artifactId>${PROJECT}_${v}</artifactId>" >> $F
+  echo " <versioning>" >> $F
+  echo "  <latest>${VNUM}</latest>" >> $F
+  echo "  <release>${VNUM}</release>" >> $F
+  echo "  <versions>" >> $F
+  for V in $(cat versions.txt); do
+    echo "   <version>${V}</version>" >> $F
+  done
+  echo "  </versions>" >> $F
+  echo "  <lastUpdated>${DATE}</lastUpdated>" >> $F
+  echo " </versioning>" >> $F
+  echo "</metadata>" >> $F
 done
-echo "  </versions>" >> $F
-echo "  <lastUpdated>${DATE}</lastUpdated>" >> $F
-echo " </versioning>" >> $F
-echo "</metadata>" >> $F
