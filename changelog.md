@@ -1,3 +1,11 @@
+#### Mon, 25 Mar 2013
+* Maven support script improved.
+
+
+#### Fri, 15 Mar 2013
+* More build script work done.
+
+
 #### Fri, 15 Mar 2013
 * Changes to the build scripts only.
 

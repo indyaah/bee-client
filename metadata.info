@@ -1,5 +1,4 @@
 PROJECT=bee-client
 GROUPID=uk.co.bigbeeconsultants
 GROUPDIR=uk/co/bigbeeconsultants
-VNUM=$(grep '^version\b' build.sbt | sed 's/.*:= *//' | tr -d '"')
 SCALA_CURRENT=2.10
