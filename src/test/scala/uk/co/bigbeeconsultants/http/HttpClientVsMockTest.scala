@@ -40,14 +40,21 @@ class HttpClientVsMockTest extends FunSuite {
 
   val url = new URL("http://server/some/url")
 
-  class Context(contentType: String, content: String, status: Status) {
-    val hostnameVerifier = mock(classOf[HostnameVerifier])
-    val sslSocketFactory = mock(classOf[SSLSocketFactory])
+  class TestInputStream(content: String) extends ByteArrayInputStream(content.getBytes("UTF-8")) {
+    var closed = false
 
+    override def close() {
+      closed = true
+    }
+  }
+
+  class MockConnection(contentType: String, content: String, status: Status) {
+    var consumed = false
+    val inputStream = new TestInputStream(content)
     val httpURLConnection = mock(classOf[HttpsURLConnection])
     when(httpURLConnection.getContentType).thenReturn(contentType)
     when(httpURLConnection.getResponseCode).thenReturn(status.code)
-    when(httpURLConnection.getInputStream).thenReturn(new ByteArrayInputStream(content.getBytes("UTF-8")))
+    when(httpURLConnection.getInputStream).thenReturn(inputStream)
     when(httpURLConnection.getResponseMessage).thenReturn(status.message)
 
     def expectHeaders(map: ListMap[String, String]) {
@@ -86,20 +93,42 @@ class HttpClientVsMockTest extends FunSuite {
       verify(httpURLConnection).setUseCaches(config.useCaches)
       verify(httpURLConnection).setAllowUserInteraction(false)
     }
+  }
+
+  class Context(contentType: String, content: String, status: Status) {
+    val hostnameVerifier = mock(classOf[HostnameVerifier])
+    val sslSocketFactory = mock(classOf[SSLSocketFactory])
+    val mc1 = new MockConnection(contentType, content, status)
+    val mc2 = new MockConnection(contentType, content, status)
+    mc2.consumed = true
 
     def newHttpClient(config: Config) = {
       new HttpClient(config) {
-        override def openConnection(request: Request, proxy: Proxy) = httpURLConnection
+        override def openConnection(request: Request, proxy: Proxy) = {
+          if (!mc2.consumed) {
+            mc2.consumed = true
+            mc2.httpURLConnection
+          } else {
+            mc1.consumed = true
+            mc1.httpURLConnection
+          }
+        }
       }
     }
   }
 
   // ----------
 
-  def executeBasicSettingsWithoutBody(method: String, contentType: String, useCookies: Boolean, status: Status = Status(200, "OK")) {
+  def executeBasicSettingsWithoutBody(method: String, contentType: String, useCookies: Boolean, redirect: Boolean, status: Status) {
     val expectedContent = "hello world"
     new Context(contentType, expectedContent, status) {
-      expectHeaders(ListMap("Content-Type" -> contentType))
+      if (redirect) {
+        mc2.consumed = false
+        mc2.expectHeaders(ListMap("Content-Type" -> contentType, "Location" -> "http://server/other"))
+      }
+      mc1.expectHeaders(ListMap("Content-Type" -> contentType))
+
+      val thisUrl = if (redirect) new URL("http://someother/path") else url
 
       val http = newHttpClient(Config())
 
@@ -107,31 +136,46 @@ class HttpClientVsMockTest extends FunSuite {
       val response =
         if (useCookies)
           method match {
-            case "GET" => http.get(url, headers, CookieJar.empty)
-            case "HEAD" => http.head(url, headers, CookieJar.empty)
-            case "TRACE" => http.trace(url, headers, CookieJar.empty)
-            case "DELETE" => http.delete(url, headers, CookieJar.empty)
+            case "GET" => http.get(thisUrl, headers, CookieJar.empty)
+            case "HEAD" => http.head(thisUrl, headers, CookieJar.empty)
+            case "TRACE" => http.trace(thisUrl, headers, CookieJar.empty)
+            case "DELETE" => http.delete(thisUrl, headers, CookieJar.empty)
           }
         else
           method match {
-            case "GET" => http.get(url, headers)
-            case "HEAD" => http.head(url, headers)
-            case "TRACE" => http.trace(url, headers)
-            case "DELETE" => http.delete(url, headers)
+            case "GET" => http.get(thisUrl, headers)
+            case "HEAD" => http.head(thisUrl, headers)
+            case "TRACE" => http.trace(thisUrl, headers)
+            case "DELETE" => http.delete(thisUrl, headers)
           }
 
-      verifyConfig(Config())
-      verifyRequestSettings(method, List(HOST -> "server", ACCEPT -> "*/*",
-        ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8,*;q=.1", ACCEPT_LANGUAGE -> "en"))
-      verify(httpURLConnection).getContentType
-      verify(httpURLConnection, times(2)).getResponseCode
-      verify(httpURLConnection).getResponseMessage
-      verify(httpURLConnection).getInputStream
-      verify(httpURLConnection).connect()
-      verify(httpURLConnection).disconnect()
-      verifyHeaders(1)
-      verifyNoMoreInteractions(httpURLConnection)
+      if (redirect) {
+        mc2.verifyConfig(Config())
+        mc2.verifyRequestSettings(method, List(HOST -> "someother", ACCEPT -> "*/*",
+          ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8,*;q=.1", ACCEPT_LANGUAGE -> "en"))
+        verify(mc2.httpURLConnection, atLeastOnce()).getResponseCode
+        verify(mc2.httpURLConnection).getResponseMessage
+        verify(mc2.httpURLConnection).getInputStream
+        verify(mc2.httpURLConnection).connect()
+        mc2.verifyHeaders(2)
+        verifyNoMoreInteractions(mc2.httpURLConnection)
+        assert(mc2.inputStream.closed)
+        assert(TEXT_PLAIN === response.body.contentType)
+        assert(expectedContent === response.body.toString)
+      }
 
+      mc1.verifyConfig(Config())
+      mc1.verifyRequestSettings(method, List(HOST -> "server", ACCEPT -> "*/*",
+        ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8,*;q=.1", ACCEPT_LANGUAGE -> "en"))
+      verify(mc1.httpURLConnection).getContentType
+      verify(mc1.httpURLConnection, atLeastOnce()).getResponseCode
+      verify(mc1.httpURLConnection).getResponseMessage
+      verify(mc1.httpURLConnection).getInputStream
+      verify(mc1.httpURLConnection).connect()
+      verify(mc1.httpURLConnection).disconnect()
+      mc1.verifyHeaders(1)
+      verifyNoMoreInteractions(mc1.httpURLConnection)
+      assert(mc1.inputStream.closed)
       assert(TEXT_PLAIN === response.body.contentType)
       assert(expectedContent === response.body.toString)
     }
@@ -139,14 +183,15 @@ class HttpClientVsMockTest extends FunSuite {
 
 
   test("mock methods with broadly default settings and without a body should confirm all interations") {
-    executeBasicSettingsWithoutBody("GET", "text/plain", false)
-    executeBasicSettingsWithoutBody("HEAD", "text/plain", false)
-    executeBasicSettingsWithoutBody("TRACE", "text/plain", false)
-    executeBasicSettingsWithoutBody("DELETE", "text/plain", false)
-    executeBasicSettingsWithoutBody("GET", "text/plain", true)
-    executeBasicSettingsWithoutBody("HEAD", "text/plain", true)
-    executeBasicSettingsWithoutBody("TRACE", "text/plain", true)
-    executeBasicSettingsWithoutBody("DELETE", "text/plain", true)
+    executeBasicSettingsWithoutBody("GET", "text/plain", false, false, Status.S200_OK)
+    executeBasicSettingsWithoutBody("HEAD", "text/plain", false, false, Status.S200_OK)
+    executeBasicSettingsWithoutBody("TRACE", "text/plain", false, false, Status.S200_OK)
+    executeBasicSettingsWithoutBody("DELETE", "text/plain", false, false, Status.S200_OK)
+    executeBasicSettingsWithoutBody("GET", "text/plain", true, false, Status.S200_OK)
+    executeBasicSettingsWithoutBody("HEAD", "text/plain", true, false, Status.S200_OK)
+    executeBasicSettingsWithoutBody("TRACE", "text/plain", true, false, Status.S200_OK)
+    executeBasicSettingsWithoutBody("DELETE", "text/plain", true, false, Status.S200_OK)
+    executeBasicSettingsWithoutBody("GET", "text/plain", false, true, Status.S301_MovedPermanently)
   }
 
 
@@ -154,10 +199,10 @@ class HttpClientVsMockTest extends FunSuite {
     val expectedContent = "hello world"
     val baos = new ByteArrayOutputStream()
 
-    new Context("text/plain", expectedContent, Status(200, "OK")) {
-      expectHeaders(ListMap("Content-Type" -> "text/plain"))
+    new Context("text/plain", expectedContent, Status.S200_OK) {
+      mc1.expectHeaders(ListMap("Content-Type" -> "text/plain"))
 
-      when(httpURLConnection.getOutputStream).thenReturn(baos)
+      when(mc1.httpURLConnection.getOutputStream).thenReturn(baos)
 
       val http = newHttpClient(Config())
 
@@ -176,20 +221,21 @@ class HttpClientVsMockTest extends FunSuite {
             case "OPTIONS" => http.options(url, Some(RequestBody("hello world", TEXT_PLAIN)), headers)
           }
 
-      verifyConfig(Config())
-      verifyRequestSettings(method, List(HOST -> "server", ACCEPT -> "*/*",
+      mc1.verifyConfig(Config())
+      mc1.verifyRequestSettings(method, List(HOST -> "server", ACCEPT -> "*/*",
         ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8,*;q=.1", ACCEPT_LANGUAGE -> "en", CONTENT_TYPE -> "text/plain"))
-      verify(httpURLConnection).setDoOutput(true)
-      verify(httpURLConnection).getContentType
-      verify(httpURLConnection, times(2)).getResponseCode
-      verify(httpURLConnection).getResponseMessage
-      verify(httpURLConnection).getInputStream
-      verify(httpURLConnection).getOutputStream
-      verify(httpURLConnection).connect()
-      verify(httpURLConnection).disconnect()
-      verifyHeaders(1)
-      verifyNoMoreInteractions(httpURLConnection)
+      verify(mc1.httpURLConnection).setDoOutput(true)
+      verify(mc1.httpURLConnection).getContentType
+      verify(mc1.httpURLConnection, atLeastOnce()).getResponseCode
+      verify(mc1.httpURLConnection).getResponseMessage
+      verify(mc1.httpURLConnection).getInputStream
+      verify(mc1.httpURLConnection).getOutputStream
+      verify(mc1.httpURLConnection).connect()
+      verify(mc1.httpURLConnection).disconnect()
+      mc1.verifyHeaders(1)
+      verifyNoMoreInteractions(mc1.httpURLConnection)
 
+      assert(mc1.inputStream.closed)
       assert(TEXT_PLAIN === response.body.contentType)
       assert(expectedContent === response.body.toString)
     }
@@ -209,102 +255,102 @@ class HttpClientVsMockTest extends FunSuite {
 
 
   test("config connect timeout should send the correct header") {
-    new Context("text/plain", "hello world", Status(200, "OK")) {
-      expectHeaders(ListMap("Content-Type" -> "text/plain"))
+    new Context("text/plain", "hello world", Status.S200_OK) {
+      mc1.expectHeaders(ListMap("Content-Type" -> "text/plain"))
 
       val config = Config(connectTimeout = 12345)
       newHttpClient(config).get(url)
-      verifyConfig(config)
+      mc1.verifyConfig(config)
     }
   }
 
 
   test("config read timeout should send the correct header") {
-    new Context("text/plain", "hello world", Status(200, "OK")) {
-      expectHeaders(ListMap("Content-Type" -> "text/plain"))
+    new Context("text/plain", "hello world", Status.S200_OK) {
+      mc1.expectHeaders(ListMap("Content-Type" -> "text/plain"))
 
       val config = Config(readTimeout = 12345)
       newHttpClient(config).get(url)
-      verifyConfig(config)
+      mc1.verifyConfig(config)
     }
   }
 
 
   test("config follow redirects should send the correct header") {
-    new Context("text/plain", "hello world", Status(200, "OK")) {
-      expectHeaders(ListMap("Content-Type" -> "text/plain"))
+    new Context("text/plain", "hello world", Status.S200_OK) {
+      mc1.expectHeaders(ListMap("Content-Type" -> "text/plain"))
 
       val config = Config(followRedirects = false)
       newHttpClient(config).get(url)
-      verifyConfig(config)
+      mc1.verifyConfig(config)
     }
   }
 
 
   test("config use caches should send the correct header") {
-    new Context("text/plain", "hello world", Status(200, "OK")) {
-      expectHeaders(ListMap("Content-Type" -> "text/plain"))
+    new Context("text/plain", "hello world", Status.S200_OK) {
+      mc1.expectHeaders(ListMap("Content-Type" -> "text/plain"))
 
       val config = Config(useCaches = false)
       newHttpClient(config).get(url)
-      verifyConfig(config)
+      mc1.verifyConfig(config)
     }
   }
 
 
   test("config hostnameVerifier should be set up correctly") {
-    new Context("text/plain", "hello world", Status(200, "OK")) {
-      expectHeaders(ListMap("Content-Type" -> "text/plain"))
+    new Context("text/plain", "hello world", Status.S200_OK) {
+      mc1.expectHeaders(ListMap("Content-Type" -> "text/plain"))
 
       val config = Config(hostnameVerifier = Some(hostnameVerifier))
       newHttpClient(config).get(url)
-      verify(httpURLConnection).setHostnameVerifier(hostnameVerifier)
+      verify(mc1.httpURLConnection).setHostnameVerifier(hostnameVerifier)
     }
   }
 
 
   test("config sslSocketFactory should be set up correctly") {
-    new Context("text/plain", "hello world", Status(200, "OK")) {
-      expectHeaders(ListMap("Content-Type" -> "text/plain"))
+    new Context("text/plain", "hello world", Status.S200_OK) {
+      mc1.expectHeaders(ListMap("Content-Type" -> "text/plain"))
 
       val config = Config(sslSocketFactory = Some(sslSocketFactory))
       newHttpClient(config).get(url)
-      verify(httpURLConnection).setSSLSocketFactory(sslSocketFactory)
+      verify(mc1.httpURLConnection).setSSLSocketFactory(sslSocketFactory)
     }
   }
 
 
   test("config host header flag should be able to disable the host header") {
-    new Context("text/plain", "hello world", Status(200, "OK")) {
-      expectHeaders(ListMap("Content-Type" -> "text/plain"))
+    new Context("text/plain", "hello world", Status.S200_OK) {
+      mc1.expectHeaders(ListMap("Content-Type" -> "text/plain"))
 
       newHttpClient(config = Config(preRequests = Nil)).get(url)
 
-      verify(httpURLConnection, times(0)).setRequestProperty(HOST, "server")
+      verify(mc1.httpURLConnection, times(0)).setRequestProperty(HOST, "server")
     }
   }
 
 
   test("config host header should not be automatically sent for IP addresses") {
-    new Context("text/plain", "hello world", Status(200, "OK")) {
-      expectHeaders(ListMap("Content-Type" -> "text/plain"))
+    new Context("text/plain", "hello world", Status.S200_OK) {
+      mc1.expectHeaders(ListMap("Content-Type" -> "text/plain"))
 
       val url = new URL("http://192.168.1.1/some/url")
       newHttpClient(config = Config()).get(url)
 
-      verify(httpURLConnection, times(0)).setRequestProperty(HOST, "192.168.1.1")
+      verify(mc1.httpURLConnection, times(0)).setRequestProperty(HOST, "192.168.1.1")
     }
   }
 
 
   test("config host header should not be automatically sent for localhost") {
-    new Context("text/plain", "hello world", Status(200, "OK")) {
-      expectHeaders(ListMap("Content-Type" -> "text/plain"))
+    new Context("text/plain", "hello world", Status.S200_OK) {
+      mc1.expectHeaders(ListMap("Content-Type" -> "text/plain"))
 
       val url = new URL("http://localhost/some/url")
       newHttpClient(config = Config()).get(url)
 
-      verify(httpURLConnection, times(0)).setRequestProperty(HOST, "localhost")
+      verify(mc1.httpURLConnection, times(0)).setRequestProperty(HOST, "localhost")
     }
   }
 }

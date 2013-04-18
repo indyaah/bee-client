@@ -83,6 +83,7 @@ object HttpIntegration {
     }
     val totals = Futures.awaitAll(10000000, futures: _*).map(_.get).map(_.asInstanceOf[Duration])
     println("Grand total " + totals.foldLeft(Duration.Zero)(_ + _))
+    //Thread.sleep(60000) // time for inspecting any lingering network connections
   }
 
   def instance(id: String, n: Int) = {

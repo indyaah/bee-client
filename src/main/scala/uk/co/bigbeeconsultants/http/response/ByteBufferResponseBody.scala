@@ -50,7 +50,11 @@ import uk.co.bigbeeconsultants.http.request.Request
  * to use. However, take care because the memory footprint will be large when dealing with large volumes of
  * response data. As an alternative, consider [[uk.co.bigbeeconsultants.http.response.InputStreamResponseBody]].
  *
- * It is not safe to share instances between threads.
+ * It is not safe to share instances between threads. If required, use `toBufferedBody` and obtain the immutable
+ * `StringResponseBody` copy of the data.
+ *
+ * This class ensures that the socket input stream is always closed correctly, meaning the calling code is simpler
+ * because it need not be concerned with cleaning up.
  */
 final class ByteBufferResponseBody(request: Request,
                                    status: Status,
@@ -74,6 +78,9 @@ final class ByteBufferResponseBody(request: Request,
       ""
     }
   }
+
+  /** Always true. */
+  override def isBuffered = true
 
   /**
    * Returns a new StringResponseBody containing the text in this body in immutable form. The returned

@@ -40,6 +40,9 @@ case class StringResponseBody(bodyText: String, contentType: MediaType) extends 
   @deprecated
   def this(contentType: MediaType, bodyText: String) = this(bodyText, contentType)
 
+  /** Always true. */
+  override def isBuffered = true
+
   /**
    * Returns `this`.
    */

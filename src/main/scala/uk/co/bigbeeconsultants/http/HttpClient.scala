@@ -93,6 +93,8 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
       redirect = RedirectionLogic.determineRedirect(config, request, status, responseHeadersWithoutCookies, responseCookies)
       if (redirect.isEmpty) {
         handleContent(httpURLConnection, request, status, responseHeadersWithoutCookies, responseCookies, responseBuilder)
+      } else {
+        selectStream(httpURLConnection).close()
       }
 
       if (logger.isInfoEnabled) logger.info("{} {}", request.toShortString, status.code.toString + " " + timer)

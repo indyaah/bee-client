@@ -125,8 +125,11 @@ object HttpUtil {
     if (initialSize > 0) {
       val outStream = new ByteArrayOutputStream(initialSize)
       if (inputStream != null) {
-        copyBytes(inputStream, outStream)
-        inputStream.close()
+        try {
+          copyBytes(inputStream, outStream)
+        } finally {
+          inputStream.close()
+        }
       }
       ByteBuffer.wrap(outStream.toByteArray)
     } else {

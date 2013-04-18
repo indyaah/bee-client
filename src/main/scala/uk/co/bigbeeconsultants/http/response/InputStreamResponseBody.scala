@@ -39,6 +39,11 @@ import java.nio.charset.Charset
  * (which is simpler to use) if the whole body is required as a block of bytes or a string.
  *
  * It is not safe to share instances between threads.
+ *
+ * The socket input stream *must* be closed by the calling code. This happens automatically when all the data has
+ * been consumed from the socket, but if it is necessary to give up immediately or part-way through, it is necessary
+ * to ensure that `rawStream.close()` is invoked (usually in a `finally` block). Conversion `toBufferedBody` is
+ * another way to ensure the input stream gets closed.
  */
 final class InputStreamResponseBody(request: Request, status: Status, mediaType: Option[MediaType],
                                     headers: Headers, stream: InputStream)
@@ -51,7 +56,7 @@ final class InputStreamResponseBody(request: Request, status: Status, mediaType:
 
   /**
    * Gets the response body in a buffer. This consumes the data from the input stream, which cannot subsequently
-   * be used therefore.
+   * be used here therefore. Any data that has already been consumed will not be included in the resulting buffer.
    * @return the response data stored in a buffer
    */
   override def toBufferedBody: ResponseBody = {
@@ -89,7 +94,8 @@ final class InputStreamResponseBody(request: Request, status: Status, mediaType:
 
   /**
    * Gets the HTTP response input stream. If you read from this stream, it would be unwise later to buffer
-   * the body using `toBufferedBody`, because only the remainder would get buffered.
+   * the body using `toBufferedBody`, because only the remainder would get buffered. Also, once a buffered
+   * body has been obtained, this method must not be used (an exception will be thrown if it is attempted).
    * @return the proxied input stream
    */
   def rawStream: InputStream = {
@@ -150,6 +156,12 @@ final class InputStreamResponseBody(request: Request, status: Status, mediaType:
     if (bufferedBody.isEmpty)
       stream.close()
   }
+
+  /**
+   * Always returns a blank string because the data is as-yet un-buffered. Instead, first use `toBufferedBody` and call
+   * `asString` on the result.
+   */
+  override def asString = ""
 
   override def toString() = if (bufferedBody.isEmpty) "(unbuffered input stream)" else bufferedBody.get.asString
 }

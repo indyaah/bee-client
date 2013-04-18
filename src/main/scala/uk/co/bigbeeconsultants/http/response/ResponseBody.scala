@@ -58,11 +58,13 @@ trait ResponseBody extends Iterable[String] {
    * Tests whether the implementation has buffered the whole response body. If this returns false, `toBufferedBody`
    * provides an easy route to accumulate the entire body in a buffer.
    */
-  def isBuffered = true
+  def isBuffered: Boolean
 
   /**
    * Converts this response body into a buffered form if necessary. If it is already buffered, this method simply
-   * returns `this`.
+   * returns `this`. Typically, a chain of conversions are provided by the implementation classes: if the
+   * implementation is a `InputStreamResponseBody`, then this method will return a new `ByteBufferResponseBody`,
+   * which will in turn return a new `StringResponseBody`, which will just return itself.
    */
   def toBufferedBody: ResponseBody
 
@@ -73,9 +75,10 @@ trait ResponseBody extends Iterable[String] {
   def asBytes: Array[Byte]
 
   /**
-   * Gets the body as a string, if available. If the data is binary, this method always returns a blank string.
+   * Gets the body as a string, if available. If the data is as-yet unbuffered, this method always returns a blank
+   * string.
    */
-  def asString: String = ""
+  def asString: String
 
   /**
    * Gets the response body as a string for diagnostic purposes.
@@ -110,16 +113,22 @@ trait ResponseBody extends Iterable[String] {
 //---------------------------------------------------------------------------------------------------------------------
 
 /**
- * Provides an empty Body implementation.
+ * Provides an empty `ResponseBody` implementation.
  */
 final class EmptyResponseBody(val contentType: MediaType) extends ResponseBody {
 
-  /**
-   * Returns `this`.
-   */
+  /** Returns `this`. */
   override def toBufferedBody = this
 
+  /** Returns 0. */
   override def contentLength = 0
 
+  /** Always true. */
+  override def isBuffered = true
+
+  /** Returns a zero-length array. */
   override val asBytes = new Array[Byte](0)
+
+  /** Returns a blank string. */
+  override def asString = ""
 }

@@ -60,21 +60,23 @@ private[http] object RedirectionLogic {
       // First case: No change of method (302 ought to be here but cannot)
       val location = responseHeaders.get(LOCATION)
       if (location.isEmpty) None
-      else Some(Request(method = request.method,
-        url = locationToURL(request, location.get.value),
-        body = request.body,
-        headers = request.headers,
-        cookies = responseCookies))
+      else
+        Some(Request(method = request.method,
+          url = locationToURL(request, location.get.value),
+          body = request.body,
+          headers = request.headers,
+          cookies = responseCookies))
 
     } else if (status.code == 302 || status.code == 303) {
       // Second case: switch to GET method (302 is de-facto only)
       val location = responseHeaders.get(LOCATION)
       if (location.isEmpty) None
-      else Some(Request(method = GET,
-        url = locationToURL(request, location.get.value),
-        body = None,
-        headers = request.headers,
-        cookies = responseCookies))
+      else
+        Some(Request(method = GET,
+          url = locationToURL(request, location.get.value),
+          body = None,
+          headers = request.headers,
+          cookies = responseCookies))
 
     } else None
   }
