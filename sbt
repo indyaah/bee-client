@@ -10,5 +10,5 @@ if [ ! -f xsbt/bin/sbt-launch.jar ]; then
   cd .. && rmdir t
 fi
 
-OPTS="-Dfile.encoding=UTF8 -Xmx1024M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256M"
+OPTS="-Dfile.encoding=UTF8 -Xmx1024M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256M -XX:ReservedCodeCacheSize=128M"
 java $OPTS -jar xsbt/bin/sbt-launch.jar "$@"

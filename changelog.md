@@ -1,3 +1,18 @@
+#### Thu, 18 Apr 2013
+* v0.21.0
+* Bug fixed: HttpClient: when redirecting, the socket input stream was not always closed cleanly.
+* Bug fixed: HttpUtil.copyToByteBufferAndClose now wraps input stream close in a finally block.
+
+
+#### Thu, 18 Apr 2013
+* v0.20.5
+* SelfClosingInputStreamDelegate used to ensure that unbuffered response bodies can still be sure that their source input stream will always be closed, provided they consume all the source data.
+
+
+#### Wed, 27 Mar 2013
+* Upsync scripting improvements
+
+
 #### Mon, 25 Mar 2013
 * Maven support script improved.
 
