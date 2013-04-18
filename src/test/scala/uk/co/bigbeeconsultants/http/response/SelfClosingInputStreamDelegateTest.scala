@@ -29,26 +29,47 @@ import org.mockito.Mockito._
 import java.net.HttpURLConnection
 import java.io.{IOException, InputStream}
 
-class InputStreamDelegateTest extends FunSuite {
+class SelfClosingInputStreamDelegateTest extends FunSuite {
+
+  test("constructor should close disconnect if the input stream is null") {
+    val is: InputStream = null
+    val connection = mock(classOf[HttpURLConnection])
+    new SelfClosingInputStreamDelegate(is, connection)
+
+    verify(connection).disconnect()
+  }
 
   test("read method should call read on the underlying stream") {
     val is = mock(classOf[InputStream])
     val connection = mock(classOf[HttpURLConnection])
-    val isd = new InputStreamDelegate(is, connection)
+    val scisd = new SelfClosingInputStreamDelegate(is, connection)
 
-    isd.read()
+    scisd.read()
 
     verify(is).read()
     verifyZeroInteractions(connection)
   }
 
+  test("when read method reaches the end of data, it should call disconnect") {
+    val is = mock(classOf[InputStream])
+    val connection = mock(classOf[HttpURLConnection])
+    val scisd = new SelfClosingInputStreamDelegate(is, connection)
+    when(is.read()) thenReturn 1 thenReturn -1
+
+    scisd.read()
+    scisd.read()
+
+    verify(is, times(2)).read()
+    verify(connection).disconnect()
+  }
+
   test("null input stream should not cause failure") {
     val is: InputStream = null
     val connection = mock(classOf[HttpURLConnection])
-    val isd = new InputStreamDelegate(is, connection)
+    val scisd = new SelfClosingInputStreamDelegate(is, connection)
 
-    isd.read()
-    isd.close()
+    scisd.read()
+    scisd.close()
 
     verify(connection).disconnect()
   }
@@ -56,9 +77,9 @@ class InputStreamDelegateTest extends FunSuite {
   test("close method should close the underlying stream and also disconnect the connection") {
     val is = mock(classOf[InputStream])
     val connection = mock(classOf[HttpURLConnection])
-    val isd = new InputStreamDelegate(is, connection)
+    val scisd = new SelfClosingInputStreamDelegate(is, connection)
 
-    isd.close()
+    scisd.close()
 
     verify(is).close()
     verify(connection).disconnect()
@@ -67,11 +88,11 @@ class InputStreamDelegateTest extends FunSuite {
   test("close method should disconnect the connection even if it fails to close the underlying stream") {
     val is = mock(classOf[InputStream])
     val connection = mock(classOf[HttpURLConnection])
-    val isd = new InputStreamDelegate(is, connection)
+    val scisd = new SelfClosingInputStreamDelegate(is, connection)
     when(is.close()) thenThrow new IOException()
 
     intercept[IOException] {
-      isd.close()
+      scisd.close()
     }
 
     verify(is).close()

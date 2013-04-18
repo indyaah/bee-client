@@ -26,7 +26,7 @@ name := "bee-client"
 
 organization := "uk.co.bigbeeconsultants"
 
-version := "0.20.4"
+version := "0.20.5"
 
 crossScalaVersions := Seq("2.9.0", "2.9.1", "2.9.2", "2.9.3", "2.10.1")
 

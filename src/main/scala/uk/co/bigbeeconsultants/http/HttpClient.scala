@@ -118,7 +118,7 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
     } else {
       getBodyStream(contEnc, httpURLConnection)
     }
-    val delegate = new InputStreamDelegate(stream, httpURLConnection)
+    val delegate = new SelfClosingInputStreamDelegate(stream, httpURLConnection)
     responseBuilder.captureResponse(request, status, mediaType, responseHeaders, responseCookies, delegate)
   }
 

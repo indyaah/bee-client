@@ -29,25 +29,58 @@ package uk.co.bigbeeconsultants.http.util
  * The measurement precision is to the nearest microsecond.
  *
  * Simply create an instance before the code under test and observe the duration afterwards.
+ *
+ * This class is included here to avoid dependencies on external libraries (e.g. JodaTime)
+ * for such a simple task.
  */
 final class DiagnosticTimer {
-  val thousand = 1000
-  val million = thousand * thousand
 
   /** The time at which the timer was started, measured in arbitrary ticks. */
   val start = now
 
-  private def now = System.nanoTime() / thousand
+  private def now = System.nanoTime() / DiagnosticTimer.thousand
 
   /** The duration since the timer was started, measured in microseconds. */
-  def duration = now - start
+  def duration = new Duration(now - start)
 
   /** Gets the duration since the timer was started, formatted for humans to read. */
-  override def toString =
-    if (duration >= 50 * million)
-      (duration / million) + "s"
-    else if (duration >= 50 * thousand)
-      (duration / thousand) + "ms"
+  override def toString = duration.toString
+}
+
+object DiagnosticTimer {
+  val thousand = 1000
+  val million = thousand * thousand
+}
+
+/**
+ * Provides a simple container for time durations measured in microseconds. Possible operations include
+ * summing durations together and calculating averages.
+ *
+ * This is a bit like the class of the same name in Joda Time, except that the resolution is microseconds
+ * in this case.
+ * @param microseconds a number representing a time duration; negative numbers are unusual but not prohibited.
+ */
+case class Duration(microseconds: Long) extends Ordered[Duration] {
+
+  import DiagnosticTimer._
+
+  def + (microseconds: Long) = new Duration(microseconds + this.microseconds)
+  def + (duration: Duration) = new Duration(this.microseconds + duration.microseconds)
+  def - (duration: Duration) = new Duration(this.microseconds - duration.microseconds)
+  def * (factor: Int) = new Duration(this.microseconds * factor)
+  def / (divisor: Int) = new Duration(this.microseconds / divisor)
+
+  def compare(that: Duration) = this.microseconds.compare(that.microseconds)
+
+  override def toString: String =
+    if (microseconds >= 50 * million)
+      (microseconds / million) + "s"
+    else if (microseconds >= 50 * thousand)
+      (microseconds / thousand) + "ms"
     else
-      duration + "μs"
+      microseconds + "μs"
+}
+
+object Duration {
+  final val Zero = new Duration(0)
 }

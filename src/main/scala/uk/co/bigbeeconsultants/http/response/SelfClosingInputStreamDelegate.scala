@@ -28,19 +28,29 @@ import java.io.{IOException, InputStream}
 import java.net.HttpURLConnection
 
 /**
- * Constructs an a wrapper for an HTTP input stream that ensures that its parent HTTP connection
- * is disconnected when the input stream is closed.
+ * Constructs a wrapper for an HTTP input stream that ensures that its parent HTTP connection
+ * is disconnected when the input stream is closed. The input stream is self-closing: when consuming data
+ * from the stream, once the end is reached the stream will automatically close and the connection will
+ * be disconnected.
  * @param in the input stream; if null then the wrapper will behave as if zero-length was provided.
  * @param connection the parent connection for the input stream.
  */
-class InputStreamDelegate(in: InputStream, connection: HttpURLConnection) extends InputStream {
+class SelfClosingInputStreamDelegate(in: InputStream, connection: HttpURLConnection) extends InputStream {
+
+  private var closed = false
+
+  if (in == null) close()
 
   /**
    * Reads the next byte of data from the input stream. The value byte is
    * returned as an <code>int</code> in the range <code>0</code> to
    * <code>255</code>. If no byte is available because the end of the stream
-   * has been reached, the value <code>-1</code> is returned. This method
-   * blocks until input data is available, the end of the stream is detected,
+   * has been reached, the value <code>-1</code> is returned.
+   *
+   * When the last available byte has been read in, the stream is automatically closed
+   * and the connection is automatically disconnected.
+   *
+   * This method blocks until input data is available, the end of the stream is detected,
    * or an exception is thrown.
    *
    * @return     the next byte of data, or <code>-1</code> if the end of the
@@ -49,8 +59,13 @@ class InputStreamDelegate(in: InputStream, connection: HttpURLConnection) extend
    */
   @throws(classOf[IOException])
   def read(): Int =
-    if (in == null) -1
-    else in.read()
+    if (closed || in == null) -1
+    else {
+      val byte = in.read()
+      if (byte < 0) close()
+      byte
+    }
+
 
   /**
    * Closes this input stream and releases any system resources associated with the stream.
@@ -60,12 +75,15 @@ class InputStreamDelegate(in: InputStream, connection: HttpURLConnection) extend
    */
   @throws(classOf[IOException])
   override def close() {
-    try {
-      if (in != null)
-        in.close()
-    }
-    finally {
-      connection.disconnect()
+    if (!closed) {
+      closed = true
+      try {
+        if (in != null)
+          in.close()
+      }
+      finally {
+        connection.disconnect()
+      }
     }
   }
 }

@@ -34,10 +34,12 @@ import request.RequestBody
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import java.net.{UnknownHostException, ConnectException, Proxy, URL}
 import java.io.File
-import scala.Some
 import url.Domain
-import util.DumbTrustManager
+import uk.co.bigbeeconsultants.http.util.{Duration, DiagnosticTimer, DumbTrustManager}
 import header.{HeaderName, Headers}
+// scala actors futures retain 2.9.1 backward compatibility
+import scala.actors._
+
 
 object HttpIntegration {
   val testHtmlFile = "test-lighthttpclient.html"
@@ -73,12 +75,26 @@ object HttpIntegration {
 
   /** Provides a single-threaded soak-tester. */
   def main(args: Array[String]) {
+    val concurrency = 9
+    val futures = for (i <- 1 to concurrency) yield {
+      Futures.future {
+        instance("t" + i, 100)
+      }
+    }
+    val totals = Futures.awaitAll(10000000, futures: _*).map(_.get).map(_.asInstanceOf[Duration])
+    println("Grand total " + totals.foldLeft(Duration.Zero)(_ + _))
+  }
+
+  def instance(id: String, n: Int) = {
     val h = new HttpIntegration
     val hc = new HttpClient(configNoRedirects)
     val bigbee = new Credential("bigbee", "HelloWorld")
     val hb = new HttpBrowser(configNoRedirects, CookieJar.empty, new CredentialSuite(Map("Restricted" -> bigbee)))
 
-    for (i <- 1 to 1000) {
+    var total = Duration(0L)
+    for (i <- 1 to n) {
+      //println(id + ": iteration " + i)
+      val dt = new DiagnosticTimer
       h.headTest(hc, "http:" + serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
       h.headTest(hc, "https:" + serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
 
@@ -118,7 +134,11 @@ object HttpIntegration {
       h.textPlainGetBasicAuth("http:" + serverUrl + "private/lorem2.txt")
 
       h.textPlainGetAutomaticBasicAuth(hb, "http:" + serverUrl + "private/lorem2.txt")
+      total += dt.duration
+      println(id + ": " + i + " took " + dt)
     }
+    println(id + ": Total time " + total + ", average time per loop " + (total / n))
+    total
   }
 }
 
@@ -466,7 +486,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   private def imageJpegGet(url: String) {
     val http = new HttpClient(configNoRedirects)
     try {
-      val loops = 20
+      val loops = 1
       val before = System.currentTimeMillis()
       for (i <- 1 to loops) {
         val response = http.get(new URL(url + "?n=" + i), gzipHeaders)
@@ -526,7 +546,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val duration = System.currentTimeMillis() - before
       val bytes = BigDecimal(size * loops)
       val rate = if (duration > 0) (bytes / duration) else 0
-      println(bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
+      //println(bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
