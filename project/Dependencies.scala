@@ -26,21 +26,18 @@ import sbt._
 
 object Resolvers {
   //val localhost = URLRepository("local-nexus", Patterns("http://localhost:8081/nexus/"))
-  val bigbeeRepo = URLRepository("bigbee", Patterns("http://bigbeeconsultants.co.uk/repo/"))
+  val bigbeeRepo = URLRepository("bigbee", Patterns("http://repo.bigbeeconsultants.co.uk/repo/"))
   val resolvers = Seq(bigbeeRepo, DefaultMavenRepository)
 }
 
 object Dependencies {
-  val slf4jVersion = "1.6.6"
-  val logbackVersion = "1.0.7"
+  val slf4jVersion = "1.7.5"
+  val logbackVersion = "1.0.12" // .13 released
   val jettyVersion = "6.1.26"
 
   val slf4jApi = "org.slf4j" % "slf4j-api" % slf4jVersion withSources()
   val slf4jJcl = "org.slf4j" % "jcl-over-slf4j" % slf4jVersion withSources()
   val slf4jLog4j = "org.slf4j" % "log4j-over-slf4j" % slf4jVersion withSources()
-
-  // No longer using slf4s because it holds back the supportable range of Scala versions
-  //val slf4s = "com.weiglewilczek.slf4s" %% "slf4s" % "1.0.+" withSources()
 
   //  val jodaTime         = "joda-time"          % "joda-time"         % "2.+" withJavadoc()
   //  val jodaConvert      = "joda-time"          % "joda-convert"      % "1.+" withJavadoc()
@@ -50,11 +47,13 @@ object Dependencies {
   val servletApi = "org.mortbay.jetty" % "servlet-api" % "2.5.20110712" withSources()
 //  val servlet = "javax.servlet" % "servlet-api" % "2.5" withSources()
 
-  val beeConfig = "bee-config" % "bee-config_2.9.1" % "0.11.+" withSources() withJavadoc()
+  val beeConfig = "bee-config" % "bee-config_2.9.1" % "1.1.+" withSources() withJavadoc()
 
   // ========== Test ==========
 
   val scalatest = "org.scalatest" %% "scalatest" % "1.9.1" % "test" withSources()
+
+  //val scalacheck = "org.scalacheck" %% "scalacheck" % "1.10.1" % "test" withSources()
 
   val jsontools = "com.sdicons.jsontools" % "jsontools-core" % "1.7" % "test" withSources()
 
@@ -70,5 +69,4 @@ object Dependencies {
   val jettyEmbedded = "org.mortbay.jetty" % "jetty-embedded" % jettyVersion % "test" withSources()
   //  val jettyCore        = "org.mortbay.jetty"  % "jetty"             % jettyVersion withSources()
   //  val jettyUtil        = "org.mortbay.jetty"  % "jetty-util"        % jettyVersion withSources()
-
 }

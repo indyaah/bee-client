@@ -38,7 +38,7 @@ case class DateValue(value: String) extends Value {
     valid = true
   } catch {
     case pe: ParseException =>
-      logger.error("{}: failed to parse date. {}", value, pe.getMessage)
+      logger.error("{}: failed to parse date. {}", Array(value, pe.getMessage))
   }
 
   val isValid = valid

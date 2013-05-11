@@ -125,7 +125,7 @@ object HttpDateTimeInstant {
     }
     catch {
       case e: Exception => {
-        logger.error("{}: failed to parse date. {}", dateString, e.getMessage)
+        logger.error("{}: failed to parse date. {}", Array(dateString, e.getMessage))
       }
     }
     result

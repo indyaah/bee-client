@@ -178,8 +178,14 @@ abstract class Http(val commonConfig: Config = Config()) {
 
 
   /**
-   * Makes an arbitrary request and returns an unbuffered response that contains the source input stream from which the
-   * response body can be read.
+   * Makes an arbitrary request and returns a the response. For successful 200-OK responses, this will be an
+   * *unbuffered* response with direct access to the source input stream. This allows bespoke usage of this
+   * stream. It is the caller's responsibility to ensure that the stream is always closed, so preventing
+   * leakage of resources. This is made easier because the stream is of a kind that will
+   * automatically close as soon as all the data has been read.
+   *
+   * For all responses other than 200-OK, a buffered response is returned, as if `makeRequest` had been used instead.
+   * This ensures that the input stream is automatically closed for all error, redirection and no-content responses.
    * @param request the request
    * @param config the particular configuration being used for this request; defaults to the commonConfiguration
    *               supplied to this instance of HttpClient

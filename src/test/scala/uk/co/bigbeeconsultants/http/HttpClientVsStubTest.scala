@@ -254,7 +254,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     val is = getClass.getClassLoader.getResourceAsStream("plataria-sunset.jpg")
     val jpgBytes = copyToByteBufferAndClose(is).array()
     val size = jpgBytes.length
-    val loops = 700
+    val loops = 100
     val before = System.currentTimeMillis()
     for (i <- 1 to loops) {
       val stubbedMethod = StubMethod.get(url)

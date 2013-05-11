@@ -97,10 +97,10 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
         selectStream(httpURLConnection).close()
       }
 
-      if (logger.isInfoEnabled) logger.info("{} {}", request.toShortString, status.code.toString + " " + timer)
+      if (logger.isInfoEnabled) logger.info("{} {} {}", Array(request.toShortString, status.code, timer))
     } catch {
       case e: Exception => {
-        if (logger.isInfoEnabled) logger.info("{} - {}", request.toShortString, timer.toString + " " + e.getMessage)
+        if (logger.isInfoEnabled) logger.info("{} {} - {}", Array(request.toShortString, timer, e.getMessage))
         throw e
       }
     }

@@ -30,12 +30,27 @@ import org.scalatest.FunSuite
 
 class B64UtilTest extends FunSuite {
 
-  test("encode") {
+  test("encode 1") {
     assert(B64Util.encode("any carnal pleasure.") === "YW55IGNhcm5hbCBwbGVhc3VyZS4=")
+  }
+
+  test("encode 2") {
     assert(B64Util.encode("any carnal pleasure") === "YW55IGNhcm5hbCBwbGVhc3VyZQ==")
+  }
+
+  test("encode 3") {
     assert(B64Util.encode("any carnal pleasur") === "YW55IGNhcm5hbCBwbGVhc3Vy")
+  }
+
+  test("encode 4") {
     assert(B64Util.encode("any carnal pleasu") === "YW55IGNhcm5hbCBwbGVhc3U=")
+  }
+
+  test("encode 5") {
     assert(B64Util.encode("any carnal pleas") === "YW55IGNhcm5hbCBwbGVhcw==")
+  }
+
+  test("encode 6") {
     assert(B64Util.encode76(
       "Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance " +
         "of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure.") ===

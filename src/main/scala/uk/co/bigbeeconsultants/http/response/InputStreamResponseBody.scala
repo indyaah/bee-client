@@ -152,7 +152,7 @@ final class InputStreamResponseBody(request: Request, status: Status, mediaType:
   }
 
   @throws(classOf[IOException])
-  def close() {
+  override def close() {
     if (bufferedBody.isEmpty)
       stream.close()
   }

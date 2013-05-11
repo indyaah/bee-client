@@ -13,9 +13,13 @@ else
     cd $(dirname $0)/..
     TGT=$PWD
 
-    WEBSERVER=$(netstat -ltp | fgrep ' *:http ')
-    if [ -z "$WEBSERVER" ]; then
-        WEBSERVER=$(netstat -ltp | fgrep ' *:www ')
+    if [ "$1" != "" ]; then
+        WEBSERVER=$1
+    else
+        WEBSERVER=$(netstat -ltp | fgrep ' *:http ')
+        if [ -z "$WEBSERVER" ]; then
+            WEBSERVER=$(netstat -ltp | fgrep ' *:www ')
+        fi
     fi
 
     # Fallback - error case
@@ -35,7 +39,7 @@ else
             ;;
         */nginx*)
             SVR=nginx
-            [ -d /usr/share/nginx/www ] && WWWDIR=/usr/share/nginx/www
+            [ -d /usr/share/nginx ] && WWWDIR=/usr/share/nginx
             [ -d /etc/nginx/sites-enabled ] && ETCDIR=/etc/nginx/sites-enabled
             ;;
         "")

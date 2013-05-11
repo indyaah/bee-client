@@ -28,6 +28,7 @@ import uk.co.bigbeeconsultants.http.header.MediaType
 import uk.co.bigbeeconsultants.http.util.Splitter
 import uk.co.bigbeeconsultants.http.header.MediaType._
 import uk.co.bigbeeconsultants.http.request.Request
+import java.io.IOException
 
 /**
  * Defines the outline of a response body. This may or may not be buffered in memory or streamed directly
@@ -37,6 +38,7 @@ import uk.co.bigbeeconsultants.http.request.Request
  * accessing the text line by line.
  */
 trait ResponseBody extends Iterable[String] {
+
   /**
    * Gets the content type and encoding of the response.
    */
@@ -93,6 +95,13 @@ trait ResponseBody extends Iterable[String] {
     val body = asString
     if (isTextual && body.length > 0) new Splitter(body, '\n') else Nil.iterator
   }
+
+  /**
+   * Closes the input stream that provides the data for this response. If the implementation buffers the body,
+   * the input stream will have been closed automatically.
+   */
+  @throws(classOf[IOException])
+  def close() {}
 
   // helper for the edge case for undefined content type
   private[response] def guessMediaTypeFromContent(request: Request, status: Status): MediaType = {

@@ -1,3 +1,7 @@
+#### Fri, 19 Apr 2013
+* Scripts and metadata changed.
+
+
 #### Thu, 18 Apr 2013
 * v0.21.0
 * Bug fixed: HttpClient: when redirecting, the socket input stream was not always closed cleanly.

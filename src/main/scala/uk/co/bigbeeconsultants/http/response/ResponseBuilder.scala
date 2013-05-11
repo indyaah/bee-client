@@ -37,19 +37,32 @@ import java.io.InputStream
  * @see BufferedResponseBuilder
  */
 trait ResponseBuilder {
-  /**Defines the method to be invoked when the response is first received. */
+  /** Defines the method to be invoked when the response is first received. */
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
                       headers: Headers, cookies: Option[CookieJar], stream: InputStream)
 
-  /**Gets the response that was captured earlier. */
+  /** Gets the response that was captured earlier. */
   def response: Option[Response] = None
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 
 /**
- * Provides a response builder implementation that returns unbuffered responses along wtih the InputStream
- * that provides data from the origin HTTP server. This input stream must be closed before
+ * Provides a response builder implementation that returns unbuffered responses along with the InputStream
+ * that provides data from the origin HTTP server. This input stream *must* be closed by the calling code
+ * to avoid connection leakage issues. The stream implementation makes this easier by automatically closing
+ * the stream as soon as all the data has been consumed. This is an alternative to explicitly calling the
+ * `close()` method on the stream.
+ *
+ * To make things easier, two different cases are provided.
+ *
+ * 1. For 200 (OK) only, an InputStreamResponseBody is returned, containing the stream ready for use by the
+ * calling code, which must finally close the stream. (As mentioned above, this can either be done by
+ * explicitly calling `close()` or by consuming to the end of the stream, which in this case will
+ * automatically close the stream.
+ *
+ * 2. For all responses other than 200 (OK), a buffered body is returned in which the stream has
+ * already been consumed and closed.
  *
  * This is not thread safe so a new instance is required for every request.
  * @see InputStreamResponseBody
@@ -59,7 +72,11 @@ final class UnbufferedResponseBuilder extends ResponseBuilder {
 
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
                       headers: Headers, cookies: Option[CookieJar], stream: InputStream) {
-    val body = new InputStreamResponseBody(request, status, mediaType, headers, stream)
+    val body =
+      if (status.code == 200)
+        new InputStreamResponseBody(request, status, mediaType, headers, stream)
+      else
+        ByteBufferResponseBody(request, status, mediaType, stream, headers)
     _response = Some(new Response(request, status, body, headers, cookies))
   }
 

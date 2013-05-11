@@ -40,7 +40,7 @@ class HttpDateTimeInstantTest extends FunSuite {
     val exp = new HttpDateTimeInstant(DatatypeConverter.parseDateTime("2005-11-16T08:49:37Z"))
     val dateString = "Wed, 16 Nov 2005 08:49:37 GMT"
     val t = new DiagnosticTimer
-    for (i <- 1 to 2000000) {
+    for (i <- 1 to 200000) {
       HttpDateTimeInstant.parse(dateString)
     }
     println(t)

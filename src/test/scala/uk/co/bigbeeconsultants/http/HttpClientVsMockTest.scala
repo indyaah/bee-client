@@ -119,7 +119,8 @@ class HttpClientVsMockTest extends FunSuite {
 
   // ----------
 
-  def executeBasicSettingsWithoutBody(method: String, contentType: String, useCookies: Boolean, redirect: Boolean, status: Status) {
+  def executeBasicSettingsWithoutRequestBody(method: String, contentType: String, useCookies: Boolean, redirect: Boolean,
+                                             status: Status) {
     val expectedContent = "hello world"
     new Context(contentType, expectedContent, status) {
       if (redirect) {
@@ -172,37 +173,38 @@ class HttpClientVsMockTest extends FunSuite {
       verify(mc1.httpURLConnection).getResponseMessage
       verify(mc1.httpURLConnection).getInputStream
       verify(mc1.httpURLConnection).connect()
+      assert(mc1.inputStream.closed)
       verify(mc1.httpURLConnection).disconnect()
       mc1.verifyHeaders(1)
       verifyNoMoreInteractions(mc1.httpURLConnection)
-      assert(mc1.inputStream.closed)
       assert(TEXT_PLAIN === response.body.contentType)
       assert(expectedContent === response.body.toString)
     }
   }
 
 
-  test("mock methods with broadly default settings and without a body should confirm all interations") {
-    executeBasicSettingsWithoutBody("GET", "text/plain", false, false, Status.S200_OK)
-    executeBasicSettingsWithoutBody("HEAD", "text/plain", false, false, Status.S200_OK)
-    executeBasicSettingsWithoutBody("TRACE", "text/plain", false, false, Status.S200_OK)
-    executeBasicSettingsWithoutBody("DELETE", "text/plain", false, false, Status.S200_OK)
-    executeBasicSettingsWithoutBody("GET", "text/plain", true, false, Status.S200_OK)
-    executeBasicSettingsWithoutBody("HEAD", "text/plain", true, false, Status.S200_OK)
-    executeBasicSettingsWithoutBody("TRACE", "text/plain", true, false, Status.S200_OK)
-    executeBasicSettingsWithoutBody("DELETE", "text/plain", true, false, Status.S200_OK)
-    executeBasicSettingsWithoutBody("GET", "text/plain", false, true, Status.S301_MovedPermanently)
+  test("mock methods with broadly default settings and without a request body should confirm all interactions") {
+    executeBasicSettingsWithoutRequestBody("GET", "text/plain", false, false, Status.S200_OK)
+    executeBasicSettingsWithoutRequestBody("HEAD", "text/plain", false, false, Status.S200_OK)
+    executeBasicSettingsWithoutRequestBody("TRACE", "text/plain", false, false, Status.S200_OK)
+    executeBasicSettingsWithoutRequestBody("DELETE", "text/plain", false, false, Status.S200_OK)
+    executeBasicSettingsWithoutRequestBody("GET", "text/plain", true, false, Status.S200_OK)
+    executeBasicSettingsWithoutRequestBody("HEAD", "text/plain", true, false, Status.S200_OK)
+    executeBasicSettingsWithoutRequestBody("TRACE", "text/plain", true, false, Status.S200_OK)
+    executeBasicSettingsWithoutRequestBody("DELETE", "text/plain", true, false, Status.S200_OK)
+    executeBasicSettingsWithoutRequestBody("GET", "text/plain", false, true, Status.S301_MovedPermanently)
   }
 
+  // ----------
 
-  def executeBasicSettingsWithBody(method: String, useCookies: Boolean) = {
+  def executeBasicSettingsWithBufferedBody(method: String, useCookies: Boolean, status: Status) = {
     val expectedContent = "hello world"
-    val baos = new ByteArrayOutputStream()
+    val capturedRequestBody = new ByteArrayOutputStream()
 
-    new Context("text/plain", expectedContent, Status.S200_OK) {
+    new Context("text/plain", expectedContent, status) {
       mc1.expectHeaders(ListMap("Content-Type" -> "text/plain"))
 
-      when(mc1.httpURLConnection.getOutputStream).thenReturn(baos)
+      when(mc1.httpURLConnection.getOutputStream).thenReturn(capturedRequestBody)
 
       val http = newHttpClient(Config())
 
@@ -231,28 +233,102 @@ class HttpClientVsMockTest extends FunSuite {
       verify(mc1.httpURLConnection).getInputStream
       verify(mc1.httpURLConnection).getOutputStream
       verify(mc1.httpURLConnection).connect()
+      assert(mc1.inputStream.closed)
       verify(mc1.httpURLConnection).disconnect()
       mc1.verifyHeaders(1)
       verifyNoMoreInteractions(mc1.httpURLConnection)
 
-      assert(mc1.inputStream.closed)
       assert(TEXT_PLAIN === response.body.contentType)
       assert(expectedContent === response.body.toString)
     }
 
-    baos.toString("UTF-8")
+    capturedRequestBody.toString("UTF-8")
   }
 
 
-  test("mock methods with broadly default settings and with a body should confirm all interations") {
-    assert("foo=bar&a=z" === executeBasicSettingsWithBody("POST", false))
-    assert("hello world" === executeBasicSettingsWithBody("PUT", false))
-    assert("hello world" === executeBasicSettingsWithBody("OPTIONS", false))
-    assert("foo=bar&a=z" === executeBasicSettingsWithBody("POST", true))
-    assert("hello world" === executeBasicSettingsWithBody("PUT", true))
-    assert("hello world" === executeBasicSettingsWithBody("OPTIONS", true))
+  test("mock methods with broadly default settings and with a request body and a buffered response body should confirm all interactions") {
+    assert("foo=bar&a=z" === executeBasicSettingsWithBufferedBody("POST", false, Status.S200_OK))
+    assert("hello world" === executeBasicSettingsWithBufferedBody("PUT", false, Status.S200_OK))
+    assert("hello world" === executeBasicSettingsWithBufferedBody("OPTIONS", false, Status.S200_OK))
+    assert("foo=bar&a=z" === executeBasicSettingsWithBufferedBody("POST", true, Status.S200_OK))
+    assert("hello world" === executeBasicSettingsWithBufferedBody("PUT", true, Status.S200_OK))
+    assert("hello world" === executeBasicSettingsWithBufferedBody("OPTIONS", true, Status.S200_OK))
+    assert("foo=bar&a=z" === executeBasicSettingsWithBufferedBody("POST", false, Status.S204_NoContent))
+    assert("hello world" === executeBasicSettingsWithBufferedBody("PUT", false, Status.S204_NoContent))
+    assert("hello world" === executeBasicSettingsWithBufferedBody("OPTIONS", false, Status.S204_NoContent))
+    assert("foo=bar&a=z" === executeBasicSettingsWithBufferedBody("POST", true, Status.S204_NoContent))
+    assert("hello world" === executeBasicSettingsWithBufferedBody("PUT", true, Status.S204_NoContent))
+    assert("hello world" === executeBasicSettingsWithBufferedBody("OPTIONS", true, Status.S204_NoContent))
   }
 
+  // ----------
+
+  def executeBasicSettingsWithUnbufferedBody(method: String, useCookies: Boolean, status: Status) = {
+    val expectedContent = "hello world"
+    val capturedRequestBody = new ByteArrayOutputStream()
+
+    new Context("text/plain", expectedContent, status) {
+      mc1.expectHeaders(ListMap("Content-Type" -> "text/plain"))
+
+      when(mc1.httpURLConnection.getOutputStream).thenReturn(capturedRequestBody)
+
+      val http = newHttpClient(Config())
+
+      val headers = Headers(List(ACCEPT_LANGUAGE -> "en"))
+      val response =
+        if (useCookies)
+          method match {
+            case "POST" => http.makeUnbufferedRequest(Request.post(url, Some(RequestBody(Map("foo" -> "bar", "a" -> "z"), TEXT_PLAIN)), headers, Some(CookieJar.empty)))
+            case "PUT" => http.makeUnbufferedRequest(Request.put(url, RequestBody("hello world", TEXT_PLAIN), headers, Some(CookieJar.empty)))
+            case "OPTIONS" => http.makeUnbufferedRequest(Request.options(url, Some(RequestBody("hello world", TEXT_PLAIN)), headers, Some(CookieJar.empty)))
+          }
+        else
+          method match {
+            case "POST" => http.makeUnbufferedRequest(Request.post(url, Some(RequestBody(Map("foo" -> "bar", "a" -> "z"), TEXT_PLAIN)), headers))
+            case "PUT" => http.makeUnbufferedRequest(Request.put(url, RequestBody("hello world", TEXT_PLAIN), headers))
+            case "OPTIONS" => http.makeUnbufferedRequest(Request.options(url, Some(RequestBody("hello world", TEXT_PLAIN)), headers))
+          }
+      response.body.toBufferedBody
+
+      mc1.verifyConfig(Config())
+      mc1.verifyRequestSettings(method, List(HOST -> "server", ACCEPT -> "*/*",
+        ACCEPT_ENCODING -> "gzip", ACCEPT_CHARSET -> "UTF-8,*;q=.1", ACCEPT_LANGUAGE -> "en", CONTENT_TYPE -> "text/plain"))
+      verify(mc1.httpURLConnection).setDoOutput(true)
+      verify(mc1.httpURLConnection).getContentType
+      verify(mc1.httpURLConnection, atLeastOnce()).getResponseCode
+      verify(mc1.httpURLConnection).getResponseMessage
+      verify(mc1.httpURLConnection).getInputStream
+      verify(mc1.httpURLConnection).getOutputStream
+      verify(mc1.httpURLConnection).connect()
+      assert(mc1.inputStream.closed)
+      verify(mc1.httpURLConnection).disconnect()
+      mc1.verifyHeaders(1)
+      verifyNoMoreInteractions(mc1.httpURLConnection)
+
+      assert(TEXT_PLAIN === response.body.contentType)
+      assert(expectedContent === response.body.toBufferedBody.toString)
+    }
+
+    capturedRequestBody.toString("UTF-8")
+  }
+
+
+  test("mock methods with broadly default settings and with a request body and an unbuffered response body should confirm all interactions") {
+    assert("foo=bar&a=z" === executeBasicSettingsWithUnbufferedBody("POST", false, Status.S200_OK))
+    assert("hello world" === executeBasicSettingsWithUnbufferedBody("PUT", false, Status.S200_OK))
+    assert("hello world" === executeBasicSettingsWithUnbufferedBody("OPTIONS", false, Status.S200_OK))
+    assert("foo=bar&a=z" === executeBasicSettingsWithUnbufferedBody("POST", true, Status.S200_OK))
+    assert("hello world" === executeBasicSettingsWithUnbufferedBody("PUT", true, Status.S200_OK))
+    assert("hello world" === executeBasicSettingsWithUnbufferedBody("OPTIONS", true, Status.S200_OK))
+    assert("foo=bar&a=z" === executeBasicSettingsWithUnbufferedBody("POST", false, Status.S204_NoContent))
+    assert("hello world" === executeBasicSettingsWithUnbufferedBody("PUT", false, Status.S204_NoContent))
+    assert("hello world" === executeBasicSettingsWithUnbufferedBody("OPTIONS", false, Status.S204_NoContent))
+    assert("foo=bar&a=z" === executeBasicSettingsWithUnbufferedBody("POST", true, Status.S204_NoContent))
+    assert("hello world" === executeBasicSettingsWithUnbufferedBody("PUT", true, Status.S204_NoContent))
+    assert("hello world" === executeBasicSettingsWithUnbufferedBody("OPTIONS", true, Status.S204_NoContent))
+  }
+
+  // ----------
 
   test("config connect timeout should send the correct header") {
     new Context("text/plain", "hello world", Status.S200_OK) {
