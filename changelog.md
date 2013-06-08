@@ -1,3 +1,11 @@
+#### Sat, 11 May 2013
+* v0.21.1
+* ResponseBody instances now all have a close() method to support clean use of the unbuffered implementation, although this is never needed in the buffered case.
+* When making an unbuffered request, an unbuffered response is only returned in the 200 OK case; in all other cases the response is buffered, ensuring the input stream is cleanly closed in error flows.
+* Now supports using slf4j v1.7.x as well as earlier versions
+* Updates mime types
+
+
 #### Fri, 19 Apr 2013
 * Scripts and metadata changed.
 

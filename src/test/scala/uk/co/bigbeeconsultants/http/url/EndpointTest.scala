@@ -28,61 +28,88 @@ import org.scalatest.FunSuite
 
 class EndpointTest extends FunSuite {
 
-  val w3Org = "www.w3.org"
-  val w3OrgUrl = "http://" + w3Org
-  val myserver8080 = "http://myserver:8080"
-
   test("endpoint without port nor trailing slash") {
-    val endpoint = Endpoint(w3OrgUrl)
+    val endpoint = Endpoint("http://www.w3.org")
     assert("http" === endpoint.scheme)
+    assert(None === endpoint.userinfo)
     assert("www.w3.org" === endpoint.host)
     assert(None === endpoint.port)
-    assert(w3OrgUrl === endpoint.toString)
+    assert("http://www.w3.org" === endpoint.toString)
+    assert("www.w3.org" === endpoint.authority)
     assert("www.w3.org" === endpoint.hostAndPort)
   }
 
   test("endpoint without port but with trailing slash") {
-    val endpoint = Endpoint(w3OrgUrl + "/")
+    val endpoint = Endpoint("http://www.w3.org/")
     assert("http" === endpoint.scheme)
+    assert(None === endpoint.userinfo)
     assert("www.w3.org" === endpoint.host)
     assert(None === endpoint.port)
-    assert(w3OrgUrl === endpoint.toString)
+    assert("http://www.w3.org" === endpoint.toString)
+    assert("www.w3.org" === endpoint.authority)
     assert("www.w3.org" === endpoint.hostAndPort)
   }
 
   test("endpoint with port but no trailing slash") {
-    val endpoint = Endpoint(myserver8080)
+    val endpoint = Endpoint("http://myserver:8080")
     assert("http" === endpoint.scheme)
+    assert(None === endpoint.userinfo)
     assert("myserver" === endpoint.host)
     assert(Some(8080) === endpoint.port)
-    assert(myserver8080 === endpoint.toString)
+    assert("http://myserver:8080" === endpoint.toString)
     assert("myserver:8080" === endpoint.hostAndPort)
   }
 
   test("endpoint with port and trailing slash") {
-    val endpoint = Endpoint(myserver8080 + "/")
+    val endpoint = Endpoint("http://myserver:8080/")
     assert("http" === endpoint.scheme)
+    assert(None === endpoint.userinfo)
     assert("myserver" === endpoint.host)
     assert(Some(8080) === endpoint.port)
-    assert(myserver8080 === endpoint.toString)
+    assert("http://myserver:8080" === endpoint.toString)
+    assert("myserver:8080" === endpoint.authority)
     assert("myserver:8080" === endpoint.hostAndPort)
   }
 
-  test("endpoint from components") {
-    val endpoint = Endpoint(Some("http"), Some(w3Org), None).get
+  test("endpoint with userinfo and port and trailing slash") {
+    val endpoint = Endpoint("http://john@myserver:8080/")
     assert("http" === endpoint.scheme)
-    assert("www.w3.org" === endpoint.host)
-    assert(None === endpoint.port)
-    assert(w3OrgUrl === endpoint.toString)
-    assert("www.w3.org" === endpoint.hostAndPort)
+    assert(Some("john") === endpoint.userinfo)
+    assert("myserver" === endpoint.host)
+    assert(Some(8080) === endpoint.port)
+    assert("http://john@myserver:8080" === endpoint.toString)
+    assert("john@myserver:8080" === endpoint.authority)
+    assert("myserver:8080" === endpoint.hostAndPort)
   }
 
-  test("endpoint from nothing") {
+  test("endpoint should reject password information (without port)") {
+    intercept[IllegalArgumentException] {
+      Endpoint("http://john:mypassword@myserver/")
+    }
+  }
+
+  test("endpoint should reject password information (with port)") {
+    intercept[IllegalArgumentException] {
+      Endpoint("http://john:mypassword@myserver:80/")
+    }
+  }
+
+  test("endpoint from components") {
+    val endpoint = Endpoint(Some("http"), Some("www.w3.org"), Some(8080)).get
+    assert("http" === endpoint.scheme)
+    assert(None === endpoint.userinfo)
+    assert("www.w3.org" === endpoint.host)
+    assert(Some(8080) === endpoint.port)
+    assert("http://www.w3.org" + ":8080" === endpoint.toString)
+    assert("www.w3.org:8080" === endpoint.hostAndPort)
+  }
+
+  test("endpoint from nothing should be None") {
     val endpoint = Endpoint(None, None, None)
     assert(None === endpoint)
   }
 
-  test("endpoint failure from incomplete parameters") {
+  test("endpoint should reject incomplete parameters") {
     intercept[IllegalArgumentException] {
       Endpoint(Some("http"), None, None)
     }

@@ -53,7 +53,7 @@ class CookieParserTest extends FunSuite {
 
   test("asSetHeader") {
     val c1Str = "c1=v1; Path=/; Domain=z.com"
-    val c2Str = "cc2=vv2; Path=/; Domain=z.com; Expires=Sun, 12 May 2013 11:21:33 GMT"
+    val c2Str = "cc2=vv2; Path=/; Domain=z.com; Expires=Thu, 12 May 2022 11:21:33 GMT"
     val c3Str = "ccc3=f1=5; Path=/; Domain=z.com; Expires=Mon, 12 Sep 2022 11:21:33 GMT"
     val h1 = HeaderName.SET_COOKIE -> (c1Str + "\n" + c2Str + "\n" + c3Str)
 

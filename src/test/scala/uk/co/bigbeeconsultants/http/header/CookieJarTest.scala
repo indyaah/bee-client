@@ -171,7 +171,7 @@ class CookieJarTest extends FunSuite {
 
   test("parse realistic cookie list") {
     val c1Str = "c1=v1; path=/; domain=.z.com"
-    val c2Str = "cc2=vv2; path=/; domain=.z.com; expires=Sun, 12-May-2013 11:21:33 GMT"
+    val c2Str = "cc2=vv2; path=/; domain=.z.com; expires=Thu, 12-May-2022 11:21:33 GMT"
     val c3Str = "ccc3=f1=5; path=/; domain=.z.com; expires=Mon, 12-Sep-2022 11:21:33 GMT"
     val h1 = HeaderName.SET_COOKIE -> (c1Str + "\n" + c2Str + "\n" + c3Str)
 

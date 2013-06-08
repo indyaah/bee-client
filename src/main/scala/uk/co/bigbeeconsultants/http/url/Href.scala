@@ -32,6 +32,8 @@ import uk.co.bigbeeconsultants.http.HttpClient
  * with different components. Instances may be relative URLs.
  *
  * Use the case-class 'copy' method to alter components.
+ *
+ * This class broadly supports the URL part of RFC-3986 http://tools.ietf.org/html/rfc3986.
  */
 case class Href(endpoint: Option[Endpoint],
                 path: Path = Path.empty,
@@ -47,8 +49,8 @@ case class Href(endpoint: Option[Endpoint],
   lazy val asURL: URL = {
     if (!isURL) throw new MalformedURLException(toString + " cannot be convert to a URL.")
 
-    if (fragment.isEmpty && query.isEmpty) {
-      val ep = endpoint.get
+    val ep = endpoint.get
+    if (fragment.isEmpty && query.isEmpty && ep.userinfo.isEmpty) {
       new URL(ep.scheme, ep.host, ep.port.getOrElse(-1), path.toString)
     } else {
       new URL(toString)
@@ -98,7 +100,10 @@ case class Href(endpoint: Option[Endpoint],
     endpoint.map(_.toString).getOrElse("") + pathString
   }
 
-  /** Creates a new instance, replacing any query string with a new one formed from a map of key/values pairs. */
+  /**
+   * Creates a new instance, replacing any query string with a new one formed from a map of key/values pairs.
+   * This provides an alternative to use using `copy` to change the `query`field.
+   */
   def withQuery(params: Map[String, String]) = {
     def assembleQueryString(queryParams: Map[String, String]): String = {
       val w = new StringBuilder
@@ -123,6 +128,8 @@ case class Href(endpoint: Option[Endpoint],
 //---------------------------------------------------------------------------------------------------------------------
 
 object Href {
+  import Endpoint.DoubleSlash
+
   /**
    * Factory method creates an instance from a URL.
    */
@@ -134,8 +141,11 @@ object Href {
   def apply(url: String): Href = {
     val hash = url.lastIndexOf('#')
     val query = url.lastIndexOf('?')
-    val p1 = url.indexOf(Endpoint.DoubleSlash)
-    if (p1 >= 0) parseFullURL(url, p1, hash, query) else parsePartialURL(url, hash, query)
+    val p1 = url.indexOf(DoubleSlash)
+    if (p1 >= 0)
+      parseFullURL(url, p1, hash, query)
+    else
+      parsePartialURL(url, hash, query)
   }
 
   private val root = new Path(true, Nil)
@@ -143,14 +153,27 @@ object Href {
   private def parseFullURL(url: String, p1: Int, hash: Int, query: Int) = {
     val p2 = url.indexOf('/', p1 + 3)
     val s3 = if (p2 < 0) url.length else p2
-    val path = if (p2 < 0) root else Path(pathStr(url, p2, hash, query))
+    val path =
+      if (p2 < 0)
+        root
+      else
+        Path(pathStr(url, p2, hash, query))
     val endpoint = Endpoint(url.substring(0, s3))
-    new Href(Some(endpoint), path, fragment(url, p2, hash, query), qs(url, p2, hash, query))
+    new Href(Some(endpoint), path, extractFragment(url, p2, hash, query), extractQueryString(url, p2, hash, query))
   }
 
   private def parsePartialURL(url: String, hash: Int, query: Int) = {
-    val path = Path(pathStr(url, 0, hash, query))
-    new Href(None, path, fragment(url, 0, hash, query), qs(url, 0, hash, query))
+    val colon = url.indexOf(':')
+    val slash = url.indexOf('/')
+    val fragment = extractFragment(url, 0, hash, query)
+    val queryString = extractQueryString(url, 0, hash, query)
+    if (0 < colon && colon == slash - 1) {
+      val path = Path(pathStr(url.substring(slash), 0, hash, query))
+      new Href(Some(Endpoint(url.substring(0, colon) + DoubleSlash)), path, fragment, queryString)
+    } else {
+      val path = Path(pathStr(url, 0, hash, query))
+      new Href(None, path, fragment, queryString)
+    }
   }
 
   private def pathStr(url: String, slash: Int, hash: Int, query: Int) = {
@@ -166,7 +189,7 @@ object Href {
       url.substring(slash)
   }
 
-  private def fragment(url: String, slash: Int, hash: Int, query: Int) = {
+  private def extractFragment(url: String, slash: Int, hash: Int, query: Int) = {
     if (slash < hash && hash < query)
       Some(url.substring(hash + 1, query))
     else if (slash < hash)
@@ -175,7 +198,7 @@ object Href {
       None
   }
 
-  private def qs(url: String, slash: Int, hash: Int, query: Int) = {
+  private def extractQueryString(url: String, slash: Int, hash: Int, query: Int) = {
     if (slash < query && query < hash) // non-standard ordering
       Some(url.substring(query + 1, hash))
     else if (slash < query)
@@ -183,8 +206,4 @@ object Href {
     else
       None
   }
-
-  //  private def portAsOption(port: Int) = if (port < 0) None else Some(port)
-  //
-  //  private def strAsOption(str: String) = if (str != null && str.length > 0) Some(str) else None
 }
