@@ -136,8 +136,14 @@ final class InputStreamResponseBody(request: Request, status: Status, mediaType:
 
         @throws(classOf[IOException])
         private def lookAhead() {
-          line = reader.readLine()
-          if (line == null) reader.close()
+          try {
+            line = reader.readLine()
+            if (line == null) reader.close()
+          } catch {
+            case e: IOException =>
+              reader.close()
+              throw e
+          }
         }
 
         def hasNext = line != null
