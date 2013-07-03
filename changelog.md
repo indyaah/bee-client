@@ -1,3 +1,10 @@
+#### Sat, 08 Jun 2013
+* v0.21.2
+* Endpoint now supports a userinfo field and the corresponding authority segment.
+* Href is able to handle file urls now.
+* Some broken tests fixed.
+
+
 #### Sat, 11 May 2013
 * v0.21.1
 * ResponseBody instances now all have a close() method to support clean use of the unbuffered implementation, although this is never needed in the buffered case.

@@ -1,37 +1,25 @@
 package examples
 
-// http://stackoverflow.com/questions/10135074/download-file-from-https-server-using-java
-
 import uk.co.bigbeeconsultants.http._
-import javax.net.ssl._
-import java.security.cert.X509Certificate
-import java.security.SecureRandom
+import uk.co.bigbeeconsultants.http.request.Request
 
-object Example5b extends App {
-  // Create a new trust manager that trusts all certificates
-  val trustAllCerts = Array[TrustManager](new DumbTrustManager)
-
-  // Activate the new trust manager
-  val sc = SSLContext.getInstance("SSL")
-  sc.init(Array[KeyManager](), trustAllCerts, new SecureRandom())
-  HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory)
-  HttpsURLConnection.setDefaultHostnameVerifier(new DumbHostnameVerifier)
-
-  val url = "https://localhost/bee-client/test-echo-back.php"
+object Example5b {
   val httpClient = new HttpClient
-  val response = httpClient.get(url)
-  println(response.status)
-  println(response.body)
-}
 
-/** Don't use this in production code!!! */
-class DumbTrustManager extends X509TrustManager {
-  def getAcceptedIssuers: Array[X509Certificate] = null
-  def checkClientTrusted(certs: Array[X509Certificate], authType: String) {}
-  def checkServerTrusted(certs: Array[X509Certificate], authType: String) {}
-}
+  def main(args: Array[String]) {
+    val request = Request.get("http://www.google.com/")
+    val response = httpClient.makeUnbufferedRequest(request)
 
-/** Don't use this in production code!!! */
-class DumbHostnameVerifier extends HostnameVerifier {
-  def verify(p1: String, p2: SSLSession) = true
+    val unbufferedBody = response.body
+    println(unbufferedBody.isBuffered) // false
+    println(unbufferedBody.isTextual) // true
+
+    // note that unbufferedBody.contentLength is not available
+
+    for (line <- unbufferedBody) {
+      println(line)
+    }
+
+    unbufferedBody.close() // would already have been closed in this case
+  }
 }
