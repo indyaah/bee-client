@@ -63,9 +63,9 @@ final class ByteBufferResponseBody(request: Request,
                                    suppliedContentLength: Int = ByteBufferResponseBody.DefaultBufferSize)
   extends ResponseBody {
 
-  private[this] val byteData: ByteBuffer = HttpUtil.copyToByteBufferAndClose(inputStream, suppliedContentLength)
+  private[response] val byteData: ByteBuffer = HttpUtil.copyToByteBufferAndClose(inputStream, suppliedContentLength)
 
-  private[this] var converted: Option[String] = None
+  private[response] var converted: Option[String] = None
 
   private def convertToString = {
     if (contentType.isTextual) {
@@ -115,8 +115,10 @@ final class ByteBufferResponseBody(request: Request,
    * Get the body of the response as an array of bytes.
    */
   override def asBytes: Array[Byte] = {
-    assert(byteData.hasArray)
-    byteData.array()
+    if (byteData.hasArray)
+      byteData.array()
+    else
+      ByteBufferResponseBody.EmptyArray
   }
 
   /**
@@ -140,9 +142,19 @@ final class ByteBufferResponseBody(request: Request,
 
 object ByteBufferResponseBody {
   val DefaultBufferSize = 0x10000
+  val EmptyArray = new Array[Byte](0)
 
   def apply(request: Request, status: Status, optionalContentType: Option[MediaType], inputStream: InputStream, headers: Headers) = {
-    val length = headers.get(HeaderName.CONTENT_LENGTH).map(_.toNumber.toInt) getOrElse DefaultBufferSize
+    val length = contentLength(headers)
     new ByteBufferResponseBody(request, status, optionalContentType, inputStream, length)
+  }
+
+  private def contentLength(headers: Headers): Int = {
+    val contentLength = headers.get(HeaderName.CONTENT_LENGTH)
+    if (contentLength.isDefined) {
+      val numValue = contentLength.get.toNumber
+      if (numValue.isValid) numValue.toInt else 0
+    }
+    else DefaultBufferSize
   }
 }

@@ -22,32 +22,21 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "bee-client"
+package uk.co.bigbeeconsultants.http
 
-organization := "uk.co.bigbeeconsultants"
+import org.scalatest.FunSuite
+import java.net.URL
+import uk.co.bigbeeconsultants.http.response.Status
+import uk.co.bigbeeconsultants.http.header.MediaType
 
-version := "0.21.4"
+class OddCasesTest extends FunSuite {
 
-crossScalaVersions := Seq("2.9.0", "2.9.1", "2.9.2", "2.9.3", "2.10.1")
-
-publishMavenStyle := true
-
-publishArtifact in Test := false
-
-pomIncludeRepository := { _ => false }
-
-licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
-
-homepage := Some(url("http://www.bigbeeconsultants.co.uk/bee-client"))
-
-//publishTo := Some(Resolver.file("file", new File("/home/websites/your/releases"))
-
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
-
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
-
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+  // this duplicates testing of ByteBufferResponseBody.apply
+  test("empty content-length should not blow up") {
+    val httpClient = new HttpClient()
+    val response = httpClient.get(new URL("http://www.lansdowneclub.com/robots.txt"))
+    assert(response.status === Status.S200_OK)
+    assert(response.body.contentType.value === MediaType.TEXT_PLAIN.value)
+    assert(response.body.contentLength === 0)
+  }
+}

@@ -1,3 +1,15 @@
+#### Thu, 04 Jul 2013
+* v.021.3 Documentation and examples
+
+
+#### Thu, 04 Jul 2013
+* v0.21.3 InputStreamResponseBody now has try-catch in iterate method body to ensure stream is closed.
+
+
+#### Thu, 04 Jul 2013
+* v0.21.3 ByteBufferResponseBody.toBufferedBody is now a lazy val
+
+
 #### Sat, 08 Jun 2013
 * v0.21.2
 * Endpoint now supports a userinfo field and the corresponding authority segment.
