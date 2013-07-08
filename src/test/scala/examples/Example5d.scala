@@ -17,11 +17,11 @@ object Example5d {
 
     val bufferedBody: ResponseBody = unbufferedBody.toBufferedBody
     // bufferedBody is a ByteBufferResponseBody
-    println(unbufferedBody.isBuffered) // true
+    println(bufferedBody.isBuffered) // true
     println(bufferedBody.contentLength) // now known
 
     val stringBody: ResponseBody = bufferedBody.toBufferedBody
     // stringBody is a StringResponseBody
-    println(unbufferedBody.isBuffered) // true
+    println(stringBody.isBuffered) // true
   }
 }

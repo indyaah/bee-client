@@ -11,16 +11,22 @@ object Example5c {
     val request = Request.get("http://www.bing.com/favicon.ico")
     val response = httpClient.makeUnbufferedRequest(request)
 
-    val unbufferedBody = response.body.asInstanceOf[InputStreamResponseBody]
-    val rawStream = unbufferedBody.rawStream
-    try {
-      println(unbufferedBody.isBuffered) // false
-      println(unbufferedBody.isTextual) // false
+    if (response.body.isBuffered) {
+      // usually this means an unsuccessful request
+      // ...
 
-      // ...use rawStream somewhow...
+    } else {
+      val unbufferedBody = response.body.asInstanceOf[InputStreamResponseBody]
+      val rawStream = unbufferedBody.rawStream
+      try {
+        println(unbufferedBody.isBuffered) // false
+        println(unbufferedBody.isTextual) // false
 
-    } finally {
-      rawStream.close() // very important
+        // ...use rawStream somewhow...
+
+      } finally {
+        rawStream.close() // very important
+      }
     }
   }
 }

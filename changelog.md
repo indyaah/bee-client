@@ -1,4 +1,8 @@
 #### Thu, 04 Jul 2013
+* v0.21.4 - ByteBufferResponseBody can now cope with bad Content-Length headers (e.g. from Apache1)
+
+
+#### Thu, 04 Jul 2013
 * v.021.3 Documentation and examples
 
 
