@@ -26,7 +26,7 @@ package uk.co.bigbeeconsultants.http.response
 
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
-import java.io.InputStream
+import java.io.{ByteArrayInputStream, InputStream}
 import uk.co.bigbeeconsultants.http.header.{HeaderName, Headers, MediaType}
 import uk.co.bigbeeconsultants.http.header.MediaType._
 import uk.co.bigbeeconsultants.http.util.HttpUtil
@@ -35,7 +35,7 @@ import uk.co.bigbeeconsultants.http.request.Request
 
 /**
  * Provides a body implementation that copies the whole response from the response input stream into a ByteBuffer.
- * This is also available as a string without much performance penalty.
+ * The content is also available as a string without much performance penalty.
  *
  * If no media type was specified in the response from the server, this class attempts to guess a sensible fallback.
  * This works via the following steps:
@@ -50,60 +50,76 @@ import uk.co.bigbeeconsultants.http.request.Request
  * to use. However, take care because the memory footprint will be large when dealing with large volumes of
  * response data. As an alternative, consider [[uk.co.bigbeeconsultants.http.response.InputStreamResponseBody]].
  *
- * It is not safe to share instances between threads. If required, use `toBufferedBody` and obtain the immutable
- * `StringResponseBody` copy of the data.
+ * It is safe to share instances between threads provided no thread alters the byteArray data. A tricky
+ * design decision was made here: the byte array is mutable because the alternatie would have been awkward
+ * to use: immutable alternatives are not widely available, and would not be compatible with standard Java I/O APIs.
+ * If required, use `toStringBody` to obtain the immutable `StringResponseBody` copy of the data.
  *
  * This class ensures that the socket input stream is always closed correctly, meaning the calling code is simpler
  * because it need not be concerned with cleaning up.
+ *
+ * @param request if the content type is not initially known, the request URL may provide a hint based on the
+ *                extension of the filename, if present.
+ * @param status the request parameter is ignored if the status is not 200-OK.
+ * @param optionalContentType the content type received from the webserver, if any
+ * @param byteArray the actual body content (also known as response entity)
  */
 final class ByteBufferResponseBody(request: Request,
                                    status: Status,
                                    optionalContentType: Option[MediaType],
-                                   inputStream: InputStream,
-                                   suppliedContentLength: Int = ByteBufferResponseBody.DefaultBufferSize)
-  extends ResponseBody {
+                                   val byteArray: Array[Byte]) extends ResponseBody {
 
-  private[response] val byteData: ByteBuffer = HttpUtil.copyToByteBufferAndClose(inputStream, suppliedContentLength)
-
-  private[response] var converted: Option[String] = None
+  override val contentLength = byteArray.length
 
   private def convertToString = {
     if (contentType.isTextual) {
       val charset = contentType.charset.getOrElse(HttpClient.UTF8)
-      val string = Charset.forName(charset).decode(byteData).toString
-      byteData.rewind
-      string
+      val byteData = ByteBuffer.wrap(byteArray)
+      Charset.forName(charset).decode(byteData).toString
     }
     else {
       ""
     }
   }
 
-  /** Always true. */
-  override def isBuffered = true
+  /** Always false. */
+  override def isUnbuffered = false
+
+  /**
+   * Gets the content as an input stream. Each time this is called, a new ByteArrayInputStream is returned. This
+   * should be closed by the calling code when it has been finished with.
+   */
+  def inputStream = new ByteArrayInputStream(byteArray)
+
+  /** Returns 'this'. */
+  def toBufferedBody = this
+
+  /**
+   * Determines the content type based on the constructor parameter if defined, or by inspection of the actual
+   * content otherwise.
+   */
+  lazy val contentType: MediaType = optionalContentType getOrElse guessMediaTypeFromContent(request, status)
 
   /**
    * Returns a new StringResponseBody containing the text in this body in immutable form. The returned
    * object is safe for sharing between threads.
    */
-  lazy val toBufferedBody = new StringResponseBody(asString, contentType)
-
-  lazy val contentType: MediaType = optionalContentType getOrElse guessMediaTypeFromContent(request, status)
+  lazy val toStringBody = new StringResponseBody(convertToString, contentType)
 
   private[response] override def guessMediaTypeFromBodyData: MediaType = {
-    if (byteData.limit() == 0) {
+    if (byteArray.length == 0) {
       APPLICATION_OCTET_STREAM
 
     } else {
-      var maybeHtml = byteData.get(0) == '<'
+      var maybeHtml = byteArray(0) == '<'
       var maybeText = true
       var i = 0
-      while (i < byteData.limit()) {
-        val bi = byteData.get(i).toInt
+      while (i < byteArray.length) {
+        val bi = byteArray(i).toInt
         if (Character.isISOControl(bi) && !Character.isWhitespace(bi)) {
           maybeText = false
           maybeHtml = false
-          i = byteData.limit() // break
+          i = byteArray.length // break
         }
         i += 1
       }
@@ -114,28 +130,14 @@ final class ByteBufferResponseBody(request: Request,
   /**
    * Get the body of the response as an array of bytes.
    */
-  override def asBytes: Array[Byte] = {
-    if (byteData.hasArray)
-      byteData.array()
-    else
-      ByteBufferResponseBody.EmptyArray
-  }
+  override def asBytes: Array[Byte] = byteArray
 
   /**
    * Get the body of the response as a string.
    * This uses the character encoding of the contentType, or UTF-8 as a default.
    * If the data is binary, this method always returns a blank string.
    */
-  override def asString: String = {
-    if (converted.isEmpty) {
-      converted = Some(convertToString)
-    }
-    converted.get
-  }
-
-  override def toString() = asString
-
-  override lazy val contentLength = asBytes.length
+  override def asString: String = toStringBody.asString
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -144,9 +146,20 @@ object ByteBufferResponseBody {
   val DefaultBufferSize = 0x10000
   val EmptyArray = new Array[Byte](0)
 
-  def apply(request: Request, status: Status, optionalContentType: Option[MediaType], inputStream: InputStream, headers: Headers) = {
+  def apply(request: Request, status: Status,
+            optionalContentType: Option[MediaType],
+            inputStream: InputStream,
+            headers: Headers = Headers.Empty) = {
     val length = contentLength(headers)
-    new ByteBufferResponseBody(request, status, optionalContentType, inputStream, length)
+    val byteArray = HttpUtil.copyToByteArrayAndClose(inputStream, length)
+    new ByteBufferResponseBody(request, status, optionalContentType, byteArray)
+  }
+
+  def apply(request: Request, status: Status,
+            optionalContentType: Option[MediaType],
+            byteArray: Array[Byte],
+            headers: Headers) = {
+    new ByteBufferResponseBody(request, status, optionalContentType, byteArray)
   }
 
   private def contentLength(headers: Headers): Int = {

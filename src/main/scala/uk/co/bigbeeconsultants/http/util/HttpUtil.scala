@@ -31,7 +31,8 @@ import uk.co.bigbeeconsultants.http._
 
 object HttpUtil {
   // Known to be immutable.
-  val emptyBuffer = ByteBuffer.allocateDirect(0)
+  val EmptyBuffer = ByteBuffer.allocateDirect(0)
+  val EmptyArray = new Array[Byte](0)
 
   val DEFAULT_BUFFER_SIZE = 1024 * 16
 
@@ -109,19 +110,31 @@ object HttpUtil {
    * @return the new byte buffer
    */
   @throws(classOf[IOException])
+  def copyToByteArrayAndClose(inputStream: InputStream): Array[Byte] = {
+    val initialSize = 0x10000 // 64K
+    copyToByteArrayAndClose(inputStream, initialSize)
+  }
+
+  /**
+   * Copies the bytes from an input stream into a new byte buffer, then closes the input stream.
+   * @param inputStream the input stream
+   * @return the new byte buffer
+   */
+  @deprecated("No longer needed", "since v0.21.5")
+  @throws(classOf[IOException])
   def copyToByteBufferAndClose(inputStream: InputStream): ByteBuffer = {
     val initialSize = 0x10000 // 64K
     copyToByteBufferAndClose(inputStream, initialSize)
   }
 
   /**
-   * Copies the bytes from an input stream into a new byte buffer, then closes the input stream.
+   * Copies the bytes from an input stream into a new byte array, then closes the input stream.
    * @param inputStream the input stream
    * @param initialSize the initial size of the buffer
-   * @return the new byte buffer
+   * @return the new byte array
    */
   @throws(classOf[IOException])
-  def copyToByteBufferAndClose(inputStream: InputStream, initialSize: Int): ByteBuffer = {
+  def copyToByteArrayAndClose(inputStream: InputStream, initialSize: Int): Array[Byte] = {
     if (initialSize > 0) {
       val outStream = new ByteArrayOutputStream(initialSize)
       if (inputStream != null) {
@@ -131,9 +144,25 @@ object HttpUtil {
           inputStream.close()
         }
       }
-      ByteBuffer.wrap(outStream.toByteArray)
+      outStream.toByteArray
     } else {
-      emptyBuffer
+      EmptyArray
+    }
+  }
+
+  /**
+   * Copies the bytes from an input stream into a new byte buffer, then closes the input stream.
+   * @param inputStream the input stream
+   * @param initialSize the initial size of the buffer
+   * @return the new byte buffer
+   */
+  @deprecated("No longer needed", "since v0.21.5")
+  @throws(classOf[IOException])
+  def copyToByteBufferAndClose(inputStream: InputStream, initialSize: Int): ByteBuffer = {
+    if (initialSize > 0) {
+      ByteBuffer.wrap(copyToByteArrayAndClose(inputStream, initialSize))
+    } else {
+      EmptyBuffer
     }
   }
 
@@ -212,7 +241,7 @@ object HttpUtil {
       val out = new PrintWriter(new OutputStreamWriter(output, charset))
       val last = string.length - 1
       val s = if (last >= 0 && string.charAt(last) == '\n') string.substring(0, last) else string
-      for (line <- new Splitter(s, '\n')) {
+      for (line <- new LineSplitter(s)) {
         out.println(alter(line))
       }
       out.flush()

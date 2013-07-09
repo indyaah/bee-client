@@ -27,36 +27,48 @@ package uk.co.bigbeeconsultants.http.response
 import java.nio.charset.Charset
 import uk.co.bigbeeconsultants.http.header.MediaType
 import uk.co.bigbeeconsultants.http.HttpClient
-import java.nio.ByteBuffer
-import uk.co.bigbeeconsultants.http.util.Splitter
+import uk.co.bigbeeconsultants.http.request._
 
 /**
  * Provides a body implementation based simply on a string.
  *
  * This is immutable and therefore can be safely shared between threads.
  */
-case class StringResponseBody(bodyText: String, contentType: MediaType) extends ResponseBody {
+case class StringResponseBody(request: Request,
+                              status: Status,
+                              bodyText: String,
+                              contentType: MediaType) extends ResponseBody {
 
-  @deprecated
-  def this(contentType: MediaType, bodyText: String) = this(bodyText, contentType)
+  /** Simple constructor - mostly useful for writing test data. */
+  def this(bodyText: String,
+           contentType: MediaType) = this(Request.Empty, Status.S200_OK, bodyText, contentType)
 
-  /** Always true. */
-  override def isBuffered = true
+  /** Always false. */
+  override def isUnbuffered = false
 
-  /**
-   * Returns `this`.
-   */
-  override def toBufferedBody = this
+  /** Gets the body content in byte array form. */
+  override lazy val toBufferedBody = new ByteBufferResponseBody(request, status, Some(contentType), convertToBytes)
+
+  /** Returns `this`. */
+  override def toStringBody = this
 
   /**
    * Converts the body of the response into an array of bytes.
    * This uses the character encoding of the contentType, or UTF-8 as a default.
    */
-  override def asBytes: Array[Byte] = {
-    val charset = contentType.charset.getOrElse (HttpClient.UTF8)
-    val buf = Charset.forName (charset).encode (bodyText)
-    val bytes = new Array[Byte](buf.limit ())
-    buf.get (bytes, 0, buf.limit ())
+  override def asBytes: Array[Byte] = toBufferedBody.asBytes
+
+  /**
+   * Gets the content as an input stream. Each time this is called, a new ByteArrayInputStream is returned. This
+   * should be closed by the calling code when it has been finished with.
+   */
+  def inputStream = toBufferedBody.inputStream
+
+  private def convertToBytes: Array[Byte] = {
+    val charset = contentType.charset.getOrElse(HttpClient.UTF8)
+    val buf = Charset.forName(charset).encode(bodyText)
+    val bytes = new Array[Byte](buf.limit())
+    buf.get(bytes, 0, buf.limit())
     bytes
   }
 
@@ -64,8 +76,6 @@ case class StringResponseBody(bodyText: String, contentType: MediaType) extends 
    * Get the body of the response as a string.
    */
   override def asString = bodyText
-
-  override def toString() = asString
 
   override lazy val contentLength = asBytes.length
 }

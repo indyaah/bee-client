@@ -22,51 +22,38 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.http.util
+package uk.co.bigbeeconsultants.http.response
 
-import org.scalatest.FunSuite
+import uk.co.bigbeeconsultants.http.header.MediaType
+import java.io.InputStream
 
-class SplitterTest extends FunSuite {
+/**
+ * Provides an empty `ResponseBody` implementation.
+ */
+final class EmptyResponseBody(val contentType: MediaType) extends ResponseBody {
 
-  test("blank string") {
-    val splitter = new Splitter("", '\n')
-    assert(splitter.hasNext)
-    assert(splitter.next === "")
-    assert(!splitter.hasNext)
+  /** Returns a new empty InputStream. */
+  override def inputStream = {
+    new InputStream {
+      def read() = -1
+    }
   }
 
-  test("one line") {
-    val splitter = new Splitter("one line of text", '\n')
-    assert(splitter.hasNext)
-    assert(splitter.next === "one line of text")
-    assert(!splitter.hasNext)
-  }
+  /** Returns `this`. */
+  override def toBufferedBody = this
 
-  test("several lines") {
-    val splitter = new Splitter("line 1\nline 2\nline 3", '\n')
-    assert(splitter.hasNext)
-    assert(splitter.next === "line 1")
-    assert(splitter.hasNext)
-    assert(splitter.next === "line 2")
-    assert(splitter.hasNext)
-    assert(splitter.next === "line 3")
-    assert(!splitter.hasNext)
-  }
+  /** Returns `this`. */
+  override def toStringBody = this
 
-  test("several lines with extremities") {
-    val splitter = new Splitter("\nline 1\nline 2\n\nline 4\n", '\n')
-    assert(splitter.hasNext)
-    assert(splitter.next === "")
-    assert(splitter.hasNext)
-    assert(splitter.next === "line 1")
-    assert(splitter.hasNext)
-    assert(splitter.next === "line 2")
-    assert(splitter.hasNext)
-    assert(splitter.next === "")
-    assert(splitter.hasNext)
-    assert(splitter.next === "line 4")
-    assert(splitter.hasNext)
-    assert(splitter.next === "")
-    assert(!splitter.hasNext)
-  }
+  /** Returns 0. */
+  override def contentLength = 0
+
+  /** Always false. */
+  override def isUnbuffered = false
+
+  /** Returns a zero-length array. */
+  override val asBytes = new Array[Byte](0)
+
+  /** Returns a blank string. */
+  override def asString = ""
 }

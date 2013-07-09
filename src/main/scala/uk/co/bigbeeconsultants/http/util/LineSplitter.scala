@@ -30,19 +30,47 @@ package uk.co.bigbeeconsultants.http.util
  * behaviour is essentially the same as String.split(Char), except that it is presented as an Iterator[String]
  * instead of as an array.
  */
-class Splitter(string: String, separator: Char) extends Iterator[String] {
+class LineSplitter(string: String) extends Iterator[String] {
   private var s = 0
-  private var e = string.indexOf(separator)
-  if (e < 0) e = string.length
+  private var e = findNextCrNl(0)
 
-  def hasNext = s <= e
+  def hasNext = s < string.length
 
   def next(): String = {
     assert(s <= e)
     val part = string.substring(s, e)
-    s = e + 1
-    e = string.indexOf(separator, s)
-    if (e < 0) e = string.length
+    s = skipNextCrNl(e)
+    e = findNextCrNl(s)
     part
+  }
+
+  private def findNextCrNl(from: Int): Int = {
+    var i = from
+    while (i < string.length) {
+      string(i) match {
+        case '\n' => return i
+        case '\r' => return i
+        case _ => i += 1
+      }
+    }
+    i
+  }
+
+  private def skipNextCrNl(from: Int): Int = {
+    if (from < string.length) {
+      string(from) match {
+        case '\n' =>
+          from + 1
+        case '\r' =>
+          string(from + 1) match {
+            case '\n' =>
+              from + 2
+            case _ =>
+              from + 1
+          }
+      }
+    }
+    else
+      string.length
   }
 }

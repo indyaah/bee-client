@@ -36,7 +36,7 @@ class CookieJarTest extends FunSuite {
   val httpUrl1 = new URL("http://www.w3.org/standards/webdesign/htmlcss")
   val httpUrl2 = new URL("http://www.bbc.co.uk/radio/stations/radio1")
   val httpsUrl1 = new URL("https://www.w3.org/login/")
-  val body = new StringResponseBody(MediaType.TEXT_PLAIN, "")
+  val body = new StringResponseBody("", MediaType.TEXT_PLAIN)
   val ok = Status(200, "OK")
 
   test("no cookies") {

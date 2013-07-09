@@ -133,7 +133,10 @@ object Headers {
    */
   def apply(map: Map[String, String]): Headers = new Headers(map.map(kv => HeaderName(kv._1) -> kv._2).toList)
 
+  @deprecated("Use Empty", "Since v.0.21.5")
   val empty = Headers(Nil)
+
+  val Empty = Headers(Nil)
 
   implicit def createHeaders(list: List[Header]): Headers = new Headers(list)
 

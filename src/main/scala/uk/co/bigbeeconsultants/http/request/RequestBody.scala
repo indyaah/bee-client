@@ -30,7 +30,7 @@ import uk.co.bigbeeconsultants.http._
 import header.MediaType
 import header.MediaType._
 import util.HttpUtil._
-import util.Splitter
+import util.LineSplitter
 
 /**
  * Carries body data on a request. The body data is supplied by a closure using the
@@ -132,7 +132,7 @@ final class StringRequestBody(string: String, val contentType: MediaType,
 
   private def textCopyTo(outputStream: OutputStream) {
     val encoding = contentType.charsetOrElse(HttpClient.UTF8)
-    val splitter = new Splitter(string, '\n')
+    val splitter = new LineSplitter(string)
     val pw = new PrintWriter(new OutputStreamWriter(outputStream, encoding))
     val filter = rewrite.get
     splitter.foreach {

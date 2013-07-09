@@ -25,7 +25,7 @@
 package uk.co.bigbeeconsultants.http.response
 
 import uk.co.bigbeeconsultants.http._
-import header.{CookieJar, Headers, MediaType}
+import uk.co.bigbeeconsultants.http.header.{CookieJar, Headers, MediaType}
 import request.Request
 import java.io.InputStream
 
@@ -48,13 +48,40 @@ trait ResponseBuilder {
 //---------------------------------------------------------------------------------------------------------------------
 
 /**
+ * Provides a response builder implementation that returns responses buffered in byte
+ * arrays (and also strings), using ByteBufferResponseBody.
+ *
+ * This is not thread safe so a new instance is required for every request.
+ * @see ByteBufferResponseBody
+ */
+class BufferedResponseBuilder extends ResponseBuilder {
+
+  private[response] var _response: Option[Response] = None
+
+  def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
+                      headers: Headers, cookies: Option[CookieJar], stream: InputStream) {
+    _response = Some(captureBufferedResponse(request, status, mediaType, headers, cookies, stream))
+  }
+
+  override def response = _response
+
+  private[response] def captureBufferedResponse(request: Request, status: Status, mediaType: Option[MediaType],
+                                                headers: Headers, cookies: Option[CookieJar], stream: InputStream): Response = {
+    val body = ByteBufferResponseBody(request, status, mediaType, stream, headers)
+    new Response(request, status, body, headers, cookies)
+  }
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+
+/**
  * Provides a response builder implementation that returns unbuffered responses along with the InputStream
  * that provides data from the origin HTTP server. This input stream *must* be closed by the calling code
  * to avoid connection leakage issues. The stream implementation makes this easier by automatically closing
  * the stream as soon as all the data has been consumed. This is an alternative to explicitly calling the
  * `close()` method on the stream.
  *
- * To make things easier, two different cases are provided.
+ * To make things easier, there are two different cases.
  *
  * 1. For 200 (OK) only, an InputStreamResponseBody is returned, containing the stream ready for use by the
  * calling code, which must finally close the stream. (As mentioned above, this can either be done by
@@ -67,39 +94,21 @@ trait ResponseBuilder {
  * This is not thread safe so a new instance is required for every request.
  * @see InputStreamResponseBody
  */
-final class UnbufferedResponseBuilder extends ResponseBuilder {
-  private var _response: Option[Response] = None
+final class UnbufferedResponseBuilder extends BufferedResponseBuilder {
 
-  def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
-                      headers: Headers, cookies: Option[CookieJar], stream: InputStream) {
-    val body =
-      if (status.code == 200)
-        new InputStreamResponseBody(request, status, mediaType, headers, stream)
-      else
-        ByteBufferResponseBody(request, status, mediaType, stream, headers)
-    _response = Some(new Response(request, status, body, headers, cookies))
+  override def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
+                               headers: Headers, cookies: Option[CookieJar], stream: InputStream) {
+    val response =
+      status.code match {
+        case 200 => captureUnbufferedResponse(request, status, mediaType, headers, cookies, stream)
+        case _ => captureBufferedResponse(request, status, mediaType, headers, cookies, stream)
+      }
+    _response = Some(response)
   }
 
-  override def response = _response
-}
-
-//---------------------------------------------------------------------------------------------------------------------
-
-/**
- * Provides a response builder implementation that returns responses buffered in byte
- * arrays (and also strings), using ByteBufferResponseBody.
- *
- * This is not thread safe so a new instance is required for every request.
- * @see ByteBufferResponseBody
- */
-final class BufferedResponseBuilder extends ResponseBuilder {
-  private var _response: Option[Response] = None
-
-  def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
-                      headers: Headers, cookies: Option[CookieJar], stream: InputStream) {
-    val body = ByteBufferResponseBody(request, status, mediaType, stream, headers)
-    _response = Some(new Response(request, status, body, headers, cookies))
+  private def captureUnbufferedResponse(request: Request, status: Status, mediaType: Option[MediaType],
+                                        headers: Headers, cookies: Option[CookieJar], stream: InputStream): Response = {
+    val body = new InputStreamResponseBody(request, status, mediaType, headers, stream)
+    new Response(request, status, body, headers, cookies)
   }
-
-  override def response = _response
 }

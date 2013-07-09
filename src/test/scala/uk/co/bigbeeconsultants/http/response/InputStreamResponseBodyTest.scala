@@ -36,41 +36,61 @@ class InputStreamResponseBodyTest extends FunSuite with ShouldMatchers {
   val head = Request.head(new URL("http://localhost/"))
   val headersWithLength = Headers(HeaderName.CONTENT_LENGTH -> "1234")
 
-  test("InputStreamResponseBody with json body") {
+  test("InputStreamResponseBody in unbuffered state with json body") {
     val s = """[ "Some json message text" ]"""
     val mt = MediaType.APPLICATION_JSON
     val bytes = s.getBytes("UTF-8")
     val bais = new ByteArrayInputStream(bytes)
     val body = new InputStreamResponseBody(head, Status.S200_OK, Some(mt), headersWithLength, bais)
 
-    // unbuffered state
     body.isBuffered should be(false)
-    body.rawStream should be(bais)
-
-    // buffered state
-    body.toBufferedBody
-    body.isBuffered should be(true)
+    body.inputStream should be(bais)
     body.contentType should be(mt)
     body.isTextual should be(true)
-    body.asString should be("")
-    body.toString should be(s)
 
-    body.toBufferedBody.contentType should be(mt)
-    body.toBufferedBody.contentLength should be(bytes.length)
-    body.toBufferedBody.asString should be(s)
-    body.toBufferedBody.toString should be(s)
-    val it = body.toBufferedBody.iterator
-    it.hasNext should be(true)
-    it.next should be(s)
-    it.hasNext should be(false)
-
+    intercept[IllegalStateException] {
+      body.asString
+    }
+    intercept[IllegalStateException] {
+      body.asBytes
+    }
     intercept[IllegalStateException] {
       body.contentLength
     }
     intercept[IllegalStateException] {
       body.asBytes
     }
-   }
+    body.toString should be("(unbuffered input stream)")
+    body.inputStream should be(bais)
+    body.close() // no exception
+  }
+
+  test("InputStreamResponseBody in buffered state with json body") {
+    val s = """[ "Some json message text" ]"""
+    val mt = MediaType.APPLICATION_JSON
+    val bytes = s.getBytes("UTF-8")
+    val bais = new ByteArrayInputStream(bytes)
+    val body = new InputStreamResponseBody(head, Status.S200_OK, Some(mt), headersWithLength, bais)
+
+    // buffered state
+    body.toBufferedBody
+    body.isBuffered should be(true)
+    body.contentType should be(mt)
+    body.isTextual should be(true)
+    body.asString should be(s)
+    body.asBytes should be(bytes)
+    body.toString should be(s)
+
+    body.contentLength should be(bytes.length)
+    body.asString should be(s)
+    body.toString should be(s)
+
+    body.toStringBody.asString should be(s)
+
+    intercept[IllegalStateException] {
+      body.inputStream
+    }
+  }
 
   test("InputStreamResponseBody with stream filter") {
     val s = "[ \"Some json message text\",\n" + " 123 ]"
@@ -81,13 +101,26 @@ class InputStreamResponseBodyTest extends FunSuite with ShouldMatchers {
 
     // unbuffered state
     body.isBuffered should be(false)
-    body.rawStream should be(bais)
-    val buffer = HttpUtil.copyToByteBufferAndClose(body.transformedStream((s) => s.replace("Some", "Fantastic")))
-    val result = new String(buffer.array(), "UTF-8")
+    body.inputStream should be(bais)
+    val buffer = HttpUtil.copyToByteArrayAndClose(body.transformedStream((s) => s.replace("Some", "Fantastic")))
+    val result = new String(buffer, "UTF-8")
     result should be("[ \"Fantastic json message text\",\n" + " 123 ]")
   }
 
-  test("InputStreamResponseBody iterator") {
+  test("InputStreamResponseBody unbuffered empty binary iterator") {
+    val s = ""
+    val mt = MediaType.APPLICATION_OCTET_STREAM
+    val bytes = s.getBytes("ASCII")
+    val bais = new ByteArrayInputStream(bytes)
+    val body = new InputStreamResponseBody(head, Status.S200_OK, Some(mt), headersWithLength, bais)
+
+    // unbuffered state
+    body.isBuffered should be(false)
+    val it = body.iterator
+    it.hasNext should be(false)
+  }
+
+  test("InputStreamResponseBody unbuffered iterator") {
     val s = "line one\nline two\nline three\n"
     val mt = MediaType.TEXT_PLAIN
     val bytes = s.getBytes("UTF-8")
@@ -96,6 +129,23 @@ class InputStreamResponseBodyTest extends FunSuite with ShouldMatchers {
 
     // unbuffered state
     body.isBuffered should be(false)
+    val it = body.iterator
+    it.next() should be("line one")
+    it.next() should be("line two")
+    it.next() should be("line three")
+    it.hasNext should be(false)
+  }
+
+  test("InputStreamResponseBody buffered iterator") {
+    val s = "line one\nline two\nline three\n"
+    val mt = MediaType.TEXT_PLAIN
+    val bytes = s.getBytes("UTF-8")
+    val bais = new ByteArrayInputStream(bytes)
+    val body = new InputStreamResponseBody(head, Status.S200_OK, Some(mt), headersWithLength, bais)
+
+    // buffered state
+    body.toBufferedBody
+    body.isBuffered should be(true)
     val it = body.iterator
     it.next() should be("line one")
     it.next() should be("line two")

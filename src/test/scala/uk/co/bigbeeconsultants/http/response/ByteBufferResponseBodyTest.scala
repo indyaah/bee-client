@@ -28,20 +28,21 @@ import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import uk.co.bigbeeconsultants.http.header.{Headers, MediaType}
 import uk.co.bigbeeconsultants.http.header.HeaderName._
-import uk.co.bigbeeconsultants.http.request.Request
+import uk.co.bigbeeconsultants.http.request._
 import java.io.ByteArrayInputStream
 import java.net.URL
 
 class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
-  val head = Request.head(new URL("http://localhost/"))
-  val getPng = Request.get(new URL("http://localhost/x.png"))
+  val head = Request.head("http://localhost/")
+  val getPng = Request.get("http://localhost/x.png")
+  val EmptyArray = new Array[Byte](0)
 
   test("new ByteBufferResponseBody with json body") {
     val s = """[ "Some json message text" ]"""
     val mt = MediaType.APPLICATION_JSON
     val bytes = s.getBytes("UTF-8")
     val bais = new ByteArrayInputStream(bytes)
-    val body = new ByteBufferResponseBody(head, Status.S200_OK, Some(mt), bais)
+    val body = ByteBufferResponseBody(head, Status.S200_OK, Some(mt), bais)
 
     body.contentType should be(mt)
     body.contentLength should be(bytes.length)
@@ -57,7 +58,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
 
   test("new ByteBufferResponseBody with text but without a body") {
     val mt = MediaType.APPLICATION_JSON
-    val body = new ByteBufferResponseBody(head, Status.S200_OK, Some(mt), null)
+    val body = new ByteBufferResponseBody(head, Status.S200_OK, Some(mt), EmptyArray)
 
     body.contentType should be(mt)
     body.contentLength should be(0)
@@ -69,7 +70,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
 
   test("new ByteBufferResponseBody with binary but without a body") {
     val mt = MediaType.APPLICATION_OCTET_STREAM
-    val body = new ByteBufferResponseBody(head, Status.S200_OK, Some(mt), null)
+    val body = new ByteBufferResponseBody(head, Status.S200_OK, Some(mt), EmptyArray)
 
     body.contentType should be(mt)
     body.contentLength should be(0)
@@ -83,7 +84,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val mt = MediaType.APPLICATION_OCTET_STREAM
     val bytes = Array[Byte](' ')
     val bais = new ByteArrayInputStream(bytes)
-    val body = new ByteBufferResponseBody(head, Status.S200_OK, Some(mt), bais)
+    val body = ByteBufferResponseBody(head, Status.S200_OK, Some(mt), bais)
 
     body.contentType should be(mt)
     body.contentLength should be(1)
@@ -97,7 +98,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val s = "Some text"
     val bytes = s.getBytes("UTF-8")
     val bais = new ByteArrayInputStream(bytes)
-    val body = new ByteBufferResponseBody(head, Status.S200_OK, None, bais)
+    val body = ByteBufferResponseBody(head, Status.S200_OK, None, bais)
 
     body.contentType should be(MediaType.TEXT_PLAIN)
     body.contentLength should be(bytes.length)
@@ -110,7 +111,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val s = "<html><body>Blah</body></html>"
     val bytes = s.getBytes("UTF-8")
     val bais = new ByteArrayInputStream(bytes)
-    val body = new ByteBufferResponseBody(head, Status.S200_OK, None, bais)
+    val body = ByteBufferResponseBody(head, Status.S200_OK, None, bais)
 
     body.contentType should be(MediaType.TEXT_HTML)
     body.contentLength should be(bytes.length)
@@ -123,7 +124,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val bytes: Array[Byte] = new Array[Byte](256)
     for (i <- 0 until 256) { bytes(i) = i.toByte }
     val bais = new ByteArrayInputStream(bytes)
-    val body = new ByteBufferResponseBody(head, Status.S200_OK, None, bais)
+    val body = ByteBufferResponseBody(head, Status.S200_OK, None, bais)
 
     body.contentType should be(MediaType.APPLICATION_OCTET_STREAM)
     body.contentLength should be(256)
@@ -133,7 +134,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
   }
 
   test("new ByteBufferResponseBody with binary but without a body or media type") {
-    val body = new ByteBufferResponseBody(head, Status.S200_OK, None, null)
+    val body = new ByteBufferResponseBody(head, Status.S200_OK, None, EmptyArray)
 
     body.contentType should be(MediaType.APPLICATION_OCTET_STREAM)
     body.contentLength should be(0)
@@ -143,7 +144,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
   }
 
   test("new ByteBufferResponseBody with PNG but without a body or media type") {
-    val body = new ByteBufferResponseBody(getPng, Status.S200_OK, None, null)
+    val body = new ByteBufferResponseBody(getPng, Status.S200_OK, None, EmptyArray)
 
     body.contentType should be(MediaType.IMAGE_PNG)
     body.contentLength should be(0)
@@ -156,7 +157,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val s = "Some text"
     val bytes = s.getBytes("UTF-8")
     val bais = new ByteArrayInputStream(bytes)
-    val body = new ByteBufferResponseBody(Request.get(new URL("http://localhost/x.abc")), Status.S200_OK, None, bais)
+    val body = ByteBufferResponseBody(Request.get(new URL("http://localhost/x.abc")), Status.S200_OK, None, bais)
 
     body.contentType should be(MediaType.TEXT_PLAIN)
     body.contentLength should be(bytes.length)
@@ -171,7 +172,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val bais = new ByteArrayInputStream(bytes)
     val body = ByteBufferResponseBody(Request.get(new URL("http://localhost/x.txt")), Status.S200_OK, Some(mt),
       bais, Headers(CONTENT_LENGTH -> bytes.length.toString))
-    body.byteData.capacity() should be(bytes.length)
+    body.byteArray.length should be(bytes.length)
     body.contentLength should be(bytes.length)
   }
 
@@ -182,7 +183,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val bais = new ByteArrayInputStream(bytes)
     val body = ByteBufferResponseBody(Request.get(new URL("http://localhost/x.txt")), Status.S200_OK, Some(mt),
       bais, Headers())
-    body.byteData.capacity() should be(bytes.length)
+    body.byteArray.length should be(bytes.length)
     body.contentLength should be(bytes.length)
   }
 
@@ -193,7 +194,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val bais = new ByteArrayInputStream(bytes)
     val body = ByteBufferResponseBody(Request.get(new URL("http://localhost/x.txt")), Status.S200_OK, Some(mt),
       bais, Headers(CONTENT_LENGTH -> "0"))
-    body.byteData.capacity() should be(0)
+    body.byteArray.length should be(0)
     body.contentLength should be(0)
   }
 
@@ -204,7 +205,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val bais = new ByteArrayInputStream(bytes)
     val body = ByteBufferResponseBody(Request.get(new URL("http://localhost/x.txt")), Status.S200_OK, Some(mt),
       bais, Headers(CONTENT_LENGTH -> ""))
-    body.byteData.capacity() should be(0)
+    body.byteArray.length should be(0)
     body.contentLength should be(0)
   }
 }

@@ -17,7 +17,7 @@ object Example5c {
 
     } else {
       val unbufferedBody = response.body.asInstanceOf[InputStreamResponseBody]
-      val rawStream = unbufferedBody.rawStream
+      val rawStream = unbufferedBody.inputStream
       try {
         println(unbufferedBody.isBuffered) // false
         println(unbufferedBody.isTextual) // false

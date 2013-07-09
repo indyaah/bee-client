@@ -25,10 +25,10 @@
 package uk.co.bigbeeconsultants.http.response
 
 import uk.co.bigbeeconsultants.http.header.MediaType
-import uk.co.bigbeeconsultants.http.util.Splitter
+import uk.co.bigbeeconsultants.http.util.LineSplitter
 import uk.co.bigbeeconsultants.http.header.MediaType._
 import uk.co.bigbeeconsultants.http.request.Request
-import java.io.IOException
+import java.io.{InputStream, IOException}
 
 /**
  * Defines the outline of a response body. This may or may not be buffered in memory or streamed directly
@@ -60,15 +60,25 @@ trait ResponseBody extends Iterable[String] {
    * Tests whether the implementation has buffered the whole response body. If this returns false, `toBufferedBody`
    * provides an easy route to accumulate the entire body in a buffer.
    */
-  def isBuffered: Boolean
+  final def isBuffered = !isUnbuffered
+
+  /**
+   * Tests whether the implementation has not yet buffered the whole response body. If this returns true,
+   * `toBufferedBody` provides an easy route to accumulate the entire body in a buffer.
+   */
+  def isUnbuffered: Boolean
 
   /**
    * Converts this response body into a buffered form if necessary. If it is already buffered, this method simply
-   * returns `this`. Typically, a chain of conversions are provided by the implementation classes: if the
-   * implementation is a `InputStreamResponseBody`, then this method will return a new `ByteBufferResponseBody`,
-   * which will in turn return a new `StringResponseBody`, which will just return itself.
+   * returns `this`.
    */
   def toBufferedBody: ResponseBody
+
+  /**
+   * Converts this response body into a buffered form as a string if necessary. If it is already a string,
+   * this method simply returns `this`.
+   */
+  def toStringBody: ResponseBody
 
   /**
    * Gets the body as an array of raw bytes if available. By default, this merely returns an empty array,
@@ -93,8 +103,14 @@ trait ResponseBody extends Iterable[String] {
    */
   def iterator: Iterator[String] = {
     val body = asString
-    if (isTextual && body.length > 0) new Splitter(body, '\n') else Nil.iterator
+    if (isTextual && body.length > 0)
+      new LineSplitter(body)
+    else
+      Nil.iterator
   }
+
+  /** Gets the content as an input stream. */
+  def inputStream: InputStream
 
   /**
    * Closes the input stream that provides the data for this response. If the implementation buffers the body,
@@ -117,27 +133,4 @@ trait ResponseBody extends Iterable[String] {
 
   // basic helper for cases where the media type must be guessed and body data is initially unavailable
   private[response] def guessMediaTypeFromBodyData: MediaType = APPLICATION_OCTET_STREAM
-}
-
-//---------------------------------------------------------------------------------------------------------------------
-
-/**
- * Provides an empty `ResponseBody` implementation.
- */
-final class EmptyResponseBody(val contentType: MediaType) extends ResponseBody {
-
-  /** Returns `this`. */
-  override def toBufferedBody = this
-
-  /** Returns 0. */
-  override def contentLength = 0
-
-  /** Always true. */
-  override def isBuffered = true
-
-  /** Returns a zero-length array. */
-  override val asBytes = new Array[Byte](0)
-
-  /** Returns a blank string. */
-  override def asString = ""
 }

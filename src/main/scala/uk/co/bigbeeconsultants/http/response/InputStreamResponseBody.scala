@@ -29,6 +29,7 @@ import header.{Headers, MediaType}
 import request.Request
 import java.io._
 import java.nio.charset.Charset
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Provides a body implementation that holds the HTTP server's input stream as obtained from the HttpURLConnection.
@@ -42,55 +43,95 @@ import java.nio.charset.Charset
  *
  * The socket input stream *must* be closed by the calling code. This happens automatically when all the data has
  * been consumed from the socket, but if it is necessary to give up immediately or part-way through, it is necessary
- * to ensure that `rawStream.close()` is invoked (usually in a `finally` block). Conversion `toBufferedBody` is
- * another way to ensure the input stream gets closed.
+ * to ensure that `inputStream.close()` is invoked (usually in a `finally` block).
+ *
+ * Conversion `toBufferedBody` is another way to ensure the input stream gets closed.
+ *
+ * @param request if the content type is not initially known, the request URL may provide a hint based on the
+ *                extension of the filename, if present.
+ * @param status the request parameter is ignored if the status is not 200-OK.
+ * @param optionalContentType the content type received from the webserver, if any.
+ * @param headers response headers received from the webserver; only the Content-Length is of interest.
+ * @param stream the input stream from the socket connected to the webserver.
  */
-final class InputStreamResponseBody(request: Request, status: Status, mediaType: Option[MediaType],
-                                    headers: Headers, stream: InputStream)
-  extends ResponseBody {
+final class InputStreamResponseBody(request: Request,
+                                    status: Status,
+                                    optionalContentType: Option[MediaType],
+                                    headers: Headers,
+                                    stream: InputStream) extends ResponseBody {
 
   private var bufferedBody: Option[ByteBufferResponseBody] = None
 
   /** Tests whether the content has been buffered yet. */
-  override def isBuffered = bufferedBody.isDefined
+  override def isUnbuffered = bufferedBody.isEmpty
 
   /**
-   * Gets the response body in a buffer. This consumes the data from the input stream, which cannot subsequently
+   * Gets the response body in a byte buffer. This consumes the data from the input stream, which cannot subsequently
    * be used here therefore. Any data that has already been consumed will not be included in the resulting buffer.
    * @return the response data stored in a buffer
    */
   override def toBufferedBody: ResponseBody = {
     if (bufferedBody.isEmpty)
-      bufferedBody = Some(ByteBufferResponseBody(request, status, mediaType, stream, headers))
+      bufferedBody = Some(ByteBufferResponseBody(request, status, optionalContentType, stream, headers))
     bufferedBody.get
   }
 
-  /**
-   * Throws an illegal state exception. The actual content length is only known once the response body has been
-   * buffered. Therefore, use `toBufferedBody.contentLength` instead.
-   */
-  override def contentLength: Int = {
-    throw new IllegalStateException("The content length has not yet been determined.")
+  private def requireContentIsBuffered() {
+    if (isUnbuffered)
+      throw new IllegalStateException("The content length has not yet been determined.")
   }
+
+  /**
+   * Gets the response body in a string buffer. This consumes the data from the input stream, which cannot subsequently
+   * be used here therefore. Any data that has already been consumed will not be included in the resulting buffer.
+   * @return the response data stored in a buffer
+   */
+  override def toStringBody: ResponseBody =
+    toBufferedBody.toStringBody
 
   /**
    * Gets the content type and encoding of the response. In the unbuffered state, this may not have been supplied
    * by the HTTP server so may not yet be known, in which case the default is "application/octet-stream".
    */
   override def contentType = {
-    if (bufferedBody.isEmpty)
-      mediaType getOrElse MediaType.APPLICATION_OCTET_STREAM
+    if (isUnbuffered)
+      optionalContentType getOrElse MediaType.APPLICATION_OCTET_STREAM
     else
       bufferedBody.get.contentType
   }
 
   /**
-   * Throws an illegal state exception. The actual content is only known once the response body has been
-   * buffered. Therefore, use `toBufferedBody.asBytes` instead.
+   * In the unbuffered state, this throws an illegal state exception.
+   * The actual content length is only known once the response body has been buffered.
+   * Therefore, use `toBufferedBody.contentLength` instead.
+   */
+  override def contentLength: Int = {
+    requireContentIsBuffered()
+    bufferedBody.get.contentLength
+  }
+
+  /**
+   * In the unbuffered state, this throws an illegal state exception.
+   * The actual content length is only known once the response body has been buffered.
+   * Therefore, use `toBufferedBody.asBytes` instead.
    */
   override def asBytes: Array[Byte] = {
-    throw new IllegalStateException("The content has not yet been buffered.")
+    requireContentIsBuffered()
+    bufferedBody.get.asBytes
   }
+
+  /**
+   * In the unbuffered state, this throws an illegal state exception.
+   * The actual content length is only known once the response body has been buffered.
+   * Therefore, use `toBufferedBody.asString` instead.
+   */
+  override def asString = {
+    requireContentIsBuffered()
+    bufferedBody.get.asString
+  }
+
+  @deprecated("Use inputStream", "")
+  def rawStream = inputStream
 
   /**
    * Gets the HTTP response input stream. If you read from this stream, it would be unwise later to buffer
@@ -98,14 +139,14 @@ final class InputStreamResponseBody(request: Request, status: Status, mediaType:
    * body has been obtained, this method must not be used (an exception will be thrown if it is attempted).
    * @return the proxied input stream
    */
-  def rawStream: InputStream = {
-    if (bufferedBody.isDefined)
+  def inputStream: InputStream = {
+    if (isBuffered)
       throw new IllegalStateException("Cannot access HTTP input stream once the content has been buffered.")
     stream
   }
 
   /**
-   * Gets a proxy for the HTTP resposne input stream in which each line is transformed using a specified function.
+   * Gets a proxy for the HTTP response input stream in which each line is transformed using a specified function.
    * Be careful about the potential impact on performance of your filter on line-by-line processing; you may need to
    * measure this approach in comparison with other alternatives.
    * @param lineFilter the function to be applied to each line.
@@ -113,61 +154,67 @@ final class InputStreamResponseBody(request: Request, status: Status, mediaType:
    */
   def transformedStream(lineFilter: TextFilter): InputStream = {
     val charset = Charset.forName(contentType.charsetOrUTF8)
-    new LineFilterInputStream(rawStream, lineFilter, charset)
+    new LineFilterInputStream(inputStream, lineFilter, charset)
   }
 
   /**
-   * Gets the body as a string split into lines of text, if possible. If the data is binary, this method always returns
-   * an empty iterator.
+   * Gets the body as a string split into lines of text, if possible. If the data is binary, this method always
+   * returns an empty iterator.
    *
    * If the content is textual, this method will throw an illegal state exception if `toBufferedBody` has already
    * been used.
    */
   @throws(classOf[IOException])
   override def iterator = {
-    if (!isTextual)
-      Nil.iterator
+    if (isBuffered)
+      bufferedBody.get.iterator
+    else if (isTextual)
+      textIterator
     else
-      new Iterator[String] {
-        val reader = new BufferedReader(new InputStreamReader(rawStream, contentType.charsetOrUTF8))
-        var line: String = _
+      Nil.iterator
+  }
 
-        lookAhead()
+  @throws(classOf[IOException])
+  private def textIterator = {
+    new Iterator[String] {
+      val reader = new BufferedReader(new InputStreamReader(inputStream, contentType.charsetOrUTF8))
+      var line: String = _
 
-        @throws(classOf[IOException])
-        private def lookAhead() {
-          try {
-            line = reader.readLine()
-            if (line == null) reader.close()
-          } catch {
-            case e: IOException =>
-              reader.close()
-              throw e
-          }
-        }
+      lookAhead()
 
-        def hasNext = line != null
-
-        @throws(classOf[IOException])
-        def next() = {
-          val next = line
-          lookAhead()
-          next
+      @throws(classOf[IOException])
+      private def lookAhead() {
+        try {
+          line = reader.readLine()
+          if (line == null)
+            reader.close()
+        } catch {
+          case e: IOException =>
+            reader.close()
+            throw e
         }
       }
+
+      def hasNext = line != null
+
+      @throws(classOf[IOException])
+      def next() = {
+        val n = line
+        lookAhead()
+        n
+      }
+    }
   }
 
   @throws(classOf[IOException])
   override def close() {
-    if (bufferedBody.isEmpty)
+    if (isUnbuffered)
       stream.close()
   }
 
-  /**
-   * Always returns a blank string because the data is as-yet un-buffered. Instead, first use `toBufferedBody` and call
-   * `asString` on the result.
-   */
-  override def asString = ""
-
-  override def toString() = if (bufferedBody.isEmpty) "(unbuffered input stream)" else bufferedBody.get.asString
+  override def toString() =
+    if (isUnbuffered)
+      "(unbuffered input stream)"
+    else
+      bufferedBody.get.asString
 }

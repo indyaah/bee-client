@@ -48,7 +48,7 @@ final case class Request(method: String,
   lazy val split = Href(url)
 
   /** Gets the request without any headers. */
-  def withoutHeaders = this.copy(headers = Headers.empty)
+  def withoutHeaders = this.copy(headers = Headers.Empty)
 
   /** Gets the request without any cookies. */
   def withoutCookies = this.copy(cookies = None)
@@ -90,7 +90,7 @@ final case class Request(method: String,
    * If the map is empty, any previous query parameters are removed.
    */
   def withQuery(params: Map[String, String]) = {
-    copy(url = split.withQuery(params).asURL)
+    copy(url = href.withQuery(params).asURL)
   }
 
   def toShortString = {
@@ -119,28 +119,28 @@ object Request {
   val TRACE = "TRACE"
 
   // methods without an entity body
-  def get(url: URL, headers: Headers = Headers.empty, cookies: Option[CookieJar] = None): Request =
+  def get(url: URL, headers: Headers = Headers.Empty, cookies: Option[CookieJar] = None): Request =
     Request(GET, url, None, headers, cookies)
 
-  def head(url: URL, headers: Headers = Headers.empty, cookies: Option[CookieJar] = None): Request =
+  def head(url: URL, headers: Headers = Headers.Empty, cookies: Option[CookieJar] = None): Request =
     Request(HEAD, url, None, headers, cookies)
 
-  def delete(url: URL, headers: Headers = Headers.empty, cookies: Option[CookieJar] = None): Request =
+  def delete(url: URL, headers: Headers = Headers.Empty, cookies: Option[CookieJar] = None): Request =
     Request(DELETE, url, None, headers, cookies)
 
-  def trace(url: URL, headers: Headers = Headers.empty, cookies: Option[CookieJar] = None): Request =
+  def trace(url: URL, headers: Headers = Headers.Empty, cookies: Option[CookieJar] = None): Request =
     Request(TRACE, url, None, headers, cookies)
 
   // method with an optional entity body
-  def options(url: URL, body: Option[RequestBody] = None, headers: Headers = Headers.empty, cookies: Option[CookieJar] = None): Request =
+  def options(url: URL, body: Option[RequestBody] = None, headers: Headers = Headers.Empty, cookies: Option[CookieJar] = None): Request =
     Request(OPTIONS, url, body, headers, cookies)
 
-  def post(url: URL, body: Option[RequestBody], headers: Headers = Headers.empty, cookies: Option[CookieJar] = None): Request =
+  def post(url: URL, body: Option[RequestBody], headers: Headers = Headers.Empty, cookies: Option[CookieJar] = None): Request =
     Request(POST, url, body, headers, cookies)
 
   // methods requiring an entity body
-  def put(url: URL, body: RequestBody, headers: Headers = Headers.empty, cookies: Option[CookieJar] = None): Request =
+  def put(url: URL, body: RequestBody, headers: Headers = Headers.Empty, cookies: Option[CookieJar] = None): Request =
     Request(PUT, url, Some(body), headers, cookies)
 
-  private final val requestLen = "Request(".length
+  val Empty = get("http://localhost/")
 }
