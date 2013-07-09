@@ -124,28 +124,6 @@
        x="-0.34375"
        y="642.59375" />
     <g
-       id="g5692"
-       transform="translate(-585.6701,-101.85567)">
-      <path
-         sodipodi:nodetypes="cc"
-         style="fill:none;stroke:#ffffff;stroke-width:1.99999964;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-end:url(#Arrow1Mend)"
-         d="m 630.6209,932.90507 c -0.73556,24.23704 -0.96153,47.17195 -0.96153,47.17195"
-         id="path5694"
-         inkscape:connector-curvature="0" />
-      <text
-         xml:space="preserve"
-         style="font-size:13.99999428px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#ececec;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
-         x="629.72552"
-         y="995.88409"
-         id="text5696"
-         sodipodi:linespacing="125%"><tspan
-           id="tspan5698"
-           sodipodi:role="line"
-           x="629.72552"
-           y="995.88409"
-           style="font-size:13.99999428px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#ececec;fill-opacity:1;font-family:Sans;-inkscape-font-specification:Sans">asBytes</tspan></text>
-    </g>
-    <g
        id="g3047"
        transform="translate(0,-99.999753)">
       <rect
@@ -504,7 +482,7 @@
     </g>
     <g
        id="g5639"
-       transform="translate(44.52937,-22)">
+       transform="translate(10.52937,-22)">
       <path
          inkscape:connector-curvature="0"
          id="path5630"
@@ -545,7 +523,8 @@
            y="895.93518">iterator</tspan></text>
     </g>
     <g
-       id="g5677">
+       id="g5677"
+       transform="translate(-22,0)">
       <path
          style="fill:none;stroke:#ffffff;stroke-width:1.99999964;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-end:url(#Arrow1Mend)"
          d="m 153.86908,830.99741 c -0.96154,57.69261 -0.96154,57.69261 -0.96154,57.69261"
@@ -553,7 +532,7 @@
          inkscape:connector-curvature="0" />
       <text
          xml:space="preserve"
-         style="font-size:13.99999427999999924px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#ececec;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+         style="font-size:13.99999428px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#ececec;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
          x="153.35841"
          y="906.63245"
          id="text5664"
@@ -561,7 +540,8 @@
            id="tspan5666"
            sodipodi:role="line"
            x="153.35841"
-           y="906.63245">asString</tspan></text>
+           y="906.63245"
+           style="font-size:13.99999428px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#ffffff;fill-opacity:1;font-family:Sans;-inkscape-font-specification:Sans Bold">inputStream</tspan></text>
     </g>
   </g>
 </svg>

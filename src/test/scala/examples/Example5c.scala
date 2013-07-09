@@ -16,16 +16,15 @@ object Example5c {
       // ...
 
     } else {
-      val unbufferedBody = response.body.asInstanceOf[InputStreamResponseBody]
-      val rawStream = unbufferedBody.inputStream
+      val inputStream = response.body.inputStream
       try {
-        println(unbufferedBody.isBuffered) // false
-        println(unbufferedBody.isTextual) // false
+        println(response.body.isBuffered) // false
+        println(response.body.isTextual) // false
 
-        // ...use rawStream somewhow...
+        // ...use inputStream somewhow...
 
       } finally {
-        rawStream.close() // very important
+        inputStream.close() // very important
       }
     }
   }

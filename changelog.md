@@ -1,3 +1,19 @@
+#### Wed, 10 Jul 2013
+* v0.21.5 - revised ResponseBody implementations to be more flexible and orthogonal
+
+
+#### Tue, 09 Jul 2013
+* v0.21.5 - more documentation
+
+
+#### Tue, 09 Jul 2013
+* v0.21.5 - more documentation
+
+
+#### Mon, 08 Jul 2013
+* v0.21.5 - added more documentation
+
+
 #### Thu, 04 Jul 2013
 * v0.21.4 - ByteBufferResponseBody can now cope with bad Content-Length headers (e.g. from Apache1)
 
