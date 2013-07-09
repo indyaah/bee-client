@@ -13,7 +13,8 @@ object Example5d {
 
     val unbufferedBody: ResponseBody = response.body
     // unbufferedBody is an InputStreamResponseBody
-    println(unbufferedBody.isBuffered) // false
+    // (only if response.status.code == 200)
+    println(unbufferedBody.isBuffered) // false (if no error)
 
     val bufferedBody: ResponseBody = unbufferedBody.toBufferedBody
     // bufferedBody is a ByteBufferResponseBody
