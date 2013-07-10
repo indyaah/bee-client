@@ -252,7 +252,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
   test("soak test jpg image 200-OK") {
     val http = new HttpClient(config)
     val is = getClass.getClassLoader.getResourceAsStream("plataria-sunset.jpg")
-    val jpgBytes = copyToByteBufferAndClose(is).array()
+    val jpgBytes = copyToByteArrayAndClose(is)
     val size = jpgBytes.length
     val loops = 100
     val before = System.currentTimeMillis()
@@ -269,7 +269,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     }
     val duration = System.currentTimeMillis() - before
     val bytes = BigDecimal(size * loops)
-    val rate = (bytes / duration)
+    val rate = bytes / duration
     println(bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
   }
 

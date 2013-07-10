@@ -81,14 +81,13 @@ trait ResponseBody extends Iterable[String] {
   def toStringBody: ResponseBody
 
   /**
-   * Gets the body as an array of raw bytes if available. By default, this merely returns an empty array,
-   * which may not be much use.
+   * Gets the body as an array of raw bytes.
    */
   def asBytes: Array[Byte]
 
   /**
-   * Gets the body as a string, if available. If the data is as-yet unbuffered, this method always returns a blank
-   * string.
+   * Converts the body to a string. An exception is thrown if the data is binary; use `isTextual` to
+   * detect whether this is so.
    */
   def asString: String
 

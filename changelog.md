@@ -1,3 +1,8 @@
+#### Thu, 11 Jul 2013
+* v0.22.0 - ResponseBody implementations are now much more informative in the edge case of attempting to deal with binary data as if it were text. This is now not allowed and an exception is thrown if it is attempted.
+* - MediaType now understands more fully which types are textual and which are binary.
+
+
 #### Wed, 10 Jul 2013
 * v0.21.6 - ByteBufferResponseBody is now a simpler case class; the complex construction has been moved to the factory methods in the companion object
 
