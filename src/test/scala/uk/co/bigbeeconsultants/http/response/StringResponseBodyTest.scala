@@ -81,4 +81,17 @@ class StringResponseBodyTest extends FunSuite {
     val it = body.iterator
     assert(it.hasNext === false)
   }
+
+  test("StringResponseBody conversion round trip") {
+    val s = "line one\n"
+    val mt = MediaType.TEXT_PLAIN
+    val body = new StringResponseBody(s, mt)
+    val bb = body.toBufferedBody.asInstanceOf[ByteBufferResponseBody]
+
+    assert(body.toStringBody === body)
+    assert(body.asString === s)
+    assert(bb.asString === s)
+    assert(bb.toStringBody === body)
+    assert(bb === body.toBufferedBody)
+  }
 }

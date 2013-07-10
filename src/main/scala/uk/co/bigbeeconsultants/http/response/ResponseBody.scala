@@ -118,19 +118,4 @@ trait ResponseBody extends Iterable[String] {
    */
   @throws(classOf[IOException])
   def close() {}
-
-  // helper for the edge case for undefined content type
-  private[response] def guessMediaTypeFromContent(request: Request, status: Status): MediaType = {
-    val successfulGetUrlExtension =
-      if (status.isSuccess && request.isGet) request.href.extension
-      else None
-    if (successfulGetUrlExtension.isDefined) {
-      MimeTypeRegistry.table.get(successfulGetUrlExtension.get) getOrElse guessMediaTypeFromBodyData
-    } else {
-      guessMediaTypeFromBodyData
-    }
-  }
-
-  // basic helper for cases where the media type must be guessed and body data is initially unavailable
-  private[response] def guessMediaTypeFromBodyData: MediaType = APPLICATION_OCTET_STREAM
 }

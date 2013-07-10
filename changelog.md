@@ -1,4 +1,8 @@
 #### Wed, 10 Jul 2013
+* v0.21.5 - documentation
+
+
+#### Wed, 10 Jul 2013
 * v0.21.5 - revised ResponseBody implementations to be more flexible and orthogonal
 
 

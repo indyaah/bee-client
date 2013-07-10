@@ -40,10 +40,10 @@ class CookieJarTest extends FunSuite {
   val ok = Status(200, "OK")
 
   test("no cookies") {
-    val tup = CookieJar.empty.gleanCookies(httpUrl1, Headers.empty)
+    val tup = CookieJar.empty.gleanCookies(httpUrl1, Headers.Empty)
     val newJar = tup._1.get
     assert(0 === newJar.size)
-    assert(Headers.empty === tup._2)
+    assert(Headers.Empty === tup._2)
   }
 
   test("simple construction") {
@@ -68,7 +68,7 @@ class CookieJarTest extends FunSuite {
     assert(CookieKey("lang", "www.w3.org", "/standards/webdesign/") matches c1)
     assert("en" === c1.value)
     assert(false === c1.persistent)
-    assert(Headers.empty === tup._2)
+    assert(Headers.Empty === tup._2)
   }
 
   test("parse cookie with path") {

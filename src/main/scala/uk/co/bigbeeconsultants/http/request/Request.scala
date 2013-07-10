@@ -36,7 +36,7 @@ import uk.co.bigbeeconsultants.http.url.Href
 final case class Request(method: String,
                          url: URL,
                          body: Option[RequestBody] = None,
-                         headers: Headers = Headers.empty,
+                         headers: Headers = Headers.Empty,
                          cookies: Option[CookieJar] = None) {
   require(method == method.toUpperCase, method + " must be uppercase.")
   require(url != null, "URL cannot be null.")

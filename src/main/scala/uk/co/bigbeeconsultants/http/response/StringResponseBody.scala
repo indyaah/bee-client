@@ -33,21 +33,22 @@ import uk.co.bigbeeconsultants.http.request._
  * Provides a body implementation based simply on a string.
  *
  * This is immutable and therefore can be safely shared between threads.
+ *
+ * @param bodyText the actual body content (also known as response entity)
+ * @param contentType the content type received from the webserver, if any, or else some suitable default
  */
-case class StringResponseBody(request: Request,
-                              status: Status,
-                              bodyText: String,
+case class StringResponseBody(bodyText: String,
                               contentType: MediaType) extends ResponseBody {
 
-  /** Simple constructor - mostly useful for writing test data. */
-  def this(bodyText: String,
-           contentType: MediaType) = this(Request.Empty, Status.S200_OK, bodyText, contentType)
+  @deprecated("Use the simpler constructor", "since v0.21.6")
+  def this(request: Request, status: Status,
+           bodyText: String, contentType: MediaType) = this(bodyText, contentType)
 
   /** Always false. */
   override def isUnbuffered = false
 
   /** Gets the body content in byte array form. */
-  override lazy val toBufferedBody = new ByteBufferResponseBody(request, status, Some(contentType), convertToBytes)
+  override lazy val toBufferedBody = new ByteBufferResponseBody(convertToBytes, contentType)
 
   /** Returns `this`. */
   override def toStringBody = this

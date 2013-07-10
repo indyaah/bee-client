@@ -48,7 +48,7 @@ case class Response(request: Request,
 object Response {
   /** Constructs a response instance containing a string body. */
   def apply(request: Request, status: Status, contentType: MediaType, bodyText: String,
-            headers: Headers = Headers.empty, cookies: Option[CookieJar] = None) = {
+            headers: Headers = Headers.Empty, cookies: Option[CookieJar] = None) = {
     new Response(request, status, new StringResponseBody(bodyText, contentType), headers, cookies)
   }
 }

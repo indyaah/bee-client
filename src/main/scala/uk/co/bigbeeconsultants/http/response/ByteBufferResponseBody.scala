@@ -58,16 +58,13 @@ import uk.co.bigbeeconsultants.http.request.Request
  * This class ensures that the socket input stream is always closed correctly, meaning the calling code is simpler
  * because it need not be concerned with cleaning up.
  *
- * @param request if the content type is not initially known, the request URL may provide a hint based on the
- *                extension of the filename, if present.
- * @param status the request parameter is ignored if the status is not 200-OK.
- * @param optionalContentType the content type received from the webserver, if any
  * @param byteArray the actual body content (also known as response entity)
+ * @param contentType the content type received from the webserver, if any, or else some suitable default
  */
-final class ByteBufferResponseBody(request: Request,
-                                   status: Status,
-                                   optionalContentType: Option[MediaType],
-                                   val byteArray: Array[Byte]) extends ResponseBody {
+case class ByteBufferResponseBody(byteArray: Array[Byte], contentType: MediaType) extends ResponseBody {
+
+  @deprecated("Use the simpler constructor", "since v0.21.6")
+  def this(request: Request, status: Status, contentType: MediaType, byteArray: Array[Byte]) = this(byteArray, contentType)
 
   override val contentLength = byteArray.length
 
@@ -95,37 +92,10 @@ final class ByteBufferResponseBody(request: Request,
   def toBufferedBody = this
 
   /**
-   * Determines the content type based on the constructor parameter if defined, or by inspection of the actual
-   * content otherwise.
-   */
-  lazy val contentType: MediaType = optionalContentType getOrElse guessMediaTypeFromContent(request, status)
-
-  /**
    * Returns a new StringResponseBody containing the text in this body in immutable form. The returned
    * object is safe for sharing between threads.
    */
   lazy val toStringBody = new StringResponseBody(convertToString, contentType)
-
-  private[response] override def guessMediaTypeFromBodyData: MediaType = {
-    if (byteArray.length == 0) {
-      APPLICATION_OCTET_STREAM
-
-    } else {
-      var maybeHtml = byteArray(0) == '<'
-      var maybeText = true
-      var i = 0
-      while (i < byteArray.length) {
-        val bi = byteArray(i).toInt
-        if (Character.isISOControl(bi) && !Character.isWhitespace(bi)) {
-          maybeText = false
-          maybeHtml = false
-          i = byteArray.length // break
-        }
-        i += 1
-      }
-      if (maybeHtml) TEXT_HTML else if (maybeText) TEXT_PLAIN else APPLICATION_OCTET_STREAM
-    }
-  }
 
   /**
    * Get the body of the response as an array of bytes.
@@ -146,20 +116,32 @@ object ByteBufferResponseBody {
   val DefaultBufferSize = 0x10000
   val EmptyArray = new Array[Byte](0)
 
-  def apply(request: Request, status: Status,
+  def apply(request: Request,
+            status: Status,
             optionalContentType: Option[MediaType],
             inputStream: InputStream,
             headers: Headers = Headers.Empty) = {
     val length = contentLength(headers)
     val byteArray = HttpUtil.copyToByteArrayAndClose(inputStream, length)
-    new ByteBufferResponseBody(request, status, optionalContentType, byteArray)
+    val contentType = optionalContentType getOrElse guessMediaTypeFromContent(request, status, byteArray)
+    new ByteBufferResponseBody(byteArray, contentType)
   }
 
-  def apply(request: Request, status: Status,
+  /**
+   *
+   * @param request if the content type is not initially known, the request URL may provide a hint based on the
+   *                extension of the filename, if present.
+   * @param status the request parameter is ignored if the status is not 200-OK.
+   * @param optionalContentType the content type received from the webserver, if any
+   * @param byteArray the actual body content (also known as response entity)
+   */
+  def apply(request: Request,
+            status: Status,
             optionalContentType: Option[MediaType],
             byteArray: Array[Byte],
             headers: Headers) = {
-    new ByteBufferResponseBody(request, status, optionalContentType, byteArray)
+    val contentType = optionalContentType getOrElse guessMediaTypeFromContent(request, status, byteArray)
+    new ByteBufferResponseBody(byteArray, contentType)
   }
 
   private def contentLength(headers: Headers): Int = {
@@ -169,5 +151,38 @@ object ByteBufferResponseBody {
       if (numValue.isValid) numValue.toInt else 0
     }
     else DefaultBufferSize
+  }
+
+  // helper for the edge case for undefined content type
+  private[response] def guessMediaTypeFromContent(request: Request, status: Status, byteArray: Array[Byte]): MediaType = {
+    val successfulGetUrlExtension =
+      if (status.isSuccess && request.isGet) request.href.extension
+      else None
+    if (successfulGetUrlExtension.isDefined) {
+      MimeTypeRegistry.table.get(successfulGetUrlExtension.get) getOrElse guessMediaTypeFromBodyData(byteArray)
+    } else {
+      guessMediaTypeFromBodyData(byteArray)
+    }
+  }
+
+  private[response] def guessMediaTypeFromBodyData(byteArray: Array[Byte]): MediaType = {
+    if (byteArray.length == 0) {
+      APPLICATION_OCTET_STREAM
+
+    } else {
+      var maybeHtml = byteArray(0) == '<'
+      var maybeText = true
+      var i = 0
+      while (i < byteArray.length) {
+        val bi = byteArray(i).toInt
+        if (Character.isISOControl(bi) && !Character.isWhitespace(bi)) {
+          maybeText = false
+          maybeHtml = false
+          i = byteArray.length // break
+        }
+        i += 1
+      }
+      if (maybeHtml) TEXT_HTML else if (maybeText) TEXT_PLAIN else APPLICATION_OCTET_STREAM
+    }
   }
 }

@@ -56,9 +56,9 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     it.hasNext should be(false)
   }
 
-  test("new ByteBufferResponseBody with text but without a body") {
+  test("ByteBufferResponseBody with text but without a body") {
     val mt = MediaType.APPLICATION_JSON
-    val body = new ByteBufferResponseBody(head, Status.S200_OK, Some(mt), EmptyArray)
+    val body = ByteBufferResponseBody(head, Status.S200_OK, Some(mt), EmptyArray, Headers.Empty)
 
     body.contentType should be(mt)
     body.contentLength should be(0)
@@ -68,9 +68,9 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.iterator.hasNext should be(false)
   }
 
-  test("new ByteBufferResponseBody with binary but without a body") {
+  test("ByteBufferResponseBody with binary but without a body") {
     val mt = MediaType.APPLICATION_OCTET_STREAM
-    val body = new ByteBufferResponseBody(head, Status.S200_OK, Some(mt), EmptyArray)
+    val body = ByteBufferResponseBody(head, Status.S200_OK, Some(mt), EmptyArray, Headers.Empty)
 
     body.contentType should be(mt)
     body.contentLength should be(0)
@@ -80,7 +80,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.iterator.hasNext should be(false)
   }
 
-  test("new ByteBufferResponseBody with binary and a body") {
+  test("ByteBufferResponseBody with binary and a body") {
     val mt = MediaType.APPLICATION_OCTET_STREAM
     val bytes = Array[Byte](' ')
     val bais = new ByteArrayInputStream(bytes)
@@ -94,7 +94,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.iterator.hasNext should be(false)
   }
 
-  test("new ByteBufferResponseBody with plain text but no media type") {
+  test("ByteBufferResponseBody with plain text but no media type") {
     val s = "Some text"
     val bytes = s.getBytes("UTF-8")
     val bais = new ByteArrayInputStream(bytes)
@@ -107,7 +107,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.toString should be(s)
   }
 
-  test("new ByteBufferResponseBody with html text but no media type") {
+  test("ByteBufferResponseBody with html text but no media type") {
     val s = "<html><body>Blah</body></html>"
     val bytes = s.getBytes("UTF-8")
     val bais = new ByteArrayInputStream(bytes)
@@ -120,7 +120,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.toString should be(s)
   }
 
-  test("new ByteBufferResponseBody with binary but no media type") {
+  test("ByteBufferResponseBody with binary but no media type") {
     val bytes: Array[Byte] = new Array[Byte](256)
     for (i <- 0 until 256) { bytes(i) = i.toByte }
     val bais = new ByteArrayInputStream(bytes)
@@ -133,8 +133,8 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.toString should be("")
   }
 
-  test("new ByteBufferResponseBody with binary but without a body or media type") {
-    val body = new ByteBufferResponseBody(head, Status.S200_OK, None, EmptyArray)
+  test("ByteBufferResponseBody with binary but without a body or media type") {
+    val body = ByteBufferResponseBody(head, Status.S200_OK, None, EmptyArray, Headers.Empty)
 
     body.contentType should be(MediaType.APPLICATION_OCTET_STREAM)
     body.contentLength should be(0)
@@ -143,8 +143,8 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.toString should be("")
   }
 
-  test("new ByteBufferResponseBody with PNG but without a body or media type") {
-    val body = new ByteBufferResponseBody(getPng, Status.S200_OK, None, EmptyArray)
+  test("ByteBufferResponseBody with PNG but without a body or media type") {
+    val body = ByteBufferResponseBody(getPng, Status.S200_OK, None, EmptyArray, Headers.Empty)
 
     body.contentType should be(MediaType.IMAGE_PNG)
     body.contentLength should be(0)
@@ -153,7 +153,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.toString should be("")
   }
 
-  test("new ByteBufferResponseBody with ABC text but without a media type") {
+  test("ByteBufferResponseBody with ABC text but without a media type") {
     val s = "Some text"
     val bytes = s.getBytes("UTF-8")
     val bais = new ByteArrayInputStream(bytes)

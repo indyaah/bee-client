@@ -25,10 +25,7 @@
 package uk.co.bigbeeconsultants.http.header
 
 import java.net.URL
-import uk.co.bigbeeconsultants.http.response.{Status, StringResponseBody}
-import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 import org.scalatest.FunSuite
-import collection.immutable.IndexedSeq
 
 class CookieParserTest extends FunSuite {
 
