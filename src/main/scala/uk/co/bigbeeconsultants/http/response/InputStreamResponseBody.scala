@@ -171,7 +171,8 @@ final class InputStreamResponseBody(request: Request,
     else if (isTextual)
       textIterator
     else
-      Nil.iterator
+      throw new IllegalStateException(contentType + ": it is not possible to convert this to text. " +
+        "If you think this is wrong, please file a bug at https://bitbucket.org/rickb777/bee-client/issues")
   }
 
   @throws(classOf[IOException])
@@ -214,7 +215,7 @@ final class InputStreamResponseBody(request: Request,
 
   override def toString() =
     if (isUnbuffered)
-      "(unbuffered input stream)"
+      "(unbuffered " + contentType + " input stream)"
     else
-      bufferedBody.get.asString
+      bufferedBody.get.toString()
 }

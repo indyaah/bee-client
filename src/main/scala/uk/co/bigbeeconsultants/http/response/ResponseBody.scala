@@ -95,18 +95,17 @@ trait ResponseBody extends Iterable[String] {
   /**
    * Gets the response body as a string for diagnostic purposes.
    */
-  override def toString() = asString
+  override def toString(): String =
+    if (contentType.isTextual) toStringBody.asString + " (" + contentType + ")"
+    else "(binary data: " + contentLength + " bytes " + contentType + ")"
 
   /**
-   * Gets the body as a string split into lines, if available. If the data is binary, this method always returns
-   * an empty iterator.
+   * Gets the body as a string split into lines, if available.
+   * This is only possible for textual content.
+   * An IllegalStateException is thrown if the data is binary.
    */
   def iterator: Iterator[String] = {
-    val body = asString
-    if (isTextual && body.length > 0)
-      new LineSplitter(body)
-    else
-      Nil.iterator
+    new LineSplitter(asString)
   }
 
   /** Gets the content as an input stream. */

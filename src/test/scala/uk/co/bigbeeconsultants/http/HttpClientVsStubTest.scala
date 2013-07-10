@@ -62,7 +62,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     server.verify()
     assert(APPLICATION_JSON === response.body.contentType)
     assert(APPLICATION_JSON.toString === response.headers(CONTENT_TYPE).value)
-    assert(json === response.body.toString)
+    assert(json === response.body.asString)
   }
 
 
@@ -110,7 +110,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     server.verify()
     val body = response.body
     assert(TEXT_PLAIN === body.contentType)
-    assert(loadsOfText === body.toString)
+    assert(loadsOfText === body.asString)
     val accEnc = stubbedMethod.requestHeaders.get("Accept-Encoding")
     assert("gzip" === accEnc)
   }
@@ -158,7 +158,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     for (i <- 1 to n) {
       val response = http.get(new URL(baseUrl + url + i))
       assert(APPLICATION_JSON === response.body.contentType)
-      assert(json === response.body.toString)
+      assert(json === response.body.asString)
     }
     val after = System.currentTimeMillis()
     server.verify()
@@ -176,7 +176,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     val response = http.put(new URL(baseUrl + url), request.RequestBody(jsonReq, APPLICATION_JSON))
     server.verify()
     assert(APPLICATION_JSON === response.body.contentType)
-    assert(jsonRes === response.body.toString)
+    assert(jsonRes === response.body.asString)
   }
 
 
@@ -189,7 +189,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     val response = http.post(new URL(baseUrl + url), Some(request.RequestBody(Map("a" -> "b"), APPLICATION_JSON)))
     server.verify()
     assert(APPLICATION_JSON === response.body.contentType)
-    assert(jsonRes === response.body.toString)
+    assert(jsonRes === response.body.asString)
   }
 
 

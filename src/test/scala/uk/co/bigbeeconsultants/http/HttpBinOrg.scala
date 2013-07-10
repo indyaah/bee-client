@@ -39,7 +39,7 @@ import util.{JSONWrapper, DumbTrustManager}
  * Tests the API against httpbin.org. This is an app rather than a unit test because it would be rude to
  * hammer their site on every automatic rebuild.
  */
-object HttpBin extends App with Assertions {
+object HttpBinOrg extends App with Assertions {
 
   DumbTrustManager.install()
 
@@ -199,8 +199,12 @@ object HttpBin extends App with Assertions {
 
   val browserWithCreds = new HttpBrowser(config, CookieJar.empty, new CredentialSuite(Map("Fake Realm" -> fredBloggs, realm -> fredBloggs)))
   automaticAuth(browserWithCreds, "http://" + serverUrl + "/basic-auth/fred/bloggs")
+  automaticAuth(browserWithCreds, "http://" + serverUrl + "/basic-auth/fred/bloggs")
+  automaticAuth(browserWithCreds, "https://" + serverUrl + "/basic-auth/fred/bloggs")
   automaticAuth(browserWithCreds, "https://" + serverUrl + "/basic-auth/fred/bloggs")
   automaticAuth(browserWithCreds, "http://" + serverUrl + "/digest-auth/auth/fred/bloggs")
+  automaticAuth(browserWithCreds, "http://" + serverUrl + "/digest-auth/auth/fred/bloggs")
+  automaticAuth(browserWithCreds, "https://" + serverUrl + "/digest-auth/auth/fred/bloggs")
   automaticAuth(browserWithCreds, "https://" + serverUrl + "/digest-auth/auth/fred/bloggs")
 
   private def automaticAuth(http: Http, urlStr: String) {

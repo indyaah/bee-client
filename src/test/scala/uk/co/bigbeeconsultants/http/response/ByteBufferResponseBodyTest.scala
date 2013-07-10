@@ -48,8 +48,8 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentLength should be(bytes.length)
     body.asBytes should be(bytes)
     body.isTextual should be(true)
-    body.toString should be(s)
-    body.toBufferedBody.toString should be(s)
+    body.asString should be(s)
+    body.toBufferedBody.asString should be(s)
     val it = body.iterator
     it.hasNext should be(true)
     it.next should be(s)
@@ -64,7 +64,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentLength should be(0)
     body.asBytes should be(new Array[Byte](0))
     body.isTextual should be(true)
-    body.toString should be("")
+    body.asString should be("")
     body.iterator.hasNext should be(false)
   }
 
@@ -76,8 +76,10 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentLength should be(0)
     body.asBytes should be(new Array[Byte](0))
     body.isTextual should be(false)
-    body.toString should be("")
-    body.iterator.hasNext should be(false)
+    body.toString should be("(binary data: 0 bytes application/octet-stream)")
+    intercept[IllegalStateException] {
+      body.iterator
+    }
   }
 
   test("ByteBufferResponseBody with binary and a body") {
@@ -90,8 +92,10 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentLength should be(1)
     body.asBytes should be(bytes)
     body.isTextual should be(false)
-    body.toString should be("")
-    body.iterator.hasNext should be(false)
+    body.toString should be("(binary data: 1 bytes application/octet-stream)")
+    intercept[IllegalStateException] {
+      body.iterator
+    }
   }
 
   test("ByteBufferResponseBody with plain text but no media type") {
@@ -104,7 +108,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentLength should be(bytes.length)
     body.asBytes should be(bytes)
     body.isTextual should be(true)
-    body.toString should be(s)
+    body.asString should be(s)
   }
 
   test("ByteBufferResponseBody with html text but no media type") {
@@ -117,7 +121,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentLength should be(bytes.length)
     body.asBytes should be(bytes)
     body.isTextual should be(true)
-    body.toString should be(s)
+    body.asString should be(s)
   }
 
   test("ByteBufferResponseBody with binary but no media type") {
@@ -130,7 +134,10 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentLength should be(256)
     body.asBytes should be(bytes)
     body.isTextual should be(false)
-    body.toString should be("")
+    body.toString should be("(binary data: 256 bytes application/octet-stream)")
+    intercept[IllegalStateException] {
+      body.asString
+    }
   }
 
   test("ByteBufferResponseBody with binary but without a body or media type") {
@@ -140,7 +147,10 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentLength should be(0)
     body.asBytes should be(new Array[Byte](0))
     body.isTextual should be(false)
-    body.toString should be("")
+    body.toString should be("(binary data: 0 bytes application/octet-stream)")
+    intercept[IllegalStateException] {
+      body.asString
+    }
   }
 
   test("ByteBufferResponseBody with PNG but without a body or media type") {
@@ -150,7 +160,10 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentLength should be(0)
     body.asBytes should be(new Array[Byte](0))
     body.isTextual should be(false)
-    body.toString should be("")
+    body.toString should be("(binary data: 0 bytes image/png)")
+    intercept[IllegalStateException] {
+      body.asString
+    }
   }
 
   test("ByteBufferResponseBody with ABC text but without a media type") {
@@ -162,7 +175,8 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentType should be(MediaType.TEXT_PLAIN)
     body.contentLength should be(bytes.length)
     body.isTextual should be(true)
-    body.toString should be(s)
+    body.asString should be(s)
+    body.toString should be(s + " (text/plain)")
   }
 
   test("ByteBufferResponseBody.apply with plain text and a media type and a content length") {
@@ -172,7 +186,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val bais = new ByteArrayInputStream(bytes)
     val body = ByteBufferResponseBody(Request.get(new URL("http://localhost/x.txt")), Status.S200_OK, Some(mt),
       bais, Headers(CONTENT_LENGTH -> bytes.length.toString))
-    body.byteArray.length should be(bytes.length)
+    body.asBytes.length should be(bytes.length)
     body.contentLength should be(bytes.length)
   }
 
@@ -183,7 +197,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val bais = new ByteArrayInputStream(bytes)
     val body = ByteBufferResponseBody(Request.get(new URL("http://localhost/x.txt")), Status.S200_OK, Some(mt),
       bais, Headers())
-    body.byteArray.length should be(bytes.length)
+    body.asBytes.length should be(bytes.length)
     body.contentLength should be(bytes.length)
   }
 
@@ -194,7 +208,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val bais = new ByteArrayInputStream(bytes)
     val body = ByteBufferResponseBody(Request.get(new URL("http://localhost/x.txt")), Status.S200_OK, Some(mt),
       bais, Headers(CONTENT_LENGTH -> "0"))
-    body.byteArray.length should be(0)
+    body.asBytes.length should be(0)
     body.contentLength should be(0)
   }
 
@@ -205,7 +219,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     val bais = new ByteArrayInputStream(bytes)
     val body = ByteBufferResponseBody(Request.get(new URL("http://localhost/x.txt")), Status.S200_OK, Some(mt),
       bais, Headers(CONTENT_LENGTH -> ""))
-    body.byteArray.length should be(0)
+    body.asBytes.length should be(0)
     body.contentLength should be(0)
   }
 }

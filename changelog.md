@@ -1,4 +1,8 @@
 #### Wed, 10 Jul 2013
+* v0.21.6 - ByteBufferResponseBody is now a simpler case class; the complex construction has been moved to the factory methods in the companion object
+
+
+#### Wed, 10 Jul 2013
 * v0.21.5 - documentation
 
 

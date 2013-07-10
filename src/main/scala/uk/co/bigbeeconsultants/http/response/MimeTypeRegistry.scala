@@ -38,7 +38,7 @@ object MimeTypeRegistry {
       val source = Source.fromInputStream(is, "utf-8")
       for (line <- source.getLines()) {
         val trimmed = line.trim
-        if (trimmed.length > 0) {
+        if (trimmed.length > 0 && trimmed(0) != '#') {
           val sp = line.indexOf(' ')
           if (sp > 0) {
             val mime = MediaType(line.substring(0, sp))
@@ -51,5 +51,25 @@ object MimeTypeRegistry {
       is.close()
     }
     map.toMap
+  }
+
+  /** This set holds all the 'unusual' textual types, in addition to the widely known types. */
+  lazy val textualTypes: Set[String] = {
+    val set = new mutable.HashSet[String]
+    val is = getClass.getClassLoader.getResourceAsStream("textual-types.txt")
+    require(is != null, "Failed to load textual-types.txt")
+    try {
+      val source = Source.fromInputStream(is, "utf-8")
+      for (line <- source.getLines()) {
+        val trimmed = line.trim
+        if (trimmed.length > 0 && trimmed(0) != '#') {
+          set += line
+        }
+      }
+
+    } finally {
+      is.close()
+    }
+    set.toSet
   }
 }

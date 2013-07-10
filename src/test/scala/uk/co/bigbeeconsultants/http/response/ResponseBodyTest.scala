@@ -40,7 +40,8 @@ class ResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentLength should be(0)
     body.asBytes should be(new Array[Byte](0))
     body.isTextual should be(true)
-    body.toString should be("")
+    body.asString should be("")
+    body.toString should be(" (application/json)")
     body.iterator.hasNext should be(false)
   }
 
@@ -54,7 +55,8 @@ class ResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentLength should be(bytes.length)
     body.asBytes should be(bytes)
     body.isTextual should be(true)
-    body.toString should be(s)
+    body.asString should be(s)
+    body.toString should be(s + " (application/json)")
     val it = body.iterator
     it.hasNext should be(true)
     it.next should be(s)

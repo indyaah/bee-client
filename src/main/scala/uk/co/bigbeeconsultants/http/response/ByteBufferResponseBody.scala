@@ -69,14 +69,14 @@ case class ByteBufferResponseBody(byteArray: Array[Byte], contentType: MediaType
   override val contentLength = byteArray.length
 
   private def convertToString = {
-    if (contentType.isTextual) {
-      val charset = contentType.charset.getOrElse(HttpClient.UTF8)
-      val byteData = ByteBuffer.wrap(byteArray)
-      Charset.forName(charset).decode(byteData).toString
+    if (!contentType.isTextual) {
+      throw new IllegalStateException(contentType + ": it is not possible to convert this to text. " +
+        "If you think this is wrong, please file a bug at https://bitbucket.org/rickb777/bee-client/issues")
     }
-    else {
-      ""
-    }
+
+    val charset = contentType.charset.getOrElse(HttpClient.UTF8)
+    val byteData = ByteBuffer.wrap(byteArray)
+    Charset.forName(charset).decode(byteData).toString
   }
 
   /** Always false. */

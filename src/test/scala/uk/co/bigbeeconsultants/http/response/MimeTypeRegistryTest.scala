@@ -29,8 +29,15 @@ import org.scalatest.matchers.ShouldMatchers
 import uk.co.bigbeeconsultants.http.header.MediaType._
 
 class MimeTypeRegistryTest extends FunSuite with ShouldMatchers {
-  test("loader") {
+  test("mime-types loader") {
     MimeTypeRegistry.table("txt") should be(TEXT_PLAIN)
+    MimeTypeRegistry.table("jpg") should be(IMAGE_JPG)
+  }
+
+  test("textual-types loader") {
+    MimeTypeRegistry.textualTypes.contains("application/json") should be(true)
+    MimeTypeRegistry.textualTypes.contains("application/x-javascript") should be(true)
+    MimeTypeRegistry.textualTypes.contains("image/jpg") should be(false)
   }
 
 }

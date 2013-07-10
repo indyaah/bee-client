@@ -162,7 +162,7 @@ class HttpClientVsMockTest extends FunSuite {
         verifyNoMoreInteractions(mc2.httpURLConnection)
         assert(mc2.inputStream.closed)
         assert(TEXT_PLAIN === response.body.contentType)
-        assert(expectedContent === response.body.toString)
+        assert(expectedContent === response.body.asString)
       }
 
       mc1.verifyConfig(Config())
@@ -178,7 +178,7 @@ class HttpClientVsMockTest extends FunSuite {
       mc1.verifyHeaders(1)
       verifyNoMoreInteractions(mc1.httpURLConnection)
       assert(TEXT_PLAIN === response.body.contentType)
-      assert(expectedContent === response.body.toString)
+      assert(expectedContent === response.body.asString)
     }
   }
 
@@ -239,7 +239,7 @@ class HttpClientVsMockTest extends FunSuite {
       verifyNoMoreInteractions(mc1.httpURLConnection)
 
       assert(TEXT_PLAIN === response.body.contentType)
-      assert(expectedContent === response.body.toString)
+      assert(expectedContent === response.body.asString)
     }
 
     capturedRequestBody.toString("UTF-8")
@@ -306,7 +306,7 @@ class HttpClientVsMockTest extends FunSuite {
       verifyNoMoreInteractions(mc1.httpURLConnection)
 
       assert(TEXT_PLAIN === response.body.contentType)
-      assert(expectedContent === response.body.toBufferedBody.toString)
+      assert(expectedContent === response.body.toBufferedBody.asString)
     }
 
     capturedRequestBody.toString("UTF-8")

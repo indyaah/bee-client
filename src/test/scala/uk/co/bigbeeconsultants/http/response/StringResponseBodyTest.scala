@@ -72,14 +72,12 @@ class StringResponseBodyTest extends FunSuite {
     assert(it.hasNext === false)
   }
 
-  test("StringResponseBody empty binary iterator") {
-    val s = "line one\n"
+  test("StringResponseBody cannot construct binary content") {
+    val s = ""
     val mt = MediaType.APPLICATION_OCTET_STREAM
-    val body = new StringResponseBody(s, mt)
-
-    assert(body.isBuffered === true)
-    val it = body.iterator
-    assert(it.hasNext === false)
+    intercept[IllegalArgumentException] {
+      new StringResponseBody(s, mt)
+    }
   }
 
   test("StringResponseBody conversion round trip") {

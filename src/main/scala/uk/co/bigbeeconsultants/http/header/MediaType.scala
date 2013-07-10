@@ -26,6 +26,7 @@ package uk.co.bigbeeconsultants.http.header
 
 import uk.co.bigbeeconsultants.http.HttpClient
 import uk.co.bigbeeconsultants.http.util.HttpUtil._
+import uk.co.bigbeeconsultants.http.response.MimeTypeRegistry
 
 /**
  * Provides a media type. Also known as a MIME type or content type.
@@ -37,7 +38,7 @@ case class MediaType(contentType: String, subtype: String, charset: Option[Strin
   def isValid = !contentType.isEmpty && !subtype.isEmpty
 
   /** Gets the content type / subtype string, without charset. */
-  lazy val value = contentType + '/' + subtype
+  val value = contentType + '/' + subtype
 
   /** Gets this media type as a Qualifiers, which is the form used within QualifiedValue. */
   def toQualifiers = Qualifiers(toString)
@@ -97,19 +98,16 @@ case class MediaType(contentType: String, subtype: String, charset: Option[Strin
    * Tests whether a media type represents textual traffic. This is true for all content with the `contentType` of
    * "text" and also for those "application" types with json, xml, or ...+xml subtypes.
    */
-  def isTextual = {
+  val isTextual = {
+    def isStandardXmlType = subtype endsWith "+xml"
+
+    def isUnusualTextualType = MimeTypeRegistry.textualTypes.contains(value)
+
     contentType match {
       case "text" => true
-      case "application" => isApplicationTextual
-      case _ => false
+      case _ => isStandardXmlType || isUnusualTextualType
     }
   }
-
-  private def isApplicationTextual = {
-    knownApplicationTypes.contains(subtype) || (subtype endsWith "+xml")
-  }
-
-  private val knownApplicationTypes = Set("json", "javascript", "ecmascript", "xml")
 }
 
 //---------------------------------------------------------------------------------------------------------------------
