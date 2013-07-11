@@ -31,6 +31,7 @@ import uk.co.bigbeeconsultants.http.request.Request
 import uk.co.bigbeeconsultants.http.util.HttpUtil
 import java.io.ByteArrayInputStream
 import java.net.URL
+import java.nio.charset.MalformedInputException
 
 class InputStreamResponseBodyTest extends FunSuite with ShouldMatchers {
   val head = Request.head(new URL("http://localhost/"))
@@ -114,7 +115,21 @@ class InputStreamResponseBodyTest extends FunSuite with ShouldMatchers {
 
     // unbuffered state
     body.isBuffered should be(false)
-    intercept[IllegalStateException] {
+    body.iterator.hasNext should be(false)
+  }
+
+  test("InputStreamResponseBody unbuffered non-empty binary iterator cannot convert to string") {
+    val mt = MediaType.APPLICATION_OCTET_STREAM
+    val bytes: Array[Byte] = new Array[Byte](256)
+    for (i <- 0 until 256) {
+      bytes(i) = i.toByte
+    }
+    val bais = new ByteArrayInputStream(bytes)
+    val body = new InputStreamResponseBody(head, Status.S200_OK, Some(mt), headersWithLength, bais)
+
+    // unbuffered state
+    body.isBuffered should be(false)
+    intercept[MalformedInputException] {
       body.iterator
     }
   }

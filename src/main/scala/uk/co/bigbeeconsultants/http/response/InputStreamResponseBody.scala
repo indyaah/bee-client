@@ -28,7 +28,7 @@ import uk.co.bigbeeconsultants.http._
 import header.{Headers, MediaType}
 import request.Request
 import java.io._
-import java.nio.charset.{MalformedInputException, Charset}
+import java.nio.charset.{CodingErrorAction, MalformedInputException, Charset}
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -169,17 +169,16 @@ final class InputStreamResponseBody(request: Request,
   override def iterator = {
     if (isBuffered)
       bufferedBody.get.iterator
-    else if (isTextual)
-      textIterator
     else
-      throw new IllegalStateException(contentType + ": it is not possible to convert this to text. " +
-        "If you think this is wrong, please file a bug at https://bitbucket.org/rickb777/bee-client/issues")
+      textIterator
   }
 
   @throws(classOf[IOException])
   private def textIterator = {
     new Iterator[String] {
-      val reader = new BufferedReader(new InputStreamReader(inputStream, contentType.charsetOrUTF8))
+      val charset = Charset.forName(contentType.charsetOrUTF8)
+      val decoder = charset.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT)
+      val reader = new BufferedReader(new InputStreamReader(inputStream, decoder))
       var line: String = _
 
       lookAhead()
