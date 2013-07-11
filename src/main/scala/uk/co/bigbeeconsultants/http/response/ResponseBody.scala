@@ -29,6 +29,7 @@ import uk.co.bigbeeconsultants.http.util.LineSplitter
 import uk.co.bigbeeconsultants.http.header.MediaType._
 import uk.co.bigbeeconsultants.http.request.Request
 import java.io.{InputStream, IOException}
+import java.nio.charset.MalformedInputException
 
 /**
  * Defines the outline of a response body. This may or may not be buffered in memory or streamed directly
@@ -103,6 +104,7 @@ trait ResponseBody extends Iterable[String] {
    * This is only possible for textual content.
    * An IllegalStateException is thrown if the data is binary.
    */
+  @throws(classOf[MalformedInputException])
   def iterator: Iterator[String] = {
     new LineSplitter(asString)
   }

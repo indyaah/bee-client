@@ -28,7 +28,7 @@ import uk.co.bigbeeconsultants.http._
 import header.{Headers, MediaType}
 import request.Request
 import java.io._
-import java.nio.charset.Charset
+import java.nio.charset.{MalformedInputException, Charset}
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -125,6 +125,7 @@ final class InputStreamResponseBody(request: Request,
    * The actual content length is only known once the response body has been buffered.
    * Therefore, use `toBufferedBody.asString` instead.
    */
+  @throws(classOf[MalformedInputException])
   override def asString = {
     requireContentIsBuffered()
     bufferedBody.get.asString

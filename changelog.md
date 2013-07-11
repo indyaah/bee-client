@@ -1,4 +1,8 @@
 #### Thu, 11 Jul 2013
+* v0.22.1 - performance tweak converting ByteBuffer to Array[Byte]
+
+
+#### Thu, 11 Jul 2013
 * v0.22.0 - documentation and test code only
 
 

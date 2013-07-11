@@ -40,7 +40,6 @@ import java.nio.ByteBuffer
  */
 case class StringResponseBody(bodyText: String,
                               contentType: MediaType) extends ResponseBody {
-  require(contentType.isTextual, contentType + " is not textual")
 
   @deprecated("Use the simpler constructor", "since v0.21.6")
   def this(request: Request, status: Status,

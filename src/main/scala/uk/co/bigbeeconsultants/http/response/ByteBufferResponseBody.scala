@@ -25,13 +25,14 @@
 package uk.co.bigbeeconsultants.http.response
 
 import java.nio.ByteBuffer
-import java.nio.charset.Charset
+import java.nio.charset.{MalformedInputException, CodingErrorAction, Charset}
 import java.io.{ByteArrayInputStream, InputStream}
 import uk.co.bigbeeconsultants.http.header.{HeaderName, Headers, MediaType}
 import uk.co.bigbeeconsultants.http.header.MediaType._
 import uk.co.bigbeeconsultants.http.util.HttpUtil
 import uk.co.bigbeeconsultants.http.HttpClient
 import uk.co.bigbeeconsultants.http.request.Request
+import sun.nio.cs.ThreadLocalCoders
 
 /**
  * Provides a body implementation that copies the whole response from the response input stream into a ByteBuffer.
@@ -71,15 +72,13 @@ case class ByteBufferResponseBody(byteArray: Array[Byte], contentType: MediaType
 
   override val contentLength = byteArray.length
 
+  @throws(classOf[MalformedInputException])
   private def convertToString = {
-    if (!contentType.isTextual) {
-      throw new IllegalStateException(contentType + ": it is not possible to convert this to text. " +
-        "If you think this is wrong, please file a bug at https://bitbucket.org/rickb777/bee-client/issues")
-    }
-
-    val charset = contentType.charset.getOrElse(HttpClient.UTF8)
+    val charsetName = contentType.charset.getOrElse(HttpClient.UTF8)
     val byteData = ByteBuffer.wrap(byteArray)
-    Charset.forName(charset).decode(byteData).toString
+    val charset = Charset.forName(charsetName)
+    val decoder = charset.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT)
+    decoder.decode(byteData).toString
   }
 
   /** Always false. */
@@ -98,6 +97,7 @@ case class ByteBufferResponseBody(byteArray: Array[Byte], contentType: MediaType
    * Returns a new StringResponseBody containing the text in this body in immutable form. The returned
    * object is safe for sharing between threads.
    */
+  @throws(classOf[MalformedInputException])
   lazy val toStringBody = new StringResponseBody(convertToString, contentType)
 
   /**
@@ -110,6 +110,7 @@ case class ByteBufferResponseBody(byteArray: Array[Byte], contentType: MediaType
    * This uses the character encoding of the contentType, or UTF-8 as a default.
    * If the data is binary, this method always returns a blank string.
    */
+  @throws(classOf[MalformedInputException])
   override def asString: String = toStringBody.asString
 }
 

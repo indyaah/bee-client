@@ -72,14 +72,6 @@ class StringResponseBodyTest extends FunSuite {
     assert(it.hasNext === false)
   }
 
-  test("StringResponseBody cannot construct binary content") {
-    val s = ""
-    val mt = MediaType.APPLICATION_OCTET_STREAM
-    intercept[IllegalArgumentException] {
-      new StringResponseBody(s, mt)
-    }
-  }
-
   test("StringResponseBody conversion round trip") {
     val ss = List("", "line one\n", "this string is much longer " * 100, "aþ€")
     val mt = MediaType.TEXT_PLAIN

@@ -31,6 +31,8 @@ import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.request._
 import java.io.ByteArrayInputStream
 import java.net.URL
+import scala.throws
+import java.nio.charset.MalformedInputException
 
 class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
   val head = Request.head("http://localhost/")
@@ -77,9 +79,7 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.asBytes should be(new Array[Byte](0))
     body.isTextual should be(false)
     body.toString should be("(binary data: 0 bytes application/octet-stream)")
-    intercept[IllegalStateException] {
-      body.iterator
-    }
+    body.iterator.hasNext should be(false)
   }
 
   test("ByteBufferResponseBody with binary and a body") {
@@ -93,9 +93,9 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.asBytes should be(bytes)
     body.isTextual should be(false)
     body.toString should be("(binary data: 1 bytes application/octet-stream)")
-    intercept[IllegalStateException] {
-      body.iterator
-    }
+    val iterator = body.iterator
+    iterator.next should be(" ")
+    iterator.hasNext should be(false)
   }
 
   test("ByteBufferResponseBody with plain text but no media type") {
@@ -126,7 +126,9 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
 
   test("ByteBufferResponseBody with binary but no media type") {
     val bytes: Array[Byte] = new Array[Byte](256)
-    for (i <- 0 until 256) { bytes(i) = i.toByte }
+    for (i <- 0 until 256) {
+      bytes(i) = i.toByte
+    }
     val bais = new ByteArrayInputStream(bytes)
     val body = ByteBufferResponseBody(head, Status.S200_OK, None, bais)
 
@@ -134,8 +136,24 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentLength should be(256)
     body.asBytes should be(bytes)
     body.isTextual should be(false)
-    body.toString should be("(binary data: 256 bytes application/octet-stream)")
-    intercept[IllegalStateException] {
+    intercept[MalformedInputException] {
+      body.asString
+    }
+  }
+
+  test("ByteBufferResponseBody with binary but with textual media type") {
+    val bytes: Array[Byte] = new Array[Byte](256)
+    for (i <- 0 until 256) {
+      bytes(i) = i.toByte
+    }
+    val bais = new ByteArrayInputStream(bytes)
+    val body = ByteBufferResponseBody(head, Status.S200_OK, Some(MediaType.TEXT_PLAIN), bais)
+
+    body.contentType should be(MediaType.TEXT_PLAIN)
+    body.contentLength should be(256)
+    body.asBytes should be(bytes)
+    body.isTextual should be(true)
+    intercept[MalformedInputException] {
       body.asString
     }
   }
@@ -147,10 +165,8 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentLength should be(0)
     body.asBytes should be(new Array[Byte](0))
     body.isTextual should be(false)
+    body.asString should be("")
     body.toString should be("(binary data: 0 bytes application/octet-stream)")
-    intercept[IllegalStateException] {
-      body.asString
-    }
   }
 
   test("ByteBufferResponseBody with PNG but without a body or media type") {
@@ -160,10 +176,8 @@ class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
     body.contentLength should be(0)
     body.asBytes should be(new Array[Byte](0))
     body.isTextual should be(false)
+    body.asString should be("")
     body.toString should be("(binary data: 0 bytes image/png)")
-    intercept[IllegalStateException] {
-      body.asString
-    }
   }
 
   test("ByteBufferResponseBody with ABC text but without a media type") {

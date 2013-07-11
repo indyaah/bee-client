@@ -43,7 +43,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
   import HttpClientTestUtils._
 
   val url = "/some/url"
-  val config = Config(connectTimeout = 5000, readTimeout = 10000)
+  val config = Config(connectTimeout = 15000, readTimeout = 10000)
 
   private def convertHeaderList(headers: List[Header]): List[com.pyruby.stubserver.Header] = {
     headers.map {
