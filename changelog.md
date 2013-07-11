@@ -1,4 +1,8 @@
 #### Thu, 11 Jul 2013
+* v0.22.0 - documentation and test code only
+
+
+#### Thu, 11 Jul 2013
 * v0.22.0 - ResponseBody implementations are now much more informative in the edge case of attempting to deal with binary data as if it were text. This is now not allowed and an exception is thrown if it is attempted.
 * - MediaType now understands more fully which types are textual and which are binary.
 

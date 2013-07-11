@@ -66,6 +66,9 @@ case class ByteBufferResponseBody(byteArray: Array[Byte], contentType: MediaType
   @deprecated("Use the simpler constructor", "since v0.21.6")
   def this(request: Request, status: Status, contentType: MediaType, byteArray: Array[Byte]) = this(byteArray, contentType)
 
+  /** Conversion constructor that accepts a ByteBuffer. */
+  def this(byteArray: ByteBuffer, contentType: MediaType) = this(ByteBufferResponseBody.bufferToArray(byteArray), contentType)
+
   override val contentLength = byteArray.length
 
   private def convertToString = {
@@ -128,7 +131,7 @@ object ByteBufferResponseBody {
   }
 
   /**
-   *
+   * Wraps a byte array, sorting out the content type based on various information.
    * @param request if the content type is not initially known, the request URL may provide a hint based on the
    *                extension of the filename, if present.
    * @param status the request parameter is ignored if the status is not 200-OK.
@@ -142,6 +145,34 @@ object ByteBufferResponseBody {
             headers: Headers) = {
     val contentType = optionalContentType getOrElse guessMediaTypeFromContent(request, status, byteArray)
     new ByteBufferResponseBody(byteArray, contentType)
+  }
+
+  /**
+   * Wraps a byte buffer, sorting out the content type based on various information.
+   * @param request if the content type is not initially known, the request URL may provide a hint based on the
+   *                extension of the filename, if present.
+   * @param status the request parameter is ignored if the status is not 200-OK.
+   * @param optionalContentType the content type received from the webserver, if any
+   * @param byteBuffer the actual body content (also known as response entity)
+   */
+  def apply(request: Request,
+            status: Status,
+            optionalContentType: Option[MediaType],
+            byteBuffer: ByteBuffer,
+            headers: Headers) = {
+    val byteArray = bufferToArray(byteBuffer)
+    val contentType = optionalContentType getOrElse guessMediaTypeFromContent(request, status, byteArray)
+    new ByteBufferResponseBody(byteArray, contentType)
+  }
+
+  def bufferToArray(byteBuffer: ByteBuffer): Array[Byte] = {
+    if (byteBuffer.position() == 0 && byteBuffer.limit() == byteBuffer.capacity()) {
+      byteBuffer.array()
+    } else {
+      val bytes = new Array[Byte](byteBuffer.limit())
+      byteBuffer.get(bytes, byteBuffer.position(), byteBuffer.limit())
+      bytes
+    }
   }
 
   private def contentLength(headers: Headers): Int = {

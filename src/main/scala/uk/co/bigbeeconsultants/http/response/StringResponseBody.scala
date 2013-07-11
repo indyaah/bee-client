@@ -28,6 +28,7 @@ import java.nio.charset.Charset
 import uk.co.bigbeeconsultants.http.header.MediaType
 import uk.co.bigbeeconsultants.http.HttpClient
 import uk.co.bigbeeconsultants.http.request._
+import java.nio.ByteBuffer
 
 /**
  * Provides a body implementation based simply on a string.
@@ -66,12 +67,9 @@ case class StringResponseBody(bodyText: String,
    */
   def inputStream = toBufferedBody.inputStream
 
-  private def convertToBytes: Array[Byte] = {
+  private def convertToBytes: ByteBuffer = {
     val charset = contentType.charset.getOrElse(HttpClient.UTF8)
-    val buf = Charset.forName(charset).encode(bodyText)
-    val bytes = new Array[Byte](buf.limit())
-    buf.get(bytes, 0, buf.limit())
-    bytes
+    Charset.forName(charset).encode(bodyText)
   }
 
   /**
