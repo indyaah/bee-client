@@ -1,4 +1,8 @@
 #### Thu, 11 Jul 2013
+* v0.22.3 - byte-to-string decoding is now more intelligent also fixed in InputStreamResponseBody.
+
+
+#### Thu, 11 Jul 2013
 * v0.22.2 - byte-to-string decoding is now more intelligent. Any input data can be converted to string provided the decoder for the corresponding character set can handle the character sequence without exception. Any such exceptions are passed on.
 
 

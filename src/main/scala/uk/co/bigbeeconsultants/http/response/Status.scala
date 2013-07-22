@@ -24,19 +24,27 @@
 
 package uk.co.bigbeeconsultants.http.response
 
-/**Expresses an HTTP status line. */
-case class Status(code: Int, message: String) {
+/**
+ * Expresses an HTTP status line. Status is not a 'case class' although it behaves almost the same as if it were.
+ * The difference is that `equals` only compares the status code, ignoring the message.
+ */
+class Status(val code: Int, val message: String) {
   /**The category is 1=informational, 2=success, 3=redirect, 4=client error, 5=server error. */
   val category = code / 100
 
+  /** True if this instance is a 1xx informational code. */
   def isInformational = category == 1
 
+  /** True if this instance is a 2xx status code. */
   def isSuccess = category == 2
 
+  /** True if this instance is a 3xx redirection code. */
   def isRedirection = category == 3
 
+  /** True if this instance is a 4xx client error code. */
   def isClientError = category == 4
 
+  /** True if this instance is a 5xx server error code. */
   def isServerError = category == 5
 
   /**
@@ -46,6 +54,17 @@ case class Status(code: Int, message: String) {
   def isBodyAllowed: Boolean = !isInformational && !bodyForbidden
 
   private def bodyForbidden = code == 204 || code == 205 || code == 304
+
+  override def hashCode(): Int = code
+
+  override def equals(obj: Any): Boolean = {
+    obj match {
+      case s: Status => this.code == s.code
+      case _ => false
+    }
+  }
+
+  override lazy val toString: String = "Status(" + code + "," + message + ")"
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -113,9 +132,17 @@ object Status {
   /**
    * Gets a standard status or creates a new status with a given code.
    */
-  def apply(code: Int) = {
+  def apply(code: Int): Status = {
+    apply(code, "Status " + code)
+  }
+
+  /**
+   * Gets a standard status or creates a new status with a given code. If the code already exists as one of
+   * the RFC2616 standard codes, the supplied message will be ignored and the returned value will be the existing code.
+   */
+  def apply(code: Int, message: String): Status = {
     val existing = lookupTable.get(code)
-    existing.getOrElse(new Status(code, "Status " + code))
+    existing.getOrElse(new Status(code, message))
   }
 
   private def create(code: Int, message: String) = {

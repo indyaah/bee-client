@@ -26,10 +26,7 @@ package uk.co.bigbeeconsultants.http.response
 
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
-import uk.co.bigbeeconsultants.http.request._
-import uk.co.bigbeeconsultants.http.header.{Cookie, CookieJar, Headers}
-import uk.co.bigbeeconsultants.http.header.MediaType._
-import uk.co.bigbeeconsultants.http.header.HeaderName._
+import scala.collection.mutable
 
 class StatusTest extends FunSuite with ShouldMatchers {
 
@@ -70,5 +67,27 @@ class StatusTest extends FunSuite with ShouldMatchers {
   test("Single-arg apply method") {
     assert(Status(200) eq Status.S200_OK)
     assert(Status(500) eq Status.S500_InternalServerError)
+  }
+
+  test("toString") {
+    assert(Status.S200_OK.toString === "Status(200,OK)")
+  }
+
+  test("equals") {
+    assert(Status(500) === Status.S500_InternalServerError)
+    assert(Status(200) === new Status(200, "Random"))
+    assert(Status(500) != Status.S200_OK)
+    assert(Status(500) != "string")
+  }
+
+  test("hashcode") {
+    val set = new mutable.HashSet[Int]()
+    for (i <- 100 to 550) {
+      val status = new Status(i, "")
+      val first = status.hashCode()
+      assert(!set.contains(first))
+      set += status.hashCode()
+      assert(first === status.hashCode())
+    }
   }
 }

@@ -31,9 +31,11 @@ import uk.co.bigbeeconsultants.http.header.MediaType
 
 class OddCasesTest extends FunSuite {
 
+  val config = Config(connectTimeout = 20000)
+
   // this duplicates testing of ByteBufferResponseBody.apply
   test("empty content-length should not blow up") {
-    val httpClient = new HttpClient()
+    val httpClient = new HttpClient(config)
     val response = httpClient.get(new URL("http://www.lansdowneclub.com/robots.txt"))
     assert(response.status === Status.S200_OK)
     assert(response.body.contentType.value === MediaType.TEXT_PLAIN.value)

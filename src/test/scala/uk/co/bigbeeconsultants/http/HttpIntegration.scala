@@ -71,7 +71,7 @@ object HttpIntegration {
   private val jsonSample = """{ "x": 1, "y": true }"""
   private val jsonBody = RequestBody(jsonSample, APPLICATION_JSON)
 
-  val configNoRedirects = Config(followRedirects = false, proxy = proxy)
+  val configNoRedirects = Config(connectTimeout = 20000, followRedirects = false, proxy = proxy)
 
   /** Provides a single-threaded soak-tester. */
   def main(args: Array[String]) {
@@ -295,7 +295,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   private def textPlainGetFollowingRedirect(url: String) {
     val cookie = Cookie("c1", "v1", Domain.localhost)
-    val http2 = new HttpClient(Config(followRedirects = true))
+    val http2 = new HttpClient(configNoRedirects.copy(followRedirects = true))
     try {
       val response = http2.get(new URL(url), gzipHeaders, CookieJar(cookie))
       assert(200 === response.status.code, url)
@@ -314,7 +314,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   test("txt text/plain get following redirect using HttpBrowser") {
     val url = "http:" + serverUrl + testRedirect1File + "?TO=" + testRedirect2File
     val cookie = Cookie("c1", "v1", Domain.localhost)
-    val httpBrowser = new HttpBrowser(Config(followRedirects = true), initialCookieJar = CookieJar(cookie))
+    val httpBrowser = new HttpBrowser(configNoRedirects.copy(followRedirects = true), initialCookieJar = CookieJar(cookie))
     try {
       val response = httpBrowser.get(new URL(url), gzipHeaders)
       assert(200 === response.status.code, url)
