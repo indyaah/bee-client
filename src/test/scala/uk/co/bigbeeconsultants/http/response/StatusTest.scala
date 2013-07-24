@@ -90,4 +90,14 @@ class StatusTest extends FunSuite with ShouldMatchers {
       assert(first === status.hashCode())
     }
   }
+
+  test("unapply") {
+    Status.S200_OK match {
+      case Status(c, m) =>
+        assert(c === 200)
+        assert(m === "OK")
+      case _ =>
+        fail()
+    }
+  }
 }

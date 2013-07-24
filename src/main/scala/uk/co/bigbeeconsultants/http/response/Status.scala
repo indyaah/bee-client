@@ -26,9 +26,16 @@ package uk.co.bigbeeconsultants.http.response
 
 /**
  * Expresses an HTTP status line. Status is not a 'case class' although it behaves almost the same as if it were.
+ *
  * The difference is that `equals` only compares the status code, ignoring the message.
+ * Therefore, testing values using '==' will produce the obvious result. For example
+ *
+ * val s: Status = ...
+ * if (s == Status.S200_OK) {
+ *   // ...
+ * }
  */
-class Status(val code: Int, val message: String) {
+final class Status(val code: Int, val message: String) {
   /**The category is 1=informational, 2=success, 3=redirect, 4=client error, 5=server error. */
   val category = code / 100
 
@@ -144,6 +151,8 @@ object Status {
     val existing = lookupTable.get(code)
     existing.getOrElse(new Status(code, message))
   }
+
+  def unapply(st: Status): Option[(Int, String)] = Some(st.code, st.message)
 
   private def create(code: Int, message: String) = {
     val s = new Status(code, message)

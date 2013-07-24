@@ -1,3 +1,7 @@
+#### Mon, 22 Jul 2013
+* v0.22.4 - Status class improved so that equality testing does the more intuitive thing of testing only the status code (i.e. any difference in the documentary message is ignored).
+
+
 #### Thu, 11 Jul 2013
 * v0.22.3 - byte-to-string decoding is now more intelligent also fixed in InputStreamResponseBody.
 
