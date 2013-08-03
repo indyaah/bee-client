@@ -91,4 +91,23 @@ class PathTest extends FunSuite {
     assert(!Path("/").startsWith(Path("")))
     assert(Path("").startsWith(Path("")))
   }
+
+  test("unapply") {
+    Path("/a/b/c") match {
+      case Path(true, "a" :: tail) => assert(tail === List("b", "c"))
+      case _ => fail()
+    }
+    Path("a/b") match {
+      case Path(false, "a" :: "b" :: Nil) =>
+      case _ => fail()
+    }
+    Path("a") match {
+      case Path(false, "a" :: Nil) =>
+      case _ => fail()
+    }
+    Path("/a") match {
+      case Path(true, "a" :: Nil) =>
+      case _ => fail()
+    }
+  }
 }

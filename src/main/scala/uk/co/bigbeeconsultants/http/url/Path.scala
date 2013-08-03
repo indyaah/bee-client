@@ -107,4 +107,6 @@ object Path {
     else if (path(0) == '/') new Path(true, List() ++ path.substring(1).split("/"))
     else new Path(false, List() ++ path.split("/"))
   }
+
+  def unapply(path: Path): Option[(Boolean, List[String])] = Some(path.isAbsolute, path.segments)
 }

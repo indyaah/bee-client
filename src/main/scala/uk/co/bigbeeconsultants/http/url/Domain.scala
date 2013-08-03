@@ -109,4 +109,6 @@ object Domain {
       case e: Exception => "localhost"
     })
   }
+
+  def unapply(d: Domain): Option[(String)] = Some(d.domain)
 }

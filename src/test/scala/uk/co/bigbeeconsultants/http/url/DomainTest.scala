@@ -114,4 +114,12 @@ class DomainTest extends FunSuite {
   test("localhost") {
     assert(Domain.localhost.domain.length > 0)
   }
+
+
+  test("unapply") {
+    Domain("value") match {
+      case Domain(v) => assert(v === "value")
+      case _ => fail()
+    }
+  }
 }

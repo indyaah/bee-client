@@ -1,3 +1,7 @@
+#### Thu, 25 Jul 2013
+* v0.22.5 - Status class improved by addition of unapply extractor.
+
+
 #### Mon, 22 Jul 2013
 * v0.22.4 - Status class improved so that equality testing does the more intuitive thing of testing only the status code (i.e. any difference in the documentary message is ignored).
 
