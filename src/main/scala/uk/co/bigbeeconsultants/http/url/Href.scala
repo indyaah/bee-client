@@ -102,11 +102,14 @@ case class Href(endpoint: Option[Endpoint],
   }
 
   /**
-   * Creates a new instance, replacing any query string with a new one formed from a map of key/values pairs.
-   * This provides an alternative to use using `copy` to change the `query`field.
+   * Creates a new instance, replacing any query string with a new one formed from a list of key/values pairs.
+   * The parts of the query string will be URL-encoded automatically.
+   * The supplied parameter list may be empty, indicating there is no query string.
+   *
+   * This method provides an alternative to use using `copy` to change the `query`field.
    */
-  def withQuery(params: Map[String, String]) = {
-    def assembleQueryString(queryParams: Map[String, String]): String = {
+  def withQueryList(params: List[(String, String)]) = {
+    def assembleQueryString(queryParams: List[(String, String)]): String = {
       val w = new StringBuilder
       var amp = ""
       for ((key, value) <- queryParams) {
@@ -122,6 +125,15 @@ case class Href(endpoint: Option[Endpoint],
     val newValue = if (params.isEmpty) None else Some(assembleQueryString(params))
     copy(query = newValue)
   }
+
+  /**
+   * Creates a new instance, replacing any query string with a new one formed from a map of key/values pairs.
+   * The parts of the query string will be URL-encoded automatically.
+   * The supplied parameter map may be empty, indicating there is no query string.
+   *
+   * This method provides an alternative to use using `copy` to change the `query`field.
+   */
+  def withQuery(params: Map[String, String]) = withQueryList(params.toList)
 
   /**
    * Extracts the parts of the query string as a list of tuples. This allows for duplicate keys, which is

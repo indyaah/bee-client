@@ -221,13 +221,6 @@ class HrefTest extends FunSuite {
     assert(href.isURL === false)
   }
 
-  test("withQuery augmentation") {
-    val url = "http://www.w3.org/page"
-    val href = Href(url)
-    assert(url + "?a=hello+world&b=a%40b.com" === href.withQuery(Map("a" -> "hello world", "b" -> "a@b.com")).toString)
-    assert(url === href.withQuery(Map()).toString)
-  }
-
   test("file url should parse correctly with triple-slash") {
     val url = "file:///some/dir/name.ext"
     val href = Href(url)
@@ -263,6 +256,20 @@ class HrefTest extends FunSuite {
     assert(href.file === Some("name.ext"))
     assert(href.extension === Some("ext"))
     assert(href.asURL === new URL(url))
+  }
+
+  test("withQuery augmentation") {
+    val url = "http://www.w3.org/page"
+    val href = Href(url)
+    assert(url + "?a=hello+world&b=a%40b.com" === href.withQuery(Map("a" -> "hello world", "b" -> "a@b.com")).toString)
+    assert(url === href.withQuery(Map()).toString)
+  }
+
+  test("withQueryList augmentation") {
+    val url = "http://www.w3.org/page"
+    val href = Href(url)
+    assert(url + "?a=a1&b=b1&a=a2" === href.withQueryList(List("a" -> "a1", "b" -> "b1", "a" -> "a2")).toString)
+    assert(url === href.withQueryList(Nil).toString)
   }
 
   test("queryParts should return a list of tuples correctly") {
