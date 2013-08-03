@@ -1,3 +1,7 @@
+#### Sat, 03 Aug 2013
+* v0.22.6 - Path and Domain classes improved by addition of unapply extractor.
+
+
 #### Thu, 25 Jul 2013
 * v0.22.5 - Status class improved by addition of unapply extractor.
 

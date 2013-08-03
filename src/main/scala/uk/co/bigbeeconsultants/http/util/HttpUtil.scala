@@ -94,7 +94,7 @@ object HttpUtil {
    * Efficiently divides a string at the first occurrence of a separator character.
    * @return a tuple of the string before and the string after the separator
    */
-  def divide(str: String, sep: Char) = {
+  def divide(str: String, sep: Char): (String, String) = {
     val s = str.indexOf(sep)
     if (s >= 0 && s < str.length) {
       val a = str.substring(0, s)

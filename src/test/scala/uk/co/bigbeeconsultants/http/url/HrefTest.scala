@@ -264,4 +264,16 @@ class HrefTest extends FunSuite {
     assert(href.extension === Some("ext"))
     assert(href.asURL === new URL(url))
   }
+
+  test("queryParts should return a list of tuples correctly") {
+    val href = Href("http://something/?a=1&bb=22&a=3")
+    assert(href.queryParts === List("a" -> "1", "bb" -> "22", "a" -> "3"))
+    assert(Href("http://something/").queryParts === Nil)
+  }
+
+  test("queryMap should return a list of tuples correctly") {
+    val href = Href("http://something/?a=1&bb=22&ccc=333")
+    assert(href.queryMap === Map("a" -> "1", "bb" -> "22", "ccc" -> "333"))
+    assert(Href("http://something/").queryMap === Map())
+  }
 }

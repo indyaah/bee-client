@@ -26,6 +26,7 @@ package uk.co.bigbeeconsultants.http.url
 
 import java.net.{URLEncoder, MalformedURLException, URL}
 import uk.co.bigbeeconsultants.http.HttpClient
+import uk.co.bigbeeconsultants.http.util.HttpUtil
 
 /**
  * Provides a utility wrapper for URLs that splits them into their component parts and allows alteration and reassembly
@@ -122,12 +123,37 @@ case class Href(endpoint: Option[Endpoint],
     copy(query = newValue)
   }
 
+  /**
+   * Extracts the parts of the query string as a list of tuples. This allows for duplicate keys, which is
+   * a legitimate situation in query strings. If a particular use-case requires that this /cannot/ happen, the
+   * other method `queryMap` may be simpler to use.
+   *
+   * If the query string is absent, an empty list is returned.
+   */
+  def queryParts: List[(String, String)] = {
+    if (query.isEmpty) Nil
+    else {
+      val parts = HttpUtil.split(query.get, '&')
+      parts.map(p => HttpUtil.divide(p, '='))
+    }
+  }
+
+  /**
+   * Extracts the parts of the query string as a map of strings. This does not allow for duplicate keys, which is
+   * a legitimate situation in query strings. So this method is only useful in particular use-cases where this
+   * cannot happen, Otherwise, use the more-general method `queryParts`.
+   *
+   * If the query string is absent, an empty map is returned.
+   */
+  def queryMap: Map[String, String] = queryParts.toMap
+
   def toPartialURL = new PartialURL(endpoint, path, fragment, query)
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 
 object Href {
+
   import Endpoint.DoubleSlash
 
   /**
