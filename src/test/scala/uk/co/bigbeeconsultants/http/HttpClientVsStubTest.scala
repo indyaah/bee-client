@@ -55,7 +55,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
   test("get should return 200-OK") {
     val http = new HttpClient(config)
     val stubbedMethod = StubMethod.get(url)
-    val json = """{"astring" : "the message" }"""
+    val json = """{"url" : "http://somewhere.org/a/path" }"""
     server.expect(stubbedMethod).thenReturn(200, APPLICATION_JSON, json)
 
     val response = http.get(new URL(baseUrl + url))

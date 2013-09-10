@@ -3,6 +3,10 @@
 
 
 #### Sat, 03 Aug 2013
+* v0.22.6 - Href has new queryParts and queryMap methods
+
+
+#### Sat, 03 Aug 2013
 * v0.22.6 - Path and Domain classes improved by addition of unapply extractor.
 
 

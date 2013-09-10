@@ -22,22 +22,22 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.http
+package uk.co.bigbeeconsultants.http.issues
 
-import org.scalatest.FunSuite
+import uk.co.bigbeeconsultants.http.HttpClient
+import uk.co.bigbeeconsultants.http.header.Headers
+import uk.co.bigbeeconsultants.http.header.HeaderName._
 
-class HttpGlobalSettingsTest extends FunSuite {
+// Issue 18: Improper character escapes
+// Without the User-Agent header, Facebook returns a backslash before every slash character in the response.
+//
+// This is not a Bee-Client bug but a Facebook quirk.
 
-  test("maxConnections") {
-    HttpGlobalSettings.maxConnections = 5
-    assert(5 === HttpGlobalSettings.maxConnections)
-    HttpGlobalSettings.maxConnections = 10
-    assert(10 === HttpGlobalSettings.maxConnections)
-  }
-
-//  test("maxRedirects") {
-//    assert(20 === HttpGlobalSettings.maxRedirects)
-//    HttpGlobalSettings.maxRedirects = 10
-//    assert(10 === HttpGlobalSettings.maxRedirects)
-//  }
+object Issue18 extends App {
+  val client = new HttpClient
+  val headers = Headers(
+    USER_AGENT -> "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/28.0.1500.71 Chrome/28.0.1500.71 Safari/537.36"
+  )
+  val response = client.get(new java.net.URL("https://graph.facebook.com/590010986?fields=id,first_name,last_name,picture"), headers)
+  println(response.body.asString)
 }

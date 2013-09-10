@@ -28,7 +28,6 @@ import java.net.URL
 import uk.co.bigbeeconsultants.http.header.{CookieJar, Header, Headers}
 import uk.co.bigbeeconsultants.http.url.Href
 
-//TODO: need to support chunked streaming out of the request
 /**
  * Represents the requirements for an HTTP request. Immutable.
  * Normally, this class will not be instantiated directly but via the Request object methods.
