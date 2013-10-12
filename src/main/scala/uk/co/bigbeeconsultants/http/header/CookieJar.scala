@@ -169,6 +169,9 @@ case class CookieJar(cookies: List[Cookie]) extends Seq[CookieIdentity] {
 /** Provides an easy way to create cookie jars and a constant empty instance. */
 object CookieJar {
   /** Constant empty cookie jar. */
+  val Empty = new CookieJar(List())
+
+  @deprecated("Use 'Empty' instead", "2013-10-10")
   val empty = new CookieJar(List())
 
   /**

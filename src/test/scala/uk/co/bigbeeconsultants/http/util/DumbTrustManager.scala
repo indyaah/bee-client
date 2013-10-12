@@ -43,14 +43,20 @@ class DumbHostnameVerifier extends HostnameVerifier {
 }
 
 object DumbTrustManager {
-  def install() = {
+  val sslSocketFactory = {
     // Create a new trust manager that trust all certificates
     val trustAllCerts = Array[TrustManager](new DumbTrustManager)
 
     // Activate the new trust manager
     val sc = SSLContext.getInstance("SSL")
     sc.init(Array[KeyManager](), trustAllCerts, new SecureRandom())
-    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory)
-    HttpsURLConnection.setDefaultHostnameVerifier(new DumbHostnameVerifier)
+    sc.getSocketFactory
+  }
+
+  val hostnameVerifier = new DumbHostnameVerifier
+
+  def install() {
+    HttpsURLConnection.setDefaultSSLSocketFactory(sslSocketFactory)
+    HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier)
   }
 }

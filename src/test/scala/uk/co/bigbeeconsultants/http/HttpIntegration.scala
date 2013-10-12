@@ -90,7 +90,7 @@ object HttpIntegration {
     val h = new HttpIntegration
     val hc = new HttpClient(configNoRedirects)
     val bigbee = new Credential("bigbee", "HelloWorld")
-    val hb = new HttpBrowser(configNoRedirects, CookieJar.empty, new CredentialSuite(Map("Restricted" -> bigbee)))
+    val hb = new HttpBrowser(configNoRedirects, CookieJar.Empty, new CredentialSuite(Map("Restricted" -> bigbee)))
 
     var total = Duration(0L)
     for (i <- 1 to n) {
@@ -363,7 +363,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
   private def textPlainGetAcquiringCookie(url: String) {
     val http = new HttpClient(configNoRedirects)
     try {
-      val response = http.get(new URL(url), gzipHeaders, CookieJar.empty)
+      val response = http.get(new URL(url), gzipHeaders, CookieJar.Empty)
       assert(200 === response.status.code, url)
       val body = response.body
       assert(TEXT_PLAIN.value === body.contentType.value, url)
@@ -590,7 +590,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   test("txt text/plain get automatic basic auth") {
     val bigbee = new Credential("bigbee", "HelloWorld")
-    val http = new HttpBrowser(configNoRedirects, CookieJar.empty, new CredentialSuite(Map("Restricted" -> bigbee)))
+    val http = new HttpBrowser(configNoRedirects, CookieJar.Empty, new CredentialSuite(Map("Restricted" -> bigbee)))
     for (i <- 1 to 5) {
       textPlainGetAutomaticBasicAuth(http, "http:" + serverUrl + "private/lorem2.txt")
     }

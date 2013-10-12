@@ -52,5 +52,8 @@ case class CredentialSuite(credentials: Map[String, Credential]) {
 //---------------------------------------------------------------------------------------------------------------------
 
 object CredentialSuite {
+  val Empty = new CredentialSuite(Map())
+
+  @deprecated("Use 'Empty' instead", "2013-10-10")
   val empty = new CredentialSuite(Map())
 }

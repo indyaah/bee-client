@@ -137,10 +137,10 @@ class HttpClientVsMockTest extends FunSuite {
       val response =
         if (useCookies)
           method match {
-            case "GET" => http.get(thisUrl, headers, CookieJar.empty)
-            case "HEAD" => http.head(thisUrl, headers, CookieJar.empty)
-            case "TRACE" => http.trace(thisUrl, headers, CookieJar.empty)
-            case "DELETE" => http.delete(thisUrl, headers, CookieJar.empty)
+            case "GET" => http.get(thisUrl, headers, CookieJar.Empty)
+            case "HEAD" => http.head(thisUrl, headers, CookieJar.Empty)
+            case "TRACE" => http.trace(thisUrl, headers, CookieJar.Empty)
+            case "DELETE" => http.delete(thisUrl, headers, CookieJar.Empty)
           }
         else
           method match {
@@ -212,9 +212,9 @@ class HttpClientVsMockTest extends FunSuite {
       val response =
         if (useCookies)
           method match {
-            case "POST" => http.post(url, Some(RequestBody(Map("foo" -> "bar", "a" -> "z"), TEXT_PLAIN)), headers, CookieJar.empty)
-            case "PUT" => http.put(url, RequestBody("hello world", TEXT_PLAIN), headers, CookieJar.empty)
-            case "OPTIONS" => http.options(url, Some(RequestBody("hello world", TEXT_PLAIN)), headers, CookieJar.empty)
+            case "POST" => http.post(url, Some(RequestBody(Map("foo" -> "bar", "a" -> "z"), TEXT_PLAIN)), headers, CookieJar.Empty)
+            case "PUT" => http.put(url, RequestBody("hello world", TEXT_PLAIN), headers, CookieJar.Empty)
+            case "OPTIONS" => http.options(url, Some(RequestBody("hello world", TEXT_PLAIN)), headers, CookieJar.Empty)
           }
         else
           method match {
@@ -278,9 +278,9 @@ class HttpClientVsMockTest extends FunSuite {
       val response =
         if (useCookies)
           method match {
-            case "POST" => http.makeUnbufferedRequest(Request.post(url, Some(RequestBody(Map("foo" -> "bar", "a" -> "z"), TEXT_PLAIN)), headers, Some(CookieJar.empty)))
-            case "PUT" => http.makeUnbufferedRequest(Request.put(url, RequestBody("hello world", TEXT_PLAIN), headers, Some(CookieJar.empty)))
-            case "OPTIONS" => http.makeUnbufferedRequest(Request.options(url, Some(RequestBody("hello world", TEXT_PLAIN)), headers, Some(CookieJar.empty)))
+            case "POST" => http.makeUnbufferedRequest(Request.post(url, Some(RequestBody(Map("foo" -> "bar", "a" -> "z"), TEXT_PLAIN)), headers, Some(CookieJar.Empty)))
+            case "PUT" => http.makeUnbufferedRequest(Request.put(url, RequestBody("hello world", TEXT_PLAIN), headers, Some(CookieJar.Empty)))
+            case "OPTIONS" => http.makeUnbufferedRequest(Request.options(url, Some(RequestBody("hello world", TEXT_PLAIN)), headers, Some(CookieJar.Empty)))
           }
         else
           method match {

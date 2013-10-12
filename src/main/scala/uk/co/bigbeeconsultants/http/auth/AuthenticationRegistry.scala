@@ -32,7 +32,7 @@ import uk.co.bigbeeconsultants.http.request.Request
 import uk.co.bigbeeconsultants.http.response.Response
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 
-final class AuthenticationRegistry(credentialSuite: CredentialSuite = CredentialSuite.empty, cacheRealms: Boolean = false) {
+final class AuthenticationRegistry(credentialSuite: CredentialSuite = CredentialSuite.Empty, cacheRealms: Boolean = false) {
 
   // Mutable state is required for
   // (a) automatic realm lookup to reduce network traffic by reducing 401s

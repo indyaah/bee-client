@@ -28,12 +28,13 @@ import auth.{AuthenticationRegistry, CredentialSuite, Credential}
 import HttpClient._
 import header.MediaType._
 import header.HeaderName._
-import java.net.{Proxy, URL}
+import java.net.{InetSocketAddress, Proxy, URL}
 import header._
 import org.scalatest.Assertions
 import request.RequestBody
 import url.Domain
 import util.{JSONWrapper, DumbTrustManager}
+import org.scalatest.exceptions.TestFailedException
 
 /**
  * Tests the API against httpbin.org. This is an app rather than a unit test because it would be rude to
@@ -41,18 +42,21 @@ import util.{JSONWrapper, DumbTrustManager}
  */
 object HttpBinOrg extends App with Assertions {
 
-  DumbTrustManager.install()
-
   private val jsonSample = """{ "x": 1, "y": true }"""
   private val jsonBody = RequestBody(jsonSample, APPLICATION_JSON)
+  private val tester = new Tester
 
   val serverUrl = "httpbin.org"
 
-  //  val proxyAddress = new InetSocketAddress("localhost", 8888)
-  //  val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
-  val proxy = Proxy.NO_PROXY
+    val proxyAddress = new InetSocketAddress("localhost", 8888)
+    val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
+//  val proxy = Proxy.NO_PROXY
 
-  implicit val config = Config(connectTimeout = 10000, readTimeout = 10000, followRedirects = false, proxy = proxy)
+  implicit val config = Config(connectTimeout = 10000, readTimeout = 10000,
+    followRedirects = false, proxy = proxy,
+    sslSocketFactory = Some(DumbTrustManager.sslSocketFactory),
+    hostnameVerifier = Some(DumbTrustManager.hostnameVerifier))
+
   var httpClient = new HttpClient(config)
   var httpBrowser = new HttpBrowser(config)
 
@@ -61,87 +65,90 @@ object HttpBinOrg extends App with Assertions {
   private def expectHeaderIfPresent(expected: Any)(headers: Headers, name: HeaderName) {
     val hdrs = headers filter name
     if (!hdrs.isEmpty) {
-      assert(hdrs(0).value == expected, hdrs(0))
+      tester.test(hdrs(0).value === expected, hdrs(0))
     }
   }
 
-  headTest(httpClient, "http://" + serverUrl)
-  headTest(httpClient, "https://" + serverUrl)
-  headTest(httpBrowser, "http://" + serverUrl)
-  headTest(httpBrowser, "https://" + serverUrl)
+  headTest(httpClient, serverUrl + "/")
+  headTest(httpBrowser, serverUrl + "/")
 
-  def headTest(http: Http, url: String) {
-    println("HEAD " + url)
-    val response = http.head(new URL(url), gzipHeaders)
-    assert(response.status.code === 200, url)
-    val body = response.body
-    assert(body.contentType.value === TEXT_HTML.value, url)
-    expectHeaderIfPresent("gzip")(response.headers, CONTENT_ENCODING)
-    assert(body.toString == "", url)
+  def headTest(http: Http, urlStr: String) {
+    for (url <- httpAndHttpsUrls(urlStr)) {
+      println("HEAD " + url)
+      val response = http.head(url, gzipHeaders)
+      tester.test(response.status.code === 200, url)
+      val body = response.body
+      tester.test(body.contentType.value === TEXT_HTML.value, url)
+      expectHeaderIfPresent("gzip")(response.headers, CONTENT_ENCODING)
+      tester.test(body.asString === "", url)
+    }
   }
 
 
-  htmlGet(httpClient, "http://" + serverUrl + "/headers")
-  htmlGet(httpClient, "https://" + serverUrl + "/headers")
-  htmlGet(httpBrowser, "http://" + serverUrl + "/headers")
-  htmlGet(httpBrowser, "https://" + serverUrl + "/headers")
+  htmlGet(httpClient, serverUrl + "/headers")
+  htmlGet(httpBrowser, serverUrl + "/headers")
 
-  private def htmlGet(http: Http, url: String) {
-    println("GET " + url)
-    val response = http.get(new URL(url), gzipHeaders)
-    assert(response.status.code === 200, url)
-    val body = response.body
-    assert(body.contentType.value === APPLICATION_JSON.value, url)
-    val json = JSONWrapper(response.body.toString)
-    assert(serverUrl === json.get("headers/Host").asString)
+  private def htmlGet(http: Http, urlStr: String) {
+    for (url <- httpAndHttpsUrls(urlStr)) {
+      println("GET " + url)
+      val response = http.get(url, gzipHeaders)
+      tester.test(response.status.code === 200, url)
+      val body = response.body
+      tester.test(body.contentType.value === APPLICATION_JSON.value, url)
+      val json = JSONWrapper(response.body.asString)
+      tester.test(serverUrl === json.get("headers/Host").asString, url)
+    }
   }
 
 
   val configWithUserAgent = Config(userAgentString = Some("HttpBin-test-app"))
+  htmlGetUserAgent(new HttpClient(configWithUserAgent), serverUrl + "/user-agent")
 
-  private def htmlGetUserAgent(http: Http, url: String) {
-    println("GET " + url)
-    val response = http.get(new URL(url), gzipHeaders)
-    assert(response.status.code === 200, url)
-    val body = response.body
-    assert(body.contentType.value === APPLICATION_JSON.value, url)
-    val json = JSONWrapper(response.body.toString)
-    assert("HttpBin-test-app" === json.get("user-agent").asString)
+  private def htmlGetUserAgent(http: Http, urlStr: String) {
+    for (url <- httpAndHttpsUrls(urlStr)) {
+      println("GET " + url)
+      val response = http.get(url, gzipHeaders)
+      tester.test(response.status.code === 200, url)
+      val body = response.body
+      tester.test(body.contentType.value === APPLICATION_JSON.value, url)
+      val json = JSONWrapper(response.body.asString)
+      tester.test("HttpBin-test-app" === json.get("user-agent").asString, url)
+    }
   }
 
 
-  textHtmlGet204(httpClient, "http://" + serverUrl + "/status/204")
-  textHtmlGet204(httpClient, "https://" + serverUrl + "/status/204")
-  textHtmlGet204(httpBrowser, "http://" + serverUrl + "/status/204")
-  textHtmlGet204(httpBrowser, "https://" + serverUrl + "/status/204")
+  textHtmlGet204(httpClient, serverUrl + "/status/204")
+  textHtmlGet204(httpBrowser, serverUrl + "/status/204")
 
-  private def textHtmlGet204(http: Http, url: String) {
-    println("GET " + url)
-    val response = http.get(new URL(url), gzipHeaders)
-    assert(204 === response.status.code, url)
-    val body = response.body
-    assert(false === response.status.isBodyAllowed, response.status)
-    assert(TEXT_HTML.value === body.contentType.value, url)
-    assert("" === body.toString)
+  private def textHtmlGet204(http: Http, urlStr: String) {
+    for (url <- httpAndHttpsUrls(urlStr)) {
+      println("GET " + url)
+      val response = http.get(url, gzipHeaders)
+      tester.test(204 === response.status.code, url)
+      val body = response.body
+      tester.test(false === response.status.isBodyAllowed, response.status)
+      tester.test(TEXT_HTML.value === body.contentType.value, url)
+      tester.test("" === body.asString, url)
+    }
   }
 
 
   val cookieC1V1 = Cookie("c1", "v1", Domain(serverUrl))
   val configFollowRedirects = Config(followRedirects = true)
-  textPlainGetFollowingRedirect(new HttpClient(configFollowRedirects), "http://" + serverUrl + "/redirect/1")
-  textPlainGetFollowingRedirect(new HttpClient(configFollowRedirects), "https://" + serverUrl + "/redirect/1")
-  textPlainGetFollowingRedirect(new HttpBrowser(configFollowRedirects, CookieJar(cookieC1V1)), "http://" + serverUrl + "/redirect/1")
-  textPlainGetFollowingRedirect(new HttpBrowser(configFollowRedirects, CookieJar(cookieC1V1)), "https://" + serverUrl + "/redirect/1")
+  textPlainGetFollowingRedirect(new HttpClient(configFollowRedirects), serverUrl + "/redirect/1")
+  textPlainGetFollowingRedirect(new HttpBrowser(configFollowRedirects, CookieJar(cookieC1V1)), serverUrl + "/redirect/1")
 
-  private def textPlainGetFollowingRedirect(http: Http, url: String) {
-    println("GET " + url)
-    val response = http.get(new URL(url), gzipHeaders, CookieJar(cookieC1V1))
-    assert(200 === response.status.code, url)
-    assert(APPLICATION_JSON.value === response.body.contentType.value, url)
-    val json = JSONWrapper(response.body.toString)
-    assert(cookieC1V1 === response.cookies.get.find(_.name == "c1").get, url)
-    val cookieLine = json.get("headers/Cookie").asString
-    assert(cookieLine contains ("c1=v1"), cookieLine)
+  private def textPlainGetFollowingRedirect(http: Http, urlStr: String) {
+    for (url <- httpAndHttpsUrls(urlStr)) {
+      println("GET " + url)
+      val response = http.get(url, gzipHeaders, CookieJar(cookieC1V1))
+      tester.test(200 === response.status.code, url)
+      tester.test(APPLICATION_JSON.value === response.body.contentType.value, url)
+      val json = JSONWrapper(response.body.asString)
+      tester.test(cookieC1V1 === response.cookies.get.find(_.name == "c1").get, url)
+      val cookieLine = json.get("headers/Cookie").asString
+      tester.test(cookieLine contains "c1=v1", cookieLine)
+    }
   }
 
 
@@ -149,70 +156,99 @@ object HttpBinOrg extends App with Assertions {
 
   private def textPlainGetWithQueryString(http: Http, url: String) {
     val response = http.get(new URL(url), gzipHeaders)
-    assert(200 === response.status.code, url)
-    assert(APPLICATION_JSON.value === response.body.contentType.value, url)
-    val json = JSONWrapper(response.body.toString)
+    tester.test(200 === response.status.code, url)
+    tester.test(APPLICATION_JSON.value === response.body.contentType.value, url)
+    val json = JSONWrapper(response.body.asString)
     val args = json.get("args")
-    assert(2 === args.asMap.size, response.body)
-    assert("1" === args.get("A").asString, response.body)
-    assert("2" === args.get("B").asString, response.body)
+    tester.test(2 === args.asMap.size, response.body)
+    tester.test("1" === args.get("A").asString, response.body)
+    tester.test("2" === args.get("B").asString, response.body)
   }
 
 
   val fredBloggs = new Credential("fred", "bloggs")
-  basicAuth(httpClient, "http://" + serverUrl + "/basic-auth/fred/bloggs")
-  basicAuth(httpClient, "https://" + serverUrl + "/basic-auth/fred/bloggs")
-  basicAuth(httpBrowser, "http://" + serverUrl + "/basic-auth/fred/bloggs")
-  basicAuth(httpBrowser, "https://" + serverUrl + "/basic-auth/fred/bloggs")
+  basicAuth(httpClient, serverUrl + "/basic-auth/fred/bloggs")
+  basicAuth(httpBrowser, serverUrl + "/basic-auth/fred/bloggs")
 
   private def basicAuth(http: Http, urlStr: String) {
-    val url = new URL(urlStr)
-    val response1 = http.get(url, gzipHeaders)
-    assert(401 === response1.status.code, urlStr)
-    val response2 = http.get(url, gzipHeaders + fredBloggs.toBasicAuthHeader)
-    assert(200 === response2.status.code, urlStr)
-    val json = JSONWrapper(response2.body.toString)
-    assert(json.get("authenticated").asBoolean)
+    for (url <- httpAndHttpsUrls(urlStr)) {
+      val response1 = http.get(url, gzipHeaders)
+      tester.test(401 === response1.status.code, url)
+      val response2 = http.get(url, gzipHeaders + fredBloggs.toBasicAuthHeader)
+      tester.test(200 === response2.status.code, url)
+      val json = JSONWrapper(response2.body.asString)
+      tester.test(json.get("authenticated").asBoolean, url)
+    }
   }
 
 
   val realm = "me@kennethreitz.com"
-  digestAuth(httpClient, "http://" + serverUrl + "/digest-auth/auth/fred/bloggs")
+  digestAuth(httpClient, serverUrl + "/digest-auth/auth/fred/bloggs")
 
   private def digestAuth(http: Http, urlStr: String) {
     val registry = new AuthenticationRegistry(new CredentialSuite(Map(realm -> fredBloggs)))
-    val url = new URL(urlStr)
+    for (url <- httpAndHttpsUrls(urlStr)) {
+      val response1 = http.get(url, gzipHeaders)
+      tester.test(401 === response1.status.code, url)
 
-    val response1 = http.get(url, gzipHeaders)
-    assert(401 === response1.status.code, urlStr)
+      response1.headers.foreach(println)
+      val authHeader = registry.processResponse(response1)
+      println(authHeader)
 
-    response1.headers.foreach(println)
-    val authHeader = registry.processResponse(response1)
-    println(authHeader)
-
-    val response2 = http.get(url, gzipHeaders + authHeader.get)
-    assert(200 === response2.status.code, urlStr)
-    val json = JSONWrapper(response2.body.toString)
-    assert(json.get("authenticated").asBoolean)
+      val response2 = http.get(url, gzipHeaders + authHeader.get)
+      tester.test(200 === response2.status.code, url)
+      val json = JSONWrapper(response2.body.asString)
+      tester.test(json.get("authenticated").asBoolean, url)
+    }
   }
 
 
-  val browserWithCreds = new HttpBrowser(config, CookieJar.empty, new CredentialSuite(Map("Fake Realm" -> fredBloggs, realm -> fredBloggs)))
-  automaticAuth(browserWithCreds, "http://" + serverUrl + "/basic-auth/fred/bloggs")
-  automaticAuth(browserWithCreds, "http://" + serverUrl + "/basic-auth/fred/bloggs")
-  automaticAuth(browserWithCreds, "https://" + serverUrl + "/basic-auth/fred/bloggs")
-  automaticAuth(browserWithCreds, "https://" + serverUrl + "/basic-auth/fred/bloggs")
-  automaticAuth(browserWithCreds, "http://" + serverUrl + "/digest-auth/auth/fred/bloggs")
-  automaticAuth(browserWithCreds, "http://" + serverUrl + "/digest-auth/auth/fred/bloggs")
-  automaticAuth(browserWithCreds, "https://" + serverUrl + "/digest-auth/auth/fred/bloggs")
-  automaticAuth(browserWithCreds, "https://" + serverUrl + "/digest-auth/auth/fred/bloggs")
+  val browserWithCreds = new HttpBrowser(config, CookieJar.Empty, new CredentialSuite(Map("Fake Realm" -> fredBloggs, realm -> fredBloggs)))
+  automaticAuth(browserWithCreds, serverUrl + "/basic-auth/fred/bloggs")
+  automaticAuth(browserWithCreds, serverUrl + "/basic-auth/fred/bloggs")
+  automaticAuth(browserWithCreds, serverUrl + "/digest-auth/auth/fred/bloggs")
+  automaticAuth(browserWithCreds, serverUrl + "/digest-auth/auth/fred/bloggs")
 
   private def automaticAuth(http: Http, urlStr: String) {
-    val url = new URL(urlStr)
-    val response = http.get(url, gzipHeaders)
-    assert(200 === response.status.code, urlStr)
-    val json = JSONWrapper(response.body.toString)
-    assert(json.get("authenticated").asBoolean)
+    for (url <- httpAndHttpsUrls(urlStr)) {
+      val response = http.get(url, gzipHeaders)
+      assert(200 === response.status.code, url)
+      val json = JSONWrapper(response.body.asString)
+      assert(json.get("authenticated").asBoolean)
+    }
   }
 
+  def httpAndHttpsUrls(urlStr: String): List[URL] = {
+    List(
+      new URL("http://" + urlStr)
+      //new URL("https://" + urlStr)
+    )
+  }
+}
+
+class Tester extends Assertions {
+  var errors = 0
+
+  def test(o: Option[String], clue: Any) {
+    if (o.isDefined) {
+      val error = new TestFailedException(clue + "\n" + o.get, 4)
+      System.err.println(clue)
+      error.printStackTrace()
+      errors += 1
+    }
+  }
+
+  def test(condition: Boolean, clue: Any) {
+    if (!condition) {
+      val error = new TestFailedException(clue.toString, 4)
+      System.err.println(clue)
+      error.printStackTrace()
+      errors += 1
+    }
+  }
+
+  def outcome() {
+    if (errors > 0) System.err.println(errors + " errors.")
+    else System.out.println("No errors.")
+  }
 }

@@ -45,8 +45,8 @@ import java.util.concurrent.atomic.AtomicReference
  * the original state or the updated state.
  */
 class HttpBrowser(commonConfig: Config = Config(),
-                  initialCookieJar: CookieJar = CookieJar.empty,
-                  credentialSuite: CredentialSuite = CredentialSuite.empty) extends Http(commonConfig) {
+                  initialCookieJar: CookieJar = CookieJar.Empty,
+                  credentialSuite: CredentialSuite = CredentialSuite.Empty) extends Http(commonConfig) {
 
   private val httpClient = new HttpClient(commonConfig)
   private val cookieJar = new AtomicReference[CookieJar](initialCookieJar)
