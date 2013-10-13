@@ -27,6 +27,7 @@ package uk.co.bigbeeconsultants.http.header
 import uk.co.bigbeeconsultants.http.util.HttpUtil._
 
 trait Value {
+  def value: String
   def isValid: Boolean
 }
 

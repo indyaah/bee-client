@@ -31,14 +31,20 @@ import uk.co.bigbeeconsultants.http.response.MimeTypeRegistry
 /**
  * Provides a media type. Also known as a MIME type or content type.
  */
-case class MediaType(contentType: String, subtype: String, charset: Option[String] = None) extends Value {
+case class MediaType(mainType: String, subtype: String, charset: Option[String] = None) extends Value {
 
   import MediaType._
 
-  def isValid = !contentType.isEmpty && !subtype.isEmpty
+  def isValid = !mainType.isEmpty && !subtype.isEmpty
+
+  @deprecated("Renamed as type to avoid name clash with other header values", "0.23.0")
+  def contentType = mainType
+
+  @deprecated("Renamed as mediaType to avoid name clash with other header values", "0.23.0")
+  val value = mainType + '/' + subtype
 
   /** Gets the content type / subtype string, without charset. */
-  val value = contentType + '/' + subtype
+  //TODO val contentType = mainType + '/' + subtype
 
   /** Gets this media type as a Qualifiers, which is the form used within QualifiedValue. */
   def toQualifiers = Qualifiers(toString)
@@ -53,15 +59,15 @@ case class MediaType(contentType: String, subtype: String, charset: Option[Strin
   def charsetOrElse(defaultCharset: String) = if (charset.isEmpty) defaultCharset else charset.get
 
   /**
-   * Gets the character set, or returns a default value.
+   * Gets the character set, or returns UTF8.
    */
-  def charsetOrUTF8 = if (charset.isEmpty) HttpClient.UTF8 else charset.get
+  def charsetOrUTF8 = charsetOrElse(HttpClient.UTF8)
 
   /**
    * Checks if the primary type is a wildcard.
    * @return true if the primary type is a wildcard
    */
-  def isWildcardType = contentType == WILDCARD
+  def isWildcardType = mainType == WILDCARD
 
   /**
    * Checks if the subtype is a wildcard.
@@ -78,12 +84,12 @@ case class MediaType(contentType: String, subtype: String, charset: Option[Strin
   def isCompatible(other: MediaType) = {
     if (other == null)
       false
-    else if (contentType == WILDCARD || other.contentType == WILDCARD)
+    else if (mainType == WILDCARD || other.mainType == WILDCARD)
       true
-    else if ((contentType equalsIgnoreCase other.contentType) && (subtype == WILDCARD || other.subtype == WILDCARD))
+    else if ((mainType equalsIgnoreCase other.mainType) && (subtype == WILDCARD || other.subtype == WILDCARD))
       true
     else
-      (contentType equalsIgnoreCase other.contentType) && (subtype equalsIgnoreCase other.subtype)
+      (mainType equalsIgnoreCase other.mainType) && (subtype equalsIgnoreCase other.subtype)
   }
 
   /**
@@ -91,11 +97,11 @@ case class MediaType(contentType: String, subtype: String, charset: Option[Strin
    */
   def withCharset(newCharset: String) = {
     require(newCharset != null && newCharset.length() > 0)
-    new MediaType(contentType, subtype, Some(newCharset))
+    new MediaType(mainType, subtype, Some(newCharset))
   }
 
   /**
-   * Tests whether a media type represents textual traffic. This is true for all content with the `contentType` of
+   * Tests whether a media type represents textual traffic. This is true for all content with the `type` of
    * "text" and also for those "application" types with json, xml, or ...+xml subtypes.
    */
   val isTextual = {
@@ -103,7 +109,7 @@ case class MediaType(contentType: String, subtype: String, charset: Option[Strin
 
     def isUnusualTextualType = MimeTypeRegistry.textualTypes.contains(value)
 
-    contentType match {
+    mainType match {
       case "text" => true
       case _ => isStandardXmlType || isUnusualTextualType
     }

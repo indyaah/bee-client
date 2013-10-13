@@ -1,3 +1,11 @@
+#### Sat, 12 Oct 2013
+* v0.22.8 - CookieJar.Empty and CredentialSuite.Empty replace the previous constants called 'empty'.
+
+
+#### Tue, 10 Sep 2013
+* v0.22.7 - Minor bug research. No substantial change.
+
+
 #### Sat, 03 Aug 2013
 * v0.22.6 - Href has new queryParts and queryMap methods
 

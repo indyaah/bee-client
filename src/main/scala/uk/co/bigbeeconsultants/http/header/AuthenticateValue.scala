@@ -64,6 +64,8 @@ case class AuthenticateValue(authScheme: String, parts: ListMap[String, String])
   private def unquoted(key: String) = parts.get(key).map(unquote(_))
 
   override lazy val toString = authScheme + " " + parts.map(kv => kv._1 + "=" + kv._2).mkString(", ")
+
+  def value = toString
 }
 
 //---------------------------------------------------------------------------------------------------------------------
