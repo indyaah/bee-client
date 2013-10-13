@@ -82,7 +82,7 @@ case class Qualifiers(qualifiers: List[NameVal] = Nil) extends Iterable[NameVal]
 //---------------------------------------------------------------------------------------------------------------------
 
 object Qualifiers {
-  def apply(str: String): Qualifiers = apply(SemicolonListValue(str))
+  def apply(str: String): Qualifiers = apply(SemicolonListValue.split(str))
 
   def apply(list: SemicolonListValue): Qualifiers = {
     val qualifiers = list.parts.map {
@@ -111,7 +111,7 @@ object Qualifiers {
  */
 case class QualifiedValue(list: CommaListValue) extends Iterable[Qualifiers] with Value {
 
-  def this(value: String) = this(CommaListValue(value))
+  def this(value: String) = this(CommaListValue.split(value))
 
   val parts: List[Qualifiers] = list.map(Qualifiers(_)).toList
 
@@ -131,5 +131,5 @@ case class QualifiedValue(list: CommaListValue) extends Iterable[Qualifiers] wit
 //---------------------------------------------------------------------------------------------------------------------
 
 object QualifiedValue {
-  def apply(str: String) = new QualifiedValue(CommaListValue(str))
+  def apply(str: String) = new QualifiedValue(CommaListValue.split(str))
 }

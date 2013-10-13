@@ -24,29 +24,38 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
-import java.text.ParseException
-import org.slf4j.LoggerFactory
+import org.scalatest.FunSuite
 
-/**
- * Holds a header value that refers to a date.
- */
-case class DateValue(value: String) extends Value {
+class AcceptValueTest extends FunSuite {
 
-  private val logger = LoggerFactory.getLogger(getClass)
-  private var valid = false
-  private var _date = HttpDateTimeInstant.zero
-  try {
-    _date = HttpDateTimeInstant.parse(value)
-    valid = true
-  } catch {
-    case pe: ParseException =>
-      logger.error("{}: failed to parse date. {}", Array(value, pe.getMessage))
+  test("one media type") {
+    val v = AcceptValue(MediaType.TEXT_HTML)
+    assert(v.value === "text/html")
+    assert(v.isValid)
   }
 
-  /** True iff the date was parsed correctly. Otherwise the values string does not represent a date correctly. */
-  val isValid = valid
+  test("digit pattern") {
+    assert(AcceptValue.QualityPattern.matcher("1").matches)
+    assert(AcceptValue.QualityPattern.matcher("1.000").matches)
+    assert(!AcceptValue.QualityPattern.matcher("1.0000").matches)
+    assert(AcceptValue.QualityPattern.matcher("0.9").matches)
+    assert(AcceptValue.QualityPattern.matcher("0.123").matches)
+    assert(!AcceptValue.QualityPattern.matcher("0.1234").matches)
+    assert(AcceptValue.QualityPattern.matcher("0").matches)
+    assert(!AcceptValue.QualityPattern.matcher("2").matches)
+    assert(!AcceptValue.QualityPattern.matcher("0.x").matches)
+  }
 
-  /** Gets the date from the value string. */
-  val date: HttpDateTimeInstant = _date
+  test("concatenation") {
+    val v1 = AcceptValue(MediaType.TEXT_HTML)
+
+    val v2 = v1 + MediaType.TEXT_CSS
+    assert(v2.value === "text/html, text/css")
+    assert(v2.isValid)
+
+    val v3 = v2.append(MediaType.TEXT_CSV, 0.2f)
+    assert(v3.value === "text/html, text/css, text/csv;q=0.2")
+    assert(v3.isValid)
+  }
+
 }

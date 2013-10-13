@@ -24,7 +24,7 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import uk.co.bigbeeconsultants.http.util.HttpUtil._
+import uk.co.bigbeeconsultants.http.util.HttpUtil
 
 /**
  * Defines an HTTP header value consisting of a list of values.
@@ -57,6 +57,8 @@ case class CommaListValue(parts: List[String]) extends ListValue(parts) {
  * Defines an HTTP header value consisting of a semicolon-separated list of values.
  */
 case class SemicolonListValue(parts: List[String]) extends ListValue(parts) {
+  def toQualifiers = Qualifiers(this)
+
   override lazy val toString = parts.mkString("; ")
 }
 
@@ -68,7 +70,7 @@ case class SemicolonListValue(parts: List[String]) extends ListValue(parts) {
 object CommaListValue {
 
   /** Constructs an instance by splitting at the commas. */
-  def apply(value: String) = new CommaListValue(split(value, ',').map(_.trim).toList)
+  def split(value: String) = new CommaListValue(HttpUtil.split(value, ',') map (_.trim) toList)
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -79,5 +81,5 @@ object CommaListValue {
 object SemicolonListValue {
 
   /** Constructs an instance by splitting at the semicolons. */
-  def apply(value: String) = new SemicolonListValue(split(value, ';').map(_.trim).toList)
+  def split(value: String) = new SemicolonListValue(HttpUtil.split(value, ';') map (_.trim) toList)
 }

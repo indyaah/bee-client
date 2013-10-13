@@ -1,5 +1,3 @@
-package uk.co.bigbeeconsultants.http.header
-
 //-----------------------------------------------------------------------------
 // The MIT License
 //
@@ -24,6 +22,8 @@ package uk.co.bigbeeconsultants.http.header
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
+package uk.co.bigbeeconsultants.http.header
+
 import org.scalatest.FunSuite
 
 class MediaTypeTest extends FunSuite {
@@ -43,7 +43,7 @@ class MediaTypeTest extends FunSuite {
     val mt = MediaType("text/html; charset=ISO-8859-1")
     assert("text/html;charset=ISO-8859-1" === mt.toString)
     assert("text/html;charset=ISO-8859-1" === mt.toQualifiers.toString)
-    assert("text" === mt.contentType)
+    assert("text" === mt.mainType)
     assert("html" === mt.subtype)
     assert("ISO-8859-1" === mt.charset.get)
   }

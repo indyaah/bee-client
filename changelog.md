@@ -1,3 +1,8 @@
+#### Sun, 13 Oct 2013
+* v0.23.0 - MediaType.contentType field has been renamed to mainType to reflect its purpose more correctly. It is possible to use `type` but this wasn't adopted because of the inconsistency this introduces into source code at usage sites, vs the subType field.
+* - The value field is now deprecated; there will be a *breaking change* in the next release because this will be used for the representation value. This will become consistent with the Value trait, which now has a method called value.
+
+
 #### Sat, 12 Oct 2013
 * v0.22.8 - CookieJar.Empty and CredentialSuite.Empty replace the previous constants called 'empty'.
 

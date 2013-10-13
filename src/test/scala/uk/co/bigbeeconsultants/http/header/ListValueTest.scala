@@ -29,7 +29,7 @@ import org.scalatest.FunSuite
 class ListValueTest extends FunSuite {
 
   test("CommaListValue with three items") {
-    val v = CommaListValue("gzip, deflate, sdhc")
+    val v = CommaListValue.split("gzip, deflate, sdhc")
     assert(3 === v.parts.size)
     assert("gzip" === v(0))
     assert("gzip" === v.parts(0))
@@ -37,7 +37,7 @@ class ListValueTest extends FunSuite {
   }
 
   test("SemicolonListValue with three items") {
-    val v = SemicolonListValue("x=1; y=2; z=3")
+    val v = SemicolonListValue.split("x=1; y=2; z=3")
     assert(3 === v.parts.size)
     assert("x=1" === v(0))
     assert("x=1" === v.parts(0))

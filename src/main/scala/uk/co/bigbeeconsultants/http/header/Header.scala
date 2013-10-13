@@ -46,7 +46,7 @@ case class Header(name: String, value: String) {
   def toDate: DateValue = DateValue(value)
 
   /** Converts the value to a comma-separated list value. */
-  def toListValue = CommaListValue(value)
+  def toListValue = CommaListValue.split(value)
 
   /** Converts the value to a qualified value. */
   def toQualifiedValue = toListValue.toQualifiedValue

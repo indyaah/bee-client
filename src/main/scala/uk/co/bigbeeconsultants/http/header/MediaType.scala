@@ -37,14 +37,10 @@ case class MediaType(mainType: String, subtype: String, charset: Option[String] 
 
   def isValid = !mainType.isEmpty && !subtype.isEmpty
 
-  @deprecated("Renamed as type to avoid name clash with other header values", "0.23.0")
+  @deprecated("Renamed as mainType to avoid name clash with other header values", "0.23.0")
   def contentType = mainType
 
-  @deprecated("Renamed as mediaType to avoid name clash with other header values", "0.23.0")
   val value = mainType + '/' + subtype
-
-  /** Gets the content type / subtype string, without charset. */
-  //TODO val contentType = mainType + '/' + subtype
 
   /** Gets this media type as a Qualifiers, which is the form used within QualifiedValue. */
   def toQualifiers = Qualifiers(toString)
@@ -126,26 +122,33 @@ object MediaType {
   val WILDCARD = "*"
 
   val STAR_STAR = MediaType(WILDCARD, WILDCARD)
+
   val APPLICATION_JSON = MediaType("application", "json")
   val APPLICATION_JAVASCRIPT = MediaType("application", "javascript")
   val APPLICATION_ECMASCRIPT = MediaType("application", "ecmascript")
+  val APPLICATION_PDF = MediaType("application", "pdf")
   val APPLICATION_XML = MediaType("application", "xml")
   val APPLICATION_SVG_XML = MediaType("application", "svg+xml")
   val APPLICATION_ATOM_XML = MediaType("application", "atom+xml")
   val APPLICATION_XHTML_XML = MediaType("application", "xhtml+xml")
   val APPLICATION_OCTET_STREAM = MediaType("application", "octet-stream")
   val APPLICATION_FORM_URLENCODED = MediaType("application", "x-www-form-urlencoded")
+
   val MULTIPART_FORM_DATA = MediaType("multipart", "form-data")
 
   val TEXT_PLAIN = MediaType("text", "plain")
   val TEXT_XML = MediaType("text", "xml")
   val TEXT_HTML = MediaType("text", "html")
+  val TEXT_CSS = MediaType("text", "css")
+  val TEXT_CSV = MediaType("text", "csv")
+
   val IMAGE_PNG = MediaType("image", "png")
   val IMAGE_JPG = MediaType("image", "jpeg")
   val IMAGE_GIF = MediaType("image", "gif")
+  val IMAGE_SVG_XML = MediaType("image", "svg+xml")
 
   /**
-   * Constructs a new MediaType instance from a string typically as found in HTTP header values.
+   * Constructs a new MediaType instance from a string typically as found in HTTP content-type values.
    */
   def apply(str: String): MediaType = {
     val qp = Qualifiers(str)
