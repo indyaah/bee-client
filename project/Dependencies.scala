@@ -47,7 +47,7 @@ object Dependencies {
   val servletApi = "org.mortbay.jetty" % "servlet-api" % "2.5.20110712" withSources()
 //  val servlet = "javax.servlet" % "servlet-api" % "2.5" withSources()
 
-  val beeConfig = "bee-config" % "bee-config_2.9.1" % "1.1.+" withSources() withJavadoc()
+  val beeConfig = "bee-config" %% "bee-config" % "1.4.+" withSources() withJavadoc()
 
   // ========== Test ==========
 

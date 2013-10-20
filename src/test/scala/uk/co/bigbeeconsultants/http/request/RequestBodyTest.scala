@@ -115,4 +115,51 @@ class RequestBodyTest extends FunSuite {
     assert(result === "a=1&b=2&c=3")
     assert(b.toShortString === "(a=1&b=2&c=3,application/json)")
   }
+
+
+  test("equality and hashCode of string bodies") {
+    val mt = MediaType.APPLICATION_JSON
+    val b1 = RequestBody("123", mt)
+    val b2 = RequestBody("123", mt)
+    val b3 = RequestBody("abc", mt)
+    assert(b1 === b1) // reflexive
+    assert(b1 === b2)
+    assert(b2 === b1) // symmetric
+    assert(b1 != b3)
+    assert(b1 != null)
+    assert(b1.hashCode === b2.hashCode)
+    assert(b1.hashCode != b3.hashCode)
+  }
+
+
+  test("equality of byte array bodies") {
+    val mt = MediaType.APPLICATION_JSON
+    val d1 = "123".getBytes(HttpClient.UTF8)
+    val d2 = "abc".getBytes(HttpClient.UTF8)
+    val b1 = RequestBody(d1, mt)
+    val b2 = RequestBody(d1, mt)
+    val b3 = RequestBody(d2, mt)
+    assert(b1 === b1) // reflexive
+    assert(b1 === b2)
+    assert(b2 === b1) // symmetric
+    assert(b1 != b3)
+    assert(b1 != null)
+    assert(b1.hashCode === b2.hashCode)
+    assert(b1.hashCode != b3.hashCode)
+  }
+
+
+  test("equality of heterogenous bodies") {
+    val mt = MediaType.APPLICATION_JSON
+    val d1 = "123".getBytes(HttpClient.UTF8)
+    val d2 = "abc".getBytes(HttpClient.UTF8)
+    val b1 = RequestBody("123", mt)
+    val b2 = RequestBody(d1, mt)
+    val b3 = RequestBody(d2, mt)
+    assert(b1 === b2)
+    assert(b2 === b1) // symmetric
+    assert(b1 != b3)
+    assert(b1.hashCode === b2.hashCode)
+    assert(b1.hashCode != b3.hashCode)
+  }
 }

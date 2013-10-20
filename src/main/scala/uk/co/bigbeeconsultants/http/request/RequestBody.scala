@@ -31,6 +31,8 @@ import header.MediaType
 import header.MediaType._
 import util.HttpUtil._
 import util.LineSplitter
+import java.util
+import scala.util.Random
 
 /**
  * Carries body data on a request. The body data is supplied by a closure using the
@@ -66,6 +68,30 @@ trait RequestBody {
   }
 
   override def toString = "RequestBody" + toShortString
+
+  /**
+   * Equality between two instances is defined in terms of equality of both the byte content
+   * and the media type.
+   * @param other another instance, typically of a `RequestBody`
+   * @return true iff two instances return the same results from `asBytes`, and they
+   * share the same media type, then they are equal.
+   */
+  override def equals(other: Any) = {
+    other match {
+      case that: RequestBody =>
+        (that canEqual this) &&
+        util.Arrays.equals(this.asBytes, that.asBytes) &&
+          this.contentType == that.contentType
+      case _ => false
+    }
+  }
+
+  def canEqual(other: Any) = other.isInstanceOf[RequestBody]
+
+  /**
+   * The hash code is computed from `asBytes` merged with the hash code from the media type.
+   */
+  override lazy val hashCode: Int = (41 * util.Arrays.hashCode(asBytes)) + contentType.hashCode
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -144,7 +170,7 @@ final class StringRequestBody(string: String, val contentType: MediaType,
 
   def copyTo(outputStream: OutputStream) {
     if (rewrite.isDefined) textCopyTo(outputStream)
-    else (binaryCopyTo(outputStream))
+    else binaryCopyTo(outputStream)
   }
 
   override def asString = string
@@ -217,4 +243,8 @@ final class StreamRequestBody(copyToFn: (OutputStream) => Unit, val contentType:
   override def cachedBody: RequestBody = {
     new BinaryRequestBody(captureBytes(copyTo), contentType)
   }
+
+  override def equals(other: Any) = false
+
+  override lazy val hashCode: Int = Random.nextInt()
 }

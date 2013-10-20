@@ -33,7 +33,7 @@ More examples follow in [the tutorial](http://www.bigbeeconsultants.co.uk/conten
 * No additional threads are imposed - you decide what you need.
 * No 'static' variables are used, so multiple configurations can co-exist within a JVM.
 * **Tested** against a range of servers: Apache2, Nginx, Lighttpd, Cherokee, Tomcat7.
-* The number of external dependencies is minimised (currently: slf4j, slf4s, servlet-api).
+* The number of external dependencies is minimised (currently: slf4j, servlet-api).
 
 ## Known Bugs ##
 
