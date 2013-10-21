@@ -32,7 +32,6 @@ import header.MediaType._
 import util.HttpUtil._
 import util.LineSplitter
 import java.util
-import scala.util.Random
 
 /**
  * Carries body data on a request. The body data is supplied by a closure using the
