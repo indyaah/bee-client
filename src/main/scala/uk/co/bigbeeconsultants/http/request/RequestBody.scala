@@ -51,7 +51,13 @@ trait RequestBody {
   /** Gets a string representation of the body, if possible. Otherwise, "..." is returned. */
   def asString: String = "..."
 
-  /** Gets a byte array representation of the body, if possible. Some implementations do not provide this. */
+  /**
+   * Gets a byte array representation of the body, if possible. Some implementations do not provide this.
+   *
+   * Be careful with this array - you *should not* attempt to modify it, even though it is mutable
+   * (which it is because otherwise an extra copy step would be needed, which would impair performance, and
+   * the array would not be available to the many standard Java APIs that work with such data).
+   */
   def asBytes: Array[Byte]
 
   /**
@@ -92,6 +98,8 @@ trait RequestBody {
    * The hash code is computed from `asBytes` merged with the hash code from the media type.
    */
   override lazy val hashCode: Int = (41 * util.Arrays.hashCode(asBytes)) + contentType.hashCode
+
+  protected val objectHashCode = super.hashCode
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -244,7 +252,10 @@ final class StreamRequestBody(copyToFn: (OutputStream) => Unit, val contentType:
     new BinaryRequestBody(captureBytes(copyTo), contentType)
   }
 
-  override def equals(other: Any) = false
+  override def equals(other: Any) = other match {
+    case that: StreamRequestBody => this eq that
+    case _ => false
+  }
 
-  override lazy val hashCode: Int = Random.nextInt()
+  override lazy val hashCode: Int = objectHashCode
 }

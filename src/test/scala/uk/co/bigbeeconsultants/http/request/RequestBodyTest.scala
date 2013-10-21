@@ -162,4 +162,17 @@ class RequestBodyTest extends FunSuite {
     assert(b1.hashCode === b2.hashCode)
     assert(b1.hashCode != b3.hashCode)
   }
+
+
+  test("non-equality of stream bodies") {
+    val s = "So shaken as we are, so wan with care!"
+    val is1 = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
+    val is2 = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
+    val mt = MediaType.TEXT_PLAIN
+    val b1 = RequestBody(is1, mt)
+    val b2 = RequestBody(is2, mt)
+    assert(b1 === b1)
+    assert(b1 != b2)
+    assert(b1.hashCode != b2.hashCode)
+  }
 }
