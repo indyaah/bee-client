@@ -104,7 +104,7 @@ class HttpClientVsMockTest extends FunSuite {
 
     def newHttpClient(config: Config) = {
       new HttpClient(config) {
-        override def openConnection(request: Request, proxy: Proxy) = {
+        override def openConnection(request: Request, proxy: Option[Proxy]) = {
           if (!mc2.consumed) {
             mc2.consumed = true
             mc2.httpURLConnection

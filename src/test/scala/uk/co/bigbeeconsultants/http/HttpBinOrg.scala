@@ -49,7 +49,7 @@ object HttpBinOrg extends App with Assertions {
   val serverUrl = "httpbin.org"
 
     val proxyAddress = new InetSocketAddress("localhost", 8888)
-    val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
+    val proxy = Some(new Proxy(Proxy.Type.HTTP, proxyAddress))
 //  val proxy = Proxy.NO_PROXY
 
   implicit val config = Config(connectTimeout = 10000, readTimeout = 10000,

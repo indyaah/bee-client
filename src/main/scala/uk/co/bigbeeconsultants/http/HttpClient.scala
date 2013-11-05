@@ -127,7 +127,13 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
 
   /** Provides a seam for testing. Not for normal use. */
   @throws(classOf[IOException])
-  protected def openConnection(request: Request, proxy: Proxy) = request.url.openConnection(proxy).asInstanceOf[HttpURLConnection]
+  protected def openConnection(request: Request, proxy: Option[Proxy]) = {
+    if(proxy.isDefined) {
+      request.url.openConnection(proxy.get).asInstanceOf[HttpURLConnection]
+    } else {
+      request.url.openConnection().asInstanceOf[HttpURLConnection]
+    }
+  }
 
   private def configureConnection(httpURLConnection: HttpURLConnection, config: Config): HttpURLConnection = {
     httpURLConnection.setAllowUserInteraction(false)

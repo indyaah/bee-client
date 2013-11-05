@@ -38,7 +38,7 @@ object Concurrency1Essay {
 
   //  val proxyAddress = new InetSocketAddress("localhost", 8888)
   //  val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
-  val proxy = Proxy.NO_PROXY
+  val proxy = Some(Proxy.NO_PROXY)
 
   val config = Config(followRedirects = false, proxy = proxy, keepAlive = true, userAgentString = Some("Wahey!"))
 

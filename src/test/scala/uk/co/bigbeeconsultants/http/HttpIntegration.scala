@@ -58,7 +58,7 @@ object HttpIntegration {
 
   //  val proxyAddress = new InetSocketAddress("localhost", 8888)
   //  val proxy = new Proxy(Proxy.Type.HTTP, proxyAddress)
-  val proxy = Proxy.NO_PROXY
+  val proxy = Some(Proxy.NO_PROXY)
 
   val gzipHeaders = Headers(ACCEPT_ENCODING -> GZIP)
 
