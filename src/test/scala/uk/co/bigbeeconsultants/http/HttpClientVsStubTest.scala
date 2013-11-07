@@ -36,6 +36,7 @@ import java.util.zip._
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import java.net.URL
 import util.HttpUtil._
+import com.pyruby.stubserver
 
 
 class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
@@ -47,7 +48,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
   private def convertHeaderList(headers: List[Header]): List[com.pyruby.stubserver.Header] = {
     headers.map {
-      header => new com.pyruby.stubserver.Header(header.name, header.value)
+      header => com.pyruby.stubserver.Header.header(header.name, header.value)
     }
   }
 
@@ -112,25 +113,25 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     assert(TEXT_PLAIN === body.contentType)
     assert(loadsOfText === body.asString)
     val accEnc = stubbedMethod.requestHeaders.get("Accept-Encoding")
-    assert("gzip" === accEnc)
+    assert("gzip" === accEnc.values.get(0))
   }
 
 
   // not working
-//  test("get with deflate should return text") {
-//    val http = new HttpClient(config)
-//    val stubbedMethod = StubMethod.get(url)
-//    server.expect(stubbedMethod).thenReturn(200, TEXT_PLAIN.toString, deflate(loadsOfText),
-//      convertHeaderList(List(CONTENT_ENCODING -> "deflate")))
-//
-//    val response = http.get(new URL(baseUrl + url), Headers(List(ACCEPT_ENCODING -> "deflate")))
-//    server.verify()
-//    val body = response.body
-//    assert(TEXT_PLAIN === body.contentType)
-//    assert(loadsOfText === body.toString)
-//    val accEnc = stubbedMethod.requestHeaders.get("Accept-Encoding")
-//    assert("deflate" === accEnc)
-//  }
+  //  test("get with deflate should return text") {
+  //    val http = new HttpClient(config)
+  //    val stubbedMethod = StubMethod.get(url)
+  //    server.expect(stubbedMethod).thenReturn(200, TEXT_PLAIN.toString, deflate(loadsOfText),
+  //      convertHeaderList(List(CONTENT_ENCODING -> "deflate")))
+  //
+  //    val response = http.get(new URL(baseUrl + url), Headers(List(ACCEPT_ENCODING -> "deflate")))
+  //    server.verify()
+  //    val body = response.body
+  //    assert(TEXT_PLAIN === body.contentType)
+  //    assert(loadsOfText === body.toString)
+  //    val accEnc = stubbedMethod.requestHeaders.get("Accept-Encoding")
+  //    assert("deflate" === accEnc)
+  //  }
 
 
   test("head should return 200-OK") {
@@ -281,13 +282,9 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
   after {
     server.clearExpectations()
     server.stop()
-
-    //    if (CleanupThread.isRunning) {
-    //      HttpClient.terminate()
-    //      assert(false, "Expect that cleanup thread has been successully shut down") (CleanupThread.isRunning)
-    //    }
   }
 
+  // TODO use ephemeral port selection like Jetty does
   private val port = (java.lang.Math.random * 16000 + 10000).asInstanceOf[Int]
   private val baseUrl = "http://localhost:" + port
   private var server: StubServer = null
@@ -324,15 +321,15 @@ object HttpClientTestUtils {
     baos.toByteArray
   }
 
-//  def deflate(s: String): Array[Byte] = {
-//    val is = s.getBytes("UTF-8")
-//    val compressor = new Deflater()
-//    compressor.setInput(is)
-//    compressor.finish()
-//    val output = new Array[Byte](100)
-//    val compressedDataLength = compressor.deflate(output)
-//    val compressed = new Array[Byte](compressedDataLength)
-//    Array.copy(output, 0, compressed, 0, compressedDataLength)
-//    compressed
-//  }
+  //  def deflate(s: String): Array[Byte] = {
+  //    val is = s.getBytes("UTF-8")
+  //    val compressor = new Deflater()
+  //    compressor.setInput(is)
+  //    compressor.finish()
+  //    val output = new Array[Byte](100)
+  //    val compressedDataLength = compressor.deflate(output)
+  //    val compressed = new Array[Byte](compressedDataLength)
+  //    Array.copy(output, 0, compressed, 0, compressedDataLength)
+  //    compressed
+  //  }
 }

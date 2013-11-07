@@ -106,4 +106,28 @@ object Config {
     ACCEPT_ENCODING -> HttpClient.GZIP,
     ACCEPT_CHARSET -> (HttpClient.UTF8 + ",*;q=.1")
   )
+
+  @deprecated("The proxy parameter is now optional", "0.24.0")
+  def apply(connectTimeout: Int,
+            readTimeout: Int,
+            followRedirects: Boolean,
+            maxRedirects: Int,
+            useCaches: Boolean,
+            keepAlive: Boolean,
+            userAgentString: Option[String],
+            proxy: Proxy,
+            credentials: CredentialSuite,
+            hostnameVerifier: Option[HostnameVerifier],
+            sslSocketFactory: Option[SSLSocketFactory],
+            commonRequestHeaders: Headers,
+            preRequests: List[PreRequest]): Config = {
+    new Config(connectTimeout, readTimeout,
+      followRedirects, maxRedirects,
+      useCaches, keepAlive, userAgentString,
+      Option(proxy),
+      credentials,
+      hostnameVerifier,
+      sslSocketFactory,
+      commonRequestHeaders)
+  }
 }

@@ -57,15 +57,8 @@ object Dependencies {
 
   val jsontools = "com.sdicons.jsontools" % "jsontools-core" % "1.7" % "test" withSources()
 
-  // see lib folder
-  //val stubserver       = "tarttelin"               % "stubserver"               % "0.3"   % "test"
-  // Currently directly from source https://github.com/rickb777/JavaStubServer
-
-  //Thanks to http://engineering.sharethrough.com/blog/2013/07/13/integration-testing-http-requests-with-scala-and-betamax/
-  val betamax = "co.freeside" % "betamax" % "1.1.2" % "test"
-  //Betamax needs groovy, because it's built in groovy
-  val groovyDist = "org.codehaus.groovy" % "groovy-all" % "1.8.8" % "test"
-
+  // http://tarttelin.github.io/JavaStubServer/
+  val javastubserver = "com.pyruby" % "java-stub-server" % "0.12"   % "test" withSources()
 
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
 

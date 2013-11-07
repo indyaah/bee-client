@@ -1,81 +1,79 @@
 package uk.co.bigbeeconsultants.http
 
-import org.scalatest.{BeforeAndAfterAll, FunSuite}
+import org.scalatest.{BeforeAndAfter, FunSuite}
 import org.scalatest.matchers.ShouldMatchers
-import co.freeside.betamax.{TapeMode, Recorder}
-import java.io.File
-import co.freeside.betamax.proxy.jetty.ProxyServer
 import uk.co.bigbeeconsultants.http.util.DumbTrustManager
-import java.net.{UnknownHostException, InetSocketAddress, URL, Proxy}
+import java.net.{UnknownHostException, InetSocketAddress, Proxy}
+import com.pyruby.stubserver.{StubMethod, StubServer}
+import uk.co.bigbeeconsultants.http.header.MediaType._
 
-class ProxyTest extends FunSuite with ShouldMatchers with BeforeAndAfterAll {
+class ProxyTest extends FunSuite with ShouldMatchers with BeforeAndAfter {
 
-  var recorder: Recorder = null
-  var proxyServer: ProxyServer  = null
+  val expectedBody = "Hey look some text"
 
-  override def beforeAll() = {
-    recorder = new Recorder()
-    recorder.setSslSupport(true)
+  val vanillaConfig = Config(
+    sslSocketFactory = Some(DumbTrustManager.sslSocketFactory),
+    hostnameVerifier = Some(DumbTrustManager.hostnameVerifier)
+  )
 
-    recorder.setTapeRoot(new File("src/test/resources/betamaxTapes"))
-    recorder.setDefaultMode(TapeMode.READ_ONLY)
-    recorder.insertTape("testTape")
+  test("Http should work with a proxy without being configured") {
+    System.setProperty("http.proxyHost", "localhost")
+    System.setProperty("http.proxyPort", port.toString)
+    try {
+      val client = new HttpClient(vanillaConfig)
+      val url = "http://www.example.nope/test"
+      val stubbedMethod = StubMethod.get("/test")
+      server.expect(stubbedMethod).thenReturn(200, TEXT_PLAIN, expectedBody)
 
-    proxyServer = new ProxyServer(recorder)
-    proxyServer.start()
+      val response = client.get(url)
+
+      server.verify()
+      response.status.code should equal(200)
+      response.body.asString should equal(expectedBody)
+    } finally {
+      System.clearProperty("http.proxyHost")
+      System.clearProperty("http.proxyPort")
+    }
   }
 
-  override def afterAll() = {
-    recorder.ejectTape()
-    proxyServer.stop()
-  }
-
-
-  test("Should work with a proxy without being configured") {
-    val conf = Config(
-      sslSocketFactory = Some(DumbTrustManager.sslSocketFactory),
-      hostnameVerifier = Some(DumbTrustManager.hostnameVerifier)
-    )
-
+  test("Http should work with a proxy being explicitly configured") {
+    val proxyAddress = new InetSocketAddress("localhost", port)
+    val conf = vanillaConfig.copy(proxy = Some(new Proxy(Proxy.Type.HTTP, proxyAddress)))
     val client = new HttpClient(conf)
-    val url = new URL("https://www.example.nope/test")
+    val url = "http://www.example.nope/test"
+    val stubbedMethod = StubMethod.get("/test")
+    server.expect(stubbedMethod).thenReturn(200, TEXT_PLAIN, expectedBody)
+
     val response = client.get(url)
 
+    server.verify()
     response.status.code should equal(200)
     response.body.asString should equal("Hey look some text")
   }
 
-  test("Should work with a proxy being explicity configured") {
-    val proxyAddress = new InetSocketAddress("localhost", 5555)
-
-    val conf = Config(
-      sslSocketFactory = Some(DumbTrustManager.sslSocketFactory),
-      hostnameVerifier = Some(DumbTrustManager.hostnameVerifier),
-      proxy = Some(new Proxy(Proxy.Type.HTTP, proxyAddress))
-    )
+  test("Http should fail properly when explicitly setting no proxy") {
+    val conf = vanillaConfig.copy(proxy = Some(Proxy.NO_PROXY))
 
     val client = new HttpClient(conf)
-    val url = new URL("https://www.example.nope/test")
-    val response = client.get(url)
-
-    response.status.code should equal(200)
-    response.body.asString should equal("Hey look some text")
-  }
-
-  test("Should fail properly explicitly setting no proxy") {
-    val conf = Config(
-      sslSocketFactory = Some(DumbTrustManager.sslSocketFactory),
-      hostnameVerifier = Some(DumbTrustManager.hostnameVerifier),
-      proxy = Some(Proxy.NO_PROXY)
-    )
-
-    val client = new HttpClient(conf)
-    val url = new URL("http://www.example.nope/test")
+    val url = "http://www.example.nope/test"
 
     intercept[UnknownHostException] {
       client.get(url)
     }
-
   }
 
+
+  before {
+    server = new StubServer()
+    server.start()
+    port = server.getLocalPort
+  }
+
+  after {
+    server.clearExpectations()
+    server.stop()
+  }
+
+  private var port = 0
+  private var server: StubServer = null
 }
