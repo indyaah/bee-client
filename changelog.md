@@ -1,3 +1,28 @@
+#### Thu, 07 Nov 2013
+* v0.24.0 - Config altered so that the proxy is optional. If no proxy is specified, the standard Java http.proxXxx settings control how proxying is handled. If NO_PROXY is specified, connections are always direct (which is slightly faster). Otherwise, a general or per-request proxy can be used as required.
+* Note that Betamax has been removed from the dependencies; JavaStubServer is sufficient for stub-based testing (now at v0.12).
+
+
+#### Tue, 05 Nov 2013
+* Adjusts the Config parameter Proxy to an Option[Proxy]
+
+* This makes it so that the default state does not override the proxy specified on the JVM command line
+
+* Tests are included using Betamax, which provides the simple proxy functionality.
+
+
+#### Mon, 21 Oct 2013
+* v0.23.1 - Further work on equals and hashCode methods in RequestBody.
+
+
+#### Mon, 21 Oct 2013
+* v0.23.1 - Further work on equals and hashCode methods in RequestBody.
+
+
+#### Sun, 20 Oct 2013
+* v0.23.1 - RequestBody now implements equals and hashCode methods
+
+
 #### Sun, 13 Oct 2013
 * v0.23.0 - new AcceptValue exists for constructing well-formed Accept request headers easily.
 * - CmmaListValue and SemicolonListValue apply methods have been renamed split because that's what they does.
@@ -34,10 +59,6 @@
 
 #### Mon, 22 Jul 2013
 * v0.22.4 - Status class improved so that equality testing does the more intuitive thing of testing only the status code (i.e. any difference in the documentary message is ignored).
-
-
-#### Thu, 11 Jul 2013
-* v0.22.3 - byte-to-string decoding is now more intelligent also fixed in InputStreamResponseBody.
 
 
 #### Thu, 11 Jul 2013

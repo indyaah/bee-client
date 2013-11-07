@@ -36,7 +36,6 @@ import java.util.zip._
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import java.net.URL
 import util.HttpUtil._
-import com.pyruby.stubserver
 
 
 class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
@@ -44,7 +43,7 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
   import HttpClientTestUtils._
 
   val url = "/some/url"
-  val config = Config(connectTimeout = 15000, readTimeout = 10000)
+  val config = Config(connectTimeout = 15000, readTimeout = 20000)
 
   private def convertHeaderList(headers: List[Header]): List[com.pyruby.stubserver.Header] = {
     headers.map {
@@ -275,8 +274,10 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
   }
 
   before {
-    server = new StubServer(port)
+    server = new StubServer()
     server.start()
+    port = server.getLocalPort
+    baseUrl = "http://localhost:" + port
   }
 
   after {
@@ -284,10 +285,9 @@ class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
     server.stop()
   }
 
-  // TODO use ephemeral port selection like Jetty does
-  private val port = (java.lang.Math.random * 16000 + 10000).asInstanceOf[Int]
-  private val baseUrl = "http://localhost:" + port
-  private var server: StubServer = null
+  private var port = 0
+  private var baseUrl: String = _
+  private var server: StubServer = _
 }
 
 object HttpClientTestUtils {

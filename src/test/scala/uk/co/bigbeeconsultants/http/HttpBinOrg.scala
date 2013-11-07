@@ -48,12 +48,12 @@ object HttpBinOrg extends App with Assertions {
 
   val serverUrl = "httpbin.org"
 
-    val proxyAddress = new InetSocketAddress("localhost", 8888)
-    val proxy = Some(new Proxy(Proxy.Type.HTTP, proxyAddress))
-//  val proxy = Proxy.NO_PROXY
+//    val proxyAddress = new InetSocketAddress("localhost", 8888)
+//    val proxy = Some(new Proxy(Proxy.Type.HTTP, proxyAddress))
+  val proxy = Proxy.NO_PROXY
 
   implicit val config = Config(connectTimeout = 10000, readTimeout = 10000,
-    followRedirects = false, proxy = proxy,
+    followRedirects = false, proxy = Some(proxy),
     sslSocketFactory = Some(DumbTrustManager.sslSocketFactory),
     hostnameVerifier = Some(DumbTrustManager.hostnameVerifier))
 
@@ -183,7 +183,7 @@ object HttpBinOrg extends App with Assertions {
 
 
   val realm = "me@kennethreitz.com"
-  digestAuth(httpClient, serverUrl + "/digest-auth/auth/fred/bloggs")
+  //TODO digestAuth(httpClient, serverUrl + "/digest-auth/auth/fred/bloggs")
 
   private def digestAuth(http: Http, urlStr: String) {
     val registry = new AuthenticationRegistry(new CredentialSuite(Map(realm -> fredBloggs)))
@@ -206,8 +206,8 @@ object HttpBinOrg extends App with Assertions {
   val browserWithCreds = new HttpBrowser(config, CookieJar.Empty, new CredentialSuite(Map("Fake Realm" -> fredBloggs, realm -> fredBloggs)))
   automaticAuth(browserWithCreds, serverUrl + "/basic-auth/fred/bloggs")
   automaticAuth(browserWithCreds, serverUrl + "/basic-auth/fred/bloggs")
-  automaticAuth(browserWithCreds, serverUrl + "/digest-auth/auth/fred/bloggs")
-  automaticAuth(browserWithCreds, serverUrl + "/digest-auth/auth/fred/bloggs")
+  //TODO automaticAuth(browserWithCreds, serverUrl + "/digest-auth/auth/fred/bloggs")
+  //TODO automaticAuth(browserWithCreds, serverUrl + "/digest-auth/auth/fred/bloggs")
 
   private def automaticAuth(http: Http, urlStr: String) {
     for (url <- httpAndHttpsUrls(urlStr)) {

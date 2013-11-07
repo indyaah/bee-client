@@ -20,7 +20,8 @@ class ProxyTest extends FunSuite with ShouldMatchers with BeforeAndAfter {
     System.setProperty("http.proxyHost", "localhost")
     System.setProperty("http.proxyPort", port.toString)
     try {
-      val client = new HttpClient(vanillaConfig)
+      val conf = vanillaConfig.copy(proxy = None)
+      val client = new HttpClient(conf)
       val url = "http://www.example.nope/test"
       val stubbedMethod = StubMethod.get("/test")
       server.expect(stubbedMethod).thenReturn(200, TEXT_PLAIN, expectedBody)
