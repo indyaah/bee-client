@@ -28,12 +28,12 @@ import auth.{AuthenticationRegistry, CredentialSuite, Credential}
 import HttpClient._
 import header.MediaType._
 import header.HeaderName._
-import java.net.{InetSocketAddress, Proxy, URL}
+import java.net.{Proxy, URL}
 import header._
 import org.scalatest.Assertions
 import request.RequestBody
 import url.Domain
-import util.{JSONWrapper, DumbTrustManager}
+import util.JSONWrapper
 import org.scalatest.exceptions.TestFailedException
 
 /**
@@ -53,9 +53,7 @@ object HttpBinOrg extends App with Assertions {
   val proxy = Proxy.NO_PROXY
 
   implicit val config = Config(connectTimeout = 10000, readTimeout = 10000,
-    followRedirects = false, proxy = Some(proxy),
-    sslSocketFactory = Some(DumbTrustManager.sslSocketFactory),
-    hostnameVerifier = Some(DumbTrustManager.hostnameVerifier))
+    followRedirects = false, proxy = Some(proxy)).allowInsecureSSL
 
   var httpClient = new HttpClient(config)
   var httpBrowser = new HttpBrowser(config)

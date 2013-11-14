@@ -2,7 +2,6 @@ package uk.co.bigbeeconsultants.http
 
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import org.scalatest.matchers.ShouldMatchers
-import uk.co.bigbeeconsultants.http.util.DumbTrustManager
 import java.net.{UnknownHostException, InetSocketAddress, Proxy}
 import com.pyruby.stubserver.{StubMethod, StubServer}
 import uk.co.bigbeeconsultants.http.header.MediaType._
@@ -11,10 +10,7 @@ class ProxyTest extends FunSuite with ShouldMatchers with BeforeAndAfter {
 
   val expectedBody = "Hey look some text"
 
-  val vanillaConfig = Config(
-    sslSocketFactory = Some(DumbTrustManager.sslSocketFactory),
-    hostnameVerifier = Some(DumbTrustManager.hostnameVerifier)
-  )
+  val vanillaConfig = Config().allowInsecureSSL
 
   test("Http should work with a proxy without being configured") {
     System.setProperty("http.proxyHost", "localhost")

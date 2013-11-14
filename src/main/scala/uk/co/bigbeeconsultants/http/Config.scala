@@ -29,7 +29,10 @@ import header.HeaderName._
 import java.net.Proxy
 import header.Headers
 import request._
-import javax.net.ssl.{SSLSocketFactory, HostnameVerifier}
+import javax.net.ssl._
+import java.security.cert.X509Certificate
+import java.security.SecureRandom
+import scala.Some
 
 /**
  * Specifies configuration options that will be used across many requests or for a particular request.
@@ -77,6 +80,32 @@ case class Config(connectTimeout: Int = 2000,
                   preRequests: List[PreRequest] = Config.standardSetup) {
 
   require(maxRedirects > 1, maxRedirects + ": too few maxRedirects")
+
+  /**
+   * Constructs a new copy of `this` that suppresses the normal SSL/TLS security checks on hostnames. This will allow
+   * insecure https connections and must be used with care.
+   */
+  def allowInsecureSSLHostnames: Config = copy(hostnameVerifier = Some(DumbHostnameVerifier))
+
+  /**
+   * Constructs a new copy of `this` that suppresses the normal SSL/TLS certificate checks. This will allow
+   * insecure https connections and must be used with care.
+   */
+  def allowInsecureSSLCertificates: Config = copy(sslSocketFactory = Some(DumbTrustManager.createInsecureSSLSocketFactory))
+
+  /**
+   * Constructs a new copy of `this` that suppresses the normal SSL/TLS security checks. This applies
+   * both `allowInsecureSSLHostnames` and `allowInsecureSSLCertificates`.
+   *
+   * This will allow insecure https connections and must be used with care.
+   * Using this is similar to "curl -k" and is useful for self-signed certificates, typically during development only.
+   * Be very careful not to use it where security matters.
+   *
+   * Note that there is an alternative: you can capture the self-signed certificate with your web browser and put
+   * it in your keystore. Both techniques are described here:
+   * http://stackoverflow.com/questions/2893819/telling-java-to-accept-self-signed-ssl-certificate
+   */
+  def allowInsecureSSL: Config = allowInsecureSSLHostnames.allowInsecureSSLCertificates
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -130,4 +159,26 @@ object Config {
       sslSocketFactory,
       commonRequestHeaders)
   }
+}
+
+private[http] object DumbTrustManager extends X509TrustManager {
+  def getAcceptedIssuers: Array[X509Certificate] = null
+
+  def checkClientTrusted(certs: Array[X509Certificate], authType: String) {}
+
+  def checkServerTrusted(certs: Array[X509Certificate], authType: String) {}
+
+  def createInsecureSSLSocketFactory: SSLSocketFactory = {
+    // Create a new trust manager that trusts all certificates
+    val trustAllCerts = Array[TrustManager](this)
+
+    // Activate the new trust manager
+    val sc = SSLContext.getInstance("SSL")
+    sc.init(Array[KeyManager](), trustAllCerts, new SecureRandom())
+    sc.getSocketFactory
+  }
+}
+
+private[http] object DumbHostnameVerifier extends HostnameVerifier {
+  def verify(p1: String, p2: SSLSession) = true
 }

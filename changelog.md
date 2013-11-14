@@ -1,4 +1,8 @@
 #### Thu, 07 Nov 2013
+* v0.24.0 - Config proxy default value is as per v0.23, i.e. NO_PROXY. This means that the -Dhttp.proxyXxxx properties will not work by default, but only when the proxy is explicity set to None. This ensures that a lesser-used feature doesn't impact the majority use case of direct connections.
+
+
+#### Thu, 07 Nov 2013
 * v0.24.0 - Config altered so that the proxy is optional. If no proxy is specified, the standard Java http.proxXxx settings control how proxying is handled. If NO_PROXY is specified, connections are always direct (which is slightly faster). Otherwise, a general or per-request proxy can be used as required.
 * Note that Betamax has been removed from the dependencies; JavaStubServer is sufficient for stub-based testing (now at v0.12).
 

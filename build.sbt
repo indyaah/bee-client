@@ -26,8 +26,9 @@ name := "bee-client"
 
 organization := "uk.co.bigbeeconsultants"
 
-version := "0.24.0"
+version := "0.24.1"
 
+// 2.10.1 suffices for all micro versions of 2.10
 crossScalaVersions := Seq("2.9.0", "2.9.1", "2.9.2", "2.9.3", "2.10.1")
 
 publishMavenStyle := true

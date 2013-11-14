@@ -35,7 +35,7 @@ import org.scalatest.{BeforeAndAfter, FunSuite}
 import java.net.{UnknownHostException, ConnectException, Proxy, URL}
 import java.io.File
 import url.Domain
-import uk.co.bigbeeconsultants.http.util.{Duration, DiagnosticTimer, DumbTrustManager}
+import uk.co.bigbeeconsultants.http.util.{Duration, DiagnosticTimer}
 import header.{HeaderName, Headers}
 // scala actors futures retain 2.9.1 backward compatibility
 import scala.actors._
@@ -71,7 +71,7 @@ object HttpIntegration {
   private val jsonSample = """{ "x": 1, "y": true }"""
   private val jsonBody = RequestBody(jsonSample, APPLICATION_JSON)
 
-  val configNoRedirects = Config(connectTimeout = 20000, followRedirects = false, proxy = proxy)
+  val configNoRedirects = Config(connectTimeout = 20000, followRedirects = false, proxy = proxy).allowInsecureSSL
 
   /** Provides a single-threaded soak-tester. */
   def main(args: Array[String]) {
@@ -146,8 +146,6 @@ object HttpIntegration {
 class HttpIntegration extends FunSuite with BeforeAndAfter {
 
   import HttpIntegration._
-
-  DumbTrustManager.install()
 
   def headTest(http: Http, url: String, size: Long) {
     try {
@@ -281,7 +279,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       assert(200 === response.status.code, url)
       val body = response.body
       assert(TEXT_PLAIN.value === body.contentType.value, url)
-      assert(true === body.toString.startsWith("Lorem "), url)
+      assert(true === body.toString().startsWith("Lorem "), url)
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
@@ -301,7 +299,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       assert(200 === response.status.code, url)
       val body = response.body
       assert(TEXT_PLAIN.value === body.contentType.value, url)
-      assert(true === body.toString.startsWith("Lorem "), url)
+      assert(true === body.toString().startsWith("Lorem "), url)
       assert(cookie === response.cookies.get.find(_.name == "c1").get, url)
       assert("ok" === response.cookies.get.find(_.name == "redirect1").get.value, url)
       assert("ok" === response.cookies.get.find(_.name == "redirect2").get.value, url)
@@ -320,7 +318,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       assert(200 === response.status.code, url)
       val body = response.body
       assert(TEXT_PLAIN.value === body.contentType.value, url)
-      assert(true === body.toString.startsWith("Lorem "), url)
+      assert(true === body.toString().startsWith("Lorem "), url)
       assert(cookie === response.cookies.get.find(_.name == "c1").get, url)
       assert("ok" === response.cookies.get.find(_.name == "redirect1").get.value, url)
       assert("ok" === response.cookies.get.find(_.name == "redirect2").get.value, url)
@@ -345,7 +343,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       assert(200 === response.status.code, url)
       val body = response.body
       assert(TEXT_PLAIN.value === body.contentType.value, url)
-      val bodyLines = response.body.toString.split("\n").toSeq
+      val bodyLines = response.body.toString().split("\n").toSeq
       assert("" === extractLineFromResponse("CONTENT_LENGTH", bodyLines), response.body)
       assert("" === extractLineFromResponse("CONTENT_TYPE", bodyLines), response.body)
       assert(Set("A: 1", "B: 2") === bodyLines.filter(_.startsWith("GET:")).map(_.substring(5)).toSet, response.body)
@@ -488,7 +486,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
     val http = new HttpClient(configNoRedirects)
     try {
       val loops = 1
-      val before = System.currentTimeMillis()
+      val timer = new DiagnosticTimer
       for (i <- 1 to loops) {
         val response = http.get(new URL(url + "?n=" + i), gzipHeaders)
         assert(200 === response.status.code, url)
@@ -496,10 +494,10 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
         val bytes = response.body.asBytes
         assert(testPhotoSize === bytes.length, url)
       }
-      val duration = System.currentTimeMillis() - before
+      val duration = timer.duration.microseconds
       val bytes = BigDecimal(testPhotoSize * loops)
-      val rate = (bytes / duration)
-      println(bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
+      val rate = bytes / duration
+      println(bytes + " bytes took " + timer.duration + " at " + rate + " kbyte/sec")
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
@@ -517,7 +515,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       var size = -1
       var first = "NOT SET"
       val loops = 20
-      val before = System.currentTimeMillis()
+      val timer = new DiagnosticTimer
       var ok = true
       for (i <- 1 to loops) {
         if (ok) {
@@ -544,10 +542,10 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
         }
       }
 
-      val duration = System.currentTimeMillis() - before
+      val duration = timer.duration.microseconds
       val bytes = BigDecimal(size * loops)
-      val rate = if (duration > 0) (bytes / duration) else 0
-      //println(bytes + " bytes took " + duration + "ms at " + rate + " kbyte/sec")
+      val rate = if (duration > 0) bytes / duration else 0
+      println(bytes + " bytes took " + timer.duration + " at " + rate + " kbyte/sec")
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
