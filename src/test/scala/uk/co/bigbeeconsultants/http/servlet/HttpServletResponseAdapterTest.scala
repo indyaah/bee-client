@@ -26,14 +26,15 @@ package uk.co.bigbeeconsultants.http.servlet
 
 import org.scalatest.FunSuite
 import org.mockito.Mockito._
+import java.io.ByteArrayInputStream
+import java.net.URL
+import javax.servlet.http.HttpServletResponse
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.header.{MediaType, Headers}
-import javax.servlet.http.HttpServletResponse
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import uk.co.bigbeeconsultants.http.HttpClient
 import uk.co.bigbeeconsultants.http.request.Request
-import java.net.URL
 import uk.co.bigbeeconsultants.http.response.Status
+import uk.co.bigbeeconsultants.http.url.Href
+import uk.co.bigbeeconsultants.http._
 
 class HttpServletResponseAdapterTest extends FunSuite {
 
@@ -45,19 +46,31 @@ class HttpServletResponseAdapterTest extends FunSuite {
   }
 
   test("HttpServletResponseAdapter copy content") {
-    val s = """So shaken as we are, so wan with care!"""
-    val inputStream = new ByteArrayInputStream(s.getBytes(HttpClient.UTF8))
+    val downstreamContent =
+      "So shaken as we are, so wan with care! link:'http://target.myco.co.uk/base/content/example.json'\n"
+    val upstreamContent =
+      "So shaken as we are, so wan with care! link:'http://localhost:8080/content/example.json'\n"
+    val inputStream = new ByteArrayInputStream(downstreamContent.getBytes(HttpClient.UTF8))
     val request = Request.get(new URL("http://krum/"))
     val servletResponse = mock(classOf[HttpServletResponse])
     val sos = new CaptureOutputStream
     when(servletResponse.getOutputStream) thenReturn sos
 
-    val adapter = new HttpServletResponseAdapter(servletResponse, None)
-    adapter.responseBuilder.captureResponse(request, Status.S200_OK, Some(MediaType.TEXT_PLAIN), Headers(), None, inputStream)
+    val upstreamStr = "http://localhost:8080"
+    val downstreamStr = "http://target.myco.co.uk/base"
+    val upstreamBase = Href(upstreamStr)
+    val downstreamBase = Href(downstreamStr)
+    val m = new DefaultURLMapper(upstreamBase, downstreamBase)
+
+    val responseBodyFilter = TextualBodyFilter(m.rewriteResponse, AllTextualMediaTypes)
+    val adapter = new HttpServletResponseAdapter(servletResponse, Some(responseBodyFilter))
+    val headers = Headers(CONTENT_LENGTH -> downstreamContent.length.toString)
+    adapter.responseBuilder.captureResponse(request, Status.S200_OK, Some(MediaType.TEXT_PLAIN), headers, None, inputStream)
     adapter.sendResponse()
     verify(servletResponse).setStatus(200, "OK")
+    verify(servletResponse).setHeader(CONTENT_LENGTH.name, upstreamContent.length.toString)
     verify(servletResponse, times(2)).getOutputStream
-    assert(new String(sos.toByteArray) === s)
+    assert(new String(sos.toByteArray) === upstreamContent)
     verifyNoMoreInteractions(servletResponse)
   }
 }

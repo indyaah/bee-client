@@ -38,6 +38,7 @@ import uk.co.bigbeeconsultants.http.servlet
  *
  * This base class simply passes through all requests unchanged. It simply provides a hook for subclassing.
  */
+@deprecated("This will be removed from future versions.", "0.25.1")
 class URLMapper {
   def mapToDownstream(href: String): Href = mapToDownstream(Href(href))
 
@@ -54,6 +55,7 @@ class URLMapper {
 
 //---------------------------------------------------------------------------------------------------------------------
 
+@deprecated("This will be removed from future versions.", "0.25.1")
 object URLMapper {
   /** Singleton for no-op behaviour. */
   val noop = new URLMapper
@@ -64,6 +66,7 @@ object URLMapper {
 /**
  * Provides newly constructed instances of [[uk.co.bigbeeconsultants.http.servlet.DefaultURLMapper]].
  */
+@deprecated("This will be removed from future versions.", "0.25.1")
 class URLMapperFactory(upstreamCpLength: Int, downstreamBase: Href) {
   def getMapper(requestUrl: Href): URLMapper = {
     val upstreamBase = requestUrl.copy(path = requestUrl.path.take(upstreamCpLength), query = None, fragment = None)
@@ -77,6 +80,7 @@ class URLMapperFactory(upstreamCpLength: Int, downstreamBase: Href) {
  * Extends [[uk.co.bigbeeconsultants.http.servlet.URLMapper]] to provide a convenient mapping from one URL
  * namespace to another.
  */
+@deprecated("This will be removed from future versions.", "0.25.1")
 class DefaultURLMapper(upstreamBase: Href, downstreamBase: Href) extends URLMapper {
   require(upstreamBase.isURL == downstreamBase.isURL,
     upstreamBase + " and " + downstreamBase + " : upstream and downstream sides must be compatible.")

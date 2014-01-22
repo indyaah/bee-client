@@ -35,6 +35,7 @@ import url.{Endpoint, Path, Href}
  * reverse proxying to be implemented easily.
  * @param textualBodyFilter an optional mutation that may be applied to every line of the body content.
  */
+@deprecated("This will be removed from future versions.", "0.25.1")
 class HttpServletRequestAdapter(req: HttpServletRequest,
                                 textualBodyFilter: Option[TextualBodyFilter] = None) {
 

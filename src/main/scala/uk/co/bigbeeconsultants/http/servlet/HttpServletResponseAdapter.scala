@@ -48,6 +48,7 @@ import java.io.{ByteArrayOutputStream, IOException}
  * @param resp the response to be created
  * @param textualBodyFilter an optional mutation that may be applied to every line of the body content.
  */
+@deprecated("This will be removed from future versions.", "0.25.1")
 class HttpServletResponseAdapter(resp: HttpServletResponse,
                                  textualBodyFilter: Option[TextualBodyFilter] = None) {
 
@@ -106,7 +107,7 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
     val cookies = response.cookies
 
     val baos = new ByteArrayOutputStream()
-    copyString(body.asString, resp.getOutputStream, body.contentType.charsetOrUTF8, textualBodyFilter.get.lineProcessor)
+    copyString(body.asString, baos, body.contentType.charsetOrUTF8, textualBodyFilter.get.lineProcessor)
 
     val bytes = baos.toByteArray
     val contentLength = EntityHeaderName.CONTENT_LENGTH -> bytes.length.toString
@@ -135,6 +136,7 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
   }
 }
 
+@deprecated("This will be removed from future versions.", "0.25.1")
 object HttpServletResponseAdapter {
   def apply(resp: HttpServletResponse, urlMapper: URLMapper) = {
     val textFilter: TextFilter = urlMapper.rewriteResponse

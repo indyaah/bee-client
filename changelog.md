@@ -1,3 +1,9 @@
+#### Wed, 22 Jan 2014
+* v0.25
+* - A simplified URLMapper now works.
+* - HttpServletResponseAdapter processes textual responses differently and passes on a correct content-length now.
+
+
 #### Thu, 14 Nov 2013
 * v0.24.1 - Config now provides an easy way allow insecure SSL connections for development purposes.
 

@@ -35,6 +35,7 @@ import uk.co.bigbeeconsultants.http.url.Href
  * type-conversion problems that plague Mockito in Scala. Typically, java.util.Enumeration cannot be
  * created in a way that satisfies the Scala compiler
  */
+@deprecated("This will be removed from future versions.", "0.25.1")
 class StubHttpServletRequest extends HttpServletRequest {
   var authType = ""
   var characterEncoding = ""

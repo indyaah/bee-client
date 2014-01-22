@@ -35,5 +35,6 @@ import uk.co.bigbeeconsultants.http._
  *                      function is ignored. A suggested alternative value is `AllTextualMediaTypes`. Note that there
  *                      are no possible values that will force the conversion of binary content to text.
  */
+@deprecated("This will be removed from future versions.", "0.25.1")
 case class TextualBodyFilter(lineProcessor: TextFilter = NoChangeTextFilter,
                              processAsText: MediaFilter = NoMediaTypes)
