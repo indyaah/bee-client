@@ -29,7 +29,7 @@ import uk.co.bigbeeconsultants.http.util.HttpUtil
 /**
  * Defines an HTTP header value consisting of a list of values.
  */
-abstract class ListValue(parts: List[String]) extends Value with IndexedSeq[String] {
+abstract class ListValue(parts: List[String]) extends IndexedSeq[String] with Value {
 
   def isValid = true
 

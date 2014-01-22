@@ -64,6 +64,9 @@ object WarningValue {
         case e: RuntimeException =>
           logger.error("{}: failed to parse warning. {}", Array(value, e.getMessage))
           new WarningValue(value, false, 0, "", "", None)
+        case pe: ParseException =>
+          logger.error("{}: failed to parse warning. {}", Array(value, pe.getMessage))
+          new WarningValue(value, false, 0, "", "", None)
       }
   }
 }
