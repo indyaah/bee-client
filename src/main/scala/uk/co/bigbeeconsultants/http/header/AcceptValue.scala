@@ -31,16 +31,14 @@ case class AcceptValue(parts: List[Qualifiers] = Nil) extends Value {
 
   import AcceptValue._
 
-  def value = parts map (_.toString) mkString ", "
+  lazy val value = parts map (_.toString) mkString ", "
 
   lazy val isValid = {
     parts forall {
       _.qualifiers forall {
-        _ match {
-          case NameVal(_, None) => true
-          case NameVal("q", Some(v)) => QualityPattern.matcher(v).matches
-          case _ => false
-        }
+        case NameVal(_, None) => true
+        case NameVal("q", Some(v)) => QualityPattern.matcher(v).matches
+        case _ => false
       }
     }
   }

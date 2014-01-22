@@ -26,7 +26,7 @@ name := "bee-client"
 
 organization := "uk.co.bigbeeconsultants"
 
-version := "0.25.1"
+version := "0.25.2"
 
 // 2.10.1 suffices for all micro versions of 2.10
 crossScalaVersions := Seq("2.9.0", "2.9.1", "2.9.2", "2.9.3", "2.10.1")
@@ -45,7 +45,7 @@ homepage := Some(url("http://www.bigbeeconsultants.co.uk/bee-client"))
 
 // append several options to the list of options passed to the Java compiler
 //javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
 
 // append -deprecation to the options passed to the Scala compiler
 //scalacOptions += "-deprecation"

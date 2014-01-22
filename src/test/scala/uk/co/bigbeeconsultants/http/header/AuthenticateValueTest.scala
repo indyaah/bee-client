@@ -36,6 +36,7 @@ class AuthenticateValueTest extends FunSuite {
     assert("Basic" === v.authScheme)
     assert(1 === v.parts.size)
     assert("private" === v.realm.get)
+    assert("Basic realm=\"private\"" === v.value)
     assert("Basic realm=\"private\"" === v.toString)
     assert(v.isValid)
   }

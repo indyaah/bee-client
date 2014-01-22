@@ -45,6 +45,11 @@ case class MediaType(mainType: String, subtype: String, charset: Option[String] 
   /** Gets this media type as a Qualifiers, which is the form used within QualifiedValue. */
   def toQualifiers = Qualifiers(toString)
 
+  /**
+   * Gets `value` and appends the charset, if known.
+   *
+   * This is the only kind of `Value` for which `value` and `toString` may return different results.
+   */
   override lazy val toString =
     if (charset.isEmpty) value
     else value + ";charset=" + charset.get

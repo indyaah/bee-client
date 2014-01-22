@@ -24,20 +24,33 @@
 
 package uk.co.bigbeeconsultants.http.header
 
+import java.text.ParseException
+import org.slf4j.LoggerFactory
+
 /**
  * Holds a number as typically used in an HTTP header. Such numbers are normally positive integers and may or may not
  * fit into a 32-bit representation.
  */
 case class NumberValue(value: String) extends Value {
 
-  // Number values are always positive integral numbers in HTTP headers.
-  def isValid = value.matches("[0-9]+")
+  private val logger = LoggerFactory.getLogger(getClass)
+  private var valid = false
+  private var _number = 0L
+  try {
+    _number = value.toLong
+    // Number values are always positive integral numbers in HTTP headers.
+    valid = _number >= 0
+  } catch {
+    case e: NumberFormatException =>
+      logger.error("{}: failed to parse number. {}", Array(value, e.getMessage))
+  }
 
-  /** Converts the value to an integer. */
-  @throws(classOf[NumberFormatException])
-  def toInt: Int = value.toInt
+  /** True iff the date was parsed correctly. Otherwise the values string does not represent a date correctly. */
+  val isValid = valid
 
   /** Converts the value to a long. */
-  @throws(classOf[NumberFormatException])
-  def toLong: Long = value.toLong
+  def toLong = _number
+
+  /** Converts the value to an integer. */
+  def toInt = _number.toInt
 }

@@ -29,7 +29,9 @@ import uk.co.bigbeeconsultants.http.util.HttpUtil
 /**
  * Defines an HTTP header value consisting of a list of values.
  */
-abstract class ListValue(parts: List[String]) extends IndexedSeq[String] {
+abstract class ListValue(parts: List[String]) extends Value with IndexedSeq[String] {
+
+  def isValid = true
 
   override def apply(i: Int) = parts(i)
 
@@ -48,7 +50,7 @@ abstract class ListValue(parts: List[String]) extends IndexedSeq[String] {
 case class CommaListValue(parts: List[String]) extends ListValue(parts) {
   def toQualifiedValue = new QualifiedValue(this)
 
-  override lazy val toString = parts.mkString(", ")
+  override lazy val value = parts.mkString(", ")
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -59,7 +61,7 @@ case class CommaListValue(parts: List[String]) extends ListValue(parts) {
 case class SemicolonListValue(parts: List[String]) extends ListValue(parts) {
   def toQualifiers = Qualifiers(this)
 
-  override lazy val toString = parts.mkString("; ")
+  override lazy val value = parts.mkString("; ")
 }
 
 //---------------------------------------------------------------------------------------------------------------------

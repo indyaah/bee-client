@@ -28,7 +28,10 @@ import uk.co.bigbeeconsultants.http.util.HttpUtil._
 
 trait Value {
   def value: String
+
   def isValid: Boolean
+
+  override def toString = value
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -59,6 +62,9 @@ case class Header(name: String, value: String) {
 
   /** Converts the value to a media type. */
   def toMediaType = MediaType(value)
+
+  /** Converts the value to a warning value. */
+  def toWarning = WarningValue(value)
 
   /** Header name equalsIgnoreCase other name. */
   def =~=(other: String) = name equalsIgnoreCase other

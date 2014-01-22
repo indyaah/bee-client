@@ -139,6 +139,4 @@ case class RangeValue(value: String) extends Value {
   def apply(i: Int) = parts(i).value
 
   def isValid = parts.forall(_.isValid)
-
-  override val toString = parts.mkString(",")
 }

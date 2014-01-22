@@ -1,4 +1,8 @@
 #### Wed, 22 Jan 2014
+* v0.25.1 - servlet interfacing adapters have been deprecated. These will be removed in a future release; the source code will be made available to anyone who wishes to continue using them.
+
+
+#### Wed, 22 Jan 2014
 * v0.25
 * - A simplified URLMapper now works.
 * - HttpServletResponseAdapter processes textual responses differently and passes on a correct content-length now.

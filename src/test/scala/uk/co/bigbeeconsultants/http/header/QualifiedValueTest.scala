@@ -81,6 +81,7 @@ class QualifiedValueTest extends FunSuite {
     assert ("audio/basic" === v(0).toString)
     assert ("audio/basic" === v.parts(0).value)
     assert ("audio/basic" === v.toString)
+    assert ("audio/basic" === v.value)
     assert(v.isValid)
   }
 
@@ -110,6 +111,7 @@ class QualifiedValueTest extends FunSuite {
     assert (".2" === v(0)(1).value.get)
     assert ("audio/basic" === v(1).toString)
     assert ("audio/*;q=.2, audio/basic" === v.toString)
+    assert ("audio/*;q=.2, audio/basic" === v.value)
     assert(v.isValid)
   }
 

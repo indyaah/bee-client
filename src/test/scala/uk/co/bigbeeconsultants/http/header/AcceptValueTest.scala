@@ -31,6 +31,7 @@ class AcceptValueTest extends FunSuite {
   test("one media type") {
     val v = AcceptValue(MediaType.TEXT_HTML)
     assert(v.value === "text/html")
+    assert(v.toString === "text/html")
     assert(v.isValid)
   }
 
@@ -51,6 +52,7 @@ class AcceptValueTest extends FunSuite {
 
     val v2 = v1 + MediaType.TEXT_CSS
     assert(v2.value === "text/html, text/css")
+    assert(v2.toString === "text/html, text/css")
     assert(v2.isValid)
 
     val v3 = v2.append(MediaType.TEXT_CSV, 0.2f)

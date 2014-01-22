@@ -61,6 +61,7 @@ class RangeValueTest extends FunSuite {
     val r = RangeValue("bytes=0-499")
     assert (true === r.isValid)
     assert ("bytes=0-499" === r.toString)
+    assert ("bytes=0-499" === r.value)
     assert ((0, 500) === r(0).left.get.of(10000))
   }
 
@@ -76,17 +77,20 @@ class RangeValueTest extends FunSuite {
     val r = RangeValue("bytes")
     assert (true === r.isValid)
     assert ("bytes" === r.toString)
+    assert ("bytes" === r.value)
   }
 
   test ("RangeValue none") {
     val r = RangeValue("none")
     assert (true === r.isValid)
     assert ("none" === r.toString)
+    assert ("none" === r.value)
   }
 
   test ("RangeValue invalid") {
     val r = RangeValue("invalid")
     assert (false === r.isValid)
     assert ("invalid" === r.toString)
+    assert ("invalid" === r.value)
   }
 }

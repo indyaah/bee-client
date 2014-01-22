@@ -123,9 +123,7 @@ case class QualifiedValue(list: CommaListValue) extends Iterable[Qualifiers] wit
 
   override def iterator = parts.iterator
 
-  override lazy val toString = parts.mkString(", ")
-
-  def value = toString
+  lazy val value = parts.mkString(", ")
 }
 
 //---------------------------------------------------------------------------------------------------------------------
