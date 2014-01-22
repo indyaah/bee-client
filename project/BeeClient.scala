@@ -43,7 +43,7 @@ object BeeClient extends Build {
       libraryDependencies ++= Seq(
         slf4jApi, servletApi,
         // for testing
-        jettyEmbedded, scalatest, mockito,
+        jettyEmbedded, scalatest, mockito, junit,
         logbackCore, logbackClassic, jsontools, javastubserver
       )
     // plus all the jars in the lib folder

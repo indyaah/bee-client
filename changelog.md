@@ -1,3 +1,7 @@
+#### Thu, 14 Nov 2013
+* v0.24.1 - Config now provides an easy way allow insecure SSL connections for development purposes.
+
+
 #### Thu, 07 Nov 2013
 * v0.24.0 - Config proxy default value is as per v0.23, i.e. NO_PROXY. This means that the -Dhttp.proxyXxxx properties will not work by default, but only when the proxy is explicity set to None. This ensures that a lesser-used feature doesn't impact the majority use case of direct connections.
 

@@ -12,7 +12,7 @@ object Example1b {
   val httpClient = new HttpClient(config)
 
   def main(args: Array[String]) {
-    val response = httpClient.get("http://www.x.org/")
+    val response = httpClient.get("http://x.org/")
 
     println(response.status.code) // prints "302"
     println(response.headers(LOCATION).value) // prints "/wiki/"

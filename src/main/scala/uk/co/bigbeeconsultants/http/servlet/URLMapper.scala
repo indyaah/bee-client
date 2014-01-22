@@ -22,10 +22,11 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.http.request
+package uk.co.bigbeeconsultants.http.servlet
 
 import java.util.regex.Pattern
 import uk.co.bigbeeconsultants.http.url.{Path, Href}
+import uk.co.bigbeeconsultants.http.servlet
 
 /**
  * Provides a convenient decoupling between an application's upstream hrefs and the downstream URLs that need to
@@ -61,7 +62,7 @@ object URLMapper {
 //---------------------------------------------------------------------------------------------------------------------
 
 /**
- * Provides newly constructed instances of [[uk.co.bigbeeconsultants.http.request.DefaultURLMapper]].
+ * Provides newly constructed instances of [[uk.co.bigbeeconsultants.http.servlet.DefaultURLMapper]].
  */
 class URLMapperFactory(upstreamCpLength: Int, downstreamBase: Href) {
   def getMapper(requestUrl: Href): URLMapper = {
@@ -73,22 +74,22 @@ class URLMapperFactory(upstreamCpLength: Int, downstreamBase: Href) {
 //---------------------------------------------------------------------------------------------------------------------
 
 /**
- * Extends [[uk.co.bigbeeconsultants.http.request.URLMapper]] to provide a convenient mapping from one URL
+ * Extends [[uk.co.bigbeeconsultants.http.servlet.URLMapper]] to provide a convenient mapping from one URL
  * namespace to another.
  */
 class DefaultURLMapper(upstreamBase: Href, downstreamBase: Href) extends URLMapper {
   require(upstreamBase.isURL == downstreamBase.isURL,
     upstreamBase + " and " + downstreamBase + " : upstream and downstream sides must be compatible.")
 
-  private val downstreamBaseStr = downstreamBase.toString + '/'
-  private val downstreamPath = downstreamBase.path.toString + '/'
-  private val upstreamBaseStr = upstreamBase.toString + '/'
-  private val upstreamPath = upstreamBase.path.toString + '/'
+  private val downstreamBaseStr = withTrailingSlash(downstreamBase.toString)
+  private val downstreamPath = withTrailingSlash(downstreamBase.path.toString)
+  private val upstreamBaseStr = withTrailingSlash(upstreamBase.toString)
+  private val upstreamPath = withTrailingSlash(upstreamBase.path.toString)
 
   private val compiledDownstreamAbs = Pattern.compile(downstreamBaseStr)
-  private val compiledDownstreamRel = Pattern.compile(downstreamPath)
+//  private val compiledDownstreamRel = Pattern.compile(downstreamPath)
   private val compiledUpstreamAbs = Pattern.compile(upstreamBaseStr)
-  private val compiledUpstreamRel = Pattern.compile(upstreamPath)
+//  private val compiledUpstreamRel = Pattern.compile(upstreamPath)
 
   private def map(from: Href, to: Href, href: Href): Href = {
     val path = new Path(true, to.path.segments ++ href.path.segments.drop(from.path.size))
@@ -108,18 +109,22 @@ class DefaultURLMapper(upstreamBase: Href, downstreamBase: Href) extends URLMapp
     map(downstreamBase, upstreamBase, href)
   }
 
-  private def rewrite2(fromAbs: Pattern, fromRel: Pattern, toAbs: String, toRel: String, content: String): String = {
+  private def rewrite2(fromAbs: Pattern, toAbs: String, content: String): String = {
     val pass1 = if (upstreamBase.isURL) fromAbs.matcher(content).replaceAll(toAbs) else content
-    val pass2 = fromRel.matcher(pass1).replaceAll(toRel)
+    val pass2 = pass1 //fromRel.matcher(pass1).replaceAll(toRel)
     pass2
   }
 
   override def rewriteRequest(content: String): String = {
-    rewrite2(compiledUpstreamAbs, compiledUpstreamRel, downstreamBaseStr, downstreamPath, content)
+    rewrite2(compiledUpstreamAbs, downstreamBaseStr, content)
   }
 
   override def rewriteResponse(content: String): String = {
-    rewrite2(compiledDownstreamAbs, compiledDownstreamRel, upstreamBaseStr, upstreamPath, content)
+    rewrite2(compiledDownstreamAbs, upstreamBaseStr, content)
+  }
+
+  def withTrailingSlash(s: String): String = {
+    if (s.endsWith("/")) s else s + '/'
   }
 }
 

@@ -51,6 +51,8 @@ object Dependencies {
 
   // ========== Test ==========
 
+  val junit = "junit" % "junit" % "4.11" % "test"
+
   val scalatest = "org.scalatest" %% "scalatest" % "1.9.1" % "test" withSources()
 
   //val scalacheck = "org.scalacheck" %% "scalacheck" % "1.10.1" % "test" withSources()

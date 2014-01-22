@@ -22,14 +22,18 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.http.request
+package uk.co.bigbeeconsultants.http.servlet
 
+import org.junit.runner.RunWith
 import org.scalatest.FunSuite
+import org.scalatest.junit.JUnitRunner
 import uk.co.bigbeeconsultants.http.url.Href
+import uk.co.bigbeeconsultants.http.util.HttpUtil._
 
+@RunWith(classOf[JUnitRunner])
 class URLMapperTest extends FunSuite {
 
-  val upstreamStr = "http://wombat/zzz"
+  val upstreamStr = "http://wombat.co.uk/zzz"
   val downstreamStr = "http://localhost/a/b/c"
   val upstreamBase = Href(upstreamStr)
   val downstreamBase = Href(downstreamStr)
@@ -47,13 +51,33 @@ class URLMapperTest extends FunSuite {
   test("DefaultURLMapper.rewriteRequest") {
     val m = new DefaultURLMapper(upstreamBase, downstreamBase)
     assert("first href='http://localhost/a/b/c/' and second href='http://localhost/a/b/c/foo/' too" ===
-      m.rewriteRequest("first href='http://wombat/zzz/' and second href='http://wombat/zzz/foo/' too"))
+      m.rewriteRequest("first href='http://wombat.co.uk/zzz/' and second href='http://wombat.co.uk/zzz/foo/' too"))
   }
 
   test("DefaultURLMapper.rewriteResponse") {
     val m = new DefaultURLMapper(upstreamBase, downstreamBase)
-    assert("first href='http://wombat/zzz/' and second href='http://wombat/zzz/foo/' too" ===
+    assert("first href='http://wombat.co.uk/zzz/' and second href='http://wombat.co.uk/zzz/foo/' too" ===
       m.rewriteResponse("first href='http://localhost/a/b/c/' and second href='http://localhost/a/b/c/foo/' too"))
   }
 
+  test("using json sample with no more than one url per line") {
+    val upstreamStr = "http://localhost:8080"
+    val downstreamStr = "http://prodserver.widgets.org/app"
+    val upstreamBase = Href(upstreamStr)
+    val downstreamBase = Href(downstreamStr)
+    val m = new DefaultURLMapper(upstreamBase, downstreamBase)
+
+    val localhostJson = loadFile("samples/aCustomer1.json")
+    val prodServerJson = loadFile("samples/aCustomer2.json")
+    val reqRewritten = m.rewriteRequest(localhostJson)
+    val resRewritten = m.rewriteResponse(prodServerJson)
+    assert(prodServerJson === reqRewritten)
+    assert(resRewritten === localhostJson)
+  }
+
+  private def loadFile(name: String) = {
+    val is = getClass.getClassLoader.getResourceAsStream(name)
+    assert(is != null, name)
+    new String(copyToByteArrayAndClose(is, 8192), "UTF-8")
+  }
 }

@@ -30,7 +30,7 @@ import header._
 import header.HeaderName._
 import response.BufferedResponseBuilder
 import util.HttpUtil._
-import java.io.IOException
+import java.io.{ByteArrayOutputStream, IOException}
 
 /**
  * Adapts HTTP Servlet response objects to the Light Http Client API. This allows a variety of solutions such as
@@ -63,10 +63,13 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
   /** Optionally, sets extra response headers before sending the response. */
   def setResponseHeaders(headers: Headers) {
     for (header <- headers.list) {
-      val value =
-        if (header.name == LOCATION.name && textualBodyFilter.isDefined) textualBodyFilter.get.lineProcessor(header.value)
-        else header.value
-      resp.setHeader(header.name, value)
+      header.name match {
+        case LOCATION.name if textualBodyFilter.isDefined =>
+          val modified = textualBodyFilter.get.lineProcessor(header.value)
+          resp.setHeader(header.name, modified)
+        case _ =>
+          resp.setHeader(header.name, header.value)
+      }
     }
   }
 
@@ -81,28 +84,60 @@ class HttpServletResponseAdapter(resp: HttpServletResponse,
   @throws(classOf[IOException])
   def sendResponse() {
     val status = response.status
-    val body = response.body
-    val headers = response.headers
-    val cookies = response.cookies
-
     try {
       resp.setStatus(status.code, status.message)
 
-      setResponseHeaders(headers)
-
-      if (cookies.isDefined) {
-        setResponseCookies(cookies.get)
-      }
-
-      if (textualBodyFilter.isDefined && textualBodyFilter.get.processAsText(body.contentType)) {
-        copyString(body.asString, resp.getOutputStream, body.contentType.charsetOrUTF8, textualBodyFilter.get.lineProcessor)
+      if (textualBodyFilter.isDefined && textualBodyFilter.get.processAsText(response.body.contentType)) {
+        sendTransformedTextResponse()
       }
       else {
-        copyArray(body.asBytes, resp.getOutputStream)
+        sendVerbatimResponse()
       }
 
     } finally {
       resp.getOutputStream.close()
     }
+  }
+
+  @throws(classOf[IOException])
+  private def sendTransformedTextResponse() {
+    val body = response.body
+    val headers = response.headers
+    val cookies = response.cookies
+
+    val baos = new ByteArrayOutputStream()
+    copyString(body.asString, resp.getOutputStream, body.contentType.charsetOrUTF8, textualBodyFilter.get.lineProcessor)
+
+    val bytes = baos.toByteArray
+    val contentLength = EntityHeaderName.CONTENT_LENGTH -> bytes.length.toString
+    setResponseHeaders(headers set contentLength)
+
+    if (cookies.isDefined) {
+      setResponseCookies(cookies.get)
+    }
+
+    copyArray(bytes, resp.getOutputStream)
+  }
+
+  @throws(classOf[IOException])
+  private def sendVerbatimResponse() {
+    val body = response.body
+    val headers = response.headers
+    val cookies = response.cookies
+
+    setResponseHeaders(headers)
+
+    if (cookies.isDefined) {
+      setResponseCookies(cookies.get)
+    }
+
+    copyArray(body.asBytes, resp.getOutputStream)
+  }
+}
+
+object HttpServletResponseAdapter {
+  def apply(resp: HttpServletResponse, urlMapper: URLMapper) = {
+    val textFilter: TextFilter = urlMapper.rewriteResponse
+    new HttpServletResponseAdapter(resp, Some(TextualBodyFilter(textFilter)))
   }
 }

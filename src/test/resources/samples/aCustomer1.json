@@ -1,0 +1,10 @@
+{"identityUID":"ID-101182","identityUsername":"henry@x.com","customerName":"Henry Smith",
+    "customerFullName":{"title":"Mr","forename":"Henry","surname":"Smith"},
+    "customerAddress":{"street":"12, Sharp St","postTown":"Reading","county":"Berkshire","postcode":"RG1 1AB","country":"UK"},
+        "links":[
+            {"rel":"urn:o2:createPrivateBasket","href":"http://localhost:8080/basketService/baskets/createPrivateBasket;by=msisdn/447521001182","method":"POST"},
+            {"rel":"urn:o2:listBaskets","href":"http://localhost:8080/basketService/listBaskets;for=msisdn/447521001182"},
+            {"rel":"urn:o2:sharedBasket","href":"http://localhost:8080/basketService/baskets/52def89331daf5e7a10eaacf"},
+            {"rel":"urn:o2:getSharedBasket","href":"http://localhost:8080/basketService/baskets/getSharedBasket;for=msisdn/447521001182"},
+            {"rel":"urn:o2:listUnacceptedOrders","href":"http://localhost:8080/orderService/listOrders;for=msisdn/447521001182"}
+        ]}
