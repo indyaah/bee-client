@@ -24,28 +24,62 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import java.text.ParseException
-import org.slf4j.LoggerFactory
+import org.scalatest.FunSuite
+import java.util.Date
 
-/**
- * Holds a header value that refers to a date.
- */
-case class DateValue(value: String) extends Value {
+class SecondsTest extends FunSuite {
 
-  private val logger = LoggerFactory.getLogger(getClass)
-  private var valid = false
-  private var _date = HttpDateTimeInstant.zero
-  try {
-    _date = HttpDateTimeInstant.parse(value)
-    valid = true
-  } catch {
-    case pe: ParseException =>
-      logger.error("{}: failed to parse date. {}", Array(value, pe.getMessage))
+   test("plus long") {
+     val now = Seconds.sinceEpoch
+     val later = now + 60
+     assert(60 === (later.seconds - now.seconds))
+   }
+
+   test("minus long") {
+     val now = Seconds.sinceEpoch
+     val later = now - 60
+     assert(-60 === (later.seconds - now.seconds))
+   }
+
+   test("plus Seconds") {
+     val now = Seconds.sinceEpoch
+     val later = now + Seconds(60)
+     assert(60 === (later.seconds - now.seconds))
+   }
+
+   test("minus Seconds") {
+     val now = Seconds.sinceEpoch
+     val later = now - Seconds(60)
+     assert(-60 === (later.seconds - now.seconds))
+   }
+
+  test("times long") {
+    val now = Seconds.sinceEpoch
+    val now5 = now * 5
+    assert(now5.seconds === now.seconds * 5)
   }
 
-  /** True iff the date was parsed correctly. Otherwise the values string does not represent a date correctly. */
-  val isValid = valid
+  test("divide long") {
+    val now = Seconds.sinceEpoch
+    val now5 = now / 5
+    assert(now5.seconds === now.seconds / 5)
+  }
 
-  /** Gets the date from the value string. */
-  val date: HttpDateTimeInstant = _date
-}
+  test("milliseconds") {
+    val now = System.currentTimeMillis()/1000
+    val s = Seconds(now)
+    assert(s.milliseconds === now * 1000)
+  }
+
+  test("date") {
+    val now = new Date()
+    val s = Seconds(now)
+    assert(s.seconds === now.getTime/1000)
+  }
+
+  test("compare") {
+     val now = Seconds.sinceEpoch
+     val later = now + 60
+     assert(true === (later > now))
+   }
+ }

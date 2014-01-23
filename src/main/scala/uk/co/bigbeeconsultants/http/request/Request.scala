@@ -49,8 +49,6 @@ final case class Request(method: String,
 
   lazy val cacheKey = CacheKey(this)
 
-  val timestamp = System.currentTimeMillis()
-
   /** Gets the request without any headers. */
   def withoutHeaders = this.copy(headers = Headers.Empty)
 

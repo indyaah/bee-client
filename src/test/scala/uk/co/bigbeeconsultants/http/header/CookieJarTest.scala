@@ -26,7 +26,6 @@ package uk.co.bigbeeconsultants.http.header
 
 import java.net.URL
 import uk.co.bigbeeconsultants.http.response.{Status, StringResponseBody}
-import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 import org.scalatest.FunSuite
 
 class CookieJarTest extends FunSuite {
@@ -97,7 +96,7 @@ class CookieJarTest extends FunSuite {
     val c1 = newJar.cookies.iterator.next()
     assert(CookieKey("lang", "www.w3.org", "/standards/webdesign/") matches c1)
     assert("en" === c1.value)
-    assert(tomorrow.seconds === c1.expires.get.seconds)
+    assert(tomorrow.instant === c1.expires.get.instant)
   }
 
   test("parse cookie with max age") {
@@ -135,7 +134,7 @@ class CookieJarTest extends FunSuite {
     assert(CookieKey("lang", "www.w3.org", "/standards/webdesign/") matches c1)
     assert("en" === c1.value)
     assert(day7 === c1.maxAge.get)
-    assert(tomorrow.seconds === c1.expires.get.seconds)
+    assert(tomorrow.instant === c1.expires.get.instant)
   }
 
   test("parse cookie with http only") {
@@ -166,7 +165,7 @@ class CookieJarTest extends FunSuite {
     assert(false === c1.httpOnly)
     assert(false === c1.hostOnly)
     assert(c1.persistent)
-    assert(tenYears.seconds === c1.expires.get.seconds)
+    assert(tenYears.instant === c1.expires.get.instant)
   }
 
   test("parse realistic cookie list") {

@@ -24,7 +24,6 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 import uk.co.bigbeeconsultants.http.util.HttpUtil._
 import java.text.ParseException
 import org.slf4j.LoggerFactory

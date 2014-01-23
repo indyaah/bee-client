@@ -34,7 +34,6 @@ package uk.co.bigbeeconsultants.http.header
 
 import java.net.URL
 import uk.co.bigbeeconsultants.http.util.HttpUtil._
-import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 import uk.co.bigbeeconsultants.http.url.Domain
 
 private[header] object CookieParser {

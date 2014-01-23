@@ -25,7 +25,6 @@ package uk.co.bigbeeconsultants.http.header
 //-----------------------------------------------------------------------------
 
 import org.scalatest.FunSuite
-import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 
 class WarningValueTest extends FunSuite {
 

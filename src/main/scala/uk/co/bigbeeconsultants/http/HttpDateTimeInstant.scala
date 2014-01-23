@@ -25,13 +25,14 @@
 package uk.co.bigbeeconsultants.http
 
 import java.text.SimpleDateFormat
-import java.util.{TimeZone, Calendar, Date}
+import java.util.{Calendar, Date}
 import java.text.ParseException
-import org.slf4j.LoggerFactory
+import uk.co.bigbeeconsultants.http.header.Seconds
 
 /**
  * Expresses the number of seconds since 1st Jan 1970, as used in HTTP date headers.
  */
+@deprecated("Use the HttpDateTimeInstant in the header package now.", "v0.25.2")
 case class HttpDateTimeInstant(seconds: Long) extends Ordered[HttpDateTimeInstant] {
 
   import HttpDateTimeInstant._
@@ -68,12 +69,14 @@ case class HttpDateTimeInstant(seconds: Long) extends Ordered[HttpDateTimeInstan
 
   def formatString(format: String) = {
     val df = new SimpleDateFormat(format)
-    df.setTimeZone(HttpDateTimeInstant.GMT)
+    df.setTimeZone(header.HttpDateTimeInstant.GMT)
     df.format(date)
   }
 
   /** Implements ordering of instances. */
   def compare(that: HttpDateTimeInstant) = seconds.compare(that.seconds)
+
+  def upgrade = new header.HttpDateTimeInstant(Seconds(seconds))
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -82,11 +85,8 @@ case class HttpDateTimeInstant(seconds: Long) extends Ordered[HttpDateTimeInstan
  * HttpDateTimeInstant expresses the number of seconds since 1st Jan 1970, as used in HTTP date
  * headers. This companion object provides hand-optimised parsing functions.
  */
+@deprecated("Use the HttpDateTimeInstant in the header package now.", "v0.25.2")
 object HttpDateTimeInstant {
-  final val logger = LoggerFactory.getLogger(getClass)
-
-  private val monthsEN = List("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-
   /**
    * RFC1123 dates are always in GMT. The canonical representation is rfc1123DateTimeFormat,
    * in which the leading "EEE, " is assumed to have been stripped, and the trailing "GMT" is ignored.
@@ -94,19 +94,10 @@ object HttpDateTimeInstant {
    */
   val rfc1123DateTimeFormat = "dd MMM yyyy HH:mm:ss"
 
-  // Some servers seem to get RFC1123 wrong and use dashes instead, so we have this.
-  private val altRfc1123DateTimeFormat = "dd-MMM-yyyy HH:mm:ss"
-
   /**
    * The same as rfc1123DateTimeFormat except with the leading "EEE, " day name.
    */
   val fullRfc1123DateTimeFormat = "EEE, " + rfc1123DateTimeFormat
-
-  // leading "EEEE, " assumed to have been stripped; trailing "GMT" ignored
-  private val rfc850DateTimeFormat = "dd-MMM-yy HH:mm:ss"
-
-  // leading "EEE " assumed to have been stripped; trailing "GMT" ignored
-  private val asciiDateTimeFormat = "MMM d HH:mm:ss yyyy"
 
   /**
    * ISO8601 defines this widely used format. Ironically, it isn't used in HTTP but is included here as
@@ -121,92 +112,11 @@ object HttpDateTimeInstant {
    * Parses a string as a date-time instant of the syntactic form expected in HTTP. If the dateString cannot
    * be parsed because its syntax is incorrect, the default value is returned instead.
    */
-  def parse(dateString: String, defaultValue: HttpDateTimeInstant): HttpDateTimeInstant = {
-    var result = defaultValue
-    try {
-      result = parse(dateString)
-    }
-    catch {
-      case e: Exception => {
-        logger.error("{}: failed to parse date. {}", Array(dateString, e.getMessage))
-      }
-    }
-    result
-  }
+  def parse(dateString: String, defaultValue: header.HttpDateTimeInstant) = header.HttpDateTimeInstant.parse(dateString, defaultValue)
 
   /**
    * Parses a string as a date-time instant of the syntactic form expected in HTTP.
    */
   @throws(classOf[ParseException])
-  def parse(dateString: String): HttpDateTimeInstant = {
-    val discriminant = dateString.charAt(3)
-    if (discriminant == ',') {
-      quickParseRfc1123(dateString)
-//      slowParseRfc1123(dateString)
-    }
-    else if (discriminant == ' ') {
-      val df = new SimpleDateFormat(asciiDateTimeFormat)
-      df.setTimeZone(GMT)
-      new HttpDateTimeInstant(df.parse(dateString.substring(4)))
-    }
-    else {
-      val df = new SimpleDateFormat(rfc850DateTimeFormat)
-      df.setTimeZone(GMT)
-      new HttpDateTimeInstant(df.parse(dateString.substring(dateString.indexOf(' ') + 1)))
-    }
-  }
-
-  // This parser uses the standard API for robustness but is slow
-  private[http] def slowParseRfc1123(dateString: String): HttpDateTimeInstant = {
-    val fmt = if (dateString.charAt(7) == '-') altRfc1123DateTimeFormat else rfc1123DateTimeFormat
-    val df = new SimpleDateFormat(fmt)
-    df.setTimeZone(GMT)
-    new HttpDateTimeInstant(df.parse(dateString.substring(5)))
-  }
-
-  // This parser uses a quick conversion approach based on fixed fields to achieve significantly faster parsing
-  private[http] def quickParseRfc1123(dateString: String): HttpDateTimeInstant = {
-    val str = dateString.substring(5)
-    var s = 0
-    while (s < str.length && !Character.isDigit(str.charAt(s))) { s += 1 }
-    var e = s
-    while (e < str.length && Character.isDigit(str.charAt(e))) { e += 1 }
-    val dd = str.substring(s, e).toInt
-
-    s = e + 1
-    while (s < str.length && !Character.isLetter(str.charAt(s))) { s += 1 }
-    e = s
-    while (e < str.length && Character.isLetter(str.charAt(e))) { e += 1 }
-    val mmm = monthsEN.indexOf(str.substring(s, e))
-
-    s = e + 1
-    while (s < str.length && !Character.isDigit(str.charAt(s))) { s += 1 }
-    e = s
-    while (e < str.length && Character.isDigit(str.charAt(e))) { e += 1 }
-    val yyyy = str.substring(s, e).toInt
-
-    s = e + 1
-    while (s < str.length && !Character.isDigit(str.charAt(s))) { s += 1 }
-    e = s
-    while (e < str.length && Character.isDigit(str.charAt(e))) { e += 1 }
-    val thh = str.substring(s, e).toInt
-
-    s = e + 1
-    while (s < str.length && !Character.isDigit(str.charAt(s))) { s += 1 }
-    e = s
-    while (e < str.length && Character.isDigit(str.charAt(e))) { e += 1 }
-    val tmm = str.substring(s, e).toInt
-
-    s = e + 1
-    while (s < str.length && !Character.isDigit(str.charAt(s))) { s += 1 }
-    e = s
-    while (e < str.length && Character.isDigit(str.charAt(e))) { e += 1 }
-    val tss = str.substring(s, e).toInt
-
-    val cal = Calendar.getInstance(GMT)
-    cal.set(yyyy, mmm, dd, thh, tmm, tss)
-    new HttpDateTimeInstant(cal)
-  }
-
-  private val GMT = TimeZone.getTimeZone("GMT")
+  def parse(dateString: String) = header.HttpDateTimeInstant.parse(dateString)
 }

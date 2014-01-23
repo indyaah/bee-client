@@ -24,14 +24,18 @@
 
 package uk.co.bigbeeconsultants.http.cache
 
-import uk.co.bigbeeconsultants.http.header.Headers
+import uk.co.bigbeeconsultants.http.header.{Seconds, Headers}
 import uk.co.bigbeeconsultants.http.url.Href
 import uk.co.bigbeeconsultants.http.request.Request
 
+@deprecated("This is not yet ready for production use", "v0.25.1")
 case class CacheKey(method: String,
                     url: Href,
-                    headers: Headers = Headers.Empty)
+                    headers: Headers = Headers.Empty) {
+  val timestamp = Seconds.sinceEpoch
+}
 
+@deprecated("This is not yet ready for production use", "v0.25.1")
 object CacheKey {
   def apply(request: Request) = {
     new CacheKey(request.method, request.href, request.headers)

@@ -27,10 +27,11 @@ package uk.co.bigbeeconsultants.http.cache
 import java.util.concurrent.ConcurrentHashMap
 import uk.co.bigbeeconsultants.http.response.Response
 import uk.co.bigbeeconsultants.http.header.HeaderName._
+import uk.co.bigbeeconsultants.http.header.{Seconds, HttpDateTimeInstant}
 import uk.co.bigbeeconsultants.http.request.Request
-import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 
-case class CacheRecord(lastModified: Long, expires: Long, response: Response)
+@deprecated("This is not yet ready for production use", "v0.25.1")
+case class CacheRecord(lastModified: Seconds, expires: Seconds, response: Response)
 
 @deprecated("This is not yet ready for production use", "v0.25.1")
 class Cache {
@@ -54,15 +55,15 @@ class Cache {
         // cannot store this response
 
         case _ =>
-          val now = System.currentTimeMillis() / 1000
+          val now = Seconds.sinceEpoch
           val expires = response.headers.get(EXPIRES) map (_.toDate) map (_.date) getOrElse HttpDateTimeInstant.zero
-          val record = CacheRecord(now, expires.seconds, response)
+          val record = CacheRecord(now, expires.instant, response)
           data.put(response.request.cacheKey, record)
       }
     }
   }
 
-  //      val requestedAt = new HttpDateTimeInstant(response.request.timestamp / 1000)
+  //      val requestedAt = new HttpDateTimeInstant(response.request.cacheKey.timestamp / 1000)
   //      val now = new HttpDateTimeInstant()
   //      val age = response.headers.get(AGE) map(_.toNumber) map(_.toLong)
   //      val date = response.headers.get(DATE) map(_.toDate) map(_.date)

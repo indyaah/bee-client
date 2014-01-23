@@ -34,7 +34,6 @@ package uk.co.bigbeeconsultants.http.header
 
 import java.net.URL
 import javax.servlet.http.{Cookie => ServletCookie}
-import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 import uk.co.bigbeeconsultants.http.url.Domain
 
 /**

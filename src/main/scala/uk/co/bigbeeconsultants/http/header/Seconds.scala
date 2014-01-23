@@ -24,28 +24,37 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import java.text.ParseException
-import org.slf4j.LoggerFactory
+import java.util.Date
 
 /**
- * Holds a header value that refers to a date.
+ * Simply represents a time duration in seconds, corresponding to the timestamp accurate in HTTP header values.
+ * As with `java.util.Date`, it can also represent the time elapsed since the JVM epoch 1st January 1970.
  */
-case class DateValue(value: String) extends Value {
+case class Seconds(seconds: Long) extends Ordered[Seconds] {
+  def +(s: Long) = Seconds(seconds + s)
 
-  private val logger = LoggerFactory.getLogger(getClass)
-  private var valid = false
-  private var _date = HttpDateTimeInstant.zero
-  try {
-    _date = HttpDateTimeInstant.parse(value)
-    valid = true
-  } catch {
-    case pe: ParseException =>
-      logger.error("{}: failed to parse date. {}", Array(value, pe.getMessage))
-  }
+  def -(s: Long) = Seconds(seconds - s)
 
-  /** True iff the date was parsed correctly. Otherwise the values string does not represent a date correctly. */
-  val isValid = valid
+  def +(s: Seconds) = Seconds(seconds + s.seconds)
 
-  /** Gets the date from the value string. */
-  val date: HttpDateTimeInstant = _date
+  def -(s: Seconds) = Seconds(seconds - s.seconds)
+
+  def *(m: Long) = Seconds(seconds * m)
+
+  def /(d: Long) = Seconds(seconds / d)
+
+  def milliseconds = seconds * 1000
+
+  override val toString = seconds + "s"
+
+  /** Implements ordering of instances. */
+  def compare(that: Seconds) = seconds.compare(that.seconds)
+}
+
+object Seconds {
+  def apply(date: Date) = new Seconds(date.getTime / 1000)
+
+  def sinceEpoch = new Seconds(System.currentTimeMillis() / 1000)
+
+  val Zero = new Seconds(0)
 }

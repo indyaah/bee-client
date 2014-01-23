@@ -26,7 +26,6 @@ package uk.co.bigbeeconsultants.http.header
 
 import java.net.URL
 import org.scalatest.FunSuite
-import uk.co.bigbeeconsultants.http.HttpDateTimeInstant
 import java.util.Date
 import uk.co.bigbeeconsultants.http.url.Domain
 
