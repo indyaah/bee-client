@@ -3,6 +3,10 @@
 
 
 #### Wed, 22 Jan 2014
+* v0.25.1 - header value classes have been slightly simplified and made more consistent with each other. There is a new WarningValue.
+
+
+#### Wed, 22 Jan 2014
 * v0.25.1 - servlet interfacing adapters have been deprecated. These will be removed in a future release; the source code will be made available to anyone who wishes to continue using them.
 
 

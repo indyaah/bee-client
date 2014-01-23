@@ -54,6 +54,9 @@ case class HttpDateTimeInstant(seconds: Long) extends Ordered[HttpDateTimeInstan
   /** Subtracts some seconds off this instant, returning a new instance. */
   def -(secondsDelta: Long) = if (secondsDelta == 0) this else new HttpDateTimeInstant(seconds - secondsDelta)
 
+  /** Subtracts another instant, returning the number of seconds between them. */
+  def -(that: HttpDateTimeInstant) = this.seconds - that.seconds
+
   /** Formats this instant as a string in full RFC1123 format. */
   override lazy val toString = {
     formatString(fullRfc1123DateTimeFormat) + " GMT"
