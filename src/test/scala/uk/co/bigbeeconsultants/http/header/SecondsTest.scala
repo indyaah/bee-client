@@ -29,29 +29,29 @@ import java.util.Date
 
 class SecondsTest extends FunSuite {
 
-   test("plus long") {
-     val now = Seconds.sinceEpoch
-     val later = now + 60
-     assert(60 === (later.seconds - now.seconds))
-   }
+  test("plus long") {
+    val now = Seconds.sinceEpoch
+    val later = now + 60
+    assert(60 === (later.seconds - now.seconds))
+  }
 
-   test("minus long") {
-     val now = Seconds.sinceEpoch
-     val later = now - 60
-     assert(-60 === (later.seconds - now.seconds))
-   }
+  test("minus long") {
+    val now = Seconds.sinceEpoch
+    val later = now - 60
+    assert(-60 === (later.seconds - now.seconds))
+  }
 
-   test("plus Seconds") {
-     val now = Seconds.sinceEpoch
-     val later = now + Seconds(60)
-     assert(60 === (later.seconds - now.seconds))
-   }
+  test("plus Seconds") {
+    val now = Seconds.sinceEpoch
+    val later = now + Seconds(60)
+    assert(60 === (later.seconds - now.seconds))
+  }
 
-   test("minus Seconds") {
-     val now = Seconds.sinceEpoch
-     val later = now - Seconds(60)
-     assert(-60 === (later.seconds - now.seconds))
-   }
+  test("minus Seconds") {
+    val now = Seconds.sinceEpoch
+    val later = now - Seconds(60)
+    assert(-60 === (later.seconds - now.seconds))
+  }
 
   test("times long") {
     val now = Seconds.sinceEpoch
@@ -66,7 +66,7 @@ class SecondsTest extends FunSuite {
   }
 
   test("milliseconds") {
-    val now = System.currentTimeMillis()/1000
+    val now = System.currentTimeMillis() / 1000
     val s = Seconds(now)
     assert(s.milliseconds === now * 1000)
   }
@@ -74,12 +74,21 @@ class SecondsTest extends FunSuite {
   test("date") {
     val now = new Date()
     val s = Seconds(now)
-    assert(s.seconds === now.getTime/1000)
+    assert(s.seconds === now.getTime / 1000)
   }
 
   test("compare") {
-     val now = Seconds.sinceEpoch
-     val later = now + 60
-     assert(true === (later > now))
-   }
- }
+    val now = Seconds.sinceEpoch
+    val later = now + 60
+    assert(true === (later > now))
+  }
+
+  test("max") {
+    val a = Seconds(123)
+    val b = Seconds(234)
+    assert((a max b) === b)
+    assert((b max a) === b)
+    assert((b max b) === b)
+    assert((a max a) === a)
+  }
+}

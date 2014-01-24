@@ -45,6 +45,8 @@ case class Seconds(seconds: Long) extends Ordered[Seconds] {
 
   def milliseconds = seconds * 1000
 
+  def max(other: Seconds) = if (this.seconds > other.seconds) this else other
+
   override val toString = seconds + "s"
 
   /** Implements ordering of instances. */

@@ -27,15 +27,13 @@ package uk.co.bigbeeconsultants.http.cache
 import java.util.concurrent.ConcurrentHashMap
 import uk.co.bigbeeconsultants.http.response.Response
 import uk.co.bigbeeconsultants.http.header.HeaderName._
-import uk.co.bigbeeconsultants.http.header.{Seconds, HttpDateTimeInstant}
 import uk.co.bigbeeconsultants.http.request.Request
-
-@deprecated("This is not yet ready for production use", "v0.25.1")
-case class CacheRecord(lastModified: Seconds, expires: Seconds, response: Response)
 
 @deprecated("This is not yet ready for production use", "v0.25.1")
 class Cache {
   private val data = new ConcurrentHashMap[CacheKey, CacheRecord]()
+
+  private[cache] def size = data.size
 
   def lookup(request: Request): Either[Request, Response] = {
     val cacheRecord = data.get(request.cacheKey)
@@ -43,50 +41,32 @@ class Cache {
       Left(request)
     else {
       val now = System.currentTimeMillis()
-      Left(request) // TODO
+      // TODO set Age header
+      Right(null) // TODO
     }
   }
 
   def store(response: Response) {
     if (isCacheable(response)) {
-      val cacheControl = response.headers.get(CACHE_CONTROL) map (_.value)
-      cacheControl match {
-        case Some("private") | Some("no-cache") | Some("no-store") =>
-        // cannot store this response
-
-        case _ =>
-          val now = Seconds.sinceEpoch
-          val expires = response.headers.get(EXPIRES) map (_.toDate) map (_.date) getOrElse HttpDateTimeInstant.zero
-          val record = CacheRecord(now, expires.instant, response)
-          data.put(response.request.cacheKey, record)
+      response.status.code match {
+        case 200 | 203 | 300 | 301 | 410 => offerToCache(response)
+        case _ => // cannot store this response
       }
     }
   }
 
-  //      val requestedAt = new HttpDateTimeInstant(response.request.cacheKey.timestamp / 1000)
-  //      val now = new HttpDateTimeInstant()
-  //      val age = response.headers.get(AGE) map(_.toNumber) map(_.toLong)
-  //      val date = response.headers.get(DATE) map(_.toDate) map(_.date)
-  //      val expires = response.headers.get(EXPIRES) map(_.toDate) map(_.date)
-  //      val lastModified = response.headers.get(LAST_MODIFIED) map(_.toDate) map(_.date)
-  //
-  //      val dateDelta = date map(now - _)
-  //      val dateDelta0 = if (dateDelta.isDefined && dateDelta.get < 0) Some(0) else dateDelta
-  //      val correctedReceivedAge = maxo(dateDelta0, age)
-  //      val correctedInitialAge = maxo(correctedReceivedAge, Some(now - requestedAt))
+  private def offerToCache(response: Response) {
+    val cacheControl = response.headers.get(CACHE_CONTROL) map (_.value)
+    cacheControl match {
+      case Some("no-cache") | Some("no-store") => // cannot store this response
+      case _ => writeToCache(response)
+    }
+  }
+
+  private def writeToCache(response: Response) {
+    data.put(response.request.cacheKey, CacheRecord(response))
+  }
 
   private def isCacheable(response: Response) =
-    (response.request.method == Request.GET ||
-      response.request.method == Request.HEAD) &&
-      response.body.isBuffered &&
-      cacheableStatusCodes.contains(response.status.code)
-
-  private val cacheableStatusCodes = Set(200, 203, 300, 301, 410)
-
-  private def maxo(a: Option[Long], b: Option[Long]): Option[Long] = {
-    if (a.isDefined && b.isDefined) Some(math.max(a.get, b.get))
-    else if (a.isDefined) a
-    else if (b.isDefined) b
-    else None
-  }
+    (response.request.method == Request.GET || response.request.method == Request.HEAD) && response.body.isBuffered
 }

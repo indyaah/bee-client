@@ -76,7 +76,7 @@ case class HttpDateTimeInstant(seconds: Long) extends Ordered[HttpDateTimeInstan
   /** Implements ordering of instances. */
   def compare(that: HttpDateTimeInstant) = seconds.compare(that.seconds)
 
-  def upgrade = new header.HttpDateTimeInstant(Seconds(seconds))
+  def upgrade = new header.HttpDateTimeInstant(seconds)
 }
 
 //---------------------------------------------------------------------------------------------------------------------

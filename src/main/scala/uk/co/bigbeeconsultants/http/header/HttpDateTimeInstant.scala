@@ -32,30 +32,32 @@ import org.slf4j.LoggerFactory
 /**
  * Expresses the number of seconds since 1st Jan 1970, as used in HTTP date headers.
  */
-case class HttpDateTimeInstant(instant: Seconds) extends Ordered[HttpDateTimeInstant] {
+case class HttpDateTimeInstant(seconds: Long) extends Ordered[HttpDateTimeInstant] {
 
   import HttpDateTimeInstant._
 
   /** Converts a Java date into an instance of HttpDateTimeInstant. */
-  def this(d: Date) = this(Seconds(d.getTime / 1000))
+  def this(d: Date) = this(d.getTime / 1000)
 
   /** Converts a Java calendar into an instance of HttpDateTimeInstant. */
   def this(c: Calendar) = this(c.getTime)
 
   /** Creates an instance of HttpDateTimeInstant representing the time now. */
-  def this() = this(Seconds.sinceEpoch)
+  def this() = this(HttpDateTimeInstant.timeNowSec)
+
+  def milliseconds = seconds * 1000
 
   /** This instant converted to a Java date. */
-  lazy val date = new Date(instant.seconds * 1000)
+  lazy val date = new Date(milliseconds)
 
   /** Adds some seconds to this instant, returning a new instance. */
-  def +(secondsDelta: Long) = if (secondsDelta == 0) this else new HttpDateTimeInstant(instant + secondsDelta)
+  def +(secondsDelta: Long) = if (secondsDelta == 0) this else new HttpDateTimeInstant(seconds + secondsDelta)
 
   /** Subtracts some seconds off this instant, returning a new instance. */
-  def -(secondsDelta: Long) = if (secondsDelta == 0) this else new HttpDateTimeInstant(instant - secondsDelta)
+  def -(secondsDelta: Long) = if (secondsDelta == 0) this else new HttpDateTimeInstant(seconds - secondsDelta)
 
   /** Subtracts another instant, returning the number of seconds between them. */
-  def -(that: HttpDateTimeInstant) = this.instant - that.instant
+  def -(that: HttpDateTimeInstant) = this.seconds - that.seconds
 
   /** Formats this instant as a string in full RFC1123 format. */
   override lazy val toString = {
@@ -73,7 +75,7 @@ case class HttpDateTimeInstant(instant: Seconds) extends Ordered[HttpDateTimeIns
   }
 
   /** Implements ordering of instances. */
-  def compare(that: HttpDateTimeInstant) = instant.compare(that.instant)
+  def compare(that: HttpDateTimeInstant) = seconds.compare(that.seconds)
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -116,9 +118,13 @@ object HttpDateTimeInstant {
   val iso8601DateTimeFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
 
   @deprecated("Use 'Zero' instead.", "v0.25.2")
-  val zero = new HttpDateTimeInstant(Seconds.Zero)
+  val zero = new HttpDateTimeInstant(0L)
 
-  val Zero = new HttpDateTimeInstant(Seconds.Zero)
+  val Zero = new HttpDateTimeInstant(0L)
+
+  def timeNowMillis = System.currentTimeMillis()
+
+  def timeNowSec = timeNowMillis / 1000
 
   /**
    * Parses a string as a date-time instant of the syntactic form expected in HTTP. If the dateString cannot

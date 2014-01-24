@@ -96,7 +96,7 @@ class CookieJarTest extends FunSuite {
     val c1 = newJar.cookies.iterator.next()
     assert(CookieKey("lang", "www.w3.org", "/standards/webdesign/") matches c1)
     assert("en" === c1.value)
-    assert(tomorrow.instant === c1.expires.get.instant)
+    assert(tomorrow.seconds === c1.expires.get.seconds)
   }
 
   test("parse cookie with max age") {
@@ -134,7 +134,7 @@ class CookieJarTest extends FunSuite {
     assert(CookieKey("lang", "www.w3.org", "/standards/webdesign/") matches c1)
     assert("en" === c1.value)
     assert(day7 === c1.maxAge.get)
-    assert(tomorrow.instant === c1.expires.get.instant)
+    assert(tomorrow.seconds === c1.expires.get.seconds)
   }
 
   test("parse cookie with http only") {
@@ -165,7 +165,7 @@ class CookieJarTest extends FunSuite {
     assert(false === c1.httpOnly)
     assert(false === c1.hostOnly)
     assert(c1.persistent)
-    assert(tenYears.instant === c1.expires.get.instant)
+    assert(tenYears.seconds === c1.expires.get.seconds)
   }
 
   test("parse realistic cookie list") {

@@ -58,7 +58,7 @@ class HttpDateTimeInstantTest extends FunSuite {
   }
 
   test("parse rfc1123DateTimeFormat") {
-    val start = Seconds(1325376000)
+    val start = 1325376000
     for (i <- 0 until 366) {
       val t = start + (86400 * i)
       val exp = new HttpDateTimeInstant(t).toString
@@ -89,13 +89,13 @@ class HttpDateTimeInstantTest extends FunSuite {
   test("plus") {
     val now = new HttpDateTimeInstant()
     val later = new HttpDateTimeInstant() + 60
-    assert(60 === (later.instant.seconds - now.instant.seconds))
+    assert(60 === (later.seconds - now.seconds))
   }
 
   test("minus") {
     val now = new HttpDateTimeInstant()
     val later = new HttpDateTimeInstant() - 60
-    assert(-60 === (later.instant.seconds - now.instant.seconds))
+    assert(-60 === (later.seconds - now.seconds))
   }
 
   test("compare") {
