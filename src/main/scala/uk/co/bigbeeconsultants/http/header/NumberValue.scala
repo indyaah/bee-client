@@ -53,7 +53,4 @@ case class NumberValue(value: String) extends Value {
 
   /** Converts the value to an integer. */
   def toInt = _number.toInt
-
-  /** Converts the value to seconds. Typically used for Age header. */
-  def toSeconds = Seconds(_number)
 }

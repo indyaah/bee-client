@@ -27,7 +27,6 @@ package uk.co.bigbeeconsultants.http
 import java.text.SimpleDateFormat
 import java.util.{Calendar, Date}
 import java.text.ParseException
-import uk.co.bigbeeconsultants.http.header.Seconds
 
 /**
  * Expresses the number of seconds since 1st Jan 1970, as used in HTTP date headers.

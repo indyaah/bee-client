@@ -40,7 +40,7 @@ class CacheRecordTest extends FunSuite {
       val response = Response(request, Status.S200_OK, MediaType.TEXT_PLAIN, "OK", responseHeaders)
       val record = CacheRecord(response)
       val currentAge = record.currentAge
-      assert(2990 < currentAge && currentAge < 3010, currentAge)
+      assert(2950 < currentAge && currentAge < 3050, currentAge)
     }
   }
 }
