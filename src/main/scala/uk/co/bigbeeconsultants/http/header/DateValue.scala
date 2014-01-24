@@ -30,22 +30,20 @@ import org.slf4j.LoggerFactory
 /**
  * Holds a header value that refers to a date.
  */
-case class DateValue(value: String) extends Value {
+case class DateValue(value: String, isValid: Boolean, date: HttpDateTimeInstant) extends Value
 
+
+object DateValue {
   private val logger = LoggerFactory.getLogger(getClass)
-  private var valid = false
-  private var _date = HttpDateTimeInstant.zero
-  try {
-    _date = HttpDateTimeInstant.parse(value)
-    valid = true
-  } catch {
-    case pe: ParseException =>
-      logger.error("{}: failed to parse date. {}", Array(value, pe.getMessage))
+
+  def apply(value: String) = {
+    try {
+      val date = HttpDateTimeInstant.parse(value)
+      new DateValue(value, true, date)
+    } catch {
+      case pe: ParseException =>
+        logger.error("{}: failed to parse date. {}", Array(value, pe.getMessage))
+        new DateValue(value, false, HttpDateTimeInstant.Zero)
+    }
   }
-
-  /** True iff the date was parsed correctly. Otherwise the values string does not represent a date correctly. */
-  val isValid = valid
-
-  /** Gets the date from the value string. */
-  val date: HttpDateTimeInstant = _date
 }

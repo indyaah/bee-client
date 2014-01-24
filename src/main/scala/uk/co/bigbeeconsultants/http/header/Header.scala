@@ -66,6 +66,9 @@ case class Header(name: String, value: String) {
   /** Converts the value to a warning value. */
   def toWarning = WarningValue(value)
 
+  /** Converts the value to a cache-control value. */
+  def toCacheControlValue = CacheControlValue(value)
+
   /** Header name equalsIgnoreCase other name. */
   def =~=(other: String) = name equalsIgnoreCase other
 

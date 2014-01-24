@@ -24,30 +24,26 @@
 
 package uk.co.bigbeeconsultants.http.header
 
+import uk.co.bigbeeconsultants.http.util.HttpUtil._
 import org.slf4j.LoggerFactory
 
-/**
- * Holds a number as typically used in an HTTP header. Such numbers are normally positive integers and may or may not
- * fit into a 32-bit representation.
- */
-case class NumberValue(value: String, isValid: Boolean, toLong: Long) extends Value {
-  /** Shortens the value to an integer. */
-  def toInt = toLong.toInt
-}
+case class CacheControlValue(value: String, isValid: Boolean, label: String, deltaSeconds: Option[Int]) extends Value
 
 
-object NumberValue {
+object CacheControlValue {
   private val logger = LoggerFactory.getLogger(getClass)
 
   def apply(value: String) = {
+    val (a, b) = divide(value, '=')
     try {
-      val number = value.toLong
+      val number = if (b.isEmpty) None else Some(b.toInt)
       // Number values are always positive integral numbers in HTTP headers.
-      new NumberValue(value, number >= 0, number)
+      val valid = !a.isEmpty && (number.isEmpty || number.get >= 0)
+      new CacheControlValue(value, valid, a, number)
     } catch {
       case e: NumberFormatException =>
         logger.error("{}: failed to parse number. {}", Array(value, e.getMessage))
-      new NumberValue(value, false, 0)
+        new CacheControlValue(value, false, a, None)
     }
   }
 }

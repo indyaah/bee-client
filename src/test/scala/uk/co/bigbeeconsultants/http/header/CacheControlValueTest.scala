@@ -24,30 +24,31 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import org.slf4j.LoggerFactory
+import org.scalatest.FunSuite
 
-/**
- * Holds a number as typically used in an HTTP header. Such numbers are normally positive integers and may or may not
- * fit into a 32-bit representation.
- */
-case class NumberValue(value: String, isValid: Boolean, toLong: Long) extends Value {
-  /** Shortens the value to an integer. */
-  def toInt = toLong.toInt
-}
+class CacheControlValueTest extends FunSuite {
 
+  test("construction without delta") {
+    val ccv = CacheControlValue("no-cache")
+    assert(ccv.isValid)
+    assert(ccv.label === "no-cache")
+    assert(ccv.deltaSeconds === None)
+    assert(ccv.value === "no-cache")
+  }
 
-object NumberValue {
-  private val logger = LoggerFactory.getLogger(getClass)
+  test("construction with delta") {
+    val ccv = CacheControlValue("max-age=123")
+    assert(ccv.isValid)
+    assert(ccv.label === "max-age")
+    assert(ccv.deltaSeconds === Some(123))
+    assert(ccv.value === "max-age=123")
+  }
 
-  def apply(value: String) = {
-    try {
-      val number = value.toLong
-      // Number values are always positive integral numbers in HTTP headers.
-      new NumberValue(value, number >= 0, number)
-    } catch {
-      case e: NumberFormatException =>
-        logger.error("{}: failed to parse number. {}", Array(value, e.getMessage))
-      new NumberValue(value, false, 0)
-    }
+  test("construction with invalid delta") {
+    val ccv = CacheControlValue("max-age=none")
+    assert(!ccv.isValid)
+    assert(ccv.label === "max-age")
+    assert(ccv.deltaSeconds === None)
+    assert(ccv.value === "max-age=none")
   }
 }

@@ -1,3 +1,22 @@
+#### Fri, 24 Jan 2014
+* v0.25.3
+* - Seconds class is unwanted - deleted
+
+
+#### Fri, 24 Jan 2014
+* v0.25.3
+* - Cache algorithm work done.
+* - HttpDateTimeInstant reverts to using Long instead of Seconds
+
+
+#### Thu, 23 Jan 2014
+* v0.25.2 - HttpDateTimeInstant has been moved into the header sub-package and a new Seconds duration complements it.
+
+
+#### Thu, 23 Jan 2014
+* preparation for v0.26 - some new caching code
+
+
 #### Wed, 22 Jan 2014
 * v0.25.1 - header value classes have been slightly simplified and made more consistent with each other. There is a new WarningValue.
 

@@ -16,6 +16,8 @@ class CacheRecordTest extends FunSuite {
       val responseHeaders = Headers()
       val response = Response(request, Status.S200_OK, MediaType.TEXT_PLAIN, "OK", responseHeaders)
       val record = CacheRecord(response)
+      assert(record.lastModified === None)
+      assert(record.expires === None)
       assert(record.apparentAge === 0)
       val currentAge = record.currentAge
       assert(currentAge < 400, currentAge)

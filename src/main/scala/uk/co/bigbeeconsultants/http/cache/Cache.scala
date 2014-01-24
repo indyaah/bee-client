@@ -56,11 +56,12 @@ class Cache {
   }
 
   private def offerToCache(response: Response) {
-    val cacheControl = response.headers.get(CACHE_CONTROL) map (_.value)
-    cacheControl match {
-      case Some("no-cache") | Some("no-store") => // cannot store this response
-      case _ => writeToCache(response)
-    }
+    val cacheControl = response.headers.get(CACHE_CONTROL) map (_.toCacheControlValue)
+    if (cacheControl.isDefined)
+      cacheControl.get.label match {
+        case "no-cache" | "no-store" => // cannot store this response
+        case _ => writeToCache(response)
+      } else writeToCache(response)
   }
 
   private def writeToCache(response: Response) {
