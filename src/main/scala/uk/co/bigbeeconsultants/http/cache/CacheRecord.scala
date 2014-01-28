@@ -28,7 +28,6 @@ import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.response.Response
 import uk.co.bigbeeconsultants.http.header.{Header, HeaderName, CacheControlValue, HttpDateTimeInstant}
 
-@deprecated("This is not yet ready for production use", "v0.25.1")
 private[http] case class CacheRecord(response: Response, id: Int) extends Ordered[CacheRecord] {
 
   import HttpDateTimeInstant._

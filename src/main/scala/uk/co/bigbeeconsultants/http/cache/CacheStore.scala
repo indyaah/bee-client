@@ -29,7 +29,6 @@ import scala.collection.mutable
 import uk.co.bigbeeconsultants.http.response.Response
 import java.util.concurrent.atomic.AtomicInteger
 
-@deprecated("This is not yet ready for production use", "v0.25.1")
 private[http] class CacheStore(maxContentSize: Int) {
 
   private val counter = new AtomicInteger()
