@@ -1,4 +1,8 @@
 #### Tue, 28 Jan 2014
+* v0.26.1 - some extra methods have been added to HeaderName
+
+
+#### Tue, 28 Jan 2014
 * v0.26.0 - MediaType value field has been renamed mediaType. THIS IS A BREAKING CHANGE and call sites will have to be modified. The purpose is to fix a bug and make MediaType consistent with all other Value implementations in that the `value` field is the representation used in HTTP headers.
 
 
