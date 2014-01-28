@@ -47,6 +47,17 @@ class CacheTest extends FunSuite {
     }
   }
 
+  test("store succeeds with 404 when assume404Age is non-zero") {
+    for (method <- List(GET, HEAD)) {
+      val request = Request(method, "http://localhost/stuff")
+      val status = Status.S404_NotFound
+      val cache = new Cache(assume404Age = 100)
+      val response = Response(request, status, MediaType.TEXT_PLAIN, "OK")
+      cache.store(response)
+      assert(cache.size === 1)
+    }
+  }
+
   test("store ignores other methods") {
     val cache = new Cache()
     for (method <- List(POST, PUT, DELETE)) {

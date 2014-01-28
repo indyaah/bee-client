@@ -28,8 +28,24 @@ import uk.co.bigbeeconsultants.http.response.Response
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.request.Request
 
+/**
+ * Holds an HTTP content cache. Outbound requests are checked using `lookup`, which either returns a cached response
+ * or provides an altered request to pass on to the origin server. All responses are offered to the cache via the
+ * `store` method.
+ *
+ * The cache is *not* persistent: every time the HTTP client is started, any cache will start off empty.
+ *
+ * @param maxContentSize set an upper limit on the size of the cache, in terms of the total number of bytes in the
+ *                       unencoded content lengths of all the cached responses. The default value is 10,000,000 bytes.
+ * @param assume404Age provides optional caching for 404 responses - these are not normally cached but can therefore
+ *                     be a pain. Provide an assumed age (in seconds) and all 404 responses will be stored in the
+ *                     cache as if the response had contained that age in a header. Zero disables this feature and is
+ *                     the default value.
+ */
 @deprecated("This is not yet ready for production use", "v0.25.1")
-class Cache(maxContentSize: Int = Int.MaxValue) {
+class Cache(maxContentSize: Int = 10000000, assume404Age: Int = 0) {
+  require(maxContentSize >= 0, "maxContentSize must be non-negative")
+  require(assume404Age >= 0, "assume404Age must be non-negative")
 
   private val data = new CacheStore(maxContentSize)
 
@@ -52,10 +68,10 @@ class Cache(maxContentSize: Int = Int.MaxValue) {
   }
 
   def store(response: Response) {
-    if (isCacheable(response)) {
+    if (maxContentSize > 0 && isCacheable(response)) {
       response.status.code match {
         case 200 | 203 | 300 | 301 | 410 => offerToCache(response)
-        //case 404 => offerToCache(response)
+        case 404 if assume404Age > 0 => offerToCache(response.copy(headers = response.headers.set(AGE -> assume404Age)))
         case _ => // cannot store this response
       }
     }
