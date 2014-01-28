@@ -1,3 +1,23 @@
+#### Tue, 28 Jan 2014
+* v0.26.0 - MediaType value field has been renamed mediaType. THIS IS A BREAKING CHANGE and call sites will have to be modified. The purpose is to fix a bug and make MediaType consistent with all other Value implementations in that the `value` field is the representation used in HTTP headers.
+
+
+#### Tue, 28 Jan 2014
+* v0.25.3
+* - More Cache work done
+* - CacheRecord was enhanced
+* - CacheControlValue is now more complete
+
+
+#### Mon, 27 Jan 2014
+* v0.25.3 - CacheRecord was enhanced
+
+
+#### Fri, 24 Jan 2014
+* v0.25.3
+* - new CacheControlValue
+
+
 #### Fri, 24 Jan 2014
 * v0.25.3
 * - Seconds class is unwanted - deleted

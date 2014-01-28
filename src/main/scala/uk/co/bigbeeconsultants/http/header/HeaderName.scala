@@ -35,6 +35,18 @@ case class HeaderName(name: String) {
   /** Constructs a new header from this header name and a specified value. */
   def →(newValue: String) = new Header (name, newValue)
 
+  /** Constructs a new header from this header name and a specified value. */
+  def ->(newValue: Number) = new Header (name, newValue.toString)
+
+  /** Constructs a new header from this header name and a specified value. */
+  def →(newValue: Number) = new Header (name, newValue.toString)
+
+  /** Constructs a new header from this header name and a specified value. */
+  def ->(newValue: Value) = new Header (name, newValue.value)
+
+  /** Constructs a new header from this header name and a specified value. */
+  def →(newValue: Value) = new Header (name, newValue.value)
+
   /** Header name equalsIgnoreCase other name. */
   def =~=(other: String) = name equalsIgnoreCase other
 
