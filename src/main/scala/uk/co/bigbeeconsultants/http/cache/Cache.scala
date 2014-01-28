@@ -28,14 +28,17 @@ import java.util.concurrent.ConcurrentHashMap
 import uk.co.bigbeeconsultants.http.response.Response
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.request.Request
+import scala.collection.mutable
 
 @deprecated("This is not yet ready for production use", "v0.25.1")
-class Cache {
-  private val data = new ConcurrentHashMap[CacheKey, CacheRecord]()
+class Cache(maxContentSize: Int = Int.MaxValue) {
+
+  private val data = new CacheStore(maxContentSize)
 
   private[cache] def size = data.size
 
   def lookup(request: Request): Either[Request, Response] = {
+    val requestCacheControl = request.headers.get(CACHE_CONTROL) map (_.toCacheControlValue)
     val cacheRecord = data.get(request.cacheKey)
     if (cacheRecord == null)
       Left(request)
@@ -50,6 +53,7 @@ class Cache {
     if (isCacheable(response)) {
       response.status.code match {
         case 200 | 203 | 300 | 301 | 410 => offerToCache(response)
+        //case 404 => offerToCache(response)
         case _ => // cannot store this response
       }
     }
@@ -65,9 +69,43 @@ class Cache {
   }
 
   private def writeToCache(response: Response) {
-    data.put(response.request.cacheKey, CacheRecord(response))
+    val record = CacheRecord(response)
+    if (!record.isAlreadyExpired) {
+      data.put(record)
+    }
   }
 
   private def isCacheable(response: Response) =
     (response.request.method == Request.GET || response.request.method == Request.HEAD) && response.body.isBuffered
+}
+
+
+class CacheStore(maxContentSize: Int) {
+  private val data = new ConcurrentHashMap[CacheKey, CacheRecord]()
+  private var sortedRecords = mutable.ArrayStack[CacheRecord]()
+  private var currentContentSize = 0L
+
+  def size = data.size
+
+  // lock-free lookups via ConcurrentHashMap
+  def get(key: CacheKey) = data.get(key)
+
+  // lock-based storing
+  def put(record: CacheRecord) = {
+    synchronized {
+      val previous = data.put(record.response.request.cacheKey, record)
+      if (previous != null) {
+        sortedRecords.filterNot(_ == previous)
+        currentContentSize -= previous.contentLength
+      }
+      sortedRecords = (sortedRecords :+ record).sorted
+      currentContentSize += record.contentLength
+
+      while (currentContentSize > maxContentSize) {
+        val doomed = sortedRecords.pop()
+        data.remove(doomed.response.request.cacheKey)
+        currentContentSize -= doomed.contentLength
+      }
+    }
+  }
 }

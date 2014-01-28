@@ -27,23 +27,62 @@ package uk.co.bigbeeconsultants.http.header
 import uk.co.bigbeeconsultants.http.util.HttpUtil._
 import org.slf4j.LoggerFactory
 
-case class CacheControlValue(value: String, isValid: Boolean, label: String, deltaSeconds: Option[Int]) extends Value
+case class CacheControlValue(value: String, isValid: Boolean, label: String, deltaSeconds: Option[Int], fieldName: Option[String]) extends Value {
+  require(deltaSeconds.isEmpty || fieldName.isEmpty, "Cannot define both deltaSeconds and fieldName")
+}
 
 
 object CacheControlValue {
   private val logger = LoggerFactory.getLogger(getClass)
 
-  def apply(value: String) = {
-    val (a, b) = divide(value, '=')
-    try {
-      val number = if (b.isEmpty) None else Some(b.toInt)
-      // Number values are always positive integral numbers in HTTP headers.
-      val valid = !a.isEmpty && (number.isEmpty || number.get >= 0)
-      new CacheControlValue(value, valid, a, number)
-    } catch {
-      case e: NumberFormatException =>
-        logger.error("{}: failed to parse number. {}", Array(value, e.getMessage))
-        new CacheControlValue(value, false, a, None)
+  def apply(value: String): CacheControlValue = {
+    if (value.isEmpty)
+      new CacheControlValue(value, false, value, None, None)
+    else {
+      val (a, b) = divide(value, '=')
+      try {
+        if (b.isEmpty) {
+          new CacheControlValue(value, true, a, None, None)
+        } else if (b(0) == '"') {
+          new CacheControlValue(value, true, a, None, Some(unquote(b)))
+        } else {
+          val number = Some(b.toInt)
+          // Number values are always positive integral numbers in HTTP headers.
+          val valid = number.isEmpty || number.get >= 0
+          new CacheControlValue(value, valid, a, number, None)
+        }
+      } catch {
+        case e: NumberFormatException =>
+          logger.error("{}: failed to parse number. {}", Array(value, e.getMessage))
+          new CacheControlValue(value, false, a, None, None)
+      }
     }
   }
+
+  def apply(label: String, deltaSeconds: Option[Int], fieldName: Option[String]) = {
+    if (deltaSeconds.isDefined) new CacheControlValue(label + "=" + deltaSeconds.get, true, label, deltaSeconds, None)
+    else if (fieldName.isDefined) new CacheControlValue(label + "=\"" + fieldName.get + "\"", true, label, deltaSeconds, None)
+    else new CacheControlValue(label, true, label, None, fieldName)
+  }
+
+  /** Constructs a new max-age instance. */
+  def maxAge(deltaSeconds: Int) = apply("max-age", Some(deltaSeconds), None)
+
+  /** Constructs a new max-stale instance. */
+  def maxStale(deltaSeconds: Option[Int]) = apply("max-stale", deltaSeconds, None)
+
+  /** Constructs a new min-fresh instance. */
+  def minFresh(deltaSeconds: Int) = apply("min-fresh", Some(deltaSeconds), None)
+
+  /** The no-cache instance. */
+  val NoCache = apply("no-cache", None, None)
+
+  /** The no-store instance. */
+  val NoStore = apply("no-store", None, None)
+
+  /** The only-if-cached instance. */
+  val OnlyIfCached = apply("only-if-cached", None, None)
+
+  /** The no-transform instance. */
+  val NoTransform = apply("no-transform", None, None)
 }

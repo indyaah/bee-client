@@ -28,11 +28,31 @@ import org.scalatest.FunSuite
 
 class CacheControlValueTest extends FunSuite {
 
+  test("faulty construction with blank string") {
+    val ccv = CacheControlValue("")
+    assert(!ccv.isValid)
+    assert(ccv.label === "")
+    assert(ccv.deltaSeconds === None)
+    assert(ccv.fieldName === None)
+    assert(ccv.value === "")
+  }
+
+  test("construction with some field name") {
+    val value = """no-cache="thefield""""
+    val ccv = CacheControlValue(value)
+    assert(ccv.isValid)
+    assert(ccv.label === "no-cache")
+    assert(ccv.deltaSeconds === None)
+    assert(ccv.fieldName === Some("thefield"))
+    assert(ccv.value === value)
+  }
+
   test("construction without delta") {
     val ccv = CacheControlValue("no-cache")
     assert(ccv.isValid)
     assert(ccv.label === "no-cache")
     assert(ccv.deltaSeconds === None)
+    assert(ccv.fieldName === None)
     assert(ccv.value === "no-cache")
   }
 
@@ -41,6 +61,7 @@ class CacheControlValueTest extends FunSuite {
     assert(ccv.isValid)
     assert(ccv.label === "max-age")
     assert(ccv.deltaSeconds === Some(123))
+    assert(ccv.fieldName === None)
     assert(ccv.value === "max-age=123")
   }
 
@@ -49,6 +70,7 @@ class CacheControlValueTest extends FunSuite {
     assert(!ccv.isValid)
     assert(ccv.label === "max-age")
     assert(ccv.deltaSeconds === None)
+    assert(ccv.fieldName === None)
     assert(ccv.value === "max-age=none")
   }
 }
