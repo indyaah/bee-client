@@ -12,7 +12,7 @@ object Example1c {
     println(response.body.asBytes.length) // the same as above
     println(response.body.asString.length)
     println(response.body.isTextual) // true
-    println(response.body.contentType.value) // prints "text/html"
+    println(response.body.contentType.mediaType) // prints "text/html"
     println(response.body.contentType.charsetOrUTF8) // prints "ISO-8859-1"
   }
 }

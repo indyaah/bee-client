@@ -60,7 +60,7 @@ object AcceptValue {
   def apply(mt: MediaType, q: Float) = new AcceptValue(List(mediaTypeAsQualifier(mt, q)))
 
   private def mediaTypeAsQualifier(mt: MediaType) = {
-    val nv1 = NameVal(mt.value, None)
+    val nv1 = NameVal(mt.mediaType, None)
     Qualifiers(List(nv1))
   }
 
@@ -68,7 +68,7 @@ object AcceptValue {
     require(0.0 <= q && q <= 1.0, q + " is not valid; q must be in the range 0.0 to 1.0")
     val qStr = q.toString
     val qqStr = if (qStr.length > 5) qStr.substring(0, 5) else qStr
-    val nv1 = NameVal(mt.value, None)
+    val nv1 = NameVal(mt.mediaType, None)
     val nv2 = NameVal("q", Some(qqStr))
     Qualifiers(List(nv1, nv2))
   }

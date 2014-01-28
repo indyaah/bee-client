@@ -152,7 +152,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.head(new URL(url), gzipHeaders)
       assert(response.status.code === 200, url)
       val body = response.body
-      assert(body.contentType.value === TEXT_HTML.value, url)
+      assert(body.contentType.mediaType === TEXT_HTML.mediaType, url)
       expectHeaderIfPresent("gzip")(response.headers, CONTENT_ENCODING)
       //      expectHeaderIfPresent (size === response.headers, CONTENT_LENGTH)
       assert(body.asString === "", url)
@@ -168,7 +168,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.get(new URL(url), headers)
       assert(response.status.code === 200, url)
       val body = response.body
-      assert(body.contentType.value === TEXT_HTML.value, url)
+      assert(body.contentType.mediaType === TEXT_HTML.mediaType, url)
       val string = body.asString
       assert(string startsWith "<!DOCTYPE html>", url)
       assert(response.headers(CONTENT_ENCODING).value === encoding, response.headers(CONTENT_ENCODING))
@@ -237,7 +237,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       assert(204 === response.status.code, url)
       val body = response.body
       assert(false === response.status.isBodyAllowed, response.status)
-      assert(TEXT_HTML.value === body.contentType.value, url)
+      assert(TEXT_HTML.mediaType === body.contentType.mediaType, url)
       assert("" === body.asString)
     } catch {
       case e: Exception =>
@@ -278,7 +278,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.get(new URL(url), gzipHeaders)
       assert(200 === response.status.code, url)
       val body = response.body
-      assert(TEXT_PLAIN.value === body.contentType.value, url)
+      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
       assert(true === body.toString().startsWith("Lorem "), url)
     } catch {
       case e: Exception =>
@@ -298,7 +298,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http2.get(new URL(url), gzipHeaders, CookieJar(cookie))
       assert(200 === response.status.code, url)
       val body = response.body
-      assert(TEXT_PLAIN.value === body.contentType.value, url)
+      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
       assert(true === body.toString().startsWith("Lorem "), url)
       assert(cookie === response.cookies.get.find(_.name == "c1").get, url)
       assert("ok" === response.cookies.get.find(_.name == "redirect1").get.value, url)
@@ -317,7 +317,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = httpBrowser.get(new URL(url), gzipHeaders)
       assert(200 === response.status.code, url)
       val body = response.body
-      assert(TEXT_PLAIN.value === body.contentType.value, url)
+      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
       assert(true === body.toString().startsWith("Lorem "), url)
       assert(cookie === response.cookies.get.find(_.name == "c1").get, url)
       assert("ok" === response.cookies.get.find(_.name == "redirect1").get.value, url)
@@ -342,7 +342,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.get(new URL(url), gzipHeaders)
       assert(200 === response.status.code, url)
       val body = response.body
-      assert(TEXT_PLAIN.value === body.contentType.value, url)
+      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
       val bodyLines = response.body.toString().split("\n").toSeq
       assert("" === extractLineFromResponse("CONTENT_LENGTH", bodyLines), response.body)
       assert("" === extractLineFromResponse("CONTENT_TYPE", bodyLines), response.body)
@@ -364,7 +364,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.get(new URL(url), gzipHeaders, CookieJar.Empty)
       assert(200 === response.status.code, url)
       val body = response.body
-      assert(TEXT_PLAIN.value === body.contentType.value, url)
+      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
       val cookies = response.cookies.get
       assert(1 === cookies.size, url)
       assert("v1" === cookies.get("c1").get.value, url)
@@ -403,10 +403,10 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.post(new URL(url), Some(jsonBody), gzipHeaders)
       assert(200 === response.status.code, url)
       val body = response.body
-      assert(TEXT_PLAIN.value === body.contentType.value, url)
+      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
       val bodyLines = response.body.asString.split("\n").toSeq
       assert(jsonSample.length.toString === extractLineFromResponse("CONTENT_LENGTH", bodyLines))
-      assert(APPLICATION_JSON.value === extractLineFromResponse("CONTENT_TYPE", bodyLines))
+      assert(APPLICATION_JSON.mediaType === extractLineFromResponse("CONTENT_TYPE", bodyLines))
       assert(jsonSample === extractLineFromResponse("PUT", bodyLines))
     } catch {
       case e: Exception =>
@@ -425,10 +425,10 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.put(new URL(url), jsonBody, gzipHeaders)
       assert(200 === response.status.code, url)
       val body = response.body
-      assert(TEXT_PLAIN.value === body.contentType.value, url)
+      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
       val bodyLines = response.body.asString.split("\n").toSeq
       assert(jsonSample.length.toString === extractLineFromResponse("CONTENT_LENGTH", bodyLines))
-      assert(APPLICATION_JSON.value === extractLineFromResponse("CONTENT_TYPE", bodyLines))
+      assert(APPLICATION_JSON.mediaType === extractLineFromResponse("CONTENT_TYPE", bodyLines))
       assert(jsonSample === extractLineFromResponse("PUT", bodyLines))
     } catch {
       case e: Exception =>
@@ -447,7 +447,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.delete(new URL(url), gzipHeaders)
       assert(200 === response.status.code, url)
       val body = response.body
-      assert(TEXT_PLAIN.value === body.contentType.value, url)
+      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
       val bodyLines = response.body.asString.split("\n").toSeq
       assert("DELETE" === extractLineFromResponse("REQUEST_METHOD", bodyLines))
     } catch {
@@ -467,7 +467,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.options(new URL(url), None)
       assert(200 === response.status.code, url)
       val body = response.body
-      assert(TEXT_PLAIN.value === body.contentType.value, url)
+      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
       val bodyLines = response.body.asString.split("\n").toSeq
       assert("OPTIONS" === extractLineFromResponse("REQUEST_METHOD", bodyLines))
     } catch {
@@ -490,7 +490,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       for (i <- 1 to loops) {
         val response = http.get(new URL(url + "?n=" + i), gzipHeaders)
         assert(200 === response.status.code, url)
-        assert(IMAGE_JPG.value === response.body.contentType.value, url)
+        assert(IMAGE_JPG.mediaType === response.body.contentType.mediaType, url)
         val bytes = response.body.asBytes
         assert(testPhotoSize === bytes.length, url)
       }
@@ -524,7 +524,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
             val response = http.get(new URL(url + "?STUM=1"), gzipHeaders)
             assert(200 === response.status.code, url)
             val body = response.body
-            assert(TEXT_HTML.value === body.contentType.value, url)
+            assert(TEXT_HTML.mediaType === body.contentType.mediaType, url)
             val string = body.asString
             assert(string.startsWith("<html>"), url)
             if (size < 0) {
@@ -578,7 +578,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.get(new URL(url), requestHeaders)
       assert(200 === response.status.code, url)
       val body = response.body
-      assert(TEXT_PLAIN.value === body.contentType.value, url)
+      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
       assert(true === body.asString.startsWith("Lorem "), url)
     } catch {
       case e: Exception =>
@@ -599,7 +599,7 @@ class HttpIntegration extends FunSuite with BeforeAndAfter {
       val response = http.get(new URL(url), gzipHeaders)
       assert(200 === response.status.code, url)
       val body = response.body
-      assert(TEXT_PLAIN.value === body.contentType.value, url)
+      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
       assert(true === body.asString.startsWith("Lorem "), url)
     } catch {
       case e: Exception =>

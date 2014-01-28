@@ -35,7 +35,7 @@ class HttpServletRequestAdapterTest extends FunSuite {
   test("HttpServletRequestAdapter.url") {
     val splitUrl = Href(Some(Endpoint("http", "localhost", None)), Path("/context/x/y/z"), None, Some("a=1"))
     val req = new StubHttpServletRequest().copyFrom(splitUrl)
-    req.contentType = MediaType.TEXT_PLAIN.value
+    req.contentType = MediaType.TEXT_PLAIN.mediaType
 
     val adapterUrl = new HttpServletRequestAdapter(req).url
     assert(splitUrl === adapterUrl)
@@ -44,7 +44,7 @@ class HttpServletRequestAdapterTest extends FunSuite {
   test("HttpServletRequestAdapter.requestBody with default binary body") {
     val headers = Headers(List(HOST -> "localhost", ACCEPT -> "foo", ACCEPT_LANGUAGE -> "en", CONTENT_TYPE -> "application/octet-stream"))
     val req = new StubHttpServletRequest().copyFrom(headers)
-    req.contentType = MediaType.APPLICATION_OCTET_STREAM.value
+    req.contentType = MediaType.APPLICATION_OCTET_STREAM.mediaType
 
     val adapter = new HttpServletRequestAdapter(req)
 

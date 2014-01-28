@@ -21,7 +21,7 @@ object Example5a {
     println(body.contentLength) // a number
     println(body.asBytes.length) // the same number
     println(body.asString.length) // a similar number
-    println(body.contentType.value) // "text/html"
+    println(body.contentType.mediaType) // "text/html"
     println(body.contentType.charsetOrUTF8) // "ISO8859-1" or similar
   }
 }

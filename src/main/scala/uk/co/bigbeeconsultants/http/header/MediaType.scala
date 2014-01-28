@@ -37,22 +37,16 @@ case class MediaType(mainType: String, subtype: String, charset: Option[String] 
 
   def isValid = !mainType.isEmpty && !subtype.isEmpty
 
-  @deprecated("Renamed as mainType to avoid name clash with other header values", "0.23.0")
-  def contentType = mainType
+  /** Gets the main/sub type of this media type. That is, the textual representation without any charset. */
+  val mediaType = mainType + '/' + subtype
 
-  val value = mainType + '/' + subtype
+  /** Gets `mediaType` and appends the charset, if there is one. */
+  val value =
+    if (charset.isEmpty) mediaType
+    else mediaType + ";charset=" + charset.get
 
   /** Gets this media type as a Qualifiers, which is the form used within QualifiedValue. */
   def toQualifiers = Qualifiers(toString)
-
-  /**
-   * Gets `value` and appends the charset, if known.
-   *
-   * This is the only kind of `Value` for which `value` and `toString` may return different results.
-   */
-  override lazy val toString =
-    if (charset.isEmpty) value
-    else value + ";charset=" + charset.get
 
   /**
    * Gets the character set, or returns a default value.
@@ -169,5 +163,5 @@ object MediaType {
 
   private def orWildcard(s: String) = if (s.length > 0) s else WILDCARD
 
-  implicit def convertToString(mt: MediaType) = mt.toString
+  implicit def convertToString(mt: MediaType) = mt.value
 }

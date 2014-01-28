@@ -30,7 +30,11 @@ class MediaTypeTest extends FunSuite {
 
 
   test("mediaType construction variants") {
+    assert("application/json" === MediaType.APPLICATION_JSON.mediaType)
+    assert("application/json" === MediaType.APPLICATION_JSON.value)
     assert("application/json" === MediaType.APPLICATION_JSON.toString)
+    assert("text/plain" === MediaType("text/plain").mediaType)
+    assert("text/plain" === MediaType("text/plain").value)
     assert("text/plain" === MediaType("text/plain").toString)
     assert(true === MediaType.STAR_STAR.isWildcardType)
     assert(true === MediaType.STAR_STAR.isWildcardSubtype)
@@ -41,8 +45,10 @@ class MediaTypeTest extends FunSuite {
 
   test("parser") {
     val mt = MediaType("text/html; charset=ISO-8859-1")
+    assert("text/html;charset=ISO-8859-1" === mt.value)
     assert("text/html;charset=ISO-8859-1" === mt.toString)
     assert("text/html;charset=ISO-8859-1" === mt.toQualifiers.toString)
+    assert("text/html" === mt.mediaType)
     assert("text" === mt.mainType)
     assert("html" === mt.subtype)
     assert("ISO-8859-1" === mt.charset.get)

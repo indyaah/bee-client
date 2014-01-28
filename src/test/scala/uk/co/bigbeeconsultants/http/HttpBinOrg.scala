@@ -76,7 +76,7 @@ object HttpBinOrg extends App with Assertions {
       val response = http.head(url, gzipHeaders)
       tester.test(response.status.code === 200, url)
       val body = response.body
-      tester.test(body.contentType.value === TEXT_HTML.value, url)
+      tester.test(body.contentType.mediaType === TEXT_HTML.mediaType, url)
       expectHeaderIfPresent("gzip")(response.headers, CONTENT_ENCODING)
       tester.test(body.asString === "", url)
     }
@@ -92,7 +92,7 @@ object HttpBinOrg extends App with Assertions {
       val response = http.get(url, gzipHeaders)
       tester.test(response.status.code === 200, url)
       val body = response.body
-      tester.test(body.contentType.value === APPLICATION_JSON.value, url)
+      tester.test(body.contentType.mediaType === APPLICATION_JSON.mediaType, url)
       val json = JSONWrapper(response.body.asString)
       tester.test(serverUrl === json.get("headers/Host").asString, url)
     }
@@ -108,7 +108,7 @@ object HttpBinOrg extends App with Assertions {
       val response = http.get(url, gzipHeaders)
       tester.test(response.status.code === 200, url)
       val body = response.body
-      tester.test(body.contentType.value === APPLICATION_JSON.value, url)
+      tester.test(body.contentType.mediaType === APPLICATION_JSON.mediaType, url)
       val json = JSONWrapper(response.body.asString)
       tester.test("HttpBin-test-app" === json.get("user-agent").asString, url)
     }
@@ -125,7 +125,7 @@ object HttpBinOrg extends App with Assertions {
       tester.test(204 === response.status.code, url)
       val body = response.body
       tester.test(false === response.status.isBodyAllowed, response.status)
-      tester.test(TEXT_HTML.value === body.contentType.value, url)
+      tester.test(TEXT_HTML.mediaType === body.contentType.mediaType, url)
       tester.test("" === body.asString, url)
     }
   }
@@ -141,7 +141,7 @@ object HttpBinOrg extends App with Assertions {
       println("GET " + url)
       val response = http.get(url, gzipHeaders, CookieJar(cookieC1V1))
       tester.test(200 === response.status.code, url)
-      tester.test(APPLICATION_JSON.value === response.body.contentType.value, url)
+      tester.test(APPLICATION_JSON.mediaType === response.body.contentType.mediaType, url)
       val json = JSONWrapper(response.body.asString)
       tester.test(cookieC1V1 === response.cookies.get.find(_.name == "c1").get, url)
       val cookieLine = json.get("headers/Cookie").asString
@@ -155,7 +155,7 @@ object HttpBinOrg extends App with Assertions {
   private def textPlainGetWithQueryString(http: Http, url: String) {
     val response = http.get(new URL(url), gzipHeaders)
     tester.test(200 === response.status.code, url)
-    tester.test(APPLICATION_JSON.value === response.body.contentType.value, url)
+    tester.test(APPLICATION_JSON.mediaType === response.body.contentType.mediaType, url)
     val json = JSONWrapper(response.body.asString)
     val args = json.get("args")
     tester.test(2 === args.asMap.size, response.body)
