@@ -30,13 +30,12 @@ import uk.co.bigbeeconsultants.http.response.Response
 import java.util.concurrent.atomic.AtomicInteger
 
 @deprecated("This is not yet ready for production use", "v0.25.1")
-class CacheStore(maxContentSize: Int) {
+private[http] class CacheStore(maxContentSize: Int) {
 
-  private val data = new ConcurrentHashMap[CacheKey, CacheRecord]()
-//  private var sortedRecords = mutable.ArrayStack[CacheRecord]()
-  private var sortedRecords = List[CacheRecord]()
-  private var currentContentSize = 0L
   private val counter = new AtomicInteger()
+  private val data = new ConcurrentHashMap[CacheKey, CacheRecord]()
+  private var sortedRecords = List[CacheRecord]()
+  private[cache] var currentContentSize = 0L
 
   def size = data.size
 
@@ -69,6 +68,14 @@ class CacheStore(maxContentSize: Int) {
         currentContentSize -= doomed.contentLength
         sortedRecords = sortedRecords.tail
       }
+    }
+  }
+
+  def clear() {
+    synchronized {
+      data.clear()
+      sortedRecords = List[CacheRecord]()
+      currentContentSize = 0L
     }
   }
 }

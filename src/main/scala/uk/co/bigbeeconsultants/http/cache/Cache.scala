@@ -35,6 +35,10 @@ class Cache(maxContentSize: Int = Int.MaxValue) {
 
   private[cache] def size = data.size
 
+  def clear() {
+    data.clear()
+  }
+
   def lookup(request: Request): Either[Request, Response] = {
     val requestCacheControl = request.headers.get(CACHE_CONTROL) map (_.toCacheControlValue)
     val cacheRecord = data.get(request.cacheKey)

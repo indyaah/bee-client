@@ -29,9 +29,9 @@ import uk.co.bigbeeconsultants.http.url.Href
 import uk.co.bigbeeconsultants.http.request.Request
 
 @deprecated("This is not yet ready for production use", "v0.25.1")
-case class CacheKey(method: String,
-                    url: Href,
-                    headers: Headers = Headers.Empty) extends Ordered[CacheKey] {
+private[http] case class CacheKey(method: String,
+                                   url: Href,
+                                   headers: Headers = Headers.Empty) extends Ordered[CacheKey] {
   val timestamp = System.currentTimeMillis()
 
   /** Implements time-ordering of instances. */
@@ -39,6 +39,6 @@ case class CacheKey(method: String,
 }
 
 @deprecated("This is not yet ready for production use", "v0.25.1")
-object CacheKey {
+private[http] object CacheKey {
   def apply(request: Request) = new CacheKey(request.method, request.href, request.headers)
 }

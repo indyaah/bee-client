@@ -29,7 +29,7 @@ import uk.co.bigbeeconsultants.http.response.Response
 import uk.co.bigbeeconsultants.http.header.{Header, HeaderName, CacheControlValue, HttpDateTimeInstant}
 
 @deprecated("This is not yet ready for production use", "v0.25.1")
-case class CacheRecord(response: Response, id: Int) extends Ordered[CacheRecord] {
+private[http] case class CacheRecord(response: Response, id: Int) extends Ordered[CacheRecord] {
 
   import HttpDateTimeInstant._
 
@@ -122,6 +122,6 @@ case class CacheRecord(response: Response, id: Int) extends Ordered[CacheRecord]
   def contentLength: Int = response.body.contentLength
 
   /** Provides ordering of records according to their remaining time to live. */
-  override def compare(that: CacheRecord) = expiresAt.compare(that.expiresAt)
+  override def compare(that: CacheRecord) = that.expiresAt.compare(this.expiresAt)
 }
 
