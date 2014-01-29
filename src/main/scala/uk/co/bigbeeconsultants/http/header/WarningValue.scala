@@ -37,10 +37,14 @@ import org.slf4j.LoggerFactory
  * @param text the human-readable warning message
  * @param date the optional date when the warning was raised
  */
-case class WarningValue(value: String, isValid: Boolean, code: Int, agent: String, text: String, date: Option[HttpDateTimeInstant]) extends Value
+case class WarningValue(value: String, isValid: Boolean, code: Int, agent: String, text: String, date: Option[HttpDateTimeInstant])
+  extends Value
 
 
 object WarningValue {
+  // http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.46
+  // warning-value = warn-code SP warn-agent SP "warn-text" [SP "warn-date"]
+
   private val logger = LoggerFactory.getLogger(getClass)
 
   /** Parses a header value to extract a warning, if this is possible. */
@@ -67,5 +71,12 @@ object WarningValue {
           logger.error("{}: failed to parse warning. {}", Array(value, pe.getMessage))
           new WarningValue(value, false, 0, "", "", None)
       }
+  }
+
+  /** Construct an instance from its constituent parts. */
+  def apply(code: Int, agent: String, text: String, date: Option[HttpDateTimeInstant] = None) = {
+    val dateStr = if (date.isDefined) " " + quote(date.get.toString) else ""
+    val value = code + " " + agent + " " + quote(text) + dateStr
+    new WarningValue(value, true, code, agent, text, date)
   }
 }

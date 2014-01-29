@@ -29,80 +29,88 @@ import org.scalatest.FunSuite
 
 class HttpUtilTest extends FunSuite {
 
+  import HttpUtil._
+
+  test("quote") {
+    assert("\"\"" === quote(""))
+    assert("\"abc\"" === quote("abc"))
+    intercept[IllegalArgumentException] { quote("abc\"def") }
+  }
+
   test("unquote") {
-    assert("" === HttpUtil.unquote(""))
-    assert("\"" === HttpUtil.unquote("\""))
-    assert("xyz" === HttpUtil.unquote("\"xyz\""))
-    assert("xyz" === HttpUtil.unquote("xyz"))
+    assert("" === unquote(""))
+    assert("\"" === unquote("\""))
+    assert("xyz" === unquote("\"xyz\""))
+    assert("xyz" === unquote("xyz"))
   }
 
   test("split blank") {
-    assert(List("") === HttpUtil.split("", ':'))
+    assert(List("") === split("", ':'))
   }
 
   test("split sepOnly") {
-    assert(List("", "") === HttpUtil.split(":", ':'))
+    assert(List("", "") === split(":", ':'))
   }
 
   test("split oneOnly") {
-    assert(List("only") === HttpUtil.split("only", ':'))
+    assert(List("only") === split("only", ':'))
   }
 
   test("split endOnly") {
-    assert(List("only", "") === HttpUtil.split("only:", ':'))
+    assert(List("only", "") === split("only:", ':'))
   }
 
   test("split startOnly") {
-    assert(List("", "only") === HttpUtil.split(":only", ':'))
+    assert(List("", "only") === split(":only", ':'))
   }
 
   test("split three") {
-    assert(List("one", "two", "three") === HttpUtil.split("one:two:three", ':'))
+    assert(List("one", "two", "three") === split("one:two:three", ':'))
   }
 
   test("split quoted blank") {
-    assert(List("") === HttpUtil.splitQuoted("", ':'))
+    assert(List("") === splitQuoted("", ':'))
   }
 
   test("split quoted sepOnly") {
-    assert(List("", "") === HttpUtil.splitQuoted(":", ':'))
+    assert(List("", "") === splitQuoted(":", ':'))
   }
 
   test("split quoted oneOnly") {
-    assert(List("only") === HttpUtil.splitQuoted("only", ':'))
+    assert(List("only") === splitQuoted("only", ':'))
   }
 
   test("split quoted endOnly") {
-    assert(List("only", "") === HttpUtil.splitQuoted("only:", ':'))
+    assert(List("only", "") === splitQuoted("only:", ':'))
   }
 
   test("split quoted startOnly") {
-    assert(List("", "only") === HttpUtil.splitQuoted(":only", ':'))
+    assert(List("", "only") === splitQuoted(":only", ':'))
   }
 
   test("split quoted three") {
-    assert(List("one", "two", "three") === HttpUtil.splitQuoted("one:two:three", ':'))
+    assert(List("one", "two", "three") === splitQuoted("one:two:three", ':'))
   }
 
   test("split quoted containing seps") {
-    assert(List("a=\"one\"", "b=\"two,two,two\"", "c=three", "d=\"four\"") === HttpUtil.splitQuoted("a=\"one\",b=\"two,two,two\",c=three,d=\"four\"", ','))
+    assert(List("a=\"one\"", "b=\"two,two,two\"", "c=three", "d=\"four\"") === splitQuoted("a=\"one\",b=\"two,two,two\",c=three,d=\"four\"", ','))
   }
 
   test("divide0") {
-    assert(("", "") === HttpUtil.divide("", ':'))
+    assert(("", "") === divide("", ':'))
   }
 
   test("divide1") {
-    assert(("xyz", "") === HttpUtil.divide("xyz", ':'))
+    assert(("xyz", "") === divide("xyz", ':'))
   }
 
   test("divide2") {
-    assert(("aa", "bb:cc") === HttpUtil.divide("aa:bb:cc", ':'))
+    assert(("aa", "bb:cc") === divide("aa:bb:cc", ':'))
   }
 
   test("copy no content") {
     val baos = new ByteArrayOutputStream
-    val count = HttpUtil.copyBytes(null, baos)
+    val count = copyBytes(null, baos)
     val result = new String(baos.toByteArray)
     assert(0 === count)
     assert("" === result)
@@ -113,7 +121,7 @@ class HttpUtilTest extends FunSuite {
     val bytes = str.getBytes
     val bais = new ByteArrayInputStream(bytes)
     val baos = new ByteArrayOutputStream
-    val count = HttpUtil.copyBytes(bais, baos)
+    val count = copyBytes(bais, baos)
     val result = new String(baos.toByteArray)
     assert(bytes.length === count)
     assert(str === result)
@@ -126,7 +134,7 @@ class HttpUtilTest extends FunSuite {
     val bytes = str.getBytes
     val bais = new ByteArrayInputStream(bytes)
     val baos = new ByteArrayOutputStream
-    val count = HttpUtil.copyBytes(bais, baos)
+    val count = copyBytes(bais, baos)
     val result = new String(baos.toByteArray)
     assert(bytes.length === count)
     assert(str === result)
@@ -136,7 +144,7 @@ class HttpUtilTest extends FunSuite {
     val str = "short string"
     val bytes = str.getBytes
     val baos = new ByteArrayOutputStream
-    val count = HttpUtil.copyArray(bytes, baos)
+    val count = copyArray(bytes, baos)
     val result = new String(baos.toByteArray)
     assert(bytes.length === count)
     assert(str === result)
@@ -148,7 +156,7 @@ class HttpUtilTest extends FunSuite {
     val str = sb.toString()
     val bytes = str.getBytes
     val baos = new ByteArrayOutputStream
-    val count = HttpUtil.copyArray(bytes, baos)
+    val count = copyArray(bytes, baos)
     val result = new String(baos.toByteArray)
     assert(bytes.length === count)
     assert(str === result)
@@ -161,14 +169,14 @@ class HttpUtilTest extends FunSuite {
     val bytes = str.getBytes
     val bais = new ByteArrayInputStream(bytes)
     val baos = new ByteArrayOutputStream
-    HttpUtil.copyText(bais, baos)
+    copyText(bais, baos)
     val result = new String(baos.toByteArray)
     assert(str === result)
   }
 
   test("copyText with null input stream") {
     val baos = new ByteArrayOutputStream
-    HttpUtil.copyText(null, baos)
+    copyText(null, baos)
     val result = new String(baos.toByteArray)
     assert("" === result)
   }
@@ -176,7 +184,7 @@ class HttpUtilTest extends FunSuite {
   test("copyText with null output stream") {
     val bytes = "hello".getBytes
     val bais = new ByteArrayInputStream(bytes)
-    HttpUtil.copyText(bais, null)
+    copyText(bais, null)
   }
 
   test("copyString") {
@@ -184,20 +192,20 @@ class HttpUtilTest extends FunSuite {
     for (i <- 1 to 5) sb.append(i + " this is my string of text which will be repeated many times.\n")
     val str = sb.toString()
     val baos = new ByteArrayOutputStream
-    HttpUtil.copyString(str, baos)
+    copyString(str, baos)
     val result = new String(baos.toByteArray)
     assert(str === result)
   }
 
   test("copyString with null output stream") {
-    HttpUtil.copyString("hello", null)
+    copyString("hello", null)
   }
 
   test("captureBytes") {
     val str = "short string"
     val bytes = str.getBytes
     val bais = new ByteArrayInputStream(bytes)
-    val captured = HttpUtil.captureBytes(HttpUtil.copyBytes(bais, _))
+    val captured = captureBytes(copyBytes(bais, _))
     assert(captured === bytes)
   }
 }

@@ -27,6 +27,7 @@ package uk.co.bigbeeconsultants.http.cache
 import uk.co.bigbeeconsultants.http.response.Response
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.request.Request
+import uk.co.bigbeeconsultants.http.header.WarningValue
 
 /**
  * Holds an HTTP content cache. Outbound requests are checked using `lookup`, which either returns a cached response
@@ -71,7 +72,11 @@ class Cache(maxContentSize: Int = 10000000, assume404Age: Int = 0) {
     if (maxContentSize > 0 && isCacheable(response)) {
       response.status.code match {
         case 200 | 203 | 300 | 301 | 410 => offerToCache(response)
-        case 404 if assume404Age > 0 => offerToCache(response.copy(headers = response.headers.set(AGE -> assume404Age)))
+        case 404 if assume404Age > 0 =>
+          val age = AGE -> assume404Age
+          val warning = WARNING -> WarningValue(110, "", "Stale content")
+          val modHeaders = response.headers.set(age).set(warning)
+          offerToCache(response.copy(headers = modHeaders))
         case _ => // cannot store this response
       }
     }

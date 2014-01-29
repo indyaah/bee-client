@@ -57,7 +57,7 @@ private[http] class CacheStore(maxContentSize: Int) {
         sortedRecords = sortedRecords.filterNot(_.id == prevId)
         currentContentSize -= previous.contentLength
       }
-      sortedRecords = sortedRecords :+ record
+      sortedRecords = record :: sortedRecords
       sortedRecords = sortedRecords.sorted
       currentContentSize += record.contentLength
 

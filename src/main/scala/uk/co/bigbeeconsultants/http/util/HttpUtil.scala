@@ -37,6 +37,15 @@ object HttpUtil {
   val DEFAULT_BUFFER_SIZE = 1024 * 16
 
   /**
+   * Adds surrounding double quotes from a string.
+   */
+  def quote(str: String): String = {
+    require(str.indexOf('"') < 0, str + ": not allowed to contain double-quote marks.")
+    '"' + str + '"'
+  }
+
+
+  /**
    * Removes surrounding double quotes from a string.
    */
   def unquote(str: String): String = {

@@ -28,28 +28,7 @@ import org.scalatest.FunSuite
 
 class WarningValueTest extends FunSuite {
 
-  test ("WarningValue invalid 1") {
-    val w = WarningValue("")
-    assert (false === w.isValid)
-    assert ("" === w.toString)
-    assert ("" === w.text)
-  }
-
-  test ("WarningValue invalid 2") {
-    val w = WarningValue("not a number")
-    assert (false === w.isValid)
-    assert ("not a number" === w.toString)
-    assert ("" === w.text)
-  }
-
-  test ("WarningValue invalid 3") {
-    val w = WarningValue("     ")
-    assert (false === w.isValid)
-    assert ("     " === w.toString)
-    assert ("" === w.text)
-  }
-
-  test ("WarningValue happy 1") {
+  test ("WarningValue parse happy without date") {
     val w = WarningValue("""110 somehost:80 "stale"""")
     assert (true === w.isValid)
     assert (110 === w.code)
@@ -58,7 +37,7 @@ class WarningValueTest extends FunSuite {
     assert ("""110 somehost:80 "stale"""" === w.toString)
   }
 
-  test ("WarningValue happy 2") {
+  test ("WarningValue parse happy with date") {
     val d = new HttpDateTimeInstant()
     val v = """110 pseudonym "stale" """" + d + '"'
     val w = WarningValue(v)
@@ -70,7 +49,28 @@ class WarningValueTest extends FunSuite {
     assert (Some(d) === w.date)
   }
 
-  test ("WarningValue invalid 4") {
+  test ("WarningValue parse invalid 1") {
+    val w = WarningValue("")
+    assert (false === w.isValid)
+    assert ("" === w.toString)
+    assert ("" === w.text)
+  }
+
+  test ("WarningValue parse invalid 2") {
+    val w = WarningValue("not a number")
+    assert (false === w.isValid)
+    assert ("not a number" === w.toString)
+    assert ("" === w.text)
+  }
+
+  test ("WarningValue parse invalid 3") {
+    val w = WarningValue("     ")
+    assert (false === w.isValid)
+    assert ("     " === w.toString)
+    assert ("" === w.text)
+  }
+
+  test ("WarningValue parse invalid 4") {
     val d = new HttpDateTimeInstant()
     val v = """110 pseudonym "stale" """ + d
     val w = WarningValue(v)
@@ -81,4 +81,26 @@ class WarningValueTest extends FunSuite {
     assert ("" === w.text)
     assert (None === w.date)
   }
+
+  test ("WarningValue apply happy with date") {
+    val d = new HttpDateTimeInstant()
+    val w = WarningValue(110, "myhost", "stale", Some(d))
+    assert ("110 myhost \"stale\" \"" + d + '"' === w.value)
+    assert (true === w.isValid)
+    assert (110 === w.code)
+    assert ("myhost" === w.agent)
+    assert ("stale" === w.text)
+    assert (Some(d) === w.date)
+  }
+
+  test ("WarningValue apply happy without date") {
+    val w = WarningValue(110, "myhost", "stale", None)
+    assert ("110 myhost \"stale\"" === w.value)
+    assert (true === w.isValid)
+    assert (110 === w.code)
+    assert ("myhost" === w.agent)
+    assert ("stale" === w.text)
+    assert (None === w.date)
+  }
+
 }
