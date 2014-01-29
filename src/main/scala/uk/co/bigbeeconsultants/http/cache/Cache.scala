@@ -58,7 +58,11 @@ class Cache(maxContentSize: Long = 10 * MiB, assume404Age: Int = 0) {
   }
 
   def lookup(request: Request): Either[Request, Response] = {
-    val requestCacheControl = request.headers.get(CACHE_CONTROL) map (_.toCacheControlValue)
+//    val requestCacheControl = request.headers.get(CACHE_CONTROL) map (_.toCacheControlValue)
+//    requestCacheControl match {
+//      case CacheControlValue("max-age=0", true, _, _, _) =>
+//      case CacheControlValue("no-cache", true, _, _, _) =>
+//    }
     val cacheRecord = data.get(request.cacheKey)
     if (cacheRecord == null)
       Left(request)

@@ -27,7 +27,8 @@ package uk.co.bigbeeconsultants.http.header
 import uk.co.bigbeeconsultants.http.util.HttpUtil._
 import org.slf4j.LoggerFactory
 
-case class CacheControlValue(value: String, isValid: Boolean, label: String, deltaSeconds: Option[Int], fieldName: Option[String]) extends Value {
+case class CacheControlValue(value: String, isValid: Boolean, label: String, deltaSeconds: Option[Int], fieldName: Option[String])
+  extends Value {
   require(deltaSeconds.isEmpty || fieldName.isEmpty, "Cannot define both deltaSeconds and fieldName")
 }
 
@@ -61,7 +62,7 @@ object CacheControlValue {
 
   def apply(label: String, deltaSeconds: Option[Int], fieldName: Option[String]) = {
     if (deltaSeconds.isDefined) new CacheControlValue(label + "=" + deltaSeconds.get, true, label, deltaSeconds, None)
-    else if (fieldName.isDefined) new CacheControlValue(label + "=\"" + fieldName.get + "\"", true, label, deltaSeconds, None)
+    else if (fieldName.isDefined) new CacheControlValue(label + "=\"" + fieldName.get + "\"", true, label, None, fieldName)
     else new CacheControlValue(label, true, label, None, fieldName)
   }
 
