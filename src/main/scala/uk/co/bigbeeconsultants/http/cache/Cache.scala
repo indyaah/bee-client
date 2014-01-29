@@ -28,6 +28,7 @@ import uk.co.bigbeeconsultants.http.response.Response
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.request.Request
 import uk.co.bigbeeconsultants.http.header.WarningValue
+import uk.co.bigbeeconsultants.http.util.Bytes._
 
 /**
  * Holds an HTTP content cache. Outbound requests are checked using `lookup`, which either returns a cached response
@@ -44,7 +45,7 @@ import uk.co.bigbeeconsultants.http.header.WarningValue
  *                     the default value.
  */
 @deprecated("This is not yet ready for production use", "v0.25.1")
-class Cache(maxContentSize: Int = 10000000, assume404Age: Int = 0) {
+class Cache(maxContentSize: Long = 10 * MiB, assume404Age: Int = 0) {
   require(maxContentSize >= 0, "maxContentSize must be non-negative")
   require(assume404Age >= 0, "assume404Age must be non-negative")
 

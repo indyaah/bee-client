@@ -25,11 +25,10 @@
 package uk.co.bigbeeconsultants.http.cache
 
 import java.util.concurrent.ConcurrentHashMap
-import scala.collection.mutable
 import uk.co.bigbeeconsultants.http.response.Response
 import java.util.concurrent.atomic.AtomicInteger
 
-private[http] class CacheStore(maxContentSize: Int) {
+private[http] class CacheStore(maxContentSize: Long) {
 
   private val counter = new AtomicInteger()
   private val data = new ConcurrentHashMap[CacheKey, CacheRecord]()
