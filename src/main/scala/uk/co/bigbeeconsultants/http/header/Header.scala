@@ -42,34 +42,81 @@ trait Value {
  */
 case class Header(name: String, value: String) {
 
-  /** Converts the value to an integer number. */
-  def toNumber = NumberValue(value)
-
-  /** Converts the value to an HttpDateTimeInstant. */
-  def toDate: DateValue = DateValue(value)
-
-  /** Converts the value to a comma-separated list value. */
-  def toListValue = CommaListValue.split(value)
-
-  /** Converts the value to a qualified value. */
+  /**
+   * Converts the value to a qualified value.
+   *
+   * Accept | Accept-Charset | Accept-Encoding | Accept-Language
+   */
   def toQualifiedValue = toListValue.toQualifiedValue
 
-  /** Converts the value to an authenticate value. */
+  /**
+   * Converts the value to an integer number.
+   *
+   * Age | Content-Length | Max-Forwards
+   */
+  def toNumber = NumberValue(value)
+
+  /**
+   * Converts the value to an HttpDateTimeInstant.
+   *
+   * Date | Expires | If-Modified-Since | If-Unmodified-Since | Last-Modified
+   */
+  def toDate: DateValue = DateValue(value)
+
+  /**
+   * Converts the value to a comma-separated list value.
+   *
+   * Accept-Ranges | Allow | Cache-Control | Connection | Content-Encoding | Content-Language
+   */
+  def toListValue = CommaListValue.split(value)
+
+  /**
+   * Converts the value to an authenticate value.
+   *
+   * WWW-Authenticate
+   */
   def toAuthenticateValue = AuthenticateValue(value)
 
-  /** Converts the value to a range value. */
+  /**
+   * Converts the value to a range value.
+   *
+   * Range
+   */
   def toRangeValue = RangeValue(value)
 
-  /** Converts the value to a media type. */
+  /**
+   * Converts the value to a media type.
+   *
+   * Content-Type
+   */
   def toMediaType = MediaType(value)
 
-  /** Converts the value to an entity tag. */
-  def toEntityTag = EntityTagListValue(value)
+  /**
+   * Converts the value to a single entity tag.
+   *
+   * Etag
+   */
+  def toEntityTag = EntityTag(value)
 
-  /** Converts the value to a warning value. */
+  /**
+   * Converts the value to a list of entity tags.
+   *
+   * If-Match | If-None-Match
+   */
+  def toEntityTagList = EntityTagListValue(value)
+
+  /**
+   * Converts the value to a warning value.
+   *
+   * Warning
+   */
   def toWarning = WarningValue(value)
 
-  /** Converts the value to a cache-control value. */
+  /**
+   * Converts the value to a cache-control value.
+   *
+   * Cache-Control
+   */
   def toCacheControlValue = CacheControlValue(value)
 
   /** Header name equalsIgnoreCase other name. */

@@ -25,7 +25,6 @@
 package uk.co.bigbeeconsultants.http.header
 
 import uk.co.bigbeeconsultants.http.util.HttpUtil
-import scala.collection.JavaConverters._
 
 /**
  * Defines an HTTP header value consisting of a list of values.

@@ -103,4 +103,24 @@ class WarningValueTest extends FunSuite {
     assert (None === w.date)
   }
 
+  test ("WarningListValue parse happy with date") {
+    val d = new HttpDateTimeInstant()
+    val v1 = """110 pseudonym1 "stale1""""
+    val v2 = """111 pseudonym2 "stale2" """" + d + '"'
+    val wl = WarningListValue(" " + v1 + " , " + v2 + " ")
+    assert (wl.toString === v1 + ", " + v2)
+    assert (wl.isValid)
+    assert (wl.size === 2)
+    assert (wl(0).isValid)
+    assert (wl(1).isValid)
+    assert (wl(0).code === 110)
+    assert (wl(1).code === 111)
+    assert (wl(0).agent === "pseudonym1")
+    assert (wl(1).agent === "pseudonym2")
+    assert (wl(0).text === "stale1")
+    assert (wl(1).text === "stale2")
+    assert (wl(0).date === None)
+    assert (wl(1).date === Some(d))
+  }
+
 }

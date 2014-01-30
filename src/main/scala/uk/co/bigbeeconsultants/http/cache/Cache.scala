@@ -111,21 +111,32 @@ class Cache(maxContentSize: Long = 10 * MiB, assume404Age: Int = 0) {
             offerToCache(oldResponse.copy(headers = modHeaders))
           }
 
-        case _ => // cannot store this response
-          Some(response)
+        case _ =>
+          controlledOfferToCache(response)
       }
     }
     else Some(response)
   }
 
   private def offerToCache(response: Response) = {
+    if (isNotPrevented(response))
+      data.put(response)
+    Some(response)
+  }
+
+  private def controlledOfferToCache(response: Response) = {
+    if (isNotPrevented(response))
+      data.putIfControlled(response)
+    Some(response)
+  }
+
+  private def isNotPrevented(response: Response) = {
     val cacheControl = response.headers.get(CACHE_CONTROL) map (_.toCacheControlValue)
     if (cacheControl.isDefined)
       cacheControl.get.label match {
-        case "no-cache" | "no-store" => // cannot store this response
-        case _ => data.put(response)
-      } else data.put(response)
-    Some(response)
+        case "no-cache" | "no-store" => false
+        case _ => true
+      } else true
   }
 
   private def isCacheable(response: Response) =

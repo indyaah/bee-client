@@ -60,4 +60,28 @@ class EntityTagTest extends FunSuite {
     assert (""""aaa"""" === w.toString)
   }
 
+  test ("EntityTagListValue apply 1") {
+    val tl = EntityTagListValue(""""abcdef", "ghijkl"""")
+    assert (tl.size === 2)
+    assert (tl(0).isValid === true)
+    assert (tl(1).isValid === true)
+    assert (tl.isValid === true)
+    assert (tl(0).isWeak === false)
+    assert (tl(1).isWeak === false)
+    assert (tl(0).opaqueTag === "abcdef")
+    assert (tl(1).opaqueTag === "ghijkl")
+  }
+
+  test ("EntityTagListValue apply 2") {
+    val tl = EntityTagListValue(""""abcdef", W/"ghijkl"""")
+    assert (tl.size === 2)
+    assert (tl(0).isValid === true)
+    assert (tl(1).isValid === true)
+    assert (tl.isValid === true)
+    assert (tl(0).isWeak === false)
+    assert (tl(1).isWeak === true)
+    assert (tl(0).opaqueTag === "abcdef")
+    assert (tl(1).opaqueTag === "ghijkl")
+  }
+
 }

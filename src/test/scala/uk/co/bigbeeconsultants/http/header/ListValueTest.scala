@@ -44,4 +44,13 @@ class ListValueTest extends FunSuite {
     assert("x=1; y=2; z=3" === v.toString)
   }
 
+  test("NameValListValue with three items") {
+    val v = NameValListValue.split("x=1, y=2, z=3")
+    assert(v.isValid)
+    assert(v.parts.size === 3)
+    assert(v(0).name === "x")
+    assert(v(0).value === Some("1"))
+    assert(v.toString === "x=1, y=2, z=3")
+  }
+
 }

@@ -64,19 +64,8 @@ case class EntityTagListValue(parts: List[EntityTag]) extends ListValue(parts, "
 
 object EntityTagListValue {
   def apply(string: String) = {
-    val buf = new ArrayBuffer[EntityTag]()
-    var s = string
-    while (s.length > 0) {
-      val q1 = s.indexOf('"')
-      val q2 = s.indexOf('"', q1 + 1) + 1
-      if (0 <= q1 && q1 < q2) {
-        buf += EntityTag(s.substring(0, q2))
-        s = s.substring(q2)
-        while (s.length > 0 && s(0) == ' ') s = s.substring(1)
-        if (s.length > 0 && s(0) == ',') s = s.substring(1)
-        while (s.length > 0 && s(0) == ' ') s = s.substring(1)
-      } else s = ""
-    }
-    new EntityTagListValue(buf.toList)
+    val list = splitQuoted(string, ',')
+    val parts = list map (s => EntityTag(s.trim))
+    new EntityTagListValue(parts)
   }
 }

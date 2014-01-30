@@ -49,28 +49,25 @@ object WarningValue {
 
   /** Parses a header value to extract a warning, if this is possible. */
   def apply(value: String) = {
-    if (value == null || value.length < 5) new WarningValue(value, false, 0, "", "", None)
-    else
-      try {
-        val code = value.substring(0, 3).toInt
-        val major = divide(value.substring(4), ' ')
-        val agent = major._1
-        val minor = major._2
-        val q2 = minor.indexOf('"', 1)
-        val text = minor.substring(1, q2)
-        val date = if (q2 < minor.length - 4) {
-          val dString = minor.substring(q2 + 3, minor.length - 1)
-          Some(HttpDateTimeInstant.parse(dString))
-        } else None
+    try {
+      val parts = splitQuoted(value, ' ')
+      if (parts.size < 3 || parts.size > 4)
+        new WarningValue(value, false, 0, "", "", None)
+      else {
+        val code = parts(0).toInt
+        val agent = parts(1)
+        val text = unquote(parts(2))
+        val date = if (parts.size == 4) Some(HttpDateTimeInstant.parse(unquote(parts(3)))) else None
         new WarningValue(value, true, code, agent, text, date)
-      } catch {
-        case e: RuntimeException =>
-          logger.error("{}: failed to parse warning. {}", Array(value, e.getMessage))
-          new WarningValue(value, false, 0, "", "", None)
-        case pe: ParseException =>
-          logger.error("{}: failed to parse warning. {}", Array(value, pe.getMessage))
-          new WarningValue(value, false, 0, "", "", None)
       }
+    } catch {
+      case e: RuntimeException =>
+        logger.error("{}: failed to parse warning. {}", Array(value, e.getMessage))
+        new WarningValue(value, false, 0, "", "", None)
+      case pe: ParseException =>
+        logger.error("{}: failed to parse warning. {}", Array(value, pe.getMessage))
+        new WarningValue(value, false, 0, "", "", None)
+    }
   }
 
   /** Construct an instance from its constituent parts. */
@@ -78,5 +75,26 @@ object WarningValue {
     val dateStr = if (date.isDefined) " " + quote(date.get.toString) else ""
     val value = code + " " + agent + " " + quote(text) + dateStr
     new WarningValue(value, true, code, agent, text, date)
+  }
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+
+/**
+ * Defines an HTTP header value consisting of a comma-separated list of warning values.
+ */
+case class WarningListValue(parts: List[WarningValue]) extends ListValue(parts, ", ") with Value {
+
+  override lazy val isValid: Boolean = parts forall(_.isValid)
+  override lazy val value = parts map(_.value) mkString ", "
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+
+object WarningListValue {
+  def apply(string: String) = {
+    val list = splitQuoted(string, ',')
+    val parts = list map (s => WarningValue(s.trim))
+    new WarningListValue(parts)
   }
 }
