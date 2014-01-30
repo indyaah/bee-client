@@ -93,7 +93,8 @@ class HttpUtilTest extends FunSuite {
   }
 
   test("split quoted containing seps") {
-    assert(List("a=\"one\"", "b=\"two,two,two\"", "c=three", "d=\"four\"") === splitQuoted("a=\"one\",b=\"two,two,two\",c=three,d=\"four\"", ','))
+    assert(List("""a="one"""", """b="two,two,two"""", """c=three""", """d="four"""")
+      === splitQuoted("""a="one",b="two,two,two",c=three,d="four"""", ','))
   }
 
   test("divide0") {

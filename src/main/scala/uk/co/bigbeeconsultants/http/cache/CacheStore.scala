@@ -43,28 +43,35 @@ private[http] class CacheStore(maxContentSize: Long) {
   // lock-based storing
   def put(response: Response) = {
     val record = CacheRecord(response, counter.incrementAndGet())
-    if (!record.isAlreadyExpired) {
+    putRecord(record)
+  }
+
+  def putIfControlled(response: Response) = {
+    val record = CacheRecord(response, counter.incrementAndGet())
+    if (record.expires.isDefined || record.cacheControlHeader.isDefined) {
       putRecord(record)
     }
   }
 
   private def putRecord(record: CacheRecord) {
-    val previous = data.put(record.response.request.cacheKey, record)
-    synchronized {
-      if (previous != null) {
-        val prevId = previous.id
-        sortedRecords = sortedRecords.filterNot(_.id == prevId)
-        currentContentSize -= previous.contentLength
-      }
-      sortedRecords = record :: sortedRecords
-      sortedRecords = sortedRecords.sorted
-      currentContentSize += record.contentLength
+    if (!record.isAlreadyExpired) {
+      val previous = data.put(record.response.request.cacheKey, record)
+      synchronized {
+        if (previous != null) {
+          val prevId = previous.id
+          sortedRecords = sortedRecords.filterNot(_.id == prevId)
+          currentContentSize -= previous.contentLength
+        }
+        sortedRecords = record :: sortedRecords
+        sortedRecords = sortedRecords.sorted
+        currentContentSize += record.contentLength
 
-      while (currentContentSize > maxContentSize) {
-        val doomed = sortedRecords.head
-        data.remove(doomed.response.request.cacheKey)
-        currentContentSize -= doomed.contentLength
-        sortedRecords = sortedRecords.tail
+        while (currentContentSize > maxContentSize) {
+          val doomed = sortedRecords.head
+          data.remove(doomed.response.request.cacheKey)
+          currentContentSize -= doomed.contentLength
+          sortedRecords = sortedRecords.tail
+        }
       }
     }
   }

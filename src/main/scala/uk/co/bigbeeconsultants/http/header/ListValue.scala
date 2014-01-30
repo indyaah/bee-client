@@ -25,21 +25,22 @@
 package uk.co.bigbeeconsultants.http.header
 
 import uk.co.bigbeeconsultants.http.util.HttpUtil
+import scala.collection.JavaConverters._
 
 /**
  * Defines an HTTP header value consisting of a list of values.
  */
-abstract class ListValue(parts: List[String]) extends IndexedSeq[String] with Value {
+abstract class ListValue[T](parts: List[T], separator: String) extends IndexedSeq[T] with Value {
 
-  def isValid = true
+  final override def apply(i: Int) = parts(i)
 
-  override def apply(i: Int) = parts(i)
+  final override def length: Int = parts.length
 
-  override def length: Int = parts.length
+  final override def size = parts.size
 
-  override def size = parts.size
+  final override def iterator = parts.iterator
 
-  override def iterator = parts.iterator
+  override lazy val value = parts.mkString(separator)
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -47,21 +48,9 @@ abstract class ListValue(parts: List[String]) extends IndexedSeq[String] with Va
 /**
  * Defines an HTTP header value consisting of a comma-separated list of values.
  */
-case class CommaListValue(parts: List[String]) extends ListValue(parts) {
+case class CommaListValue(parts: List[String]) extends ListValue(parts, ", ") {
   def toQualifiedValue = new QualifiedValue(this)
-
-  override lazy val value = parts.mkString(", ")
-}
-
-//---------------------------------------------------------------------------------------------------------------------
-
-/**
- * Defines an HTTP header value consisting of a semicolon-separated list of values.
- */
-case class SemicolonListValue(parts: List[String]) extends ListValue(parts) {
-  def toQualifiers = Qualifiers(this)
-
-  override lazy val value = parts.mkString("; ")
+  val isValid = true
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -72,9 +61,18 @@ case class SemicolonListValue(parts: List[String]) extends ListValue(parts) {
 object CommaListValue {
 
   /** Constructs an instance by splitting at the commas. */
-  def split(value: String) = new CommaListValue(HttpUtil.split(value, ',') map (_.trim) toList)
+  def split(value: String) = new CommaListValue(HttpUtil.splitQuoted(value, ',') map (_.trim))
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
+/**
+ * Defines an HTTP header value consisting of a semicolon-separated list of values.
+ */
+case class SemicolonListValue(parts: List[String]) extends ListValue(parts,"; ") {
+  def toQualifiers = Qualifiers(this)
+  val isValid = true
+}
 //---------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -83,5 +81,23 @@ object CommaListValue {
 object SemicolonListValue {
 
   /** Constructs an instance by splitting at the semicolons. */
-  def split(value: String) = new SemicolonListValue(HttpUtil.split(value, ';') map (_.trim) toList)
+  def split(value: String) = new SemicolonListValue(HttpUtil.splitQuoted(value, ';') map (_.trim))
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+
+/**
+ * Defines an HTTP header value consisting of a list of values, each of which is a name and optional value.
+ */
+case class NameValListValue(parts: List[NameVal], separator: String) extends ListValue(parts, separator) with Value {
+  def isValid = parts.forall(_.isValid)
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+
+object NameValListValue {
+  /** Constructs an instance by splitting at the commas. */
+  def split(value: String) = {
+    new NameValListValue(HttpUtil.splitQuoted(value, ',') map (s => NameVal(s.trim)), ", ")
+  }
 }

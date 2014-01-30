@@ -27,6 +27,7 @@ package uk.co.bigbeeconsultants.http.header
 import uk.co.bigbeeconsultants.http.util.HttpUtil._
 import org.slf4j.LoggerFactory
 
+//TODO
 case class CacheControlValue(value: String, isValid: Boolean, label: String, deltaSeconds: Option[Int], fieldName: Option[String])
   extends Value {
   require(deltaSeconds.isEmpty || fieldName.isEmpty, "Cannot define both deltaSeconds and fieldName")

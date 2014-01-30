@@ -25,8 +25,15 @@
 package uk.co.bigbeeconsultants.http.header
 
 import uk.co.bigbeeconsultants.http.util.HttpUtil._
+import scala.collection.mutable.ArrayBuffer
 
-case class EntityTag(value: String, isValid: Boolean, opaqueTag: String, isWeak: Boolean) extends Value
+case class EntityTag(opaqueTag: String, isWeak: Boolean) extends Value {
+  override def isValid: Boolean = !opaqueTag.isEmpty
+
+  override val value = if (isWeak) "W/" + quote(opaqueTag) else quote(opaqueTag)
+}
+
+//---------------------------------------------------------------------------------------------------------------------
 
 object EntityTag {
   // http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.11
@@ -34,16 +41,42 @@ object EntityTag {
   /** Parses a header value to extract a warning, if this is possible. */
   def apply(value: String) = {
     if (value == null || value.length == 0)
-      new EntityTag(value, false, "", false)
+      new EntityTag("", false)
     else if (value.startsWith("W/"))
-      new EntityTag(value, true, unquote(value.substring(2)), true)
+      new EntityTag(unquote(value.substring(2)), true)
     else
-      new EntityTag(value, true, unquote(value), false)
+      new EntityTag(unquote(value), false)
   }
+}
 
-  /** Construct an instance from its constituent parts. */
-  def apply(opaqueTag: String, isWeak: Boolean = false) = {
-    val value = if (isWeak) "W/" + quote(opaqueTag) else quote(opaqueTag)
-    new EntityTag(value, true, opaqueTag, isWeak)
+//---------------------------------------------------------------------------------------------------------------------
+
+/**
+ * Defines an HTTP header value consisting of a comma-separated list of entity-tag values.
+ */
+case class EntityTagListValue(parts: List[EntityTag]) extends ListValue(parts, ", ") with Value {
+
+  override lazy val isValid: Boolean = parts forall(_.isValid)
+  override lazy val value = parts map(_.value) mkString ", "
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+
+object EntityTagListValue {
+  def apply(string: String) = {
+    val buf = new ArrayBuffer[EntityTag]()
+    var s = string
+    while (s.length > 0) {
+      val q1 = s.indexOf('"')
+      val q2 = s.indexOf('"', q1 + 1) + 1
+      if (0 <= q1 && q1 < q2) {
+        buf += EntityTag(s.substring(0, q2))
+        s = s.substring(q2)
+        while (s.length > 0 && s(0) == ' ') s = s.substring(1)
+        if (s.length > 0 && s(0) == ',') s = s.substring(1)
+        while (s.length > 0 && s(0) == ' ') s = s.substring(1)
+      } else s = ""
+    }
+    new EntityTagListValue(buf.toList)
   }
 }

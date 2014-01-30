@@ -42,8 +42,9 @@ private[http] case class CacheRecord(response: Response, id: Int) extends Ordere
   private val ageHeader = header(AGE) map (_.toNumber)
   private val dateHeader = header(DATE) map (_.toDate.date)
   private val expiresHeader = header(EXPIRES) map (_.toDate.date)
-  private val lastModifiedHeader = header(LAST_MODIFIED) map (_.toDate.date)
-  private val cacheControlHeader = header(CACHE_CONTROL) map (_.toCacheControlValue)
+  val lastModifiedHeader = header(LAST_MODIFIED) map (_.toDate.date)
+  val cacheControlHeader = header(CACHE_CONTROL) map (_.toCacheControlValue)
+  lazy val etagHeader = header(ETAG) map (_.toEntityTag)
 
   /** True iff the response came directly from the origin server, not from a cache. This tests whether the age header is absent. */
   val isFirstHand = ageHeader.isEmpty

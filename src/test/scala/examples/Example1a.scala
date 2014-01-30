@@ -9,6 +9,7 @@ object Example1a {
     val httpClient = new HttpClient
     val response: Response = httpClient.get(new URL("http://www.google.com/"))
     println(response.status)
+    println(response.headers.list.mkString("", "\n", "\n"))
     println(response.body.asString)
   }
 }

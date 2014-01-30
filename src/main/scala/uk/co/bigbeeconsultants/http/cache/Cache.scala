@@ -57,43 +57,75 @@ class Cache(maxContentSize: Long = 10 * MiB, assume404Age: Int = 0) {
     data.clear()
   }
 
-  def lookup(request: Request): Either[Request, Response] = {
-//    val requestCacheControl = request.headers.get(CACHE_CONTROL) map (_.toCacheControlValue)
-//    requestCacheControl match {
-//      case CacheControlValue("max-age=0", true, _, _, _) =>
-//      case CacheControlValue("no-cache", true, _, _, _) =>
-//    }
+  def lookup(request: Request): CacheLookupResult = {
+    //    val requestCacheControl = request.headers.get(CACHE_CONTROL) map (_.toCacheControlValue)
+    //    requestCacheControl match {
+    //      case CacheControlValue("max-age=0", true, _, _, _) =>
+    //      case CacheControlValue("no-cache", true, _, _, _) =>
+    //    }
     val cacheRecord = data.get(request.cacheKey)
     if (cacheRecord == null)
-      Left(request)
-    else {
-      val now = System.currentTimeMillis()
-      // TODO set Age header
-      Right(null) // TODO
+      CacheMiss(request)
+
+    else if (cacheRecord.isFresh) {
+      val age = (cacheRecord.currentAge / 1000).toString
+      val modResponse = cacheRecord.response.copy(headers = cacheRecord.response.headers.set(AGE -> age))
+      CacheFresh(modResponse)
+
+    } else {
+      // revalidating
+      val etag = cacheRecord.etagHeader map (IF_NONE_MATCH -> _.opaqueTag)
+      val lastModified = cacheRecord.lastModifiedHeader map (IF_MODIFIED_SINCE -> _.toString)
+      var modHeaders = request.headers
+      if (etag.isDefined) modHeaders = modHeaders set etag.get
+      if (lastModified.isDefined) modHeaders = modHeaders set lastModified.get
+      val revalidate = request.copy(headers = modHeaders)
+      CacheStale(revalidate, cacheRecord)
     }
   }
 
-  def store(response: Response) {
+  def store(response: Response): Option[Response] = {
     if (maxContentSize > 0 && isCacheable(response)) {
       response.status.code match {
-        case 200 | 203 | 300 | 301 | 410 => offerToCache(response)
+        case 206 => // not supported
+          Some(response)
+
+        case 200 | 203 | 300 | 301 | 410 =>
+          offerToCache(response)
+
         case 404 if assume404Age > 0 =>
           val age = AGE -> assume404Age
           val warning = WARNING -> WarningValue(110, "", "Stale content")
           val modHeaders = response.headers.set(age).set(warning)
           offerToCache(response.copy(headers = modHeaders))
+
+        case 304 =>
+          val cacheRecord = data.get(response.request.cacheKey)
+          if (cacheRecord == null) None // expired and then deleted
+          else {
+            val oldResponse = cacheRecord.response
+            var modHeaders = oldResponse.headers
+            for (h <- response.headers) {
+              modHeaders = modHeaders.set(h)
+            }
+            offerToCache(oldResponse.copy(headers = modHeaders))
+          }
+
         case _ => // cannot store this response
+          Some(response)
       }
     }
+    else Some(response)
   }
 
-  private def offerToCache(response: Response) {
+  private def offerToCache(response: Response) = {
     val cacheControl = response.headers.get(CACHE_CONTROL) map (_.toCacheControlValue)
     if (cacheControl.isDefined)
       cacheControl.get.label match {
         case "no-cache" | "no-store" => // cannot store this response
         case _ => data.put(response)
       } else data.put(response)
+    Some(response)
   }
 
   private def isCacheable(response: Response) =

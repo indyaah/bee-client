@@ -64,7 +64,7 @@ case class Header(name: String, value: String) {
   def toMediaType = MediaType(value)
 
   /** Converts the value to an entity tag. */
-  def toEntityTag = EntityTag(value)
+  def toEntityTag = EntityTagListValue(value)
 
   /** Converts the value to a warning value. */
   def toWarning = WarningValue(value)
