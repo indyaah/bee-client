@@ -34,6 +34,34 @@ import uk.co.bigbeeconsultants.http.util.Bytes._
  * Holds an HTTP content cache. Outbound requests are checked using `lookup`, which either returns a cached response
  * or provides an altered request to pass on to the origin server. All responses are offered to the cache via the
  * `store` method.
+ */
+trait Cache {
+  def lookup(request: Request): CacheLookupResult
+
+  def store(response: Response): Option[Response]
+
+  def clear()
+
+  def size: Int
+}
+
+/**
+ * Provides an empty cache implementation that stores nothing. This can be used to disable caching.
+ */
+object NoOpCache extends Cache {
+  override def lookup(request: Request): CacheLookupResult = CacheMiss(request)
+
+  override def store(response: Response): Option[Response] = Some(response)
+
+  override def clear() {}
+
+  override def size = 0
+}
+
+/**
+ * Holds an HTTP content cache. Outbound requests are checked using `lookup`, which either returns a cached response
+ * or provides an altered request to pass on to the origin server. All responses are offered to the cache via the
+ * `store` method.
  *
  * The cache is *not* persistent: every time the HTTP client is started, any cache will start off empty.
  *
@@ -45,13 +73,13 @@ import uk.co.bigbeeconsultants.http.util.Bytes._
  *                     the default value.
  */
 @deprecated("This is not yet ready for production use", "v0.25.1")
-class Cache(maxContentSize: Long = 10 * MiB, assume404Age: Int = 0) {
+class InMemoryCache(maxContentSize: Long = 10 * MiB, assume404Age: Int = 0) extends Cache {
   require(maxContentSize >= 0, "maxContentSize must be non-negative")
   require(assume404Age >= 0, "assume404Age must be non-negative")
 
   private val data = new CacheStore(maxContentSize)
 
-  private[cache] def size = data.size
+  def size = data.size
 
   def clear() {
     data.clear()
@@ -80,7 +108,7 @@ class Cache(maxContentSize: Long = 10 * MiB, assume404Age: Int = 0) {
       if (etag.isDefined) modHeaders = modHeaders set etag.get
       if (lastModified.isDefined) modHeaders = modHeaders set lastModified.get
       val revalidate = request.copy(headers = modHeaders)
-      CacheStale(revalidate, cacheRecord)
+      CacheStale(revalidate, cacheRecord.adjustedResponse)
     }
   }
 

@@ -33,4 +33,4 @@ case class CacheMiss(request: Request) extends CacheLookupResult
 
 case class CacheFresh(response: Response) extends CacheLookupResult
 
-case class CacheStale(revalidateRequest: Request, record: CacheRecord) extends CacheLookupResult
+case class CacheStale(revalidateRequest: Request, staleResponse: Response) extends CacheLookupResult

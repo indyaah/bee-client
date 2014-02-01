@@ -1,6 +1,0 @@
-#!/bin/bash
-DIR=target
-
-curl -i http://beeclient/lorem1.txt > $DIR/test-lighthttpclient.txt.out
-curl -i http://beeclient/test-lighthttpclient.html > $DIR/test-lighthttpclient.html.out
-#curl -i http://beeclient/test-lighthttpclient.php?CT=text/plain

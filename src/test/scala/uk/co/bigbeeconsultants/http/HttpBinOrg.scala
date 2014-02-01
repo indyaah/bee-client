@@ -35,6 +35,7 @@ import request.RequestBody
 import url.Domain
 import util.JSONWrapper
 import org.scalatest.exceptions.TestFailedException
+import uk.co.bigbeeconsultants.http.cache.InMemoryCache
 
 /**
  * Tests the API against httpbin.org. This is an app rather than a unit test because it would be rude to
@@ -48,15 +49,15 @@ object HttpBinOrg extends App with Assertions {
 
   val serverUrl = "httpbin.org"
 
-//    val proxyAddress = new InetSocketAddress("localhost", 8888)
-//    val proxy = Some(new Proxy(Proxy.Type.HTTP, proxyAddress))
+  //    val proxyAddress = new InetSocketAddress("localhost", 8888)
+  //    val proxy = Some(new Proxy(Proxy.Type.HTTP, proxyAddress))
   val proxy = Proxy.NO_PROXY
 
   implicit val config = Config(connectTimeout = 10000, readTimeout = 10000,
     followRedirects = false, proxy = Some(proxy)).allowInsecureSSL
 
   var httpClient = new HttpClient(config)
-  var httpBrowser = new HttpBrowser(config)
+  var httpBrowser = new HttpBrowser(commonConfig = config, cache = new InMemoryCache())
 
   val gzipHeaders = Headers(ACCEPT_ENCODING -> GZIP)
 
@@ -204,6 +205,7 @@ object HttpBinOrg extends App with Assertions {
   val browserWithCreds = new HttpBrowser(config, CookieJar.Empty, new CredentialSuite(Map("Fake Realm" -> fredBloggs, realm -> fredBloggs)))
   automaticAuth(browserWithCreds, serverUrl + "/basic-auth/fred/bloggs")
   automaticAuth(browserWithCreds, serverUrl + "/basic-auth/fred/bloggs")
+
   //TODO automaticAuth(browserWithCreds, serverUrl + "/digest-auth/auth/fred/bloggs")
   //TODO automaticAuth(browserWithCreds, serverUrl + "/digest-auth/auth/fred/bloggs")
 

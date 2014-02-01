@@ -31,7 +31,7 @@ import header.MediaType._
 import header.HeaderName._
 import java.lang.AssertionError
 import request.RequestBody
-import org.scalatest.{BeforeAndAfter, FunSuite}
+import org.scalatest.FunSuite
 import java.net.{UnknownHostException, ConnectException, Proxy, URL}
 import java.io.File
 import url.Domain
@@ -143,7 +143,7 @@ object HttpIntegration {
   }
 }
 
-class HttpIntegration extends FunSuite with BeforeAndAfter {
+class HttpIntegration extends FunSuite {
 
   import HttpIntegration._
 

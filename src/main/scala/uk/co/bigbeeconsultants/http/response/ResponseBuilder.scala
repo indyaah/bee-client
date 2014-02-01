@@ -43,6 +43,10 @@ trait ResponseBuilder {
 
   /** Gets the response that was captured earlier. */
   def response: Option[Response] = None
+
+  def setResponse(response: Response) {
+    // no-op
+  }
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -59,14 +63,20 @@ class BufferedResponseBuilder extends ResponseBuilder {
   private[response] var _response: Option[Response] = None
 
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
-                      headers: Headers, cookies: Option[CookieJar], stream: InputStream) {
+                      headers: Headers, cookies: Option[CookieJar],
+                      stream: InputStream) {
     _response = Some(captureBufferedResponse(request, status, mediaType, headers, cookies, stream))
+  }
+
+  override def setResponse(response: Response) {
+    _response = Some(response)
   }
 
   override def response = _response
 
   private[response] def captureBufferedResponse(request: Request, status: Status, mediaType: Option[MediaType],
-                                                headers: Headers, cookies: Option[CookieJar], stream: InputStream): Response = {
+                                                headers: Headers, cookies: Option[CookieJar],
+                                                stream: InputStream): Response = {
     val body = ByteBufferResponseBody(request, status, mediaType, stream, headers)
     new Response(request, status, body, headers, cookies)
   }
@@ -79,17 +89,17 @@ class BufferedResponseBuilder extends ResponseBuilder {
  * that provides data from the origin HTTP server. This input stream *must* be closed by the calling code
  * to avoid connection leakage issues. The stream implementation makes this easier by automatically closing
  * the stream as soon as all the data has been consumed. This is an alternative to explicitly calling the
- * `close()` method on the stream.
+ * `close()` method on the stream; you can use either method.
  *
  * To make things easier, there are two different cases.
  *
- * 1. For 200 (OK) only, an InputStreamResponseBody is returned, containing the stream ready for use by the
- * calling code, which must finally close the stream. (As mentioned above, this can either be done by
- * explicitly calling `close()` or by consuming to the end of the stream, which in this case will
- * automatically close the stream.
+ * 1. For 200 (OK) or 206 (partial content) only, an InputStreamResponseBody is returned, containing the
+ * stream ready for use by the calling code, which *must* finally close the stream. As mentioned above, this
+ * can either be done by explicitly calling `close()` or by consuming to the end of the stream, which in
+ * this case will automatically close the stream.
  *
- * 2. For all responses other than 200 (OK), a buffered body is returned in which the stream has
- * already been consumed and closed.
+ * 2. For all responses other than 200 (OK) or 206 (partial content), a buffered body is returned in which the
+ * stream has already been consumed and closed. Calling `close()` again is harmless but unnecessary.
  *
  * This is not thread safe so a new instance is required for every request.
  * @see InputStreamResponseBody
@@ -97,17 +107,21 @@ class BufferedResponseBuilder extends ResponseBuilder {
 final class UnbufferedResponseBuilder extends BufferedResponseBuilder {
 
   override def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
-                               headers: Headers, cookies: Option[CookieJar], stream: InputStream) {
+                               headers: Headers, cookies: Option[CookieJar],
+                               stream: InputStream) {
     val response =
       status.code match {
-        case 200 => captureUnbufferedResponse(request, status, mediaType, headers, cookies, stream)
-        case _ => captureBufferedResponse(request, status, mediaType, headers, cookies, stream)
+        case 200 | 206 =>
+          captureUnbufferedResponse(request, status, mediaType, headers, cookies, stream)
+        case _ =>
+          captureBufferedResponse(request, status, mediaType, headers, cookies, stream)
       }
     _response = Some(response)
   }
 
   private def captureUnbufferedResponse(request: Request, status: Status, mediaType: Option[MediaType],
-                                        headers: Headers, cookies: Option[CookieJar], stream: InputStream): Response = {
+                                        headers: Headers, cookies: Option[CookieJar],
+                                        stream: InputStream): Response = {
     val body = new InputStreamResponseBody(request, status, mediaType, headers, stream)
     new Response(request, status, body, headers, cookies)
   }

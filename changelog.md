@@ -1,3 +1,39 @@
+#### Thu, 30 Jan 2014
+* v0.26.2 - header value tidy-ups
+
+
+#### Thu, 30 Jan 2014
+* v0.26.2 - cache lookup partly done; entity tag now supports a list value
+
+
+#### Wed, 29 Jan 2014
+* v0.26.2 - new EntityTag header value
+
+
+#### Wed, 29 Jan 2014
+* v0.26.2 - more work done on caching classes: technique for specifying content size using bytes units.
+
+
+#### Wed, 29 Jan 2014
+* v0.26.2 - more work done on caching classes: optional 404 cached records get a warning now; new WarningValue factory constructor
+
+
+#### Tue, 28 Jan 2014
+* v0.26.2 - more work done on caching classes
+
+
+#### Tue, 28 Jan 2014
+* v0.26.2 - more work done on caching classes
+
+
+#### Tue, 28 Jan 2014
+* v0.26.2 - more work done on caching classes
+
+
+#### Tue, 28 Jan 2014
+* v0.26.2 - more work done on caching classes
+
+
 #### Tue, 28 Jan 2014
 * v0.26.1 - some extra methods have been added to HeaderName
 
