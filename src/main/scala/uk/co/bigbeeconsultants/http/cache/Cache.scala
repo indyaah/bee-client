@@ -74,7 +74,7 @@ object NoOpCache extends Cache {
  */
 @deprecated("This is not yet ready for production use", "v0.25.1")
 class InMemoryCache(maxContentSize: Long = 10 * MiB, assume404Age: Int = 0) extends Cache {
-  require(maxContentSize >= 0, "maxContentSize must be non-negative")
+  require(maxContentSize > 0, "maxContentSize must be greater than zero")
   require(assume404Age >= 0, "assume404Age must be non-negative")
 
   private val data = new CacheStore(maxContentSize)
@@ -113,9 +113,9 @@ class InMemoryCache(maxContentSize: Long = 10 * MiB, assume404Age: Int = 0) exte
   }
 
   def store(response: Response): Option[Response] = {
-    if (maxContentSize > 0 && isCacheable(response)) {
+    if (isCacheable(response)) {
       response.status.code match {
-        case 206 => // not supported
+        case 206 => // partial content not supported
           Some(response)
 
         case 200 | 203 | 300 | 301 | 410 =>

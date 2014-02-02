@@ -29,8 +29,7 @@ import uk.co.bigbeeconsultants.http.url.Href
 import uk.co.bigbeeconsultants.http.request.Request
 
 private[http] case class CacheKey(method: String,
-                                   url: Href,
-                                   headers: Headers = Headers.Empty) extends Ordered[CacheKey] {
+                                  url: Href) extends Ordered[CacheKey] {
   val timestamp = System.currentTimeMillis()
 
   /** Implements time-ordering of instances. */
@@ -38,5 +37,5 @@ private[http] case class CacheKey(method: String,
 }
 
 private[http] object CacheKey {
-  def apply(request: Request) = new CacheKey(request.method, request.href, request.headers)
+  def apply(request: Request) = new CacheKey(request.method, request.href)
 }

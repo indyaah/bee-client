@@ -116,7 +116,7 @@ class HttpCaching extends FunSuite {
     }
   }
 
-  ignore("html text/html get x100") {
+  test("html text/html get x100") {
     for (i <- 1 to 1) {
       hb2.cache.clear()
       val nc = htmlGet(hb2, "http://beeclient/test-lighthttpclient.html?LOREM=" + i, MediaType.TEXT_HTML, GZIP)

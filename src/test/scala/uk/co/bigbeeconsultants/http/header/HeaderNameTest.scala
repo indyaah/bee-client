@@ -24,61 +24,74 @@ package uk.co.bigbeeconsultants.http.header
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-import javax.xml.bind.DatatypeConverter
 import org.scalatest.FunSuite
 
 class HeaderNameTest extends FunSuite {
 
-  test ("header construction via arrow operator with string") {
+  test("header construction via arrow operator with string") {
     val hn = HeaderName("Fruit")
     val h = hn -> "Banana"
-    assert ("Fruit: Banana" === h.toString)
+    assert("Fruit: Banana" === h.toString)
   }
 
-  test ("header construction via unicode arrow operator with string") {
+  test("header construction via unicode arrow operator with string") {
     val hn = HeaderName("Fruit")
     val h = hn → "Banana"
-    assert ("Fruit: Banana" === h.toString)
+    assert("Fruit: Banana" === h.toString)
   }
 
-  test ("header construction via arrow operator with number") {
+  test("header construction via arrow operator with number") {
     val hn = HeaderName("Flies")
     val h = hn -> 123
-    assert ("Flies: 123" === h.toString)
+    assert("Flies: 123" === h.toString)
   }
 
-  test ("header construction via unicode arrow operator with number") {
+  test("header construction via unicode arrow operator with number") {
     val hn = HeaderName("Flies")
     val h = hn → 123
-    assert ("Flies: 123" === h.toString)
+    assert("Flies: 123" === h.toString)
   }
 
-  test ("header construction via arrow operator with Value") {
+  test("header construction via arrow operator with Value") {
     val hn = HeaderName("Stuff")
     val h = hn -> MediaType.TEXT_HTML.withCharset("ASCII")
-    assert ("Stuff: text/html;charset=ASCII" === h.toString)
+    assert("Stuff: text/html;charset=ASCII" === h.toString)
   }
 
-  test ("header construction via unicode arrow operator with Value") {
+  test("header construction via unicode arrow operator with Value") {
     val hn = HeaderName("Stuff")
     val h = hn → MediaType.TEXT_HTML.withCharset("ASCII")
-    assert ("Stuff: text/html;charset=ASCII" === h.toString)
+    assert("Stuff: text/html;charset=ASCII" === h.toString)
   }
 
-  test ("HeaderName,String equals ignore case") {
+  test("header construction via arrow operator with HttpDateTimeInstant") {
+    val hn = HeaderName.DATE
+    val now = new HttpDateTimeInstant()
+    val h = hn -> now
+    assert("Date: " + now === h.toString)
+  }
+
+  test("header construction via unicode arrow operator with HttpDateTimeInstant") {
+    val hn = HeaderName.DATE
+    val now = new HttpDateTimeInstant()
+    val h = hn → now
+    assert("Date: " + now === h.toString)
+  }
+
+  test("HeaderName,String equals ignore case") {
     val hn1 = HeaderName("Stuff")
     val hn2 = "STUFF"
     assert(hn1 =~= hn2)
   }
 
-  test ("HeaderName,HeaderName equals ignore case") {
+  test("HeaderName,HeaderName equals ignore case") {
     val hn1 = HeaderName("Stuff")
     val hn2 = HeaderName("STUFF")
     assert(hn1 != hn2)
     assert(hn1 =~= hn2)
   }
 
-  test ("HeaderName,Header equals ignore case") {
+  test("HeaderName,Header equals ignore case") {
     val hn1 = HeaderName("Stuff")
     val h2 = HeaderName("STUFF") -> "yay"
     assert(hn1 != h2)
