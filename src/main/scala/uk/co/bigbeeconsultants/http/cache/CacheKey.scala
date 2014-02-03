@@ -24,12 +24,9 @@
 
 package uk.co.bigbeeconsultants.http.cache
 
-import uk.co.bigbeeconsultants.http.header.Headers
-import uk.co.bigbeeconsultants.http.url.Href
 import uk.co.bigbeeconsultants.http.request.Request
 
-private[http] case class CacheKey(method: String,
-                                  url: Href) extends Ordered[CacheKey] {
+private[http] case class CacheKey(methodAndUrl: String) extends Ordered[CacheKey] {
   val timestamp = System.currentTimeMillis()
 
   /** Implements time-ordering of instances. */
@@ -37,5 +34,5 @@ private[http] case class CacheKey(method: String,
 }
 
 private[http] object CacheKey {
-  def apply(request: Request) = new CacheKey(request.method, request.href)
+  def apply(request: Request) = new CacheKey(request.method + request.href)
 }

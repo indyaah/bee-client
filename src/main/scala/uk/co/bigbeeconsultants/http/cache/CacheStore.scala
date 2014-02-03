@@ -24,14 +24,17 @@
 
 package uk.co.bigbeeconsultants.http.cache
 
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{Executors, ConcurrentHashMap}
 import uk.co.bigbeeconsultants.http.response.Response
 import java.util.concurrent.atomic.AtomicInteger
 
-private[http] class CacheStore(maxContentSize: Long) {
+private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean) {
 
+  // these fields are concurrently accessed by many threads
   private val counter = new AtomicInteger()
   private val data = new ConcurrentHashMap[CacheKey, CacheRecord]()
+
+  // these fields are only accessed by one thread at a time
   private var sortedRecords = List[CacheRecord]()
   private[cache] var currentContentSize = 0L
 
@@ -56,23 +59,31 @@ private[http] class CacheStore(maxContentSize: Long) {
   private def putRecord(record: CacheRecord) {
     if (!record.isAlreadyExpired) {
       val previous = data.put(record.response.request.cacheKey, record)
-      synchronized {
-        if (previous != null) {
-          val prevId = previous.id
-          sortedRecords = sortedRecords.filterNot(_.id == prevId)
-          currentContentSize -= previous.contentLength
+      if (lazyCleanup)
+        CacheStore.submitForCleaning(this, previous, record)
+      else
+        synchronized {
+          gc(previous, record)
         }
-        sortedRecords = record :: sortedRecords
-        sortedRecords = sortedRecords.sorted
-        currentContentSize += record.contentLength
+    }
+  }
 
-        while (currentContentSize > maxContentSize) {
-          val doomed = sortedRecords.head
-          data.remove(doomed.response.request.cacheKey)
-          currentContentSize -= doomed.contentLength
-          sortedRecords = sortedRecords.tail
-        }
-      }
+  // this is not synchronised so only works when run inside a single thread
+  def gc(oldRecord: CacheRecord, newRecord: CacheRecord) {
+    if (oldRecord != null) {
+      val prevId = oldRecord.id
+      sortedRecords = sortedRecords.filterNot(_.id == prevId)
+      currentContentSize -= oldRecord.contentLength
+    }
+    sortedRecords = newRecord :: sortedRecords
+    sortedRecords = sortedRecords.sorted
+    currentContentSize += newRecord.contentLength
+
+    while (currentContentSize > maxContentSize) {
+      val doomed = sortedRecords.head
+      data.remove(doomed.response.request.cacheKey)
+      currentContentSize -= doomed.contentLength
+      sortedRecords = sortedRecords.tail
     }
   }
 
@@ -82,5 +93,30 @@ private[http] class CacheStore(maxContentSize: Long) {
       sortedRecords = List[CacheRecord]()
       currentContentSize = 0L
     }
+  }
+}
+
+
+private[http] object CacheStore {
+  // there is only one background thread, avoiding any need for synchronization
+  private lazy val cleanerThread = Executors.newFixedThreadPool(1)
+  // track operation for test purposes
+  private var _count = 0
+
+  def submitForCleaning(store: CacheStore, oldRecord: CacheRecord, newRecord: CacheRecord) {
+    cleanerThread.submit(
+      new Runnable() {
+        def run() {
+          store.gc(oldRecord, newRecord)
+          _count += 1
+        }
+      }
+    )
+  }
+
+  def count = _count
+
+  def reset() {
+    _count = 0
   }
 }

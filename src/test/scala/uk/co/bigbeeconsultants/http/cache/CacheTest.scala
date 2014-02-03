@@ -38,11 +38,14 @@ class CacheTest extends FunSuite {
 
   import Request._
 
+  val getAndHead = List(GET, HEAD)
+  val supportedCodes = List(Status.S200_OK, Status.S203_NotAuthoritative, Status.S300_MultipleChoice, Status.S301_MovedPermanently, Status.S410_Gone)
+
   test("store succeeds with 200, 203, 300, 301, 410") {
     val cache = new InMemoryCache()
-    for (method <- List(GET, HEAD)) {
+    for (method <- getAndHead) {
       val request = Request(method, "http://localhost/stuff")
-      for (status <- List(Status.S200_OK, Status.S203_NotAuthoritative, Status.S300_MultipleChoice, Status.S301_MovedPermanently, Status.S410_Gone)) {
+      for (status <- supportedCodes) {
         cache.clear()
         val response = Response(request, status, MediaType.TEXT_PLAIN, "OK")
         cache.store(response)
@@ -53,7 +56,7 @@ class CacheTest extends FunSuite {
 
   test("store succeeds with 404 when assume404Age is non-zero") {
     val cache = new InMemoryCache(assume404Age = 100)
-    for (method <- List(GET, HEAD)) {
+    for (method <- getAndHead) {
       cache.clear()
       val request = Request(method, "http://localhost/stuff")
       val status = Status.S404_NotFound
@@ -86,46 +89,54 @@ class CacheTest extends FunSuite {
 
   test("lookup gets matching entries from an almost-empty store") {
     val cache = new InMemoryCache()
-    for (method <- List(GET, HEAD)) {
-      val request1 = Request(method, "http://localhost/stuff")
-      for (status <- List(Status.S200_OK, Status.S203_NotAuthoritative, Status.S300_MultipleChoice, Status.S301_MovedPermanently, Status.S410_Gone)) {
-        cache.clear()
-        val nowPlus60 = new HttpDateTimeInstant(HttpDateTimeInstant.timeNowSec + 60)
-        val response = Response(request1, status, MediaType.TEXT_PLAIN, "OK",
-          Headers(EXPIRES -> nowPlus60))
-        cache.store(response)
-        assert(cache.size === 1)
-        val request2 = Request(method, "http://localhost/stuff")
-        val result = cache.lookup(request2)
-        assert(result match {
-          case CacheFresh(Response(request1, _, _, _, _)) => true
-          case _ => false
-        }, result.toString)
+    val nowPlus60 = new HttpDateTimeInstant(HttpDateTimeInstant.timeNowSec + 60)
+    val headers = Headers(EXPIRES -> nowPlus60)
+    val n = 100
+    val loops = getAndHead.size * supportedCodes.size * n
+    val dt = new DiagnosticTimer
+    for (i <- 1 to n) {
+      for (method <- getAndHead) {
+        val request1 = Request(method, "http://localhost/stuff")
+        for (status <- supportedCodes) {
+          cache.clear()
+          val response = Response(request1, status, MediaType.TEXT_PLAIN, "OK", headers)
+          cache.store(response)
+          assert(cache.size === 1)
+          val request2 = Request(method, "http://localhost/stuff")
+          val result = cache.lookup(request2)
+          assert(result match {
+            case CacheFresh(Response(request1, _, _, _, _)) => true
+            case _ => false
+          }, result.toString)
+        }
       }
     }
+    val d = dt.duration / loops
+    println("Clear, store, lookup took " + d + " per loop")
   }
 
   test("lookup gets matching entries from a well-filled store") {
     val cache = new InMemoryCache(10 * MiB)
-    val n = 20
+    val nowPlus60 = new HttpDateTimeInstant(HttpDateTimeInstant.timeNowSec + 60)
+    val headers = Headers(EXPIRES -> nowPlus60)
+    val n = 100
+    val loops = getAndHead.size * supportedCodes.size * n
     val dt1 = new DiagnosticTimer
     for (i <- 1 to n) {
-      for (method <- List(GET, HEAD)) {
+      for (method <- getAndHead) {
         val request1 = Request(method, "http://localhost/stuff" + i)
-        for (status <- List(Status.S200_OK, Status.S203_NotAuthoritative, Status.S300_MultipleChoice, Status.S301_MovedPermanently, Status.S410_Gone)) {
-          val nowPlus60 = new HttpDateTimeInstant(HttpDateTimeInstant.timeNowSec + 60)
-          val response = Response(request1, status, MediaType.TEXT_PLAIN, "OK",
-            Headers(EXPIRES -> nowPlus60))
+        for (status <- supportedCodes) {
+          val response = Response(request1, status, MediaType.TEXT_PLAIN, "OK", headers)
           cache.store(response)
         }
       }
     }
-    val d1 = dt1.duration
+    val d1 = dt1.duration / loops
     val dt2 = new DiagnosticTimer
     for (i <- 1 to n) {
-      for (method <- List(GET, HEAD)) {
-        for (status <- List(Status.S200_OK, Status.S203_NotAuthoritative, Status.S300_MultipleChoice, Status.S301_MovedPermanently, Status.S410_Gone)) {
-          val request2 = Request(method, "http://localhost/stuff" + i)
+      for (method <- getAndHead) {
+        val request2 = Request(method, "http://localhost/stuff" + i)
+        for (status <- supportedCodes) {
           val result = cache.lookup(request2)
           assert(result match {
             case CacheFresh(Response(request2, _, _, _, _)) => true
@@ -134,7 +145,7 @@ class CacheTest extends FunSuite {
         }
       }
     }
-    val d2 = dt2.duration
-    println("Took " + d1 + " and " + d2)
+    val d2 = dt2.duration / loops
+    println("Store took " + d1 + " and lookup took " + d2 + " per loop (" + loops + ")")
   }
 }

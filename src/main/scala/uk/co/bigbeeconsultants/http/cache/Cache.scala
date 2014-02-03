@@ -71,13 +71,19 @@ object NoOpCache extends Cache {
  *                     be a pain. Provide an assumed age (in seconds) and all 404 responses will be stored in the
  *                     cache as if the response had contained that age in a header. Zero disables this feature and is
  *                     the default value.
+ * @param lazyCleanup controls whether a separate thread is used for freeing stale cache records. When false,
+ *                    the cache is checked for stale content every time data is stored, which ensures
+ *                    always-consistent behaviour. When true, a separate background thread is created and this
+ *                    implements an eventually-consistent model. In this case, the synchronized blocks of
+ *                    code are very short so there is very little dynamic coupling between concurrent requests.
+ *                    The default setting is enabled.
  */
 @deprecated("This is not yet ready for production use", "v0.25.1")
-class InMemoryCache(maxContentSize: Long = 10 * MiB, assume404Age: Int = 0) extends Cache {
+class InMemoryCache(maxContentSize: Long = 10 * MiB, assume404Age: Int = 0, lazyCleanup: Boolean = true) extends Cache {
   require(maxContentSize > 0, "maxContentSize must be greater than zero")
   require(assume404Age >= 0, "assume404Age must be non-negative")
 
-  private val data = new CacheStore(maxContentSize)
+  private val data = new CacheStore(maxContentSize, lazyCleanup)
 
   def size = data.size
 
