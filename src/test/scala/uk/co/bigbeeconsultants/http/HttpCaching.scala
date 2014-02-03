@@ -51,45 +51,43 @@ object HttpCaching {
   val hb1 = new HttpBrowser(configNoRedirects, CookieJar.Empty, creds)
   val hb2 = new HttpBrowser(configNoRedirects, CookieJar.Empty, creds, cache)
 
+  val concurrency = 1
+  val nLoops = 100
+
   /** Provides a single-threaded soak-tester. */
   def main(args: Array[String]) {
 
-    val concurrency = 2
-    val nLoops = 5
+    val nchtm = Duration.Zero //trial("no cache htm th", "test-lighthttpclient.html", MediaType.TEXT_HTML, hb1)
+    val nccss = Duration.Zero //trial("no cache css th", "index.css", MediaType.TEXT_CSS, hb1)
 
+    val cahtm = trial("cache htm th", "test-lighthttpclient.html", MediaType.TEXT_HTML, hb2)
+    val cacss = trial("cache css th", "index.css", MediaType.TEXT_CSS, hb2)
+
+    val wo = nchtm + nccss
+    val wi = cahtm + cacss
+    println("Grand totals: without " + nchtm + "+" + nccss + "=" + wo + ", with " + cahtm + "+" + cacss + "=" + wi)
+    Thread.sleep(1000) // time for inspecting any lingering network connections
+  }
+
+  def trial(id: String, path: String, mediaType: MediaType, hb: HttpBrowser) = {
     val futures1 = for (i <- 1 to concurrency) yield {
       Futures.future {
-        instance("t" + i, nLoops, hb1)
-      }
-    }
-
-    val futures2 = for (i <- 1 to concurrency) yield {
-      Futures.future {
-        instance("t" + i, nLoops, hb2)
+        instance(id + i, path, mediaType, nLoops, hb)
       }
     }
 
     val totals1 = Futures.awaitAll(10000000, futures1: _*).map(_.get).map(_.asInstanceOf[Duration])
-    val totals2 = Futures.awaitAll(10000000, futures2: _*).map(_.get).map(_.asInstanceOf[Duration])
-    val t1 = totals1.foldLeft(Duration.Zero)(_ + _)
-    val t2 = totals2.foldLeft(Duration.Zero)(_ + _)
-    //    val t2 = Duration.Zero
-    println("Grand totals: without " + t1 + ", with " + t2)
-    //Thread.sleep(60000) // time for inspecting any lingering network connections
+    totals1.foldLeft(Duration.Zero)(_ + _)
   }
 
-  def instance(id: String, n: Int, hb: HttpBrowser) = {
+  def instance(id: String, path: String, mediaType: MediaType, n: Int, hb: HttpBrowser) = {
     val h = new HttpCaching
 
-    var total = Duration(0L)
+    val dt = new DiagnosticTimer
     for (i <- 1 to n) {
-      println(id + ": iteration " + i)
-      val dt = new DiagnosticTimer
-      h.htmlGet(hb, "http://vm05.spikeislandband.org.uk/?LOREM=" + i, MediaType.TEXT_HTML, GZIP)
-      h.htmlGet(hb, "http://vm05.spikeislandband.org.uk/css/_index.css", MediaType.TEXT_CSS, GZIP)
-      total += dt.duration
-      println(id + ": " + i + " took " + dt)
+      h.htmlGet(hb, "http://beeclient/" + path, mediaType, GZIP)
     }
+    val total = dt.duration
     println(id + ": Total time " + total + ", average time per loop " + (total / n))
     total
   }
@@ -106,7 +104,7 @@ class HttpCaching extends FunSuite {
       assert(response.status.code === 200, url)
       val body = response.body
       assert(body.contentType.mediaType === mediaType.mediaType, url)
-//      val string = body.asString
+      //      val string = body.asString
       assert(response.headers(CONTENT_ENCODING).value === encoding, response.headers(CONTENT_ENCODING))
       response
     } catch {

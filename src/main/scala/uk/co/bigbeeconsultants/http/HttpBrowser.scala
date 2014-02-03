@@ -78,7 +78,7 @@ class HttpBrowser(commonConfig: Config = Config(),
     cacheResult match {
       case cf: CacheFresh =>
         responseBuilder.setResponse(cf.response)
-        // no HTTP request is made
+      // no HTTP request is made
 
       case cs: CacheStale =>
         // store the stale response in case it gets dropped from the cache whilst the
@@ -91,10 +91,10 @@ class HttpBrowser(commonConfig: Config = Config(),
     }
   }
 
-  private def makeHttpRequest(request: Request, requestWithCookies: Request,
-                            responseBuilder: ResponseBuilder, config: Config) {
-    val realmMappings = authenticationRegistry.findRealmMappings(request)
-    var authHeader = authenticationRegistry.findKnownAuthHeaderFromMappings(request, realmMappings)
+  private def makeHttpRequest(originalRequest: Request, requestWithCookies: Request,
+                              responseBuilder: ResponseBuilder, config: Config) {
+    val realmMappings = authenticationRegistry.findRealmMappings(originalRequest)
+    var authHeader = authenticationRegistry.findKnownAuthHeaderFromMappings(originalRequest, realmMappings)
 
     var remainingRetries = 5
     while (remainingRetries > 0) {
@@ -121,16 +121,16 @@ class HttpBrowser(commonConfig: Config = Config(),
     }
 
     if (responseBuilder.response.isDefined) {
-      cookieJar.set(responseBuilder.response.get.cookies.get)
-      val updatedResponse = cache.store(responseBuilder.response.get)
-      updatedResponse match {
-        case Some(updatedResponse) =>
-          responseBuilder.setResponse(updatedResponse) // normal completion
-        case None =>
-          // abnormal repetition due to cache race during 304 refresh, but note
-          // that the stale response would already have been inserted into the responseBuilder
-          // before the request was made
+      val primaryResponse = responseBuilder.response.get
+      cookieJar.set(primaryResponse.cookies.get)
+      val updatedResponse = cache.store(primaryResponse)
+      if (updatedResponse.isDefined) {
+        responseBuilder.setResponse(updatedResponse.get) // normal completion
       }
+      // else
+      // abnormal repetition due to cache race during 304 refresh, but remember
+      // that the stale response would already have been inserted into the responseBuilder
+      // before the request was made
     }
   }
 }
