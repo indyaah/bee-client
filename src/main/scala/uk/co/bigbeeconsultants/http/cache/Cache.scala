@@ -108,10 +108,10 @@ class InMemoryCache(maxContentSize: Long = 10 * MiB, assume404Age: Int = 0, lazy
 
     } else {
       // revalidating
-      val etag = cacheRecord.etagHeader map (IF_NONE_MATCH -> _.opaqueTag)
+//      val etag = cacheRecord.etagHeader map (IF_NONE_MATCH -> _.opaqueTag)
       val lastModified = cacheRecord.lastModifiedHeader map (IF_MODIFIED_SINCE -> _.toString)
       var modHeaders = request.headers
-      if (etag.isDefined) modHeaders = modHeaders set etag.get
+      //if (etag.isDefined) modHeaders = modHeaders set etag.get
       if (lastModified.isDefined) modHeaders = modHeaders set lastModified.get
       val revalidate = request.copy(headers = modHeaders)
       CacheStale(revalidate, cacheRecord.adjustedResponse)

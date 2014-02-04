@@ -24,11 +24,13 @@
 
 package uk.co.bigbeeconsultants.http.cache
 
-import java.util.concurrent.{Executors, ConcurrentHashMap}
-import uk.co.bigbeeconsultants.http.response.Response
+import java.util.concurrent.{LinkedBlockingQueue, ConcurrentHashMap}
 import java.util.concurrent.atomic.AtomicInteger
+import uk.co.bigbeeconsultants.http.response.Response
 
 private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean) {
+
+  if (lazyCleanup) startBackgroundThread()
 
   // these fields are concurrently accessed by many threads
   private val counter = new AtomicInteger()
@@ -60,7 +62,7 @@ private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean) {
     if (!record.isAlreadyExpired) {
       val previous = data.put(record.response.request.cacheKey, record)
       if (lazyCleanup)
-        CacheStore.submitForCleaning(this, previous, record)
+        submitForCleaning(previous, record)
       else
         synchronized {
           gc(previous, record)
@@ -69,7 +71,11 @@ private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean) {
   }
 
   // this is not synchronised so only works when run inside a single thread
-  def gc(oldRecord: CacheRecord, newRecord: CacheRecord) {
+  private def gc(item: Item) {
+    gc(item.oldRecord, item.newRecord)
+  }
+
+  private def gc(oldRecord: CacheRecord, newRecord: CacheRecord) {
     if (oldRecord != null) {
       val prevId = oldRecord.id
       sortedRecords = sortedRecords.filterNot(_.id == prevId)
@@ -92,31 +98,43 @@ private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean) {
       data.clear()
       sortedRecords = List[CacheRecord]()
       currentContentSize = 0L
+      _cleanupCount = 0
     }
   }
-}
 
-
-private[http] object CacheStore {
-  // there is only one background thread, avoiding any need for synchronization
-  private lazy val cleanerThread = Executors.newFixedThreadPool(1)
+  private val queue = new LinkedBlockingQueue[Item]()
+  //  private val queue = new ArrayBlockingQueue[Item](1024)
   // track operation for test purposes
-  private var _count = 0
+  private var _cleanupCount = 0
 
-  def submitForCleaning(store: CacheStore, oldRecord: CacheRecord, newRecord: CacheRecord) {
-    cleanerThread.submit(
-      new Runnable() {
-        def run() {
-          store.gc(oldRecord, newRecord)
-          _count += 1
+  // there is only one background thread, avoiding any need for synchronization on the mutable state
+  private lazy val cleanerThread = {
+    val runnable = new Runnable() {
+      def run() {
+        while (true) {
+          try {
+            gc(queue.take())
+            _cleanupCount += 1
+          } catch {
+            case e: Exception => e.printStackTrace()
+          }
         }
       }
-    )
+    }
+    val thread = new Thread(runnable, "CacheStore-cleaner")
+    thread.setDaemon(true)
+    thread.start()
   }
 
-  def count = _count
-
-  def reset() {
-    _count = 0
+  private def startBackgroundThread() {
+    cleanerThread.toString // force lazy evaluation
   }
+
+  private def submitForCleaning(oldRecord: CacheRecord, newRecord: CacheRecord) {
+    queue.put(new Item(oldRecord, newRecord))
+  }
+
+  def cleanupCount = _cleanupCount
 }
+
+private case class Item(oldRecord: CacheRecord, newRecord: CacheRecord)

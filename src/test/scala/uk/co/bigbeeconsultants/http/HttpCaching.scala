@@ -47,26 +47,52 @@ object HttpCaching {
 
   val bigbee = new Credential("bigbee", "HelloWorld")
   val creds = new CredentialSuite(Map("Restricted" -> bigbee))
-  val cache = new InMemoryCache()
+  val cache1 = new InMemoryCache(lazyCleanup = false)
+  val cache2 = new InMemoryCache(lazyCleanup = true)
   val hb1 = new HttpBrowser(configNoRedirects, CookieJar.Empty, creds)
-  val hb2 = new HttpBrowser(configNoRedirects, CookieJar.Empty, creds, cache)
+  val hb2 = new HttpBrowser(configNoRedirects, CookieJar.Empty, creds, cache1)
+  val hb3 = new HttpBrowser(configNoRedirects, CookieJar.Empty, creds, cache2)
 
   val concurrency = 1
-  val nLoops = 100
+  val nLoops = 1
 
   /** Provides a single-threaded soak-tester. */
   def main(args: Array[String]) {
 
-    val nchtm = Duration.Zero //trial("no cache htm th", "test-lighthttpclient.html", MediaType.TEXT_HTML, hb1)
-    val nccss = Duration.Zero //trial("no cache css th", "index.css", MediaType.TEXT_CSS, hb1)
+//    val htmUrl = "http://beeclient/test-lighthttpclient.html"
+//    val cssUrl = "http://beeclient/index.css"
 
-    val cahtm = trial("cache htm th", "test-lighthttpclient.html", MediaType.TEXT_HTML, hb2)
-    val cacss = trial("cache css th", "index.css", MediaType.TEXT_CSS, hb2)
+    val htmUrl = "http://vm05.spikeislandband.org.uk/"
+    val cssUrl = "http://vm05.spikeislandband.org.uk/css/_index.css"
 
-    val wo = nchtm + nccss
-    val wi = cahtm + cacss
-    println("Grand totals: without " + nchtm + "+" + nccss + "=" + wo + ", with " + cahtm + "+" + cacss + "=" + wi)
-    Thread.sleep(1000) // time for inspecting any lingering network connections
+//    val nchtm = trial("no cache htm th", htmUrl, MediaType.TEXT_HTML, hb1)
+    val nccss = trial("no cache css th", cssUrl, MediaType.TEXT_CSS, hb2)
+
+//    val ca1htm = trial("cache1 htm th", htmUrl, MediaType.TEXT_HTML, hb2)
+    val ca1css = trial("cache1 css th", cssUrl, MediaType.TEXT_CSS, hb2)
+
+//    val ca2htm = trial("cache2 htm th", htmUrl, MediaType.TEXT_HTML, hb2)
+    val ca2css = trial("cache2 css th", cssUrl, MediaType.TEXT_CSS, hb2)
+
+//    val ca3htm = trial("cache3 htm th", htmUrl, MediaType.TEXT_HTML, hb2)
+    val ca3css = trial("cache3 css th", cssUrl, MediaType.TEXT_CSS, hb2)
+
+//    val ca4htm = trial("cache4 htm th", htmUrl, MediaType.TEXT_HTML, hb2)
+    val ca4css = trial("cache4 css th", cssUrl, MediaType.TEXT_CSS, hb2)
+
+//    val ca5htm = trial("cache5 htm th", htmUrl, MediaType.TEXT_HTML, hb2)
+    val ca5css = trial("cache5 css th", cssUrl, MediaType.TEXT_CSS, hb2)
+
+//    val ca6htm = trial("cache6 htm th", htmUrl, MediaType.TEXT_HTML, hb2)
+    val ca6css = trial("cache6 css th", cssUrl, MediaType.TEXT_CSS, hb2)
+
+//    val wo = nchtm + nccss
+//    val wi1 = ca1htm + ca1css
+//    val wi2 = ca2htm + ca2css
+//    println("Grand totals: without " + nchtm + "+" + nccss + "=" + wo +
+//      ", with1 " + ca1htm + "+" + ca1css + "=" + wi1 +
+//      ", with2 " + ca2htm + "+" + ca2css + "=" + wi2)
+    //Thread.sleep(60000) // time for inspecting any lingering network connections
   }
 
   def trial(id: String, path: String, mediaType: MediaType, hb: HttpBrowser) = {
@@ -76,7 +102,8 @@ object HttpCaching {
       }
     }
 
-    val totals1 = Futures.awaitAll(10000000, futures1: _*).map(_.get).map(_.asInstanceOf[Duration])
+    val veryLongTime = 10000000
+    val totals1 = Futures.awaitAll(veryLongTime, futures1: _*).map(_.get).map(_.asInstanceOf[Duration])
     totals1.foldLeft(Duration.Zero)(_ + _)
   }
 
@@ -85,7 +112,7 @@ object HttpCaching {
 
     val dt = new DiagnosticTimer
     for (i <- 1 to n) {
-      h.htmlGet(hb, "http://beeclient/" + path, mediaType, GZIP)
+      h.htmlGet(hb, path, mediaType, GZIP)
     }
     val total = dt.duration
     println(id + ": Total time " + total + ", average time per loop " + (total / n))
