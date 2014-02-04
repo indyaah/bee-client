@@ -44,7 +44,7 @@ final case class Request(method: String,
 
   /** Gets the URL split into its component parts. */
   lazy val href = Href(url)
-  @deprecated
+  @deprecated("just use 'href'", "")
   lazy val split = Href(url)
 
   lazy val cacheKey = CacheKey(this)
@@ -97,7 +97,7 @@ final case class Request(method: String,
 
   def toShortString = {
     val bodyStr = if (body.isEmpty) "-" else body.get.toShortString
-    method + ' ' + url + ' ' + bodyStr + ' ' + headers.list.mkString("[", ";", "]")
+    method + ' ' + url + ' ' + bodyStr + ' ' + headers
   }
 }
 

@@ -29,7 +29,6 @@ import uk.co.bigbeeconsultants.http.util.IpUtil
 import uk.co.bigbeeconsultants.http.header._
 import uk.co.bigbeeconsultants.http.Config
 import javax.net.ssl.HttpsURLConnection
-import org.slf4j.LoggerFactory
 
 
 /**
@@ -37,13 +36,11 @@ import org.slf4j.LoggerFactory
  * to [[uk.co.bigbeeconsultants.http.Config]].
  */
 trait PreRequest {
-  final val logger = LoggerFactory.getLogger(getClass)
 
   def process(request: Request, httpURLConnection: HttpURLConnection, config: Config)
 
   final def setHeader(urlConnection: URLConnection, header: Header) {
     urlConnection.setRequestProperty(header.name, header.value)
-    logger.debug("{}", header)
   }
 }
 

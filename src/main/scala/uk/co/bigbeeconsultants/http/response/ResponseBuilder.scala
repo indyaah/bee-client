@@ -28,6 +28,7 @@ import uk.co.bigbeeconsultants.http._
 import uk.co.bigbeeconsultants.http.header.{CookieJar, Headers, MediaType}
 import request.Request
 import java.io.InputStream
+import uk.co.bigbeeconsultants.http.util.{DiagnosticTimer, Duration}
 
 /**
  * Defines how responses will be handled. The 'standard' implementation is BufferedResponseBuilder,
@@ -39,7 +40,7 @@ import java.io.InputStream
 trait ResponseBuilder {
   /** Defines the method to be invoked when the response is first received. */
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
-                      headers: Headers, cookies: Option[CookieJar], stream: InputStream)
+                      headers: Headers, cookies: Option[CookieJar], stream: InputStream, timer: DiagnosticTimer)
 
   /** Gets the response that was captured earlier. */
   def response: Option[Response] = None
@@ -47,6 +48,14 @@ trait ResponseBuilder {
   def setResponse(response: Response) {
     // no-op
   }
+
+  /**
+   * Gets the time taken from when the request was first sent across the network to when the response
+   * was fully received (in the case of a buffered response) or just acquired (in the case of an unbuffered response).
+   */
+  def networkTimeTaken: Duration = Duration.Zero
+  /** Gets the timer created before the request was first sent across the network. */
+  def timer: Option[DiagnosticTimer] = None
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -61,11 +70,15 @@ trait ResponseBuilder {
 class BufferedResponseBuilder extends ResponseBuilder {
 
   private[response] var _response: Option[Response] = None
+  private[response] var _networkTime: Duration = Duration.Zero
+  private[response] var _timer: Option[DiagnosticTimer] = None
 
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
                       headers: Headers, cookies: Option[CookieJar],
-                      stream: InputStream) {
+                      stream: InputStream, timer: DiagnosticTimer) {
     _response = Some(captureBufferedResponse(request, status, mediaType, headers, cookies, stream))
+    _networkTime = timer.duration
+    _timer = Some(timer)
   }
 
   override def setResponse(response: Response) {
@@ -73,6 +86,8 @@ class BufferedResponseBuilder extends ResponseBuilder {
   }
 
   override def response = _response
+
+  override def timer = _timer
 
   private[response] def captureBufferedResponse(request: Request, status: Status, mediaType: Option[MediaType],
                                                 headers: Headers, cookies: Option[CookieJar],
@@ -108,7 +123,7 @@ final class UnbufferedResponseBuilder extends BufferedResponseBuilder {
 
   override def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
                                headers: Headers, cookies: Option[CookieJar],
-                               stream: InputStream) {
+                               stream: InputStream, timer: DiagnosticTimer) {
     val response =
       status.code match {
         case 200 | 206 =>
@@ -116,7 +131,9 @@ final class UnbufferedResponseBuilder extends BufferedResponseBuilder {
         case _ =>
           captureBufferedResponse(request, status, mediaType, headers, cookies, stream)
       }
+    _networkTime = timer.duration
     _response = Some(response)
+    _timer = Some(timer)
   }
 
   private def captureUnbufferedResponse(request: Request, status: Status, mediaType: Option[MediaType],

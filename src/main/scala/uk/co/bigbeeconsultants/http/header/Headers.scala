@@ -116,6 +116,8 @@ case class Headers(list: List[Header]) {
   def ++(newHeaders: Headers): Headers = {
     new Headers(this.list ++ newHeaders.list)
   }
+
+  override def toString() = list.mkString("[", "; ", "]")
 }
 
 //---------------------------------------------------------------------------------------------------------------------

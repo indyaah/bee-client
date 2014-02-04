@@ -58,7 +58,7 @@ class CacheStoreTest extends FunSuite {
   }
 
 
-  ignore("storing 100 responses up to the limit and then 100 more responses over the limit (lazy cleanup)") {
+  test("storing 100 responses up to the limit and then 100 more responses over the limit (lazy cleanup)") {
     val store = new CacheStore(1000, true)
     assert(store.size === 0)
     val loops = 100

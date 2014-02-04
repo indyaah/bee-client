@@ -30,7 +30,7 @@ import response._
 import request.Request
 import java.net._
 import java.util.zip._
-import org.slf4j.{LoggerFactory, Logger}
+import org.slf4j.LoggerFactory
 import collection.mutable.ListBuffer
 import java.io.IOException
 import util.DiagnosticTimer
@@ -48,7 +48,6 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  import HttpClient._
 
   /**
    * Makes an arbitrary request using a response builder. After this call, the response builder will provide the
@@ -92,15 +91,19 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
 
       redirect = RedirectionLogic.determineRedirect(config, request, status, responseHeadersWithoutCookies, responseCookies)
       if (redirect.isEmpty) {
-        handleContent(httpURLConnection, request, status, responseHeadersWithoutCookies, responseCookies, responseBuilder)
+        handleContent(httpURLConnection, request, status, responseHeadersWithoutCookies, responseCookies, timer, responseBuilder)
       } else {
         selectStream(httpURLConnection).close()
       }
 
-      if (logger.isInfoEnabled) logger.info("{} {} {}", Array(request.toShortString, status.code, timer))
+      if (logger.isDebugEnabled)
+        logger.debug(request.toShortString + " -> " + status.code + " " + allResponseHeaders + " " + timer)
+      else if (logger.isInfoEnabled)
+        logger.info(request.method + " " + request.url + " " + status.code + " " + timer)
     } catch {
       case e: Exception => {
-        if (logger.isInfoEnabled) logger.info("{} {} - {}", Array(request.toShortString, timer, e.getMessage))
+        if (logger.isWarnEnabled)
+          logger.warn(request.toShortString + " " + timer + " - " + e.getMessage)
         throw e
       }
     }
@@ -111,7 +114,8 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
 
   @throws(classOf[IOException])
   private def handleContent(httpURLConnection: HttpURLConnection, request: Request, status: Status,
-                            responseHeaders: Headers, responseCookies: Option[CookieJar], responseBuilder: ResponseBuilder) {
+                            responseHeaders: Headers, responseCookies: Option[CookieJar],
+                            timer: DiagnosticTimer, responseBuilder: ResponseBuilder) {
     val contEnc = responseHeaders.get(CONTENT_ENCODING)
     val contentType = httpURLConnection.getContentType
     val mediaType = if (contentType != null) Some(MediaType(contentType)) else None
@@ -121,7 +125,7 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
       getBodyStream(contEnc, httpURLConnection)
     }
     val delegate = new SelfClosingInputStreamDelegate(stream, httpURLConnection)
-    responseBuilder.captureResponse(request, status, mediaType, responseHeaders, responseCookies, delegate)
+    responseBuilder.captureResponse(request, status, mediaType, responseHeaders, responseCookies, delegate, timer)
   }
 
 
@@ -156,17 +160,17 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
     httpURLConnection.setRequestMethod(method)
 
     for (hdr <- request.headers) {
-      setRequestHeader(httpURLConnection, hdr, logger)
+      httpURLConnection.setRequestProperty(hdr.name, hdr.value)
     }
 
     if (request.body.isDefined) {
-      setRequestHeader(httpURLConnection, CONTENT_TYPE -> request.body.get.contentType, logger)
+      httpURLConnection.setRequestProperty(CONTENT_TYPE, request.body.get.contentType)
     }
 
     if (request.cookies.isDefined) {
       request.cookies.get.filterForRequest(request.url) match {
         case Some(hdr) =>
-          setRequestHeader(httpURLConnection, hdr, logger)
+          httpURLConnection.setRequestProperty(hdr.name, hdr.value)
         case _ =>
       }
     }
@@ -224,10 +228,5 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
 object HttpClient {
   val UTF8 = "UTF-8"
   val GZIP = "gzip" // only is supported
-
-  final def setRequestHeader(urlConnection: URLConnection, header: Header, logger: Logger) {
-    urlConnection.setRequestProperty(header.name, header.value)
-    logger.debug("{}", header)
-  }
 }
 

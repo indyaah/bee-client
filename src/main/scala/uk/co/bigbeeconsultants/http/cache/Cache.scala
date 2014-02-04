@@ -29,6 +29,7 @@ import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.request.Request
 import uk.co.bigbeeconsultants.http.header.WarningValue
 import uk.co.bigbeeconsultants.http.util.Bytes._
+import uk.co.bigbeeconsultants.http.util.HttpUtil._
 
 /**
  * Holds an HTTP content cache. Outbound requests are checked using `lookup`, which either returns a cached response
@@ -108,10 +109,10 @@ class InMemoryCache(maxContentSize: Long = 10 * MiB, assume404Age: Int = 0, lazy
 
     } else {
       // revalidating
-//      val etag = cacheRecord.etagHeader map (IF_NONE_MATCH -> _.opaqueTag)
+      val etag = cacheRecord.etagHeader map (v => IF_NONE_MATCH -> quote(v.opaqueTag))
       val lastModified = cacheRecord.lastModifiedHeader map (IF_MODIFIED_SINCE -> _.toString)
       var modHeaders = request.headers
-      //if (etag.isDefined) modHeaders = modHeaders set etag.get
+      if (etag.isDefined) modHeaders = modHeaders set etag.get
       if (lastModified.isDefined) modHeaders = modHeaders set lastModified.get
       val revalidate = request.copy(headers = modHeaders)
       CacheStale(revalidate, cacheRecord.adjustedResponse)

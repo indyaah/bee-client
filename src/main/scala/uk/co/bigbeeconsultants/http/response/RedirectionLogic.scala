@@ -56,36 +56,38 @@ private[http] object RedirectionLogic {
                         responseHeaders: Headers, responseCookies: Option[CookieJar]): Option[Request] = {
     if (!config.followRedirects) None
 
-    else if (status.code == 301 || status.code == 307) {
-      // First case: No change of method (302 ought to be here but cannot)
-      val location = responseHeaders.get(LOCATION)
-      if (location.isEmpty) None
-      else
-        Some(Request(method = request.method,
-          url = locationToURL(request, location.get.value),
-          body = request.body,
-          headers = request.headers,
-          cookies = responseCookies))
+    else status.code match {
+      case 301 | 307 =>
+        // First case: No change of method (302 ought to be here but cannot)
+        val location = responseHeaders.get(LOCATION)
+        if (location.isEmpty) None
+        else
+          Some(Request(method = request.method,
+            url = locationToURL(request, location.get.value),
+            body = request.body,
+            headers = request.headers,
+            cookies = responseCookies))
 
-    } else if (status.code == 302 || status.code == 303) {
-      // Second case: switch to GET method (302 is de-facto only)
-      val location = responseHeaders.get(LOCATION)
-      if (location.isEmpty) None
-      else
-        Some(Request(method = GET,
-          url = locationToURL(request, location.get.value),
-          body = None,
-          headers = request.headers,
-          cookies = responseCookies))
+      case 302 | 303 =>
+        // Second case: switch to GET method (302 is de-facto only)
+        val location = responseHeaders.get(LOCATION)
+        if (location.isEmpty) None
+        else
+          Some(Request(method = GET,
+            url = locationToURL(request, location.get.value),
+            body = None,
+            headers = request.headers,
+            cookies = responseCookies))
 
-    } else None
+      case _ => None
+    }
   }
 
   private def locationToURL(request: Request, location: String) = {
     val loc = if (location.startsWith("http://") || location.startsWith("https://")) {
       location
     } else {
-      request.split.endpoint.get.toString + location
+      request.href.endpoint.get.toString + location
     }
     new URL(loc)
   }

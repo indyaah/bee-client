@@ -32,7 +32,6 @@ import uk.co.bigbeeconsultants.http.header.MediaType._
 import uk.co.bigbeeconsultants.http.util.HttpUtil
 import uk.co.bigbeeconsultants.http.HttpClient
 import uk.co.bigbeeconsultants.http.request.Request
-import sun.nio.cs.ThreadLocalCoders
 
 /**
  * Provides a body implementation that copies the whole response from the response input stream into a ByteBuffer.

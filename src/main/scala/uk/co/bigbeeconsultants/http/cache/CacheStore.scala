@@ -24,11 +24,11 @@
 
 package uk.co.bigbeeconsultants.http.cache
 
-import java.util.concurrent.{LinkedBlockingQueue, ConcurrentHashMap}
+import java.util.concurrent.{ArrayBlockingQueue, LinkedBlockingQueue, ConcurrentHashMap}
 import java.util.concurrent.atomic.AtomicInteger
 import uk.co.bigbeeconsultants.http.response.Response
 
-private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean) {
+private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean, queueLimit: Int = Int.MaxValue) {
 
   if (lazyCleanup) startBackgroundThread()
 
@@ -71,10 +71,6 @@ private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean) {
   }
 
   // this is not synchronised so only works when run inside a single thread
-  private def gc(item: Item) {
-    gc(item.oldRecord, item.newRecord)
-  }
-
   private def gc(oldRecord: CacheRecord, newRecord: CacheRecord) {
     if (oldRecord != null) {
       val prevId = oldRecord.id
@@ -93,6 +89,10 @@ private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean) {
     }
   }
 
+  private def gc(item: Item) {
+    gc(item.oldRecord, item.newRecord)
+  }
+
   def clear() {
     synchronized {
       data.clear()
@@ -102,10 +102,13 @@ private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean) {
     }
   }
 
-  private val queue = new LinkedBlockingQueue[Item]()
-  //  private val queue = new ArrayBlockingQueue[Item](1024)
-  // track operation for test purposes
-  private var _cleanupCount = 0
+  private lazy val queue =
+    if (queueLimit < Int.MaxValue) new ArrayBlockingQueue[Item](queueLimit)
+    else new LinkedBlockingQueue[Item]()
+
+  private def submitForCleaning(oldRecord: CacheRecord, newRecord: CacheRecord) {
+    queue.put(new Item(oldRecord, newRecord))
+  }
 
   // there is only one background thread, avoiding any need for synchronization on the mutable state
   private lazy val cleanerThread = {
@@ -130,11 +133,10 @@ private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean) {
     cleanerThread.toString // force lazy evaluation
   }
 
-  private def submitForCleaning(oldRecord: CacheRecord, newRecord: CacheRecord) {
-    queue.put(new Item(oldRecord, newRecord))
-  }
-
   def cleanupCount = _cleanupCount
+
+  // track operation for test purposes
+  private var _cleanupCount = 0
 }
 
 private case class Item(oldRecord: CacheRecord, newRecord: CacheRecord)

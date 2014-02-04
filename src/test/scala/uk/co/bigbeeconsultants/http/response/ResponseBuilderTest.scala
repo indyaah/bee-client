@@ -32,6 +32,7 @@ import uk.co.bigbeeconsultants.http.header.MediaType._
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.HttpClient
 import java.io.ByteArrayInputStream
+import uk.co.bigbeeconsultants.http.util.{Duration, DiagnosticTimer}
 
 class ResponseBuilderTest extends FunSuite with ShouldMatchers {
 
@@ -46,8 +47,10 @@ class ResponseBuilderTest extends FunSuite with ShouldMatchers {
     val request = Request.get("http://localhost/foo/bar")
     val headers = Headers(HOST -> "localhost")
     val cookies = Some(CookieJar(Cookie("n", "v")))
-    builder.captureResponse(request, Status.S200_OK, Some(TEXT_PLAIN), headers, cookies, bais)
+    val timer = new DiagnosticTimer
+    builder.captureResponse(request, Status.S200_OK, Some(TEXT_PLAIN), headers, cookies, bais, timer)
 
+    (builder.networkTimeTaken - timer.duration).abs should be < Duration(2)
     val response = builder.response.get
     response.request should be(request)
     response.status should be(Status.S200_OK)
@@ -68,8 +71,10 @@ class ResponseBuilderTest extends FunSuite with ShouldMatchers {
     val request = Request.get("http://localhost/foo/bar")
     val headers = Headers(HOST -> "localhost")
     val cookies = Some(CookieJar(Cookie("n", "v")))
-    builder.captureResponse(request, Status.S200_OK, Some(TEXT_PLAIN), headers, cookies, bais)
+    val timer = new DiagnosticTimer
+    builder.captureResponse(request, Status.S200_OK, Some(TEXT_PLAIN), headers, cookies, bais, timer)
 
+    (builder.networkTimeTaken - timer.duration).abs should be < Duration(2)
     val response = builder.response.get
     response.request should be(request)
     response.status should be(Status.S200_OK)

@@ -49,7 +49,9 @@ final class DiagnosticTimer {
 
 object DiagnosticTimer {
   val thousand = 1000
+  val tenThousand = 10000
   val million = thousand * thousand
+  val tenMillion = 10 * million
 }
 
 /**
@@ -69,13 +71,16 @@ case class Duration(microseconds: Long) extends Ordered[Duration] {
   def - (duration: Duration) = new Duration(this.microseconds - duration.microseconds)
   def * (factor: Int) = new Duration(this.microseconds * factor)
   def / (divisor: Int) = new Duration(this.microseconds / divisor)
+  def abs = if (microseconds < 0) new Duration(microseconds) else this
+  def max(other: Duration) = if (this.microseconds < other.microseconds) other else this
+  def min(other: Duration) = if (this.microseconds < other.microseconds) this else other
 
   def compare(that: Duration) = this.microseconds.compare(that.microseconds)
 
   override def toString: String =
-    if (microseconds >= 50 * million)
+    if (microseconds >= tenMillion)
       (microseconds / million) + "s"
-    else if (microseconds >= 50 * thousand)
+    else if (microseconds >= tenThousand)
       (microseconds / thousand) + "ms"
     else
       microseconds + "μs"

@@ -35,6 +35,7 @@ import uk.co.bigbeeconsultants.http.request.Request
 import uk.co.bigbeeconsultants.http.response.Status
 import uk.co.bigbeeconsultants.http.url.Href
 import uk.co.bigbeeconsultants.http._
+import uk.co.bigbeeconsultants.http.util.DiagnosticTimer
 
 class HttpServletResponseAdapterTest extends FunSuite {
 
@@ -65,7 +66,7 @@ class HttpServletResponseAdapterTest extends FunSuite {
     val responseBodyFilter = TextualBodyFilter(m.rewriteResponse, AllTextualMediaTypes)
     val adapter = new HttpServletResponseAdapter(servletResponse, Some(responseBodyFilter))
     val headers = Headers(CONTENT_LENGTH -> downstreamContent.length.toString)
-    adapter.responseBuilder.captureResponse(request, Status.S200_OK, Some(MediaType.TEXT_PLAIN), headers, None, inputStream)
+    adapter.responseBuilder.captureResponse(request, Status.S200_OK, Some(MediaType.TEXT_PLAIN), headers, None, inputStream, new DiagnosticTimer)
     adapter.sendResponse()
     verify(servletResponse).setStatus(200, "OK")
     verify(servletResponse).setHeader(CONTENT_LENGTH.name, upstreamContent.length.toString)

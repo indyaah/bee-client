@@ -42,10 +42,10 @@ final class AuthenticationRegistry(credentialSuite: CredentialSuite = Credential
 
   def findRealmMappings(endpoint: Endpoint): Set[RealmMapping] = knownRealms.get(endpoint) getOrElse Set()
 
-  def findRealmMappings(request: Request): Set[RealmMapping] = findRealmMappings(request.split.endpoint.get)
+  def findRealmMappings(request: Request): Set[RealmMapping] = findRealmMappings(request.href.endpoint.get)
 
   def findKnownAuthHeaderFromMappings(request: Request, realmMappings: Iterable[RealmMapping]): Option[Header] = {
-    val url = request.split
+    val url = request.href
     val matchingRealm: Option[String] = realmMappings find (rm => url.path.startsWith(rm.path)) map (_.realm)
     val matchingCredential: Option[Credential] = matchingRealm flatMap (credentialSuite.credentials.get(_))
     matchingCredential map (_.toBasicAuthHeader)
@@ -59,7 +59,7 @@ final class AuthenticationRegistry(credentialSuite: CredentialSuite = Credential
     val wwwAuthenticateHeaders: List[AuthenticateValue] = response.headers.filter(WWW_AUTHENTICATE).list map (_.toAuthenticateValue)
     val authorizationHeader = mustAuthenticate(response.request, wwwAuthenticateHeaders)
     if (cacheRealms)
-      updateKnownRealms(response.request.split, wwwAuthenticateHeaders, existingRealmMappings)
+      updateKnownRealms(response.request.href, wwwAuthenticateHeaders, existingRealmMappings)
     authorizationHeader
   }
 
