@@ -29,23 +29,125 @@ import org.scalatest.FunSuite
 
 class CookieParserTest extends FunSuite {
 
-  test("example 1") {
+  test("example 1: name, value") {
     val str = "SID=31d4d96e407aad42"
     val headers = HeaderName.SET_COOKIE -> str
     val cookies: List[Cookie] = CookieJar.Empty.gleanCookies(new URL("http://a.z.com/"), Headers(headers))._1.get.cookies
-    assert(1 === cookies.size)
+    assert(cookies.size === 1)
     val cookie = cookies(0)
     assert(CookieParser.asSetHeader(cookie).startsWith(str))
-    assert("SID" === cookie.name)
-    assert("31d4d96e407aad42" === cookie.value)
-    assert("a.z.com" === cookie.domain.domain)
-    assert("/" === cookie.path)
-    assert("http" === cookie.serverProtocol)
-    assert(None === cookie.expires)
+    assert(cookie.name === "SID")
+    assert(cookie.value === "31d4d96e407aad42")
+    assert(cookie.domain.domain === "a.z.com")
+    assert(cookie.path === "/")
+    assert(cookie.serverProtocol === "http")
+    assert(cookie.expires === None)
     assert(!cookie.persistent)
     assert(cookie.hostOnly)
     assert(!cookie.secure)
     assert(!cookie.httpOnly)
+  }
+
+  test("example 2: name, value, expires, httponly, max-age, path, secure") {
+    val str = "session=c47666897a224a93add9; expires=Wed, 19-Feb-2014 20:13:23 GMT; httponly; Max-Age=1209600; Path=/; secure"
+    val headers = HeaderName.SET_COOKIE -> str
+    val cookies: List[Cookie] = CookieJar.Empty.gleanCookies(new URL("http://a.z.com/"), Headers(headers))._1.get.cookies
+    assert(cookies.size === 1)
+    val cookie = cookies(0)
+    assert(cookie.name === "session")
+    assert(cookie.value === "c47666897a224a93add9")
+    assert(cookie.domain.domain === "a.z.com")
+    assert(cookie.path === "/")
+    assert(cookie.serverProtocol === "http")
+    assert(cookie.expires === Some(HttpDateTimeInstant.parse("Wed, 19-Feb-2014 20:13:23 GMT")))
+    assert(cookie.persistent)
+    assert(cookie.hostOnly)
+    assert(cookie.secure)
+    assert(cookie.httpOnly)
+//    assert(CookieParser.asSetHeader(cookie).toLowerCase === str.toLowerCase)
+  }
+
+  test("example 3: name, value, domain, expires, httponly, secure") {
+    val str = "logged_in=yes; domain=.frodo.com; path=/; expires=Sun, 05-Feb-2034 20:23:23 GMT; secure; HttpOnly"
+    val headers = HeaderName.SET_COOKIE -> str
+    val cookies: List[Cookie] = CookieJar.Empty.gleanCookies(new URL("http://a.frodo.com/"), Headers(headers))._1.get.cookies
+    assert(cookies.size === 1)
+    val cookie = cookies(0)
+    assert(cookie.name === "logged_in")
+    assert(cookie.value === "yes")
+    assert(cookie.domain.domain === "frodo.com")
+    assert(cookie.path === "/")
+    assert(cookie.serverProtocol === "http")
+    assert(cookie.expires === Some(HttpDateTimeInstant.parse("Sun, 05-Feb-2034 20:23:23 GMT")))
+    assert(cookie.persistent)
+    assert(!cookie.hostOnly)
+    assert(cookie.secure)
+    assert(cookie.httpOnly)
+//    assert(CookieParser.asSetHeader(cookie).toLowerCase === str.toLowerCase)
+  }
+
+  test("example 4: name, value, path, expires, httponly, secure") {
+    val str = "user_session=rTIepD313gqaAEvLbBZvIWOGHMTb3CyPp3YTlxeVf0kd; path=/; expires=Wed, 19-Feb-2014 20:23:23 GMT; secure; HttpOnly"
+    val headers = HeaderName.SET_COOKIE -> str
+    val cookies: List[Cookie] = CookieJar.Empty.gleanCookies(new URL("http://a.z.com/"), Headers(headers))._1.get.cookies
+    assert(cookies.size === 1)
+    val cookie = cookies(0)
+    assert(cookie.name === "user_session")
+    assert(cookie.value === "rTIepD313gqaAEvLbBZvIWOGHMTb3CyPp3YTlxeVf0kd")
+    assert(cookie.domain.domain === "a.z.com")
+    assert(cookie.path === "/")
+    assert(cookie.serverProtocol === "http")
+    assert(cookie.expires === Some(HttpDateTimeInstant.parse("Wed, 19-Feb-2014 20:23:23 GMT")))
+    assert(cookie.persistent)
+    assert(cookie.hostOnly)
+    assert(cookie.secure)
+    assert(cookie.httpOnly)
+//    assert(CookieParser.asSetHeader(cookie).toLowerCase === str.toLowerCase)
+  }
+
+  test("example 5: name, value, path, httponly, secure") {
+    val str = "_gh_sess=BAh7BjoPc2Vzc2lvbl9pZEkiJWIwODQ2YTFhMThmY2YzYjU3MDVlOGJjY2RmMWJmYjlkBjoGRUY%3D--afafe028ab4b30196967becb2c7e13666b149219; path=/; secure; HttpOnly"
+    val headers = HeaderName.SET_COOKIE -> str
+    val cookies: List[Cookie] = CookieJar.Empty.gleanCookies(new URL("http://a.z.com/"), Headers(headers))._1.get.cookies
+    assert(cookies.size === 1)
+    val cookie = cookies(0)
+    assert(cookie.name === "_gh_sess")
+    assert(cookie.value === "BAh7BjoPc2Vzc2lvbl9pZEkiJWIwODQ2YTFhMThmY2YzYjU3MDVlOGJjY2RmMWJmYjlkBjoGRUY%3D--afafe028ab4b30196967becb2c7e13666b149219")
+    assert(cookie.domain.domain === "a.z.com")
+    assert(cookie.path === "/")
+    assert(cookie.serverProtocol === "http")
+    assert(cookie.expires === None)
+    assert(!cookie.persistent)
+    assert(cookie.hostOnly)
+    assert(cookie.secure)
+    assert(cookie.httpOnly)
+//    assert(CookieParser.asSetHeader(cookie).toLowerCase === str.toLowerCase)
+  }
+
+  test("example 6: name, value, domain, path, expires, httponly, secure") {
+    val str = "dotcom_user=frodo123; domain=.frodo.com; path=/chat; expires=Sun, 05-Feb-2034 20:23:23 GMT; secure; HttpOnly"
+    val headers = HeaderName.SET_COOKIE -> str
+    val cookies: List[Cookie] = CookieJar.Empty.gleanCookies(new URL("http://www.frodo.com/"), Headers(headers))._1.get.cookies
+    assert(cookies.size === 1)
+    val cookie = cookies(0)
+    assert(cookie.name === "dotcom_user")
+    assert(cookie.value === "frodo123")
+    assert(cookie.domain.domain === "frodo.com")
+    assert(cookie.path === "/chat/")
+    assert(cookie.serverProtocol === "http")
+    assert(cookie.expires === Some(HttpDateTimeInstant.parse("Sun, 05-Feb-2034 20:23:23 GMT")))
+    assert(cookie.persistent)
+    assert(!cookie.hostOnly)
+    assert(cookie.secure)
+    assert(cookie.httpOnly)
+//    assert(CookieParser.asSetHeader(cookie).toLowerCase === str.toLowerCase)
+  }
+
+  test("httponly filter") {
+    val str = "user=frodo123; domain=.frodo.com; path=/; expires=Sun, 05-Feb-2034 20:23:23 GMT; secure; HttpOnly"
+    val headers = HeaderName.SET_COOKIE -> str
+    val cookies: List[Cookie] = CookieJar.Empty.gleanCookies(new URL("ftp://www.frodo.com/"), Headers(headers))._1.get.cookies
+    assert(cookies.isEmpty)
   }
 
   test("asSetHeader") {
@@ -66,4 +168,5 @@ class CookieParserTest extends FunSuite {
     assert(c3Str === CookieParser.asSetHeader(c3))
     //val cookies = for (i <- 1 to 100) yield new Cookie("n"+i, "v"+i)
   }
+
 }

@@ -69,9 +69,9 @@ object HttpCaching {
     trial(pool, "cache2 txt1 th", txtUrl, MediaType.TEXT_PLAIN, hb2)
     trial(pool, "cache3 txt1 th", txtUrl, MediaType.TEXT_PLAIN, hb3)
 
-    trial(pool, "xcache jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb1)
-    trial(pool, "cache2 jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb2)
-    trial(pool, "cache3 jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb3)
+//    trial(pool, "xcache jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb1)
+//    trial(pool, "cache2 jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb2)
+//    trial(pool, "cache3 jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb3)
 
     pool.shutdown()
     //Thread.sleep(60000) // time for inspecting any lingering network connections
