@@ -24,17 +24,17 @@
 
 package uk.co.bigbeeconsultants.http
 
+import java.net.{Proxy, UnknownHostException, ConnectException, URL}
 import org.scalatest.FunSuite
 import uk.co.bigbeeconsultants.http.HttpClient._
 import uk.co.bigbeeconsultants.http.header.{MediaType, CookieJar, Headers}
 import uk.co.bigbeeconsultants.http.header.HeaderName._
-import java.net.{Proxy, UnknownHostException, ConnectException, URL}
-import scala.actors.Futures
-import uk.co.bigbeeconsultants.http.util.{DiagnosticTimer, Duration}
+import uk.co.bigbeeconsultants.http.util.DiagnosticTimer
 import uk.co.bigbeeconsultants.http.auth.{CredentialSuite, Credential}
 import uk.co.bigbeeconsultants.http.cache.InMemoryCache
-import uk.co.bigbeeconsultants.http.response.{Status, Response, StringResponseBody}
+import uk.co.bigbeeconsultants.http.response.{Status, Response}
 import uk.co.bigbeeconsultants.http.request.Request
+import java.util.concurrent.{ExecutorService, Executors}
 
 object HttpCaching {
 
@@ -53,58 +53,38 @@ object HttpCaching {
   val hb2 = new HttpBrowser(configNoRedirects, CookieJar.Empty, creds, cache1)
   val hb3 = new HttpBrowser(configNoRedirects, CookieJar.Empty, creds, cache2)
 
-  val concurrency = 1
-  val nLoops = 1
+  val concurrency = 5
+  val nLoops = 5000
 
   /** Provides a single-threaded soak-tester. */
   def main(args: Array[String]) {
+    val pool = Executors.newFixedThreadPool(concurrency)
 
-//    val htmUrl = "http://beeclient/test-lighthttpclient.html"
-//    val cssUrl = "http://beeclient/index.css"
+    //    val htmUrl = "http://beeclient/test-lighthttpclient.html"
+    //    val cssUrl = "http://beeclient/index.css"
+    val txtUrl = "http://beeclient/empty.txt" // zero size
+    val jpgUrl = "http://beeclient/plataria-sunset.jpg" // about 1.6MB
 
-    val htmUrl = "http://vm05.spikeislandband.org.uk/"
-    val cssUrl = "http://vm05.spikeislandband.org.uk/css/_index.css"
+    trial(pool, "xcache txt1 th", txtUrl, MediaType.TEXT_PLAIN, hb1)
+    trial(pool, "cache2 txt1 th", txtUrl, MediaType.TEXT_PLAIN, hb2)
+    trial(pool, "cache3 txt1 th", txtUrl, MediaType.TEXT_PLAIN, hb3)
 
-//    val nchtm = trial("no cache htm th", htmUrl, MediaType.TEXT_HTML, hb1)
-    val nccss = trial("no cache css th", cssUrl, MediaType.TEXT_CSS, hb2)
+    trial(pool, "xcache jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb1)
+    trial(pool, "cache2 jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb2)
+    trial(pool, "cache3 jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb3)
 
-//    val ca1htm = trial("cache1 htm th", htmUrl, MediaType.TEXT_HTML, hb2)
-    val ca1css = trial("cache1 css th", cssUrl, MediaType.TEXT_CSS, hb2)
-
-//    val ca2htm = trial("cache2 htm th", htmUrl, MediaType.TEXT_HTML, hb2)
-    val ca2css = trial("cache2 css th", cssUrl, MediaType.TEXT_CSS, hb2)
-
-//    val ca3htm = trial("cache3 htm th", htmUrl, MediaType.TEXT_HTML, hb2)
-    val ca3css = trial("cache3 css th", cssUrl, MediaType.TEXT_CSS, hb2)
-
-//    val ca4htm = trial("cache4 htm th", htmUrl, MediaType.TEXT_HTML, hb2)
-    val ca4css = trial("cache4 css th", cssUrl, MediaType.TEXT_CSS, hb2)
-
-//    val ca5htm = trial("cache5 htm th", htmUrl, MediaType.TEXT_HTML, hb2)
-    val ca5css = trial("cache5 css th", cssUrl, MediaType.TEXT_CSS, hb2)
-
-//    val ca6htm = trial("cache6 htm th", htmUrl, MediaType.TEXT_HTML, hb2)
-    val ca6css = trial("cache6 css th", cssUrl, MediaType.TEXT_CSS, hb2)
-
-//    val wo = nchtm + nccss
-//    val wi1 = ca1htm + ca1css
-//    val wi2 = ca2htm + ca2css
-//    println("Grand totals: without " + nchtm + "+" + nccss + "=" + wo +
-//      ", with1 " + ca1htm + "+" + ca1css + "=" + wi1 +
-//      ", with2 " + ca2htm + "+" + ca2css + "=" + wi2)
+    pool.shutdown()
     //Thread.sleep(60000) // time for inspecting any lingering network connections
   }
 
-  def trial(id: String, path: String, mediaType: MediaType, hb: HttpBrowser) = {
-    val futures1 = for (i <- 1 to concurrency) yield {
-      Futures.future {
-        instance(id + i, path, mediaType, nLoops, hb)
-      }
+  def trial(pool: ExecutorService, id: String, path: String, mediaType: MediaType, hb: HttpBrowser) {
+    for (i <- 1 to concurrency) {
+      pool.submit(new Runnable() {
+        def run() {
+          instance(id + i, path, mediaType, nLoops, hb)
+        }
+      })
     }
-
-    val veryLongTime = 10000000
-    val totals1 = Futures.awaitAll(veryLongTime, futures1: _*).map(_.get).map(_.asInstanceOf[Duration])
-    totals1.foldLeft(Duration.Zero)(_ + _)
   }
 
   def instance(id: String, path: String, mediaType: MediaType, n: Int, hb: HttpBrowser) = {
@@ -132,7 +112,9 @@ class HttpCaching extends FunSuite {
       val body = response.body
       assert(body.contentType.mediaType === mediaType.mediaType, url)
       //      val string = body.asString
-      assert(response.headers(CONTENT_ENCODING).value === encoding, response.headers(CONTENT_ENCODING))
+      val contentEncodiing = response.headers.get(CONTENT_ENCODING)
+      if (contentEncodiing.isDefined)
+        assert(contentEncodiing.get.value === encoding, response.headers(CONTENT_ENCODING))
       response
     } catch {
       case e: Exception =>
