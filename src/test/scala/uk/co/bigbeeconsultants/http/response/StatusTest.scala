@@ -27,7 +27,10 @@ package uk.co.bigbeeconsultants.http.response
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import scala.collection.mutable
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class StatusTest extends FunSuite with ShouldMatchers {
 
   test("isInformational") {

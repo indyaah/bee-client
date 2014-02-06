@@ -58,38 +58,16 @@ case class CookieJar(cookies: List[Cookie]) extends Seq[CookieIdentity] {
   override def iterator = cookies.iterator
 
   /**
-   * Gets a new `CookieJar` derived from this one as augmented by the headers in a response. This is the primary
-   * means for updating a cookie jar after each request.
-   * @return a new cookie jar containing the merged cookies.
-   */
-  private[http] def gleanCookies(url: URL, headers: Headers): (Option[CookieJar], Headers) = {
-    val (setcookies, others) = filterCookieHeaders(headers)
-    if (setcookies.isEmpty)
-      (Some(this), headers)
-    else
-      (Some(CookieParser.updateCookies(this, url, setcookies)), Headers(others))
-  }
-
-  private def filterCookieHeaders(headers: Headers): (List[Header], List[Header]) = {
-    headers.list.partition {
-      header => header.name == HeaderName.SET_COOKIE.name ||
-        header.name == HeaderName.OBSOLETE_SET_COOKIE2.name
-    }
-  }
-
-  /**
    * Before making a request, use this method to pull the necessary cookies out of the jar.
    * @return an optional cookie header, which will contain one or more cookie values to be sent
    *         with the request.
    */
   private[http] def filterForRequest(url: URL): Option[Header] = {
-    val headers = new ListBuffer[String]
-    for (cookie <- cookies) {
-      if (cookie.willBeSentTo(url)) {
-        headers += cookie.asHeader
-      }
+    val toSend = cookies.filter(_.willBeSentTo(url)).sortWith(_.pathLength > _.pathLength)
+    if (toSend.isEmpty) None
+    else {
+      Some(HeaderName.COOKIE -> toSend.map(_.asHeader).mkString("; "))
     }
-    if (headers.isEmpty) None else Some(HeaderName.COOKIE -> headers.mkString("; "))
   }
 
   /**
@@ -138,6 +116,21 @@ case class CookieJar(cookies: List[Cookie]) extends Seq[CookieIdentity] {
   }
 
   /**
+   * Gets the remaining cookies from this jar after removing all expired cookies.
+   * @param against the datum against which the expiration of cookies is tested
+   */
+  def withoutExpired(against: HttpDateTimeInstant): CookieJar = {
+    new CookieJar(cookies.filterNot(_.hasExpired(against)))
+  }
+
+  /**
+   * Gets the remaining cookies from this jar after removing all session cookies.
+   */
+  def withoutSessionCookies: CookieJar = {
+    new CookieJar(cookies.filter(_.persistent))
+  }
+
+  /**
    * Gets the first cookie from this jar that matches a certain predicate.
    */
   override def find(f: (CookieIdentity) => Boolean): Option[Cookie] = {
@@ -177,9 +170,29 @@ object CookieJar {
   /**
    * Constructs a new cookie jar from an arbitrary collection of cookies. Note that in a normal sequence of HTTP
    * requests, you will not need to use this method. Instead, glean the cookies sent by the server using
-   * the two 'gleanCookies' methods.
+   * the 'gleanCookies' method.
    */
   def apply(cookies: Cookie*): CookieJar = {
-    new CookieJar(List() ++ cookies)
+    new CookieJar(cookies.toList)
+  }
+
+  /**
+   * Gets a new `CookieJar` derived from a previous one and augmented by the headers in a response. This is the primary
+   * means for updating a cookie jar after each request.
+   * @return a new cookie jar containing the merged cookies; all the other response headers
+   */
+  def gleanCookies(previous: Option[CookieJar], url: URL, responseHeaders: Headers): (Option[CookieJar], Headers) = {
+    val (setcookies, others) = filterCookieHeaders(responseHeaders)
+    if (setcookies.isEmpty || previous.isEmpty)
+      (previous, Headers(others))
+    else
+      (Some(CookieParser.updateCookies(previous.get, url, setcookies)), Headers(others))
+  }
+
+  private def filterCookieHeaders(headers: Headers): (List[Header], List[Header]) = {
+    headers.list.partition {
+      header => header.name == HeaderName.SET_COOKIE.name ||
+        header.name == HeaderName.OBSOLETE_SET_COOKIE2.name
+    }
   }
 }

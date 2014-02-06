@@ -28,7 +28,10 @@ import org.scalatest.FunSuite
 import org.mockito.Mockito._
 import java.net.HttpURLConnection
 import java.io.{IOException, InputStream}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class SelfClosingInputStreamDelegateTest extends FunSuite {
 
   test("constructor should close disconnect if the input stream is null") {

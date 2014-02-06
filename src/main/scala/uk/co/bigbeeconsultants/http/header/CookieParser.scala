@@ -44,7 +44,7 @@ private[header] object CookieParser {
   val EXPIRES = "Expires"
   val PATH = "Path"
 
-  private[header] def parseOneCookie(line: String, from: URL, requestPath: String, now: HttpDateTimeInstant): Option[Cookie] = {
+  private[header] def parseOneCookie(line: String, from: URL, fromHttp: Boolean, requestPath: String, now: HttpDateTimeInstant): Option[Cookie] = {
     var name: String = ""
     var value: String = ""
     var path: String = requestPath
@@ -68,6 +68,8 @@ private[header] object CookieParser {
       else if (a.equalsIgnoreCase(DOMAIN)) {
         // TODO reject cookies in the public suffix list http://publicsuffix.org/list/
         domain = Domain(v)
+        if (!domain.matches(from))
+          return None
         hostOnly = false
       }
       else if (a.equalsIgnoreCase(SECURE) && v == "") {
@@ -75,13 +77,14 @@ private[header] object CookieParser {
       }
       else if (a.equalsIgnoreCase(HTTPONLY) && v == "") {
         httpOnly = true
-        if (!from.getProtocol.startsWith("http"))
+        if (!fromHttp)
           return None
       }
       else if (a.equalsIgnoreCase(MAX_AGE)) {
         maxAge = Some(v.toInt)
+        expires = Some(now + maxAge.get)
       }
-      else if (a.equalsIgnoreCase(EXPIRES)) {
+      else if (a.equalsIgnoreCase(EXPIRES) && maxAge.isEmpty) {
         expires = Some(HttpDateTimeInstant.parse(v))
       }
       else if (a.equalsIgnoreCase(PATH)) {
@@ -93,10 +96,8 @@ private[header] object CookieParser {
       path += "/"
     }
 
-    val persistent = maxAge.isDefined || expires.isDefined
-
     Some(Cookie(name, value, domain, path,
-      maxAge, expires, now, persistent, hostOnly, secure, httpOnly, from.getProtocol))
+      maxAge, expires, hostOnly, secure, httpOnly, from.getProtocol))
   }
 
 
@@ -108,19 +109,28 @@ private[header] object CookieParser {
     val fPath = from.getPath
     val lastSlash = fPath.lastIndexOf('/')
     val path = if (lastSlash < 0) "/" else fPath.substring(0, lastSlash + 1)
+    val fromHttp = from.getProtocol.startsWith("http")
 
     // Construct the date only once - avoids rollover problems (which would be a bit like race conditions)
     val now = new HttpDateTimeInstant()
 
     for (header <- setcookies) {
       for (line <- split(header.value, '\n')) {
-        val optCookie = parseOneCookie(line, from, path, now)
+        val optCookie = parseOneCookie(line, from, fromHttp, path, now)
         if (optCookie.isDefined) {
-          val cookie = optCookie.get
-          if (cookie.expires.isDefined && cookie.expires.get < now) {
-            newJar -= cookie
+          val newCookie = optCookie.get
+          val oldCookie = newJar.get(newCookie)
+          if (oldCookie.isDefined && oldCookie.get.httpOnly && !fromHttp) {
+            // ignore this newCookie
+            val x =0
+          } else if (newCookie.maxAge.isDefined && newCookie.maxAge.get == 0) {
+            if (oldCookie.isDefined)
+              newJar -= newCookie
+          } else if (newCookie.expires.isDefined && newCookie.expires.get < now) {
+            if (oldCookie.isDefined)
+              newJar -= newCookie
           } else {
-            newJar += cookie
+            newJar += newCookie
           }
         }
       }

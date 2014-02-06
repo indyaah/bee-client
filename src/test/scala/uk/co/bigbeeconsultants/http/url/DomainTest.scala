@@ -26,7 +26,10 @@ package uk.co.bigbeeconsultants.http.url
 
 import java.net.URL
 import org.scalatest.FunSuite
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class DomainTest extends FunSuite {
 
   val ftpUrl1 = new URL("ftp://www.w3.org/standards/webdesign/htmlcss")

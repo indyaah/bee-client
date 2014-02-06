@@ -33,7 +33,10 @@ import uk.co.bigbeeconsultants.http.header.{MediaType, Cookie, CookieJar, Header
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.{HttpClient, Config}
 import uk.co.bigbeeconsultants.http.response.RedirectionLogic._
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class RedirectionLogicTest extends FunSuite with ShouldMatchers {
 
   var cfgFollow = Config(followRedirects = true)

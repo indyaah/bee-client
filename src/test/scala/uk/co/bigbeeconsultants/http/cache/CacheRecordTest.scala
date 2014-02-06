@@ -7,7 +7,10 @@ import uk.co.bigbeeconsultants.http.response.{Status, Response}
 import uk.co.bigbeeconsultants.http.header.{CacheControlValue, HttpDateTimeInstant, Headers, MediaType}
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.request.Request._
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class CacheRecordTest extends FunSuite {
 
   val reps = 10 // increase for soak testing

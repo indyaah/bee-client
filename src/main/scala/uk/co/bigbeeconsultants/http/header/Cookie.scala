@@ -35,6 +35,7 @@ package uk.co.bigbeeconsultants.http.header
 import java.net.URL
 import javax.servlet.http.{Cookie => ServletCookie}
 import uk.co.bigbeeconsultants.http.url.Domain
+import uk.co.bigbeeconsultants.http.util.HttpUtil
 
 /**
  * Defines the elements necessary to distinguish one cookie from another.
@@ -71,14 +72,17 @@ case class CookieKey(name: String,
   def ->(value: String,
          maxAge: Option[Int] = None,
          expires: Option[HttpDateTimeInstant] = None,
-         creation: HttpDateTimeInstant = new HttpDateTimeInstant(),
-         persistent: Boolean = false,
          hostOnly: Boolean = false,
          secure: Boolean = false,
          httpOnly: Boolean = false,
-         serverProtocol: String = "http") =
-    new Cookie(name, value, domain, path, maxAge, expires, creation, persistent, hostOnly,
-      secure, httpOnly, serverProtocol)
+         serverProtocol: String = "http") = {
+    if (maxAge.isDefined)
+      new Cookie(name, value, domain, path, maxAge, Some(new HttpDateTimeInstant() + maxAge.get), hostOnly,
+        secure, httpOnly, serverProtocol)
+    else
+      new Cookie(name, value, domain, path, maxAge, expires, hostOnly,
+        secure, httpOnly, serverProtocol)
+  }
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -92,8 +96,6 @@ case class Cookie(name: String,
                   path: String = "/",
                   maxAge: Option[Int] = None,
                   expires: Option[HttpDateTimeInstant] = None,
-                  creation: HttpDateTimeInstant = new HttpDateTimeInstant(),
-                  persistent: Boolean = false,
                   hostOnly: Boolean = false,
                   secure: Boolean = false,
                   httpOnly: Boolean = false,
@@ -101,8 +103,17 @@ case class Cookie(name: String,
   require(name.length > 0)
   require(path.endsWith("/"), path)
 
+  lazy val pathLength = HttpUtil.count(path, '/')
+
+  def persistent = maxAge.isDefined || expires.isDefined
+
   /** Gets the cookie as a request header value. */
   def asHeader = name + "=" + value
+
+  /** Tests whether this cookie has expired against a datum. */
+  def hasExpired(against: HttpDateTimeInstant) = {
+    expires.isDefined && expires.get < against
+  }
 
   /** Tests whether this cookie will be sent in the headers of a request to a specified URL. */
   def willBeSentTo(url: URL) = {

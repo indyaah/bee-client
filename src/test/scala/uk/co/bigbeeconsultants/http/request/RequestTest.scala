@@ -29,7 +29,10 @@ import uk.co.bigbeeconsultants.http.header.MediaType._
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.header.{CookieJar, Cookie}
 import org.scalatest.FunSuite
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class RequestTest extends FunSuite {
 
   val url1 = new URL ("http://localhost/")

@@ -29,7 +29,10 @@ import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.header.{MediaType, Headers}
 import uk.co.bigbeeconsultants.http.util.StubHttpServletRequest
 import uk.co.bigbeeconsultants.http.url.{Endpoint, Path, Href}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class HttpServletRequestAdapterTest extends FunSuite {
 
   test("HttpServletRequestAdapter.url") {

@@ -27,7 +27,10 @@ package uk.co.bigbeeconsultants.http.response
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import uk.co.bigbeeconsultants.http.header.MediaType._
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class MimeTypeRegistryTest extends FunSuite with ShouldMatchers {
   test("mime-types loader") {
     MimeTypeRegistry.table("txt") should be(TEXT_PLAIN)

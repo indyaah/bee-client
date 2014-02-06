@@ -73,6 +73,19 @@ object HttpUtil {
   }
 
   /**
+   * Efficiently counts all occurrences of a given character within a string.
+   */
+  def count(str: String, sep: Char): Int = {
+    var n = 0
+    for (c <- str.toCharArray) {
+      if (c == sep) {
+        n += 1
+      }
+    }
+    n
+  }
+
+  /**
    * Efficiently splits a string at all occurrences of a given character except those inside double quotes.
    * The returned list always contains at least one item, even if it is blank.
    */

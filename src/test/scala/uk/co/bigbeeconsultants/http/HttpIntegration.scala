@@ -37,6 +37,9 @@ import java.io.File
 import url.Domain
 import uk.co.bigbeeconsultants.http.util.{Duration, DiagnosticTimer}
 import header.{HeaderName, Headers}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
 // scala actors futures retain 2.9.1 backward compatibility
 import scala.actors._
 
@@ -143,6 +146,7 @@ object HttpIntegration {
   }
 }
 
+@RunWith(classOf[JUnitRunner])
 class HttpIntegration extends FunSuite {
 
   import HttpIntegration._

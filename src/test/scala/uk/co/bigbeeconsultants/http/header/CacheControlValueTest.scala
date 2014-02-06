@@ -25,7 +25,10 @@
 package uk.co.bigbeeconsultants.http.header
 
 import org.scalatest.FunSuite
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class CacheControlValueTest extends FunSuite {
 
   test("faulty construction with blank string") {

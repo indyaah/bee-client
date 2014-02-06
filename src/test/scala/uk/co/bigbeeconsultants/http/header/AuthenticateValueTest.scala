@@ -28,7 +28,10 @@ import org.scalatest.FunSuite
 import uk.co.bigbeeconsultants.http._
 import uk.co.bigbeeconsultants.http.auth.DigestCredential
 import uk.co.bigbeeconsultants.http.request.Request
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class AuthenticateValueTest extends FunSuite {
 
   test("basic string") {

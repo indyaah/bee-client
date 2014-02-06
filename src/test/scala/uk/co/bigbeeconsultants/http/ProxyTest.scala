@@ -5,7 +5,10 @@ import org.scalatest.matchers.ShouldMatchers
 import java.net.{UnknownHostException, InetSocketAddress, Proxy}
 import com.pyruby.stubserver.{StubMethod, StubServer}
 import uk.co.bigbeeconsultants.http.header.MediaType._
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class ProxyTest extends FunSuite with ShouldMatchers with BeforeAndAfter {
 
   val expectedBody = "Hey look some text"

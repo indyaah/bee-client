@@ -36,7 +36,10 @@ import uk.co.bigbeeconsultants.http.response.Status
 import uk.co.bigbeeconsultants.http.url.Href
 import uk.co.bigbeeconsultants.http._
 import uk.co.bigbeeconsultants.http.util.DiagnosticTimer
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class HttpServletResponseAdapterTest extends FunSuite {
 
   test("HttpServletResponseAdapter setResponseHeaders") {

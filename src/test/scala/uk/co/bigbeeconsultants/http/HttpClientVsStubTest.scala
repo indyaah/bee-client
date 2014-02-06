@@ -36,8 +36,10 @@ import java.util.zip._
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import java.net.URL
 import util.HttpUtil._
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
-
+@RunWith(classOf[JUnitRunner])
 class HttpClientVsStubTest extends FunSuite with BeforeAndAfter {
 
   import HttpClientTestUtils._

@@ -35,7 +35,10 @@ import request.{RequestBody, Request}
 import response.Status
 import collection.immutable.ListMap
 import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class HttpClientVsMockTest extends FunSuite {
 
   val url = new URL("http://server/some/url")

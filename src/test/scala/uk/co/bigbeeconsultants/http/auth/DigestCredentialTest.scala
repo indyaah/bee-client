@@ -28,7 +28,10 @@ import org.scalatest.FunSuite
 import uk.co.bigbeeconsultants.http._
 import header.AuthenticateValue
 import uk.co.bigbeeconsultants.http.request.Request
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class DigestCredentialTest extends FunSuite {
 
   // http://www.rfc-editor.org/rfc/rfc2617.txt section 3.5

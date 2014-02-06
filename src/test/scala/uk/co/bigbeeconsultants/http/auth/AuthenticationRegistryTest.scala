@@ -32,7 +32,10 @@ import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.response.{EmptyResponseBody, Status, Response}
 import uk.co.bigbeeconsultants.http.url.{Href, Endpoint}
 import collection.immutable.ListMap
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class AuthenticationRegistryTest extends FunSuite {
 
   val fredBloggs = new Credential("fred", "bloggs")

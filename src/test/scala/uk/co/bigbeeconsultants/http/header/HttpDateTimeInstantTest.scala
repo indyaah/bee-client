@@ -27,7 +27,10 @@ package uk.co.bigbeeconsultants.http.header
 import javax.xml.bind.DatatypeConverter
 import org.scalatest.FunSuite
 import uk.co.bigbeeconsultants.http.util.DiagnosticTimer
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class HttpDateTimeInstantTest extends FunSuite {
 
   test("parse silly") {

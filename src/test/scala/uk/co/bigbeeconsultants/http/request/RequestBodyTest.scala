@@ -30,7 +30,10 @@ import uk.co.bigbeeconsultants.http.header.MediaType
 import uk.co.bigbeeconsultants.http.HttpClient
 import org.scalatest.FunSuite
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class RequestBodyTest extends FunSuite {
 
   val url1 = new URL("http://localhost/")

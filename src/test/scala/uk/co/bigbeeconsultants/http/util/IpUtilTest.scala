@@ -25,7 +25,10 @@
 package uk.co.bigbeeconsultants.http.util
 
 import org.scalatest.FunSuite
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class IpUtilTest extends FunSuite {
 
   test("IP v4") {

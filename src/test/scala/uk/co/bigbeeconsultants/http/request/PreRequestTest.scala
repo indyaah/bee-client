@@ -32,7 +32,10 @@ import uk.co.bigbeeconsultants.http.response.Status
 import java.io.ByteArrayInputStream
 import uk.co.bigbeeconsultants.http.Config
 import javax.net.ssl.{HostnameVerifier, SSLSocketFactory, HttpsURLConnection}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class PreRequestTest extends FunSuite {
 
   var httpURLConnection: HttpURLConnection = null

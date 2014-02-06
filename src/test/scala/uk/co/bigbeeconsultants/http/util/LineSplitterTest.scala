@@ -26,7 +26,10 @@ package uk.co.bigbeeconsultants.http.util
 
 import org.scalatest.FunSuite
 import java.io.{InputStreamReader, BufferedReader, ByteArrayInputStream, ByteArrayOutputStream}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class LineSplitterTest extends FunSuite {
 
   private def constructReader(s: String) = {

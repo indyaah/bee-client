@@ -29,7 +29,10 @@ import java.io.{BufferedReader, InputStreamReader, ByteArrayInputStream}
 import uk.co.bigbeeconsultants.http._
 import util.DiagnosticTimer
 import java.nio.charset.Charset
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class LineFilterInputStreamTest extends FunSuite {
 
   test("simple two-line string with no substitution") {

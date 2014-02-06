@@ -30,7 +30,10 @@ import uk.co.bigbeeconsultants.http.request._
 import uk.co.bigbeeconsultants.http.header.{Cookie, CookieJar, Headers}
 import uk.co.bigbeeconsultants.http.header.MediaType._
 import uk.co.bigbeeconsultants.http.header.HeaderName._
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class ResponseTest extends FunSuite with ShouldMatchers {
 
   test("Response.apply should create a new response correctly") {

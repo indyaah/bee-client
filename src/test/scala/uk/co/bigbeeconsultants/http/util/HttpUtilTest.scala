@@ -26,7 +26,10 @@ package uk.co.bigbeeconsultants.http.util
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import org.scalatest.FunSuite
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class HttpUtilTest extends FunSuite {
 
   import HttpUtil._
@@ -66,6 +69,10 @@ class HttpUtilTest extends FunSuite {
 
   test("split three") {
     assert(List("one", "two", "three") === split("one:two:three", ':'))
+  }
+
+  test("count four") {
+    assert(count("/one/two/three/", '/') === 4)
   }
 
   test("split quoted blank") {

@@ -33,7 +33,10 @@ import java.io.ByteArrayInputStream
 import java.net.URL
 import scala.throws
 import java.nio.charset.MalformedInputException
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class ByteBufferResponseBodyTest extends FunSuite with ShouldMatchers {
   val head = Request.head("http://localhost/")
   val getPng = Request.get("http://localhost/x.png")

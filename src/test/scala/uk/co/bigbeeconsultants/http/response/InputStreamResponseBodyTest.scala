@@ -32,7 +32,10 @@ import uk.co.bigbeeconsultants.http.util.HttpUtil
 import java.io.ByteArrayInputStream
 import java.net.URL
 import java.nio.charset.MalformedInputException
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class InputStreamResponseBodyTest extends FunSuite with ShouldMatchers {
   val head = Request.head(new URL("http://localhost/"))
   val headersWithLength = Headers(HeaderName.CONTENT_LENGTH -> "1234")

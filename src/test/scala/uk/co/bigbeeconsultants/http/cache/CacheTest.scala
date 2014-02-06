@@ -33,7 +33,10 @@ import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.header.HttpDateTimeInstant
 import uk.co.bigbeeconsultants.http.util.DiagnosticTimer
 import uk.co.bigbeeconsultants.http.util.Bytes._
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class CacheTest extends FunSuite {
 
   import Request._

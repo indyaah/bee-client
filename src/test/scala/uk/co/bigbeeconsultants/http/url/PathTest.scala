@@ -25,7 +25,10 @@
 package uk.co.bigbeeconsultants.http.url
 
 import org.scalatest.FunSuite
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class PathTest extends FunSuite {
 
   test("parse and equals") {

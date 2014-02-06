@@ -77,17 +77,13 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
     var redirect: Option[Request] = None
     try {
       config.preRequests.foreach(_.process(request, httpURLConnection, config))
-      setRequestHeaders(request, httpURLConnection, config)
+      val remainingCookies = setRequestHeaders(request, httpURLConnection, config)
       httpURLConnection.connect()
       copyRequestBodyToOutputStream(request, httpURLConnection)
 
       val status = Status(httpURLConnection.getResponseCode, httpURLConnection.getResponseMessage)
       val allResponseHeaders = processResponseHeaders(httpURLConnection)
-      val (responseCookies, responseHeadersWithoutCookies) =
-        if (request.cookies.isDefined)
-          request.cookies.get.gleanCookies(request.url, allResponseHeaders)
-        else
-          (None, allResponseHeaders)
+      val (responseCookies, responseHeadersWithoutCookies) = CookieJar.gleanCookies(remainingCookies, request.url, allResponseHeaders)
 
       redirect = RedirectionLogic.determineRedirect(config, request, status, responseHeadersWithoutCookies, responseCookies)
       if (redirect.isEmpty) {
@@ -155,7 +151,7 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
   }
 
 
-  private def setRequestHeaders(request: Request, httpURLConnection: HttpURLConnection, config: Config) {
+  private def setRequestHeaders(request: Request, httpURLConnection: HttpURLConnection, config: Config): Option[CookieJar] = {
     val method = request.method.toUpperCase
     httpURLConnection.setRequestMethod(method)
 
@@ -167,17 +163,22 @@ class HttpClient(commonConfig: Config = Config()) extends Http(commonConfig) {
       httpURLConnection.setRequestProperty(CONTENT_TYPE, request.body.get.contentType)
     }
 
-    if (request.cookies.isDefined) {
-      request.cookies.get.filterForRequest(request.url) match {
-        case Some(hdr) =>
-          httpURLConnection.setRequestProperty(hdr.name, hdr.value)
-        case _ =>
-      }
-    }
+    val remainingCookies =
+      if (request.cookies.isDefined) {
+        val freshJar = request.cookies.get.withoutExpired(new header.HttpDateTimeInstant)
+        freshJar.filterForRequest(request.url) match {
+          case Some(hdr) =>
+            httpURLConnection.setRequestProperty(hdr.name, hdr.value)
+          case _ =>
+        }
+        Some(freshJar)
+      } else None
 
     if (request.body.isDefined) {
       httpURLConnection.setDoOutput(true)
     }
+
+    remainingCookies
   }
 
 

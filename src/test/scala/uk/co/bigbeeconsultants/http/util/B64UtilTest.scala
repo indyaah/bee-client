@@ -25,9 +25,12 @@
 package uk.co.bigbeeconsultants.http.util
 
 import org.scalatest.FunSuite
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
 // see http://en.wikipedia.org/wiki/Base64
 
+@RunWith(classOf[JUnitRunner])
 class B64UtilTest extends FunSuite {
 
   test("encode 1") {

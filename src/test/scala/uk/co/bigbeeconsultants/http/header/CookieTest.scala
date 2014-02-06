@@ -28,7 +28,10 @@ import java.net.URL
 import org.scalatest.FunSuite
 import java.util.Date
 import uk.co.bigbeeconsultants.http.url.Domain
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class CookieTest extends FunSuite {
 
   val ftpUrl1 = new URL("ftp://www.w3.org/standards/webdesign/htmlcss")
@@ -39,8 +42,8 @@ class CookieTest extends FunSuite {
   test("cookie_matches_path") {
     val w3root = CookieKey("n1", "www.w3.org")
     val w3standards = CookieKey("n1", Domain("www.w3.org"), "/standards/")
-    val c1 = w3root -> ("v1")
-    val c2 = w3standards -> ("v2")
+    val c1 = w3root -> "v1"
+    val c2 = w3standards -> "v2"
     assert(true === c1.willBeSentTo(httpUrl1))
     assert(true === c1.willBeSentTo(httpsUrl1))
     assert(true === c2.willBeSentTo(httpUrl1))
@@ -50,8 +53,8 @@ class CookieTest extends FunSuite {
 
   test("cookie_matches_secure") {
     val w3 = CookieKey("n1", "www.w3.org")
-    val c1 = (w3 -> ("v1")).copy(secure = false)
-    val c2 = (w3 -> ("v2")).copy(secure = true)
+    val c1 = (w3 -> "v1").copy(secure = false)
+    val c2 = (w3 -> "v2").copy(secure = true)
     assert(true === c1.willBeSentTo(httpUrl1))
     assert(true === c1.willBeSentTo(httpsUrl1))
     assert(false === c2.willBeSentTo(httpUrl1))
@@ -61,8 +64,8 @@ class CookieTest extends FunSuite {
 
   test("cookie_matches_httpOnly") {
     val w3 = CookieKey("n1", "www.w3.org")
-    val c1 = (w3 -> ("v1")).copy(httpOnly = false)
-    val c2 = (w3 -> ("v2")).copy(httpOnly = true)
+    val c1 = (w3 -> "v1").copy(httpOnly = false)
+    val c2 = (w3 -> "v2").copy(httpOnly = true)
     assert(true === c1.willBeSentTo(ftpUrl1))
     assert(false === c2.willBeSentTo(ftpUrl1))
     assert(true === c2.willBeSentTo(httpUrl1))
@@ -75,8 +78,8 @@ class CookieTest extends FunSuite {
   test("cookie_matches_domain") {
     val w3 = CookieKey("n1", "www.w3.org")
     val xorg = CookieKey("n1", "x.org")
-    val c1 = w3 -> ("v1")
-    val c2 = xorg -> ("v2")
+    val c1 = w3 -> "v1"
+    val c2 = xorg -> "v2"
     assert(true === c1.willBeSentTo(httpUrl1))
     assert(false === c2.willBeSentTo(httpUrl1))
     assert(true === c1.willBeSentTo(httpsUrl1))
@@ -87,12 +90,12 @@ class CookieTest extends FunSuite {
   test("conversion to servlet cookie") {
     val now = new HttpDateTimeInstant
     val now20 = new HttpDateTimeInstant(new Date(System.currentTimeMillis() + 20000))
-    val c = Cookie("n1", "v1", "www.w3.org", "/path/", Some(10), Some(now20), now, false, false, false, false, "http")
+    val c = Cookie("n1", "v1", "www.w3.org", "/path/", Some(10), Some(now20), false, false, false, "http")
     val s = c.asServletCookie
-    assert("n1" === s.getName)
-    assert("v1" === s.getValue)
-    assert("/path/" === s.getPath)
-    assert("www.w3.org" === s.getDomain)
-    assert(10 === s.getMaxAge)
+    assert(s.getName === "n1")
+    assert(s.getValue === "v1")
+    assert(s.getPath === "/path/")
+    assert(s.getDomain === "www.w3.org")
+    assert(s.getMaxAge === 10)
   }
 }

@@ -6,7 +6,10 @@ import uk.co.bigbeeconsultants.http.request.Request
 import uk.co.bigbeeconsultants.http.response.{Response, Status}
 import uk.co.bigbeeconsultants.http.header._
 import uk.co.bigbeeconsultants.http.util.DiagnosticTimer
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class CacheStoreTest extends FunSuite {
 
   test("storing 100 responses up to the limit and then 100 more responses over the limit (eager cleanup)") {

@@ -33,7 +33,10 @@ import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.HttpClient
 import java.io.ByteArrayInputStream
 import uk.co.bigbeeconsultants.http.util.{Duration, DiagnosticTimer}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class ResponseBuilderTest extends FunSuite with ShouldMatchers {
 
   test("BufferedResponseBuilder should capture response data correctly") {

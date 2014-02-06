@@ -27,7 +27,10 @@ package uk.co.bigbeeconsultants.http.response
 import org.scalatest.FunSuite
 import uk.co.bigbeeconsultants.http.header.MediaType
 import java.io.ByteArrayInputStream
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class StringResponseBodyTest extends FunSuite {
 
   test("utf8 encoding") {

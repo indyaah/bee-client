@@ -29,7 +29,10 @@ import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import uk.co.bigbeeconsultants.http.HttpClient
 import java.io.ByteArrayInputStream
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class ResponseBodyTest extends FunSuite with ShouldMatchers {
 
   test("EmptyResponseBody") {
