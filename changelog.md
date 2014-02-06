@@ -1,3 +1,61 @@
+#### Thu, 06 Feb 2014
+* v0.26.4 - mitigated the external effects of an API change that was in v0.26.3
+
+
+#### Thu, 06 Feb 2014
+* v0.26.3
+* - resolved issue #22 - cookie expiry
+* - resolved issue #23 - session cookies
+* - cookies are now sorted in path order before being send with a request.
+* - expired cookies are now deleted correctly.
+* - all tests play nicely with JUnit as well as Scalatest - works better in some IDEs.
+
+
+#### Wed, 05 Feb 2014
+* Investigating Issue #22
+
+
+#### Wed, 05 Feb 2014
+* v0.26.2 - More testing of the caching code
+
+
+#### Tue, 04 Feb 2014
+* v0.26.2
+* - Further development work on caching: CacheStore no longer has a singleton; etags now work.
+* - References to Request.split (deprecated) have been fixed.
+* - Headers.toString has been implemented.
+* - Some unnecessary debug logging has been removed.
+* - ResponseBuilder now captures the timer that gives the network time taken.
+* - Better diagnostics are logged by HttpClient.
+
+
+#### Tue, 04 Feb 2014
+* v0.26.2 - Further development work on caching
+
+
+#### Mon, 03 Feb 2014
+* v0.26.2 - Further development work on caching
+
+
+#### Mon, 03 Feb 2014
+* v0.26.2
+* - CacheKey is a little more efficient
+* - CacheStore now has a lazy eventually-consistent cleanup of stale records via a single background thread
+
+
+#### Sun, 02 Feb 2014
+* v0.26.2
+* - Cache is is now basically working. Edge cases remain to be completed.
+
+
+#### Sat, 01 Feb 2014
+* v0.26.2
+* - Cache is now a trait. There are two implementations: NoOpCache and InMemoryCache
+* - ResponseBuilder now has a setter to be used when returning a response from the cache
+* - UnbufferedResponseBuilder can now capture 206 partial content as well as 200 OK responses
+* - HttpBrowser now has the basics of caching wired in, although still not ready for production use.
+
+
 #### Thu, 30 Jan 2014
 * v0.26.2 - header value tidy-ups
 
