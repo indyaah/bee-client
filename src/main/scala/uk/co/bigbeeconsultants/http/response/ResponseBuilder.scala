@@ -40,7 +40,8 @@ import uk.co.bigbeeconsultants.http.util.{DiagnosticTimer, Duration}
 trait ResponseBuilder {
   /** Defines the method to be invoked when the response is first received. */
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
-                      headers: Headers, cookies: Option[CookieJar], stream: InputStream, timer: DiagnosticTimer)
+                      headers: Headers, cookies: Option[CookieJar],
+                      stream: InputStream, timer: DiagnosticTimer)
 
   /** Gets the response that was captured earlier. */
   def response: Option[Response] = None
@@ -75,7 +76,8 @@ class BufferedResponseBuilder extends ResponseBuilder {
 
   def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
                       headers: Headers, cookies: Option[CookieJar],
-                      stream: InputStream, timer: DiagnosticTimer) {
+                      stream: InputStream,
+                      timer: DiagnosticTimer = new DiagnosticTimer) {
     _response = Some(captureBufferedResponse(request, status, mediaType, headers, cookies, stream))
     _networkTime = timer.duration
     _timer = Some(timer)
@@ -123,7 +125,8 @@ final class UnbufferedResponseBuilder extends BufferedResponseBuilder {
 
   override def captureResponse(request: Request, status: Status, mediaType: Option[MediaType],
                                headers: Headers, cookies: Option[CookieJar],
-                               stream: InputStream, timer: DiagnosticTimer) {
+                               stream: InputStream,
+                               timer: DiagnosticTimer = new DiagnosticTimer) {
     val response =
       status.code match {
         case 200 | 206 =>
