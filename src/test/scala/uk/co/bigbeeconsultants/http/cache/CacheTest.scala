@@ -45,7 +45,7 @@ class CacheTest extends FunSuite {
   val supportedCodes = List(Status.S200_OK, Status.S203_NotAuthoritative, Status.S300_MultipleChoice, Status.S301_MovedPermanently, Status.S410_Gone)
 
   test("store succeeds with 200, 203, 300, 301, 410") {
-    val cache = new InMemoryCache()
+    val cache = new InMemoryCache(minContentLength = 0)
     for (method <- getAndHead) {
       val request = Request(method, "http://localhost/stuff")
       for (status <- supportedCodes) {
@@ -58,7 +58,7 @@ class CacheTest extends FunSuite {
   }
 
   test("store succeeds with 404 when assume404Age is non-zero") {
-    val cache = new InMemoryCache(assume404Age = 100)
+    val cache = new InMemoryCache(minContentLength = 0, assume404Age = 100)
     for (method <- getAndHead) {
       cache.clear()
       val request = Request(method, "http://localhost/stuff")
@@ -91,7 +91,7 @@ class CacheTest extends FunSuite {
   }
 
   test("lookup gets matching entries from an almost-empty store") {
-    val cache = new InMemoryCache()
+    val cache = new InMemoryCache(minContentLength = 0)
     val nowPlus60 = new HttpDateTimeInstant(HttpDateTimeInstant.timeNowSec + 60)
     val headers = Headers(EXPIRES -> nowPlus60)
     val n = 100
@@ -119,7 +119,7 @@ class CacheTest extends FunSuite {
   }
 
   test("lookup gets matching entries from a well-filled store") {
-    val cache = new InMemoryCache(10 * MiB)
+    val cache = new InMemoryCache(maxCachedContentSize = 10 * MiB, minContentLength = 0)
     val nowPlus60 = new HttpDateTimeInstant(HttpDateTimeInstant.timeNowSec + 60)
     val headers = Headers(EXPIRES -> nowPlus60)
     val n = 100

@@ -81,17 +81,17 @@ class HttpBrowser(commonConfig: Config = Config(),
       // no HTTP request is made
 
       case cs: CacheStale =>
-        // store the stale response in case it gets dropped from the cache whilst the
+        // pass on the stale response in case it gets dropped from the cache whilst the
         // revalidation request is executing,
-        responseBuilder.setResponse(cs.staleResponse)
-        makeHttpRequest(request, cs.revalidateRequest, responseBuilder, config)
+        makeHttpRequest(request, cs.revalidateRequest, Some(cs.staleResponse), responseBuilder, config)
 
       case cm: CacheMiss =>
-        makeHttpRequest(request, cm.request, responseBuilder, config)
+        makeHttpRequest(request, cm.request, None, responseBuilder, config)
     }
   }
 
   private def makeHttpRequest(originalRequest: Request, requestWithCookies: Request,
+                              staleResponse: Option[Response],
                               responseBuilder: ResponseBuilder, config: Config) {
     val realmMappings = authenticationRegistry.findRealmMappings(originalRequest)
     var authHeader = authenticationRegistry.findKnownAuthHeaderFromMappings(originalRequest, realmMappings)
@@ -127,10 +127,9 @@ class HttpBrowser(commonConfig: Config = Config(),
       if (updatedResponse.isDefined) {
         responseBuilder.setResponse(updatedResponse.get) // normal completion
       }
-      // else
-      // abnormal repetition due to cache race during 304 refresh, but remember
-      // that the stale response would already have been inserted into the responseBuilder
-      // before the request was made
+      // else edge case due to cache race during 304 refresh, so use the stale response from earlier
+    } else if (staleResponse.isDefined) {
+      responseBuilder.setResponse(staleResponse.get) // edge case
     }
   }
 }

@@ -47,6 +47,11 @@ object EntityTag {
     else
       new EntityTag(unquote(value), false)
   }
+
+  def ifValid(value: String) = {
+    val v = apply(value)
+    if (v.isValid) Some(v) else None
+  }
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -67,5 +72,10 @@ object EntityTagListValue {
     val list = splitQuoted(string, ',')
     val parts = list map (s => EntityTag(s.trim))
     new EntityTagListValue(parts)
+  }
+
+  def ifValid(value: String) = {
+    val v = apply(value)
+    if (v.isValid) Some(v) else None
   }
 }

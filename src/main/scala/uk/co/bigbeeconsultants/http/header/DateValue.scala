@@ -36,14 +36,21 @@ case class DateValue(value: String, isValid: Boolean, date: HttpDateTimeInstant)
 object DateValue {
   private val logger = LoggerFactory.getLogger(getClass)
 
+  /** Parses a header value to extract a date value, if this is possible. */
   def apply(value: String) = {
+    val date = ifValid(value)
+    if (date.isDefined) new DateValue(value, true, date.get)
+    else new DateValue(value, false, HttpDateTimeInstant.Zero)
+  }
+
+  /** Parses a header value to extract a date value, if this is possible. */
+  def ifValid(value: String): Option[HttpDateTimeInstant] = {
     try {
-      val date = HttpDateTimeInstant.parse(value)
-      new DateValue(value, true, date)
+      Some(HttpDateTimeInstant.parse(value))
     } catch {
       case pe: ParseException =>
-        logger.error("{}: failed to parse date. {}", Array(value, pe.getMessage))
-        new DateValue(value, false, HttpDateTimeInstant.Zero)
+        logger.debug("{}: failed to parse date. {}", Array(value, pe.getMessage))
+        None
     }
   }
 }

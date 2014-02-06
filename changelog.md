@@ -7,6 +7,10 @@
 
 
 #### Thu, 06 Feb 2014
+* v0.26.4 - mitigated the external effects of an API change that was in v0.26.3
+
+
+#### Thu, 06 Feb 2014
 * v0.26.3
 * - resolved issue #22 - cookie expiry
 * - resolved issue #23 - session cookies

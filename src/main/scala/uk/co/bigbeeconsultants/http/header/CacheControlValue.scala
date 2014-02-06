@@ -55,7 +55,7 @@ object CacheControlValue {
         }
       } catch {
         case e: NumberFormatException =>
-          logger.error("{}: failed to parse number. {}", Array(value, e.getMessage))
+          logger.debug("{}: failed to parse number. {}", Array(value, e.getMessage))
           new CacheControlValue(value, false, a, None, None)
       }
     }
@@ -65,6 +65,11 @@ object CacheControlValue {
     if (deltaSeconds.isDefined) new CacheControlValue(label + "=" + deltaSeconds.get, true, label, deltaSeconds, None)
     else if (fieldName.isDefined) new CacheControlValue(label + "=\"" + fieldName.get + "\"", true, label, None, fieldName)
     else new CacheControlValue(label, true, label, None, fieldName)
+  }
+
+  def ifValid(value: String) = {
+    val v = apply(value)
+    if (v.isValid) Some(v) else None
   }
 
   /** Constructs a new max-age instance. */

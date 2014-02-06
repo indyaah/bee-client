@@ -43,6 +43,13 @@ trait Value {
 case class Header(name: String, value: String) {
 
   /**
+   * Converts the value to an optional authenticate value.
+   *
+   * WWW-Authenticate
+   */
+  def toAuthenticateValue = AuthenticateValue.ifValid(value)
+
+  /**
    * Converts the value to a qualified value.
    *
    * Accept | Accept-Charset | Accept-Encoding | Accept-Language
@@ -50,18 +57,39 @@ case class Header(name: String, value: String) {
   def toQualifiedValue = toListValue.toQualifiedValue
 
   /**
-   * Converts the value to an integer number.
+   * Converts the value to an optional number.
    *
    * Age | Content-Length | Max-Forwards
    */
-  def toNumber = NumberValue(value)
+  def toNumber = NumberValue.ifValid(value)
 
   /**
-   * Converts the value to an HttpDateTimeInstant.
+   * Converts the value to an optional cache-control value.
+   *
+   * Cache-Control
+   */
+  def toCacheControlValue = CacheControlValue.ifValid(value)
+
+  /**
+   * Converts the value to an optional HttpDateTimeInstant.
    *
    * Date | Expires | If-Modified-Since | If-Unmodified-Since | Last-Modified
    */
-  def toDate: DateValue = DateValue(value)
+  def toDate = DateValue.ifValid(value)
+
+  /**
+   * Converts the value to an optional single entity tag.
+   *
+   * Etag
+   */
+  def toEntityTag = EntityTag.ifValid(value)
+
+  /**
+   * Converts the value to an optional list of entity tags.
+   *
+   * If-Match | If-None-Match
+   */
+  def toEntityTagList = EntityTagListValue.ifValid(value)
 
   /**
    * Converts the value to a comma-separated list value.
@@ -71,54 +99,27 @@ case class Header(name: String, value: String) {
   def toListValue = CommaListValue.split(value)
 
   /**
-   * Converts the value to an authenticate value.
-   *
-   * WWW-Authenticate
-   */
-  def toAuthenticateValue = AuthenticateValue(value)
-
-  /**
-   * Converts the value to a range value.
-   *
-   * Range
-   */
-  def toRangeValue = RangeValue(value)
-
-  /**
    * Converts the value to a media type.
    *
    * Content-Type
    */
-  def toMediaType = MediaType(value)
+  def toMediaType = MediaType.ifValid(value)
 
   /**
-   * Converts the value to a single entity tag.
+   * Converts the value to an optional range value.
    *
-   * Etag
+   * Range
    */
-  def toEntityTag = EntityTag(value)
+  def toRangeValue = RangeValue.ifValid(value)
 
   /**
-   * Converts the value to a list of entity tags.
-   *
-   * If-Match | If-None-Match
-   */
-  def toEntityTagList = EntityTagListValue(value)
-
-  /**
-   * Converts the value to a warning value.
+   * Converts the value to an optional warning value.
    *
    * Warning
    */
-  def toWarning = WarningValue(value)
+  def toWarning = WarningValue.ifValid(value)
 
-  /**
-   * Converts the value to a cache-control value.
-   *
-   * Cache-Control
-   */
-  def toCacheControlValue = CacheControlValue(value)
-
+  //--------------------------------------------------
   /** Header name equalsIgnoreCase other name. */
   def =~=(other: String) = name equalsIgnoreCase other
 

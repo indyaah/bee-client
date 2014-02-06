@@ -49,7 +49,7 @@ case class AuthenticateValue(authScheme: String, parts: ListMap[String, String])
 
   lazy val opaque: Option[String] = unquoted("opaque")
 
-  lazy val stale: Boolean = parts.get("stale").map(_.toLowerCase == "true").getOrElse(false)
+  lazy val stale: Boolean = parts.get("stale").exists(_.toLowerCase == "true")
 
   lazy val algorithm: Option[String] = unquoted("algorithm")
 
@@ -61,7 +61,7 @@ case class AuthenticateValue(authScheme: String, parts: ListMap[String, String])
     else false
   }
 
-  private def unquoted(key: String) = parts.get(key).map(unquote(_))
+  private def unquoted(key: String) = parts.get(key).map(unquote)
 
   override lazy val value = authScheme + " " + parts.map(kv => kv._1 + "=" + kv._2).mkString(", ")
 }
@@ -75,9 +75,14 @@ object AuthenticateValue {
     val parts = splitQuoted(sections._2, ',') map {
       v => divide(v.trim, '=')
     } map {
-      kv => (kv._1.toLowerCase -> kv._2)
+      kv => kv._1.toLowerCase -> kv._2
     }
 
     new AuthenticateValue(sections._1.trim, ListMap() ++ parts)
+  }
+
+  def ifValid(value: String) = {
+    val v = apply(value)
+    if (v.isValid) Some(v) else None
   }
 }

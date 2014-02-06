@@ -8,7 +8,7 @@ object Example6c extends App {
   val httpClient = new HttpClient
   val response401 = httpClient.get(url) // no authentication
   println(response401.status)
-  val authenticate = response401.headers(HeaderName.WWW_AUTHENTICATE).toAuthenticateValue
+  val authenticate = response401.headers(HeaderName.WWW_AUTHENTICATE).toAuthenticateValue.get
   println(authenticate)
   println(authenticate.realm)
   println(authenticate.domain)

@@ -69,9 +69,9 @@ object HttpCaching {
     trial(pool, "cache2 txt1 th", txtUrl, MediaType.TEXT_PLAIN, hb2)
     trial(pool, "cache3 txt1 th", txtUrl, MediaType.TEXT_PLAIN, hb3)
 
-//    trial(pool, "xcache jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb1)
-//    trial(pool, "cache2 jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb2)
-//    trial(pool, "cache3 jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb3)
+    //    trial(pool, "xcache jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb1)
+    //    trial(pool, "cache2 jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb2)
+    //    trial(pool, "cache3 jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb3)
 
     pool.shutdown()
     //Thread.sleep(60000) // time for inspecting any lingering network connections
@@ -123,22 +123,25 @@ class HttpCaching extends FunSuite {
     }
   }
 
-  test("html text/html get x100") {
-    for (i <- 1 to 1) {
+  test("html text/html get x10") {
+    for (i <- 1 to 10) {
       hb2.cache.clear()
       val nc = htmlGet(hb2, "http://beeclient/test-lighthttpclient.html?LOREM=" + i, MediaType.TEXT_HTML, GZIP)
-      for (i <- 1 to 1) {
+      for (j <- 1 to 5) {
         val c = htmlGet(hb2, "http://beeclient/test-lighthttpclient.html?LOREM=" + i, MediaType.TEXT_HTML, GZIP)
         assert(c.body.contentLength === nc.body.contentLength)
       }
     }
   }
 
-  ignore("html text/css get x100") {
+  test("html text/css get x100") {
     for (i <- 1 to 1) {
-      htmlGet(hb1, "http://beeclient/index.css?LOREM=" + i, MediaType.TEXT_CSS, GZIP)
-      //      htmlGet(http, "https:" + serverUrl + testHtmlFile + "?LOREM=" + i, GZIP, testHtmlSize)
-      //htmlGet(http, "http:" + serverUrl + testHtmlFile + "?LOREM=" + i, DEFLATE, testHtmlSize)
+      hb2.cache.clear()
+      val nc = htmlGet(hb1, "http://beeclient/index.css", MediaType.TEXT_CSS, GZIP)
+      for (j <- 1 to 5) {
+        val c = htmlGet(hb2, "http://beeclient/index.css", MediaType.TEXT_CSS, GZIP)
+        assert(c.body.contentLength === nc.body.contentLength)
+      }
     }
   }
 

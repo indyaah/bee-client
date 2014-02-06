@@ -25,12 +25,11 @@
 package uk.co.bigbeeconsultants.http.auth
 
 import collection.JavaConversions
-import uk.co.bigbeeconsultants.http.url.{Path, Href, Endpoint}
 import java.util.concurrent.ConcurrentHashMap
+import uk.co.bigbeeconsultants.http.url.{Path, Href, Endpoint}
 import uk.co.bigbeeconsultants.http.header.{AuthenticateValue, Header}
 import uk.co.bigbeeconsultants.http.request.Request
 import uk.co.bigbeeconsultants.http.response.Response
-import uk.co.bigbeeconsultants.http.header.HeaderName._
 
 final class AuthenticationRegistry(credentialSuite: CredentialSuite = CredentialSuite.Empty, cacheRealms: Boolean = false) {
 
@@ -47,7 +46,7 @@ final class AuthenticationRegistry(credentialSuite: CredentialSuite = Credential
   def findKnownAuthHeaderFromMappings(request: Request, realmMappings: Iterable[RealmMapping]): Option[Header] = {
     val url = request.href
     val matchingRealm: Option[String] = realmMappings find (rm => url.path.startsWith(rm.path)) map (_.realm)
-    val matchingCredential: Option[Credential] = matchingRealm flatMap (credentialSuite.credentials.get(_))
+    val matchingCredential: Option[Credential] = matchingRealm.flatMap(credentialSuite.credentials.get)
     matchingCredential map (_.toBasicAuthHeader)
   }
 
@@ -56,7 +55,7 @@ final class AuthenticationRegistry(credentialSuite: CredentialSuite = Credential
   }
 
   def processResponse(response: Response, existingRealmMappings: Set[RealmMapping] = Set.empty): Option[Header] = {
-    val wwwAuthenticateHeaders: List[AuthenticateValue] = response.headers.filter(WWW_AUTHENTICATE).list map (_.toAuthenticateValue)
+    val wwwAuthenticateHeaders = response.headers.wwwAuthenticateHdrs
     val authorizationHeader = mustAuthenticate(response.request, wwwAuthenticateHeaders)
     if (cacheRealms)
       updateKnownRealms(response.request.href, wwwAuthenticateHeaders, existingRealmMappings)
@@ -65,7 +64,7 @@ final class AuthenticationRegistry(credentialSuite: CredentialSuite = Credential
 
   private def mustAuthenticate(request: Request, wwwAuthenticateHeaders: List[AuthenticateValue]): Option[Header] = {
     wwwAuthenticateHeaders match {
-      case wah :: xs if (wah.authScheme == "Digest") =>
+      case wah :: xs if wah.authScheme == "Digest" =>
         val nonceValOption = nonces.get(wah.realm.get)
         val newNonceVal = nonceValOption match {
           case Some(nonceVal) =>
@@ -76,7 +75,7 @@ final class AuthenticationRegistry(credentialSuite: CredentialSuite = Credential
         nonces update(wah.realm.get, newNonceVal)
         credentialSuite.digestAuthHeader(wah, request, newNonceVal.count)
 
-      case wah :: xs if (wah.authScheme == "Basic") =>
+      case wah :: xs if wah.authScheme == "Basic" =>
         credentialSuite.basicAuthHeader(wah, request, 0)
 
       case _ => None

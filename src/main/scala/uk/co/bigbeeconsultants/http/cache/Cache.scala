@@ -66,8 +66,14 @@ object NoOpCache extends Cache {
  *
  * The cache is *not* persistent: every time the HTTP client is started, any cache will start off empty.
  *
- * @param maxContentSize set an upper limit on the size of the cache, in terms of the total number of bytes in the
- *                       unencoded content lengths of all the cached responses. The default value is 10,000,000 bytes.
+ * @param maxCachedContentSize set an upper limit on the size of the cache, in terms of the total number of
+ *                             bytes in the unencoded content lengths of all the cached responses. The default
+ *                             value is 10,000,000 bytes.
+ * @param minContentLength threshold below which responses skip the cache. There is a trade-off of the processing
+ *                         needed to maintain cache entries vs the time saved by not fetching content. For small
+ *                         messages, the overhead will normally the benefit because the whole HTTP message will
+ *                         fit into a single IP packet. For larger messages, the benefit is clearly greater than
+ *                         the cost of caching. By default, messages of 1000 bytes or more are cached.
  * @param assume404Age provides optional caching for 404 responses - these are not normally cached but can therefore
  *                     be a pain. Provide an assumed age (in seconds) and all 404 responses will be stored in the
  *                     cache as if the response had contained that age in a header. Zero disables this feature and is
@@ -80,11 +86,14 @@ object NoOpCache extends Cache {
  *                    The default setting is enabled.
  */
 @deprecated("This is not yet ready for production use", "v0.25.1")
-class InMemoryCache(maxContentSize: Long = 10 * MiB, assume404Age: Int = 0, lazyCleanup: Boolean = true) extends Cache {
-  require(maxContentSize > 0, "maxContentSize must be greater than zero")
+class InMemoryCache(maxCachedContentSize: Long = 10 * MiB,
+                    minContentLength: Int = 1000,
+                    assume404Age: Int = 0,
+                    lazyCleanup: Boolean = true) extends Cache {
+  require(maxCachedContentSize > 0, "maxContentSize must be greater than zero")
   require(assume404Age >= 0, "assume404Age must be non-negative")
 
-  private val data = new CacheStore(maxContentSize, lazyCleanup)
+  private val data = new CacheStore(maxCachedContentSize, lazyCleanup)
 
   def size = data.size
 
@@ -109,24 +118,27 @@ class InMemoryCache(maxContentSize: Long = 10 * MiB, assume404Age: Int = 0, lazy
 
     } else {
       // revalidating
-      val etag = cacheRecord.etagHeader map (v => IF_NONE_MATCH -> quote(v.opaqueTag))
-      val lastModified = cacheRecord.lastModifiedHeader map (IF_MODIFIED_SINCE -> _.toString)
       var modHeaders = request.headers
-      if (etag.isDefined) modHeaders = modHeaders set etag.get
-      if (lastModified.isDefined) modHeaders = modHeaders set lastModified.get
+      if (cacheRecord.etagHeader.isDefined) {
+        val etag = IF_NONE_MATCH -> quote(cacheRecord.etagHeader.get.opaqueTag)
+        modHeaders = modHeaders set etag
+      }
+      if (cacheRecord.lastModifiedHeader.isDefined) {
+        val lastModified = IF_MODIFIED_SINCE -> cacheRecord.lastModifiedHeader.get.toString
+        modHeaders = modHeaders set lastModified
+      }
       val revalidate = request.copy(headers = modHeaders)
       CacheStale(revalidate, cacheRecord.adjustedResponse)
     }
   }
 
   def store(response: Response): Option[Response] = {
-    if (isCacheable(response)) {
       response.status.code match {
         case 206 => // partial content not supported
           Some(response)
 
         case 200 | 203 | 300 | 301 | 410 =>
-          offerToCache(response)
+          if (isWorthCaching(response)) offerToCache(response) else Some(response)
 
         case 404 if assume404Age > 0 =>
           val age = AGE -> assume404Age
@@ -143,30 +155,29 @@ class InMemoryCache(maxContentSize: Long = 10 * MiB, assume404Age: Int = 0, lazy
             for (h <- response.headers) {
               modHeaders = modHeaders.set(h)
             }
-            offerToCache(oldResponse.copy(headers = modHeaders))
+            val newResponse = oldResponse.copy(headers = modHeaders)
+            offerToCache(newResponse)
           }
 
         case _ =>
           controlledOfferToCache(response)
       }
-    }
-    else Some(response)
   }
 
   private def offerToCache(response: Response) = {
-    if (isNotPrevented(response))
+    if (isCacheable(response) && isNotPrevented(response))
       data.put(response)
     Some(response)
   }
 
   private def controlledOfferToCache(response: Response) = {
-    if (isNotPrevented(response))
+    if (isCacheable(response) && isNotPrevented(response))
       data.putIfControlled(response)
     Some(response)
   }
 
   private def isNotPrevented(response: Response) = {
-    val cacheControl = response.headers.get(CACHE_CONTROL) map (_.toCacheControlValue)
+    val cacheControl = response.headers.cacheControlHdr
     if (cacheControl.isDefined)
       cacheControl.get.label match {
         case "no-cache" | "no-store" => false
@@ -176,4 +187,10 @@ class InMemoryCache(maxContentSize: Long = 10 * MiB, assume404Age: Int = 0, lazy
 
   private def isCacheable(response: Response) =
     (response.request.method == Request.GET || response.request.method == Request.HEAD) && response.body.isBuffered
+
+  private def isWorthCaching(response: Response) = {
+    val contentLengthHdr = response.headers.contentLengthHdr
+    (contentLengthHdr.isDefined && contentLengthHdr.get >= minContentLength) ||
+      response.body.contentLength >= minContentLength
+}
 }

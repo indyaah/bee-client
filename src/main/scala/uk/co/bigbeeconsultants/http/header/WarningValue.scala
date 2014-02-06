@@ -47,34 +47,43 @@ object WarningValue {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  /** Parses a header value to extract a warning, if this is possible. */
-  def apply(value: String) = {
-    try {
-      val parts = splitQuoted(value, ' ')
-      if (parts.size < 3 || parts.size > 4)
-        new WarningValue(value, false, 0, "", "", None)
-      else {
-        val code = parts(0).toInt
-        val agent = parts(1)
-        val text = unquote(parts(2))
-        val date = if (parts.size == 4) Some(HttpDateTimeInstant.parse(unquote(parts(3)))) else None
-        new WarningValue(value, true, code, agent, text, date)
-      }
-    } catch {
-      case e: RuntimeException =>
-        logger.error("{}: failed to parse warning. {}", Array(value, e.getMessage))
-        new WarningValue(value, false, 0, "", "", None)
-      case pe: ParseException =>
-        logger.error("{}: failed to parse warning. {}", Array(value, pe.getMessage))
-        new WarningValue(value, false, 0, "", "", None)
-    }
-  }
-
   /** Construct an instance from its constituent parts. */
   def apply(code: Int, agent: String, text: String, date: Option[HttpDateTimeInstant] = None) = {
     val dateStr = if (date.isDefined) " " + quote(date.get.toString) else ""
     val value = code + " " + agent + " " + quote(text) + dateStr
     new WarningValue(value, true, code, agent, text, date)
+  }
+
+  /** Parses a header value to extract a warning, if this is possible. */
+  def apply(value: String) = {
+    val warning = ifValid(value)
+    warning.getOrElse(new WarningValue(value, false, 0, "", "", None))
+  }
+
+  /** Parses a header value to extract a warning, if this is possible. */
+  def ifValid(value: String): Option[WarningValue] = {
+    try {
+      val parts = splitQuoted(value, ' ')
+      if (parts.size < 3 || parts.size > 4)
+      //new WarningValue(value, false, 0, "", "", None)
+        None
+      else {
+        val code = parts(0).toInt
+        val agent = parts(1)
+        val text = unquote(parts(2))
+        val date = if (parts.size == 4) Some(HttpDateTimeInstant.parse(unquote(parts(3)))) else None
+        Some(new WarningValue(value, true, code, agent, text, date))
+      }
+    } catch {
+      case e: RuntimeException =>
+        logger.debug("{}: failed to parse warning. {}", Array(value, e.getMessage))
+        new WarningValue(value, false, 0, "", "", None)
+        None
+      case pe: ParseException =>
+        logger.debug("{}: failed to parse warning. {}", Array(value, pe.getMessage))
+        new WarningValue(value, false, 0, "", "", None)
+        None
+    }
   }
 }
 
@@ -85,8 +94,8 @@ object WarningValue {
  */
 case class WarningListValue(parts: List[WarningValue]) extends ListValue(parts, ", ") with Value {
 
-  override lazy val isValid: Boolean = parts forall(_.isValid)
-  override lazy val value = parts map(_.value) mkString ", "
+  override lazy val isValid: Boolean = parts forall (_.isValid)
+  override lazy val value = parts map (_.value) mkString ", "
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -96,5 +105,10 @@ object WarningListValue {
     val list = splitQuoted(string, ',')
     val parts = list map (s => WarningValue(s.trim))
     new WarningListValue(parts)
+  }
+
+  def ifValid(value: String) = {
+    val v = apply(value)
+    if (v.isValid) Some(v) else None
   }
 }

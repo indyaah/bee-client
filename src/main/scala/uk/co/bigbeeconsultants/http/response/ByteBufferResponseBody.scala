@@ -116,7 +116,7 @@ case class ByteBufferResponseBody(byteArray: Array[Byte], contentType: MediaType
 //---------------------------------------------------------------------------------------------------------------------
 
 object ByteBufferResponseBody {
-  val DefaultBufferSize = 0x10000
+  val DefaultBufferSize = 0x10000L
   val EmptyArray = new Array[Byte](0)
 
   def apply(request: Request,
@@ -176,12 +176,8 @@ object ByteBufferResponseBody {
   }
 
   private def contentLength(headers: Headers): Int = {
-    val contentLength = headers.get(HeaderName.CONTENT_LENGTH)
-    if (contentLength.isDefined) {
-      val numValue = contentLength.get.toNumber
-      if (numValue.isValid) numValue.toInt else 0
-    }
-    else DefaultBufferSize
+    val contentLength = headers.contentLengthHdr
+    contentLength.getOrElse(DefaultBufferSize).toInt
   }
 
   // helper for the edge case for undefined content type

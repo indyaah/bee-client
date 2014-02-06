@@ -161,6 +161,11 @@ object MediaType {
     }
   }
 
+  def ifValid(value: String) = {
+    val v = apply(value)
+    if (v.isValid) Some(v) else None
+  }
+
   private def orWildcard(s: String) = if (s.length > 0) s else WILDCARD
 
   implicit def convertToString(mt: MediaType) = mt.value

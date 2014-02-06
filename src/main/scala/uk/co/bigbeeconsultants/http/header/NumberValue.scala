@@ -40,14 +40,22 @@ object NumberValue {
   private val logger = LoggerFactory.getLogger(getClass)
 
   def apply(value: String) = {
+    val number = ifValid(value)
+    if (number.isDefined)
+      new NumberValue(value, true, number.get)
+    else
+      new NumberValue(value, false, 0)
+  }
+
+  def ifValid(value: String): Option[Long] = {
     try {
       val number = value.toLong
       // Number values are always positive integral numbers in HTTP headers.
-      new NumberValue(value, number >= 0, number)
+      if (number >= 0) Some(number) else None
     } catch {
       case e: NumberFormatException =>
-        logger.error("{}: failed to parse number. {}", Array(value, e.getMessage))
-      new NumberValue(value, false, 0)
+        logger.debug("{}: failed to parse number. {}", Array(value, e.getMessage))
+        None
     }
   }
 }

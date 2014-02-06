@@ -39,12 +39,12 @@ private[http] case class CacheRecord(response: Response, id: Int) extends Ordere
   /** The timestamp now (milliseconds). */
   val responseTime = timeNowMillis
 
-  private val ageHeader = header(AGE) map (_.toNumber)
-  private val dateHeader = header(DATE) map (_.toDate.date)
-  private val expiresHeader = header(EXPIRES) map (_.toDate.date)
-  val lastModifiedHeader = header(LAST_MODIFIED) map (_.toDate.date)
-  val cacheControlHeader = header(CACHE_CONTROL) map (_.toCacheControlValue)
-  lazy val etagHeader = header(ETAG) map (_.toEntityTag)
+  private val ageHeader = response.headers.ageHdr
+  private val dateHeader = response.headers.dateHdr
+  private val expiresHeader = response.headers.expiresHdr
+  val lastModifiedHeader = response.headers.lastModifiedHdr
+  val cacheControlHeader = response.headers.cacheControlHdr
+  lazy val etagHeader = response.headers.etagHdr
 
   /** True iff the response came directly from the origin server, not from a cache. This tests whether the age header is absent. */
   val isFirstHand = ageHeader.isEmpty
@@ -110,9 +110,6 @@ private[http] case class CacheRecord(response: Response, id: Int) extends Ordere
     val ageHeader = AGE -> currentAge.toString
     Response(response.request, response.status, response.body, response.headers set ageHeader, response.cookies)
   }
-
-  /** Gets a named header from the response. */
-  private def header(name: HeaderName): Option[Header] = response.headers.get(name)
 
   /**
    * Gets the length of the content as the number of bytes received. If compressed on the wire,

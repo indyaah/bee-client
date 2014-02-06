@@ -55,17 +55,10 @@ class HeaderTest extends FunSuite {
   }
 
 
-  test ("value toInt") {
+  test ("value toNumber") {
     val h = Header ("Content-Length: 123")
     assert ("Content-Length" === h.name)
-    assert (123 === h.toNumber.toInt)
-  }
-
-
-  test ("value toLong") {
-    val h = Header ("Content-Length: 123")
-    assert ("Content-Length" === h.name)
-    assert (123 === h.toNumber.toLong)
+    assert (123L === h.toNumber.get)
   }
 
 
@@ -96,7 +89,7 @@ class HeaderTest extends FunSuite {
 
   test ("range") {
     val h = Header ("Accept-Ranges: bytes=500-599,700-799")
-    val v = h.toRangeValue
+    val v = h.toRangeValue.get
     assert ("Accept-Ranges" === h.name)
     assert (2 === v.parts.size)
     assert ("Accept-Ranges: bytes=500-599,700-799" === h.toString)
@@ -108,14 +101,14 @@ class HeaderTest extends FunSuite {
     val time = DatatypeConverter.parseDateTime ("1994-11-06T08:49:37Z").getTime
     val h = Header ("Date: Sun, 06 Nov 1994 08:49:37 GMT")
     assert ("Date" === h.name)
-    assert (time === h.toDate.date.date)
+    assert (time === h.toDate.get.date)
   }
 
 
   test ("authenticate") {
     val h = Header ("WWW-Authenticate: Digest realm=\"private\", nonce=\"DCKawjTMBAA=d61b9a5f7be110cda76e46e3ac032bdccd440fae\", algorithm=MD5, qop=\"auth\"")
     assert ("WWW-Authenticate" === h.name)
-    assert ("DCKawjTMBAA=d61b9a5f7be110cda76e46e3ac032bdccd440fae" === h.toAuthenticateValue.nonce.get)
+    assert ("DCKawjTMBAA=d61b9a5f7be110cda76e46e3ac032bdccd440fae" === h.toAuthenticateValue.get.nonce.get)
   }
 
 }

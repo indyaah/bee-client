@@ -76,5 +76,5 @@ case class StringResponseBody(bodyText: String,
    */
   override def asString = bodyText
 
-  override lazy val contentLength = asBytes.length
+  override lazy val contentLength = toBufferedBody.contentLength
 }

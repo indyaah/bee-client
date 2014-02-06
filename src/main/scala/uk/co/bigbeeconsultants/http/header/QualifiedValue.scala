@@ -130,4 +130,9 @@ case class QualifiedValue(list: CommaListValue) extends Iterable[Qualifiers] wit
 
 object QualifiedValue {
   def apply(str: String) = new QualifiedValue(CommaListValue.split(str))
+
+  def ifValid(value: String) = {
+    val v = apply(value)
+    if (v.isValid) Some(v) else None
+  }
 }

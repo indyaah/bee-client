@@ -117,6 +117,18 @@ case class Headers(list: List[Header]) {
     new Headers(this.list ++ newHeaders.list)
   }
 
+  import HeaderName._
+  lazy val ageHdr: Option[Long] = get(AGE).flatMap(_.toNumber)
+  lazy val wwwAuthenticateHdrs: List[AuthenticateValue] = list.filter(_ =~= WWW_AUTHENTICATE).flatMap(_.toAuthenticateValue)
+  lazy val cacheControlHdr: Option[CacheControlValue] = get(CACHE_CONTROL).flatMap(_.toCacheControlValue)
+  lazy val contentEncodinghHdr: Option[String] = get(CONTENT_ENCODING).map(_.value)
+  lazy val contentLengthHdr: Option[Long] = get(CONTENT_LENGTH).flatMap(_.toNumber)
+  lazy val dateHdr: Option[HttpDateTimeInstant] = get(DATE).flatMap(_.toDate)
+  lazy val etagHdr: Option[EntityTag] = get(ETAG).flatMap(_.toEntityTag)
+  lazy val expiresHdr: Option[HttpDateTimeInstant] = get(EXPIRES).flatMap(_.toDate)
+  lazy val lastModifiedHdr: Option[HttpDateTimeInstant] = get(LAST_MODIFIED).flatMap(_.toDate)
+  lazy val locationHdr: Option[String] = get(LOCATION).map(_.value)
+
   override def toString() = list.mkString("[", "; ", "]")
 }
 

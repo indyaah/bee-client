@@ -140,3 +140,11 @@ case class RangeValue(value: String) extends Value {
 
   def isValid = parts.forall(_.isValid)
 }
+
+object RangeValue {
+
+  def ifValid(value: String) = {
+    val v = apply(value)
+    if (v.isValid) Some(v) else None
+  }
+}
