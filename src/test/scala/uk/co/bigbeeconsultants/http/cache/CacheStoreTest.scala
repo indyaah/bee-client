@@ -95,7 +95,7 @@ class CacheStoreTest extends FunSuite {
 
     val d = dt.duration / loops
 
-    Thread.sleep(50) // sloppy catch-up
+    Thread.sleep(200) // sloppy catch-up
 
     assert(store.size === loops)
     assert(store.currentContentSize > 0)
