@@ -1,3 +1,13 @@
+#### Mon, 10 Feb 2014
+* v0.26.5
+* - HttpBrowser caching arrangement has been altered. Original (pre v0.26) constructor for HttpBrowser has been re-instated, with the addition of a CacheConfig parameter. Caching will be delegated to CachingBrowser when it is enabled. This will be easier to test fully and have less impact on any existing code that uses HttpBrowser.
+
+
+#### Thu, 06 Feb 2014
+* v0.26.5
+* - some tidy-up of header value parsing code
+
+
 #### Thu, 06 Feb 2014
 * v0.26.4 - mitigated the external effects of an API change that was in v0.26.3
 
