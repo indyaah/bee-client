@@ -35,7 +35,6 @@ import request.RequestBody
 import url.Domain
 import util.JSONWrapper
 import org.scalatest.exceptions.TestFailedException
-import uk.co.bigbeeconsultants.http.cache.InMemoryCache
 
 /**
  * Tests the API against httpbin.org. This is an app rather than a unit test because it would be rude to
@@ -57,7 +56,7 @@ object HttpBinOrg extends App with Assertions {
     followRedirects = false, proxy = Some(proxy)).allowInsecureSSL
 
   var httpClient = new HttpClient(config)
-  var httpBrowser = new HttpBrowser(commonConfig = config, cache = new InMemoryCache())
+  var httpBrowser = new HttpBrowser(config)
 
   val gzipHeaders = Headers(ACCEPT_ENCODING -> GZIP)
 

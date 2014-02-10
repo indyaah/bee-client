@@ -30,9 +30,7 @@ import java.io.IOException
 import request.Request
 import response._
 import java.util.concurrent.atomic.AtomicReference
-import uk.co.bigbeeconsultants.http.cache._
-import uk.co.bigbeeconsultants.http.cache.CacheFresh
-import uk.co.bigbeeconsultants.http.cache.CacheMiss
+import uk.co.bigbeeconsultants.http.cache.{CachingBrowser, CacheConfig}
 
 /**
  * Provides an alternative to [[uk.co.bigbeeconsultants.http.HttpClient]]
@@ -50,9 +48,10 @@ import uk.co.bigbeeconsultants.http.cache.CacheMiss
 class HttpBrowser(commonConfig: Config = Config(),
                   initialCookieJar: CookieJar = CookieJar.Empty,
                   credentialSuite: CredentialSuite = CredentialSuite.Empty,
-                  val cache: Cache = NoOpCache) extends Http(commonConfig) {
+                  cacheConfig: CacheConfig = CacheConfig()) extends Http(commonConfig) {
 
-  private val httpClient = new HttpClient(commonConfig)
+  private val coreHttpClient = new HttpClient(commonConfig)
+  private val httpClient = if (cacheConfig.enabled) new CachingBrowser(coreHttpClient, cacheConfig) else coreHttpClient
   private val cookieJar = new AtomicReference[CookieJar](initialCookieJar)
   private val authenticationRegistry = new AuthenticationRegistry(credentialSuite, true)
 
@@ -74,33 +73,13 @@ class HttpBrowser(commonConfig: Config = Config(),
   def execute(request: Request, responseBuilder: ResponseBuilder, config: Config = commonConfig) {
 
     val requestWithCookies = request using cookieJar.get
-    val cacheResult = cache.lookup(requestWithCookies)
-    cacheResult match {
-      case cf: CacheFresh =>
-        responseBuilder.setResponse(cf.response)
-      // no HTTP request is made
-
-      case cs: CacheStale =>
-        // pass on the stale response in case it gets dropped from the cache whilst the
-        // revalidation request is executing,
-        makeHttpRequest(request, cs.revalidateRequest, Some(cs.staleResponse), responseBuilder, config)
-
-      case cm: CacheMiss =>
-        makeHttpRequest(request, cm.request, None, responseBuilder, config)
-    }
-  }
-
-  private def makeHttpRequest(originalRequest: Request, requestWithCookies: Request,
-                              staleResponse: Option[Response],
-                              responseBuilder: ResponseBuilder, config: Config) {
-    val realmMappings = authenticationRegistry.findRealmMappings(originalRequest)
-    var authHeader = authenticationRegistry.findKnownAuthHeaderFromMappings(originalRequest, realmMappings)
+    val realmMappings = authenticationRegistry.findRealmMappings(request)
+    var authHeader = authenticationRegistry.findKnownAuthHeaderFromMappings(request, realmMappings)
 
     var remainingRetries = 5
     while (remainingRetries > 0) {
 
       val requestWithAuth = if (authHeader.isDefined) requestWithCookies + authHeader.get else requestWithCookies
-
       httpClient.execute(requestWithAuth, responseBuilder, config)
 
       responseBuilder.response match {
@@ -121,15 +100,7 @@ class HttpBrowser(commonConfig: Config = Config(),
     }
 
     if (responseBuilder.response.isDefined) {
-      val primaryResponse = responseBuilder.response.get
-      cookieJar.set(primaryResponse.cookies.get)
-      val updatedResponse = cache.store(primaryResponse)
-      if (updatedResponse.isDefined) {
-        responseBuilder.setResponse(updatedResponse.get) // normal completion
-      }
-      // else edge case due to cache race during 304 refresh, so use the stale response from earlier
-    } else if (staleResponse.isDefined) {
-      responseBuilder.setResponse(staleResponse.get) // edge case
+      cookieJar.set(responseBuilder.response.get.cookies.get)
     }
   }
 }

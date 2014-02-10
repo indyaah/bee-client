@@ -30,10 +30,26 @@ import java.net.URL
 import request.{RequestBody, Request}
 import response.{UnbufferedResponseBuilder, BufferedResponseBuilder, ResponseBuilder, Response}
 
+trait HttpExecutor {
+  /**
+   * Makes an arbitrary request using a response builder. After this call, the response builder will provide the
+   * response.
+   * @param request the request
+   * @param responseBuilder the response factory, e.g. new BufferedResponseBuilder
+   * @param config the particular configuration being used for this request; defaults to the commonConfiguration
+   *               supplied to this instance of HttpClient
+   * @throws IOException (or ConnectException subclass) if an IO exception occurred
+   * @throws IllegalStateException if the maximum redirects threshold was exceeded
+   */
+  @throws(classOf[IOException])
+  @throws(classOf[IllegalStateException])
+  def execute(request: Request, responseBuilder: ResponseBuilder, config: Config)
+}
+
 /**
  * Describes an API for making HTTP requests.
  */
-abstract class Http(val commonConfig: Config = Config()) {
+abstract class Http(val commonConfig: Config = Config()) extends HttpExecutor {
 
   /**
    * Make a HEAD request. No cookies are used and none are returned.
@@ -199,19 +215,4 @@ abstract class Http(val commonConfig: Config = Config()) {
     execute(request, responseBuilder, config)
     responseBuilder.response.get
   }
-
-
-  /**
-   * Makes an arbitrary request using a response builder. After this call, the response builder will provide the
-   * response.
-   * @param request the request
-   * @param responseBuilder the response factory, e.g. new BufferedResponseBuilder
-   * @param config the particular configuration being used for this request; defaults to the commonConfiguration
-   *               supplied to this instance of HttpClient
-   * @throws IOException (or ConnectException subclass) if an IO exception occurred
-   * @throws IllegalStateException if the maximum redirects threshold was exceeded
-   */
-  @throws(classOf[IOException])
-  @throws(classOf[IllegalStateException])
-  def execute(request: Request, responseBuilder: ResponseBuilder, config: Config = commonConfig)
 }
