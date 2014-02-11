@@ -137,7 +137,8 @@ class ContentCache(httpClient: HttpExecutor,
 
       case 304 =>
         val cacheRecord = data.get(response.request.cacheKey)
-        if (cacheRecord == null) None // expired and then deleted
+        if (cacheRecord == null)
+          None // expired and then deleted
         else {
           val oldResponse = cacheRecord.response
           var modHeaders = oldResponse.headers
