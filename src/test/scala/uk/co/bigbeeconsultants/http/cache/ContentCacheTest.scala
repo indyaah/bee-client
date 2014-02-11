@@ -24,14 +24,14 @@
 
 package uk.co.bigbeeconsultants.http.cache
 
+import org.junit.runner.RunWith
 import org.scalatest.FunSuite
+import org.scalatest.junit.JUnitRunner
 import uk.co.bigbeeconsultants.http._
 import uk.co.bigbeeconsultants.http.request.Request
 import uk.co.bigbeeconsultants.http.response.{BufferedResponseBuilder, Status, Response}
 import uk.co.bigbeeconsultants.http.header.{Headers, MediaType, HttpDateTimeInstant}
 import uk.co.bigbeeconsultants.http.header.HeaderName._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import uk.co.bigbeeconsultants.http.util.DiagnosticTimer
 
 @RunWith(classOf[JUnitRunner])
@@ -71,6 +71,40 @@ class ContentCacheTest extends FunSuite {
       val request = Request(method, "http://localhost/stuff")
       val status = Status.S404_NotFound
       val response = Response(request, status, MediaType.TEXT_PLAIN, "")
+      val responseBuilder = new BufferedResponseBuilder
+      httpStub.wantedResponse = response
+      cache.execute(request, responseBuilder, config)
+      assert(cache.cacheSize === 1)
+    }
+  }
+
+  test("store ignores content length less than the threshold") {
+    val config = Config()
+    val httpStub = new HttpExecutorStub
+    val cacheConfig = CacheConfig(enabled = true, minContentLength = text1000.length + 1)
+    val cache = new ContentCache(httpStub, cacheConfig)
+    for (method <- getAndHead) {
+      cache.clearCache()
+      val request = Request(method, "http://localhost/stuff")
+      val status = Status.S200_OK
+      val response = Response(request, status, MediaType.TEXT_PLAIN, text1000)
+      val responseBuilder = new BufferedResponseBuilder
+      httpStub.wantedResponse = response
+      cache.execute(request, responseBuilder, config)
+      assert(cache.cacheSize === 0)
+    }
+  }
+
+  test("store succeeds for content length >= the threshold") {
+    val config = Config()
+    val httpStub = new HttpExecutorStub
+    val cacheConfig = CacheConfig(enabled = true, minContentLength = text1000.length)
+    val cache = new ContentCache(httpStub, cacheConfig)
+    for (method <- getAndHead) {
+      cache.clearCache()
+      val request = Request(method, "http://localhost/stuff")
+      val status = Status.S200_OK
+      val response = Response(request, status, MediaType.TEXT_PLAIN, text1000)
       val responseBuilder = new BufferedResponseBuilder
       httpStub.wantedResponse = response
       cache.execute(request, responseBuilder, config)
