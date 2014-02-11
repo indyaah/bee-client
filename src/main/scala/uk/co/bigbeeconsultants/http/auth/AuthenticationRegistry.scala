@@ -41,7 +41,9 @@ final class AuthenticationRegistry(credentialSuite: CredentialSuite = Credential
 
   def findRealmMappings(endpoint: Endpoint): Set[RealmMapping] = knownRealms.get(endpoint) getOrElse Set()
 
-  def findRealmMappings(request: Request): Set[RealmMapping] = findRealmMappings(request.href.endpoint.get)
+  def findRealmMappings(href: Href): Set[RealmMapping] = findRealmMappings(href.endpoint.get)
+
+  def findRealmMappings(request: Request): Set[RealmMapping] = findRealmMappings(request.href)
 
   def findKnownAuthHeaderFromMappings(request: Request, realmMappings: Iterable[RealmMapping]): Option[Header] = {
     val url = request.href
@@ -51,7 +53,7 @@ final class AuthenticationRegistry(credentialSuite: CredentialSuite = Credential
   }
 
   def findKnownAuthHeader(request: Request): Option[Header] = {
-    findKnownAuthHeaderFromMappings(request, findRealmMappings(request))
+    findKnownAuthHeaderFromMappings(request, findRealmMappings(request.href))
   }
 
   def processResponse(response: Response, existingRealmMappings: Set[RealmMapping] = Set.empty): Option[Header] = {
@@ -67,8 +69,10 @@ final class AuthenticationRegistry(credentialSuite: CredentialSuite = Credential
       case wah :: xs if wah.authScheme == "Digest" =>
         val nonceValOption = nonces.get(wah.realm.get)
         val newNonceVal = nonceValOption match {
+          case Some(nonceVal) if nonceVal.nonce == wah.nonce.get =>
+            nonceVal.next
           case Some(nonceVal) =>
-            if (nonceVal.nonce == wah.nonce.get) nonceVal.next else NonceVal(wah.nonce.get, 1)
+            NonceVal(wah.nonce.get, 1)
           case None =>
             NonceVal(wah.nonce.get, 1)
         }
