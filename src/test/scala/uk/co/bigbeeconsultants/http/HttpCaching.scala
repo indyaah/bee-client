@@ -34,6 +34,7 @@ import uk.co.bigbeeconsultants.http.auth.{CredentialSuite, Credential}
 import uk.co.bigbeeconsultants.http.response.{Status, Response}
 import uk.co.bigbeeconsultants.http.request.Request
 import java.util.concurrent.{ExecutorService, Executors}
+import uk.co.bigbeeconsultants.http.cache.CacheConfig
 
 object HttpCaching {
 
@@ -46,14 +47,12 @@ object HttpCaching {
 
   val bigbee = new Credential("bigbee", "HelloWorld")
   val creds = new CredentialSuite(Map("Restricted" -> bigbee))
-//  val cache1 = new InMemoryCache(lazyCleanup = false)
-//  val cache2 = new InMemoryCache(lazyCleanup = true)
-  val hb1 = new HttpBrowser(configNoRedirects, CookieJar.Empty, creds)
-//  val hb2 = HttpBrowser(configNoRedirects, CookieJar.Empty, creds, cache1)
-//  val hb3 = HttpBrowser(configNoRedirects, CookieJar.Empty, creds, cache2)
+  val hb1 = new HttpBrowser(configNoRedirects, CookieJar.Empty, creds, CacheConfig(enabled = false))
+  val hb2 = new HttpBrowser(configNoRedirects, CookieJar.Empty, creds, CacheConfig(enabled = true, lazyCleanup = false))
+  val hb3 = new HttpBrowser(configNoRedirects, CookieJar.Empty, creds, CacheConfig(enabled = true, lazyCleanup = true))
 
-  val concurrency = 5
-  val nLoops = 5000
+  val concurrency = 20
+  val nLoops = 25
 
   /** Provides a single-threaded soak-tester. */
   def main(args: Array[String]) {
@@ -65,12 +64,12 @@ object HttpCaching {
     val jpgUrl = "http://beeclient/plataria-sunset.jpg" // about 1.6MB
 
     trial(pool, "xcache txt1 th", txtUrl, MediaType.TEXT_PLAIN, hb1)
-//    trial(pool, "cache2 txt1 th", txtUrl, MediaType.TEXT_PLAIN, hb2)
-//    trial(pool, "cache3 txt1 th", txtUrl, MediaType.TEXT_PLAIN, hb3)
+    trial(pool, "cache2 txt1 th", txtUrl, MediaType.TEXT_PLAIN, hb2)
+    trial(pool, "cache3 txt1 th", txtUrl, MediaType.TEXT_PLAIN, hb3)
 
-    //    trial(pool, "xcache jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb1)
-    //    trial(pool, "cache2 jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb2)
-    //    trial(pool, "cache3 jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb3)
+    trial(pool, "xcache jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb1)
+    trial(pool, "cache2 jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb2)
+    trial(pool, "cache3 jpg1 th", jpgUrl, MediaType.IMAGE_JPG, hb3)
 
     pool.shutdown()
     //Thread.sleep(60000) // time for inspecting any lingering network connections
@@ -99,8 +98,8 @@ object HttpCaching {
   }
 }
 
-class HttpCaching extends FunSuite {
 
+class HttpCaching extends FunSuite {
 
   private def htmlGet(http: Http, url: String, mediaType: MediaType, encoding: String): Response = {
     val headers = Headers(ACCEPT_ENCODING -> encoding)
@@ -123,23 +122,23 @@ class HttpCaching extends FunSuite {
 
   test("html text/html get x10") {
     for (i <- 1 to 10) {
-//      hb2.cache.clear()
-//      val nc = htmlGet(hb2, "http://beeclient/test-lighthttpclient.html?LOREM=" + i, MediaType.TEXT_HTML, GZIP)
-//      for (j <- 1 to 5) {
-//        val c = htmlGet(hb2, "http://beeclient/test-lighthttpclient.html?LOREM=" + i, MediaType.TEXT_HTML, GZIP)
-//        assert(c.body.contentLength === nc.body.contentLength)
-//      }
+      //      hb2.cache.clear()
+      //      val nc = htmlGet(hb2, "http://beeclient/test-lighthttpclient.html?LOREM=" + i, MediaType.TEXT_HTML, GZIP)
+      //      for (j <- 1 to 5) {
+      //        val c = htmlGet(hb2, "http://beeclient/test-lighthttpclient.html?LOREM=" + i, MediaType.TEXT_HTML, GZIP)
+      //        assert(c.body.contentLength === nc.body.contentLength)
+      //      }
     }
   }
 
   test("html text/css get x100") {
     for (i <- 1 to 1) {
-//      hb2.cache.clear()
-//      val nc = htmlGet(hb1, "http://beeclient/index.css", MediaType.TEXT_CSS, GZIP)
-//      for (j <- 1 to 5) {
-//        val c = htmlGet(hb2, "http://beeclient/index.css", MediaType.TEXT_CSS, GZIP)
-//        assert(c.body.contentLength === nc.body.contentLength)
-//      }
+      //      hb2.cache.clear()
+      //      val nc = htmlGet(hb1, "http://beeclient/index.css", MediaType.TEXT_CSS, GZIP)
+      //      for (j <- 1 to 5) {
+      //        val c = htmlGet(hb2, "http://beeclient/index.css", MediaType.TEXT_CSS, GZIP)
+      //        assert(c.body.contentLength === nc.body.contentLength)
+      //      }
     }
   }
 
