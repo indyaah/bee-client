@@ -27,6 +27,7 @@ package uk.co.bigbeeconsultants.http.header
 import org.scalatest.FunSuite
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import uk.co.bigbeeconsultants.http.util.DiagnosticTimer
 
 @RunWith(classOf[JUnitRunner])
 class MediaTypeTest extends FunSuite {
@@ -55,6 +56,17 @@ class MediaTypeTest extends FunSuite {
     assert("text" === mt.mainType)
     assert("html" === mt.subtype)
     assert("ISO-8859-1" === mt.charset.get)
+  }
+
+
+  test("parser benchmark") {
+    val dt = new DiagnosticTimer
+    var i = 0
+    while (i < 1000000) {
+      MediaType("text/html; charset=ISO-8859-1")
+      i += 1
+    }
+    println(dt)
   }
 
 

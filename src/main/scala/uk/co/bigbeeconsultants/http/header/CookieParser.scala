@@ -111,11 +111,14 @@ private[header] object CookieParser {
     val fromHttp = from.getProtocol.startsWith("http")
 
     // Construct the date only once - avoids rollover problems (which would be a bit like race conditions)
-    val now = new HttpDateTimeInstant()
+    val now = new HttpDateTimeInstant
 
-    for (header <- setcookies) {
-      for (line <- split(header.value, '\n')) {
-        val optCookie = parseOneCookie(line, from, fromHttp, path, now)
+    // shunning scala 'for' loop for inner-loop performance reasons
+    val setcookiesIterator = setcookies.iterator 
+    while (setcookiesIterator.hasNext) {
+      val lines = split(setcookiesIterator.next().value, '\n').iterator
+      while (lines.hasNext) {
+        val optCookie = parseOneCookie(lines.next(), from, fromHttp, path, now)
         if (optCookie.isDefined) {
           val newCookie = optCookie.get
           val oldCookie = newJar.get(newCookie)

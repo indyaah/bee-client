@@ -60,13 +60,17 @@ object HttpUtil {
   def split(str: String, sep: Char): List[String] = {
     val list = new ListBuffer[String]
     val part = new StringBuilder
-    for (c <- str.toCharArray) {
+    val chars = str.toCharArray
+    var i = 0 // deliberately not using 'for' loop because this is deep code
+    while (i < chars.length) {
+      val c = chars(i)
       if (c == sep) {
         list += part.toString()
         part.setLength(0)
       } else {
         part += c
       }
+      i+=1
     }
     list += part.toString()
     list.toList
@@ -77,10 +81,14 @@ object HttpUtil {
    */
   def count(str: String, sep: Char): Int = {
     var n = 0
-    for (c <- str.toCharArray) {
+    val chars = str.toCharArray
+    var i = 0 // deliberately not using 'for' loop because this is deep code
+    while (i < chars.length) {
+      val c = chars(i)
       if (c == sep) {
         n += 1
       }
+      i += 1
     }
     n
   }
@@ -93,7 +101,10 @@ object HttpUtil {
     val list = new ListBuffer[String]
     val part = new StringBuilder
     var inQuotes = false
-    for (c <- str.toCharArray) {
+    val chars = str.toCharArray
+    var i = 0 // deliberately not using 'for' loop because this is deep code
+    while (i < chars.length) {
+      val c = chars(i)
       if (c == sep) {
         if (inQuotes) {
           part += c
@@ -107,6 +118,7 @@ object HttpUtil {
       } else {
         part += c
       }
+      i += 1
     }
     list += part.toString()
     list.toList
@@ -263,8 +275,9 @@ object HttpUtil {
       val out = new PrintWriter(new OutputStreamWriter(output, charset))
       val last = string.length - 1
       val s = if (last >= 0 && string.charAt(last) == '\n') string.substring(0, last) else string
-      for (line <- new LineSplitter(s)) {
-        out.println(alter(line))
+      val splitter = new LineSplitter(s) // shunning scala 'for' loop for inner-loop performance reasons
+      while (splitter.hasNext) {
+        out.println(alter(splitter.next()))
       }
       out.flush()
     }
