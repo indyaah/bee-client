@@ -22,33 +22,16 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "bee-client"
+package uk.co.bigbeeconsultants.http.cache
 
-organization := "uk.co.bigbeeconsultants"
+import uk.co.bigbeeconsultants.http.{Config, HttpExecutor}
+import uk.co.bigbeeconsultants.http.response.{ResponseBuilder, Response}
+import uk.co.bigbeeconsultants.http.request.Request
 
-version := "0.26.6"
+class HttpExecutorStub extends HttpExecutor {
+  var wantedResponse: Response = _
 
-// 2.10.1 suffices for all micro versions of 2.10
-crossScalaVersions := Seq("2.9.0", "2.9.1", "2.9.2", "2.9.3", "2.10.1")
-
-publishMavenStyle := true
-
-publishArtifact in Test := false
-
-pomIncludeRepository := { _ => false }
-
-licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
-
-homepage := Some(url("http://www.bigbeeconsultants.co.uk/bee-client"))
-
-//publishTo := Some(Resolver.file("file", new File("/home/websites/your/releases"))
-
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
-
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
-
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+  override def execute(request: Request, responseBuilder: ResponseBuilder, config: Config) {
+    responseBuilder.setResponse(wantedResponse)
+  }
+}

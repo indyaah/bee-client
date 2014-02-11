@@ -98,4 +98,15 @@ class CookieTest extends FunSuite {
     assert(s.getDomain === "www.w3.org")
     assert(s.getMaxAge === 10)
   }
+
+
+  test("conversion to set-cookie value") {
+    val now = new HttpDateTimeInstant(1392077214L)
+    val c = Cookie("n1", "v1", "www.w3.org", "/path/", Some(10), Some(now), false, true, true, "http")
+    val s = c.asSetCookieValue
+    val expectedHdrValue = "n1=v1; domain=www.w3.org; path=/path/; max-age=10; expires=Tue, 11 Feb 2014 00:06:54 GMT; secure; httponly"
+    assert(s === expectedHdrValue)
+    val parsed = CookieParser.parseOneCookie(expectedHdrValue, new URL("http://www.w3.org/path/some/thing"), true, "", now)
+    assert(parsed === Some(c))
+  }
 }

@@ -89,6 +89,8 @@ case class CookieKey(name: String,
 
 /**
  * Defines a complete cookie in terms of its identity and its value.
+ *
+ * Remember that `maxAge` trumps `expires` (ignore `expires` if `maxAge` is defined).
  */
 case class Cookie(name: String,
                   value: String,
@@ -108,7 +110,10 @@ case class Cookie(name: String,
   def persistent = maxAge.isDefined || expires.isDefined
 
   /** Gets the cookie as a request header value. */
-  def asHeader = name + "=" + value
+  def asRequestHeader = name + "=" + value
+
+  @deprecated("Use asRequestHeader", "v0.26.5")
+  def asHeader = asRequestHeader
 
   /** Tests whether this cookie has expired against a datum. */
   def hasExpired(against: HttpDateTimeInstant) = {
@@ -133,5 +138,22 @@ case class Cookie(name: String,
     if (maxAge.isDefined) javaxCookie.setMaxAge(maxAge.get)
     javaxCookie.setVersion(1)
     javaxCookie
+  }
+
+  def asSetCookieValue = {
+    val b = new StringBuilder(name)
+    b.append("=").append(value)
+    if (domain != Domain.localhost)
+      b.append("; domain=").append(domain)
+    b.append("; path=").append(path)
+    if (maxAge.isDefined)
+      b.append("; max-age=").append(maxAge.get)
+    if (expires.isDefined)
+      b.append("; expires=").append(expires.get)
+    if (secure)
+      b.append("; secure")
+    if (httpOnly)
+      b.append("; httponly")
+    b.toString()
   }
 }

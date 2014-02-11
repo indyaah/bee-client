@@ -22,33 +22,33 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "bee-client"
+package uk.co.bigbeeconsultants.http.cache
 
-organization := "uk.co.bigbeeconsultants"
+import java.io.IOException
+import java.util.concurrent.atomic.AtomicReference
+import uk.co.bigbeeconsultants.http.{Config, HttpExecutor}
+import uk.co.bigbeeconsultants.http.header.CookieJar
+import uk.co.bigbeeconsultants.http.request.Request
+import uk.co.bigbeeconsultants.http.response.ResponseBuilder
 
-version := "0.26.6"
+class CookieCache(nextHttpClient: HttpExecutor,
+                  initialCookieJar: CookieJar = CookieJar.Empty) extends HttpExecutor {
 
-// 2.10.1 suffices for all micro versions of 2.10
-crossScalaVersions := Seq("2.9.0", "2.9.1", "2.9.2", "2.9.3", "2.10.1")
+  private val cookieJar = new AtomicReference[CookieJar](initialCookieJar)
 
-publishMavenStyle := true
+  /** Gets the current state of the cookie jar. */
+  def cookies = cookieJar.get
 
-publishArtifact in Test := false
+  @throws(classOf[IOException])
+  @throws(classOf[IllegalStateException])
+  def execute(request: Request, responseBuilder: ResponseBuilder, config: Config) {
 
-pomIncludeRepository := { _ => false }
+    val requestWithCookies = request using cookieJar.get
 
-licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
+    nextHttpClient.execute(requestWithCookies, responseBuilder, config)
 
-homepage := Some(url("http://www.bigbeeconsultants.co.uk/bee-client"))
-
-//publishTo := Some(Resolver.file("file", new File("/home/websites/your/releases"))
-
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
-
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
-
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+    if (responseBuilder.response.isDefined) {
+      cookieJar.set(responseBuilder.response.get.cookies.get)
+    }
+  }
+}

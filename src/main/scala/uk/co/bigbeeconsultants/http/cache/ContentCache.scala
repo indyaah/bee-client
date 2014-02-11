@@ -40,8 +40,8 @@ import uk.co.bigbeeconsultants.http.{HttpExecutor, Config}
  * The cache is *not* persistent: every time the HTTP client is started, any cache will start off empty.
  */
 @deprecated("This is not yet ready for production use", "v0.25.1")
-class CachingBrowser(httpClient: HttpExecutor,
-                     cacheConfig: CacheConfig = CacheConfig()) extends HttpExecutor {
+class ContentCache(httpClient: HttpExecutor,
+                   cacheConfig: CacheConfig = CacheConfig()) extends HttpExecutor {
   require(cacheConfig.enabled, "Don't use this class if the cache is disabled.")
 
   private val data = new CacheStore(cacheConfig.maxCachedContentSize, cacheConfig.lazyCleanup)
@@ -124,7 +124,10 @@ class CachingBrowser(httpClient: HttpExecutor,
         Some(response)
 
       case 200 | 203 | 300 | 301 | 410 =>
-        if (isWorthCaching(response)) offerToCache(response) else Some(response)
+        if (isWorthCaching(response))
+          offerToCache(response)
+        else
+          Some(response)
 
       case 404 if cacheConfig.assume404Age > 0 =>
         val age = AGE -> cacheConfig.assume404Age

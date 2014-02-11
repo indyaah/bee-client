@@ -22,43 +22,20 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package uk.co.bigbeeconsultants.http
+package uk.co.bigbeeconsultants.http.cache
 
-import auth._
-import header._
 import java.io.IOException
-import request.Request
-import response._
-import uk.co.bigbeeconsultants.http.cache.{CookieCache, AuthCache, ContentCache, CacheConfig}
+import uk.co.bigbeeconsultants.http._
+import uk.co.bigbeeconsultants.http.auth.CredentialSuite
+import uk.co.bigbeeconsultants.http.auth.AuthenticationRegistry
+import uk.co.bigbeeconsultants.http.request.Request
+import uk.co.bigbeeconsultants.http.response.ResponseBuilder
+import uk.co.bigbeeconsultants.http.response.Status
 
-/**
- * Provides an alternative to [[uk.co.bigbeeconsultants.http.HttpClient]]
- * in which every request carries an outbound cookie jar and every
- * inbound response potentially provides a modified cookie jar. A series of requests will therefore behave like
- * a normal web-browser by aggregating cookies from the server and returning them back in subsequent requests.
- *
- * Automatic authentication is also supported.
- *
- * Concurrent requests with an instance of this class are permitted. But when concurrent requests are made,
- * note that there may be race conditions that may or may not cause some cookie updates to be overwritten,
- * depending on the server behaviour. Cookie jars themselves are immutable so will be in either of two states:
- * the original state or the updated state.
- */
-class HttpBrowser(commonConfig: Config = Config(),
-                  initialCookieJar: CookieJar = CookieJar.Empty,
-                  credentialSuite: CredentialSuite = CredentialSuite.Empty,
-                  cacheConfig: CacheConfig = CacheConfig()) extends Http(commonConfig) {
+class AuthCache(nextHttpClient: HttpExecutor,
+                credentialSuite: CredentialSuite = CredentialSuite.Empty) extends HttpExecutor {
 
-  private val coreHttpClient = new HttpClient(commonConfig)
-  private val cookieCache = new CookieCache(coreHttpClient, initialCookieJar)
-  private val authCache = new AuthCache(cookieCache, credentialSuite)
-  private val httpClient = if (cacheConfig.enabled) new ContentCache(authCache, cacheConfig) else authCache
-
-  /**
-   * Gets the current state of the cookie jar. If multiple threads are executing, this will return a snapshot
-   * of the state at some instant.
-   */
-  def cookies = cookieCache.cookies
+  private val authenticationRegistry = new AuthenticationRegistry(credentialSuite, true)
 
   /**
    * Makes an arbitrary request using a response builder. After this call, the response builder will provide the
@@ -72,7 +49,32 @@ class HttpBrowser(commonConfig: Config = Config(),
    */
   @throws(classOf[IOException])
   @throws(classOf[IllegalStateException])
-  def execute(request: Request, responseBuilder: ResponseBuilder, config: Config = commonConfig) {
-    httpClient.execute(request, responseBuilder, config)
+  def execute(request: Request, responseBuilder: ResponseBuilder, config: Config) {
+
+    val realmMappings = authenticationRegistry.findRealmMappings(request.href)
+    var authHeader = authenticationRegistry.findKnownAuthHeaderFromMappings(request, realmMappings)
+
+    var remainingRetries = 5
+    while (remainingRetries > 0) {
+
+      val requestWithAuth = if (authHeader.isDefined) request + authHeader.get else request
+      nextHttpClient.execute(requestWithAuth, responseBuilder, config)
+
+      responseBuilder.response match {
+        case Some(resp) if resp.status.code == Status.S401_Unauthorized.code =>
+          // authentication was missing or failed - try again
+          authHeader = authenticationRegistry.processResponse(resp, realmMappings)
+          if (authHeader.isDefined) remainingRetries -= 1 else remainingRetries = 0
+
+        case Some(resp) if resp.status.code < Status.S400_BadRequest.code =>
+          // authentication succeeded or is not used
+          // TODO the cache should be updated
+          remainingRetries = 0
+
+        case _ =>
+          // responseBuilder failed to capture a response or authentication succeeded or is not used
+          remainingRetries = 0
+      }
+    }
   }
 }

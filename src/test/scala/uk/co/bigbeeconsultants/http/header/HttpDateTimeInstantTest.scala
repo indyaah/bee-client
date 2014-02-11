@@ -38,7 +38,7 @@ class HttpDateTimeInstantTest extends FunSuite {
     assert(HttpDateTimeInstant.zero === d)
   }
 
-  test("parse rfc1123DateTimeFormat (with spaces)") {
+  test("parse rfc1123DateTimeFormat (with spaces) 1") {
     val exp = new HttpDateTimeInstant(DatatypeConverter.parseDateTime("2005-11-16T08:49:37Z"))
     val dateString = "Wed, 16 Nov 2005 08:49:37 GMT"
     val t = new DiagnosticTimer
@@ -50,6 +50,15 @@ class HttpDateTimeInstantTest extends FunSuite {
     assert(exp === d)
     assert(dateString === d.toString)
     assert("2005-11-16T08:49:37Z" === d.toIsoString)
+  }
+
+  test("parse rfc1123DateTimeFormat (with spaces) 2") {
+    val exp = new HttpDateTimeInstant(DatatypeConverter.parseDateTime("2014-02-11T00:06:54Z"))
+    val dateString = "Tue, 11 Feb 2014 00:06:54 GMT"
+    val d = HttpDateTimeInstant.parse(dateString)
+    assert(exp === d)
+    assert(dateString === d.toString)
+    assert("2014-02-11T00:06:54Z" === d.toIsoString)
   }
 
   test("parse rfc1123DateTimeFormat-like but with dashes instead") {

@@ -162,7 +162,7 @@ class CookieJarTest extends FunSuite {
     assert(CookieKey("lang", "www.w3.org", "/standards/webdesign/") matches c1)
     assert("en" === c1.value)
     assert(day7 === c1.maxAge.get)
-    assert((now + day7).seconds === c1.expires.get.seconds)
+    assert(tomorrow.seconds === c1.expires.get.seconds)
   }
 
   test("parse cookie with http only") {

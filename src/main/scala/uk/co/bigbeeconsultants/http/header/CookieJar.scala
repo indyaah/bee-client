@@ -66,7 +66,7 @@ case class CookieJar(cookies: List[Cookie]) extends Seq[CookieIdentity] {
     val toSend = cookies.filter(_.willBeSentTo(url)).sortWith(_.pathLength > _.pathLength)
     if (toSend.isEmpty) None
     else {
-      Some(HeaderName.COOKIE -> toSend.map(_.asHeader).mkString("; "))
+      Some(HeaderName.COOKIE -> toSend.map(_.asRequestHeader).mkString("; "))
     }
   }
 

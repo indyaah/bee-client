@@ -63,7 +63,7 @@ class CookieParserTest extends FunSuite {
     assert(cookie.domain.domain === "a.z.com")
     assert(cookie.path === "/")
     assert(cookie.serverProtocol === "http")
-    assert(cookie.expires.get > HttpDateTimeInstant.parse("Wed, 19-Feb-2014 20:13:23 GMT"))
+    assert(cookie.expires.get === HttpDateTimeInstant.parse("Wed, 19-Feb-2014 20:13:23 GMT"))
     assert(cookie.maxAge === Some(1209600))
     assert(cookie.persistent)
     assert(cookie.hostOnly)

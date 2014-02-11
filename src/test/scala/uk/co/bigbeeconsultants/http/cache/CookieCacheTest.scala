@@ -22,33 +22,33 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-name := "bee-client"
+package uk.co.bigbeeconsultants.http.cache
 
-organization := "uk.co.bigbeeconsultants"
+import org.scalatest.FunSuite
+import uk.co.bigbeeconsultants.http._
+import uk.co.bigbeeconsultants.http.response.{Status, Response, BufferedResponseBuilder}
+import uk.co.bigbeeconsultants.http.Config
+import uk.co.bigbeeconsultants.http.request.Request
+import uk.co.bigbeeconsultants.http.header.{Cookie, Headers, MediaType, CookieJar}
 
-version := "0.26.6"
+class CookieCacheTest extends FunSuite {
 
-// 2.10.1 suffices for all micro versions of 2.10
-crossScalaVersions := Seq("2.9.0", "2.9.1", "2.9.2", "2.9.3", "2.10.1")
+  test("initially empty") {
+    val httpStub = new HttpExecutorStub
+    val cookieCache = new CookieCache(httpStub)
+    assert(cookieCache.cookies.size === 0)
+  }
 
-publishMavenStyle := true
-
-publishArtifact in Test := false
-
-pomIncludeRepository := { _ => false }
-
-licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
-
-homepage := Some(url("http://www.bigbeeconsultants.co.uk/bee-client"))
-
-//publishTo := Some(Resolver.file("file", new File("/home/websites/your/releases"))
-
-// append several options to the list of options passed to the Java compiler
-//javacOptions += "-g:none"
-javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
-
-// append -deprecation to the options passed to the Scala compiler
-//scalacOptions += "-deprecation"
-
-// Copy all managed dependencies to <build-root>/lib_managed/
-retrieveManaged := true
+  test("execute") {
+    val cookie1 = Cookie("c1", "v1")
+    val cookie2 = Cookie("c2", "v2")
+    val request = Request.get("http://localhost/stuff")
+    val responseBuilder = new BufferedResponseBuilder
+    val expectedResponse = Response(request, Status.S200_OK, MediaType.TEXT_PLAIN, "OK", Headers.Empty, Some(CookieJar(cookie1, cookie2)))
+    val httpStub = new HttpExecutorStub
+    httpStub.wantedResponse = expectedResponse
+    val cookieCache = new CookieCache(httpStub)
+    cookieCache.execute(request, responseBuilder, Config())
+    assert(cookieCache.cookies.size === 2)
+  }
+}
