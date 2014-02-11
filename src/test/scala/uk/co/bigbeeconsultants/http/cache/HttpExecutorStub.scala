@@ -30,8 +30,11 @@ import uk.co.bigbeeconsultants.http.request.Request
 
 class HttpExecutorStub extends HttpExecutor {
   var wantedResponse: Response = _
+  var actualRequest: Request = _
 
   override def execute(request: Request, responseBuilder: ResponseBuilder, config: Config) {
-    responseBuilder.setResponse(wantedResponse)
+    actualRequest = request
+    if (wantedResponse != null)
+      responseBuilder.setResponse(wantedResponse)
   }
 }
