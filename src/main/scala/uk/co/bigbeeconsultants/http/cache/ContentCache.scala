@@ -179,7 +179,9 @@ class ContentCache(httpClient: HttpExecutor,
 
   private def isWorthCaching(response: Response) = {
     val contentLengthHdr = response.headers.contentLengthHdr
-    (contentLengthHdr.isDefined && contentLengthHdr.get >= cacheConfig.minContentLength) ||
+    if (contentLengthHdr.isDefined)
+      contentLengthHdr.get >= cacheConfig.minContentLength
+    else
       response.body.contentLength >= cacheConfig.minContentLength
   }
 }

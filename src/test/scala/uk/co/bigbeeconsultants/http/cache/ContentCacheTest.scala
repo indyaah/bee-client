@@ -78,7 +78,7 @@ class ContentCacheTest extends FunSuite {
     }
   }
 
-  test("store ignores content length less than the threshold") {
+  test("store ignores actual content length less than the threshold") {
     val config = Config()
     val httpStub = new HttpExecutorStub
     val cacheConfig = CacheConfig(enabled = true, minContentLength = text1000.length + 1)
@@ -95,7 +95,7 @@ class ContentCacheTest extends FunSuite {
     }
   }
 
-  test("store succeeds for content length >= the threshold") {
+  test("store succeeds for actual content length >= the threshold") {
     val config = Config()
     val httpStub = new HttpExecutorStub
     val cacheConfig = CacheConfig(enabled = true, minContentLength = text1000.length)
@@ -105,6 +105,40 @@ class ContentCacheTest extends FunSuite {
       val request = Request(method, "http://localhost/stuff")
       val status = Status.S200_OK
       val response = Response(request, status, MediaType.TEXT_PLAIN, text1000)
+      val responseBuilder = new BufferedResponseBuilder
+      httpStub.wantedResponse = response
+      cache.execute(request, responseBuilder, config)
+      assert(cache.cacheSize === 1)
+    }
+  }
+
+  test("store ignores header-set content length less than the threshold") {
+    val config = Config()
+    val httpStub = new HttpExecutorStub
+    val cacheConfig = CacheConfig(enabled = true, minContentLength = 500)
+    val cache = new ContentCache(httpStub, cacheConfig)
+    for (method <- getAndHead) {
+      cache.clearCache()
+      val request = Request(method, "http://localhost/stuff")
+      val status = Status.S200_OK
+      val response = Response(request, status, MediaType.TEXT_PLAIN, text1000, Headers(CONTENT_LENGTH -> "499"))
+      val responseBuilder = new BufferedResponseBuilder
+      httpStub.wantedResponse = response
+      cache.execute(request, responseBuilder, config)
+      assert(cache.cacheSize === 0)
+    }
+  }
+
+  test("store succeeds for header-set content length >= the threshold") {
+    val config = Config()
+    val httpStub = new HttpExecutorStub
+    val cacheConfig = CacheConfig(enabled = true, minContentLength = 500)
+    val cache = new ContentCache(httpStub, cacheConfig)
+    for (method <- getAndHead) {
+      cache.clearCache()
+      val request = Request(method, "http://localhost/stuff")
+      val status = Status.S200_OK
+      val response = Response(request, status, MediaType.TEXT_PLAIN, text1000, Headers(CONTENT_LENGTH -> "500"))
       val responseBuilder = new BufferedResponseBuilder
       httpStub.wantedResponse = response
       cache.execute(request, responseBuilder, config)
