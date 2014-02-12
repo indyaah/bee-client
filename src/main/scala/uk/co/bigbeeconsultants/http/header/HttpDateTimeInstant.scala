@@ -204,7 +204,8 @@ object HttpDateTimeInstant {
     while (e < str.length && Character.isDigit(str.charAt(e))) {
       e += 1
     }
-    val yyyy = str.substring(s, e).toInt
+    val yy = str.substring(s, e).toInt
+    val yyyy = if (yy < 100) 2000 + yy else yy
 
     s = e + 1
     while (s < str.length && !Character.isDigit(str.charAt(s))) {

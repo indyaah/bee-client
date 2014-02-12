@@ -116,7 +116,8 @@ case class MediaType(mainType: String, subtype: String, charset: Option[String] 
 /**
  * Provides some commonly-used `MediaType` instances and a factory constructor for new instances.
  */
-object MediaType {
+object MediaType extends ValueParser[MediaType] {
+
   /** The value of a type or subtype wildcard: "*" */
   val WILDCARD = "*"
 

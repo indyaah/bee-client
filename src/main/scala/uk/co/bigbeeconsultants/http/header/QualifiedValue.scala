@@ -128,7 +128,8 @@ case class QualifiedValue(list: CommaListValue) extends Iterable[Qualifiers] wit
 
 //---------------------------------------------------------------------------------------------------------------------
 
-object QualifiedValue {
+object QualifiedValue extends ValueParser[QualifiedValue] {
+
   def apply(str: String) = new QualifiedValue(CommaListValue.split(str))
 
   def ifValid(value: String) = {

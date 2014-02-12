@@ -36,7 +36,8 @@ case class NumberValue(value: String, isValid: Boolean, toLong: Long) extends Va
 }
 
 
-object NumberValue {
+object NumberValue extends ValueParser[Long] {
+
   private val logger = LoggerFactory.getLogger(getClass)
 
   def apply(value: String) = {

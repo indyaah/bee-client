@@ -27,14 +27,14 @@ package uk.co.bigbeeconsultants.http.header
 import uk.co.bigbeeconsultants.http.util.HttpUtil._
 import org.slf4j.LoggerFactory
 
-//TODO
 case class CacheControlValue(value: String, isValid: Boolean, label: String, deltaSeconds: Option[Int], fieldName: Option[String])
   extends Value {
   require(deltaSeconds.isEmpty || fieldName.isEmpty, "Cannot define both deltaSeconds and fieldName")
 }
 
 
-object CacheControlValue {
+object CacheControlValue extends ValueParser[CacheControlValue] {
+
   private val logger = LoggerFactory.getLogger(getClass)
 
   def apply(value: String): CacheControlValue = {
@@ -61,35 +61,45 @@ object CacheControlValue {
     }
   }
 
-  def apply(label: String, deltaSeconds: Option[Int], fieldName: Option[String]) = {
-    if (deltaSeconds.isDefined) new CacheControlValue(label + "=" + deltaSeconds.get, true, label, deltaSeconds, None)
-    else if (fieldName.isDefined) new CacheControlValue(label + "=\"" + fieldName.get + "\"", true, label, None, fieldName)
-    else new CacheControlValue(label, true, label, None, fieldName)
-  }
-
   def ifValid(value: String) = {
     val v = apply(value)
     if (v.isValid) Some(v) else None
   }
 
+  private def labelOnly(label: String) = {
+    new CacheControlValue(label, label.indexOf('=') < 0, label, None, None)
+  }
+
+  private def delta(label: String, deltaSeconds: Int) = {
+    new CacheControlValue(label + "=" + deltaSeconds, true, label, Some(deltaSeconds), None)
+  }
+
+//  /** Constructs an instance with a label and a field name. */
+//  def field(label: String, fieldName: String) = {
+//    require(label != "")
+//    require(fieldName != "")
+//    new CacheControlValue(label + "=\"" + fieldName + "\"", true, label, None, Some(fieldName))
+//  }
+
   /** Constructs a new max-age instance. */
-  def maxAge(deltaSeconds: Int) = apply("max-age", Some(deltaSeconds), None)
+  def maxAge(deltaSeconds: Int) = delta("max-age", deltaSeconds)
 
   /** Constructs a new max-stale instance. */
-  def maxStale(deltaSeconds: Option[Int]) = apply("max-stale", deltaSeconds, None)
+  def maxStale(deltaSeconds: Option[Int]) =
+    if (deltaSeconds.isDefined) delta("max-stale", deltaSeconds.get) else labelOnly("max-stale")
 
   /** Constructs a new min-fresh instance. */
-  def minFresh(deltaSeconds: Int) = apply("min-fresh", Some(deltaSeconds), None)
+  def minFresh(deltaSeconds: Int) = delta("min-fresh", deltaSeconds)
 
   /** The no-cache instance. */
-  val NoCache = apply("no-cache", None, None)
+  val NoCache = labelOnly("no-cache")
 
   /** The no-store instance. */
-  val NoStore = apply("no-store", None, None)
+  val NoStore = labelOnly("no-store")
 
   /** The only-if-cached instance. */
-  val OnlyIfCached = apply("only-if-cached", None, None)
+  val OnlyIfCached = labelOnly("only-if-cached")
 
   /** The no-transform instance. */
-  val NoTransform = apply("no-transform", None, None)
+  val NoTransform = labelOnly("no-transform")
 }

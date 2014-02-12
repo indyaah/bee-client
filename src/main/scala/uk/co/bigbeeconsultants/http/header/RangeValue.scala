@@ -141,7 +141,7 @@ case class RangeValue(value: String) extends Value {
   def isValid = parts.forall(_.isValid)
 }
 
-object RangeValue {
+object RangeValue extends ValueParser[RangeValue] {
 
   def ifValid(value: String) = {
     val v = apply(value)

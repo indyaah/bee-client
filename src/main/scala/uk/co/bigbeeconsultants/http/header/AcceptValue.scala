@@ -26,6 +26,7 @@ package uk.co.bigbeeconsultants.http.header
 
 /**
  * Holds a header value that refers to a list of acceptable content types as used in an Accept header.
+ * This can help to prepare request headers.
  */
 case class AcceptValue(parts: List[Qualifiers] = Nil) extends Value {
 

@@ -24,34 +24,16 @@
 
 package uk.co.bigbeeconsultants.http.header
 
-import java.text.ParseException
-import org.slf4j.LoggerFactory
+trait Value {
+  def value: String
 
-/**
- * Holds a header value that refers to a date.
- */
-case class DateValue(value: String, isValid: Boolean, date: HttpDateTimeInstant) extends Value
+  def isValid: Boolean
 
+  override def toString = value
+}
 
-object DateValue extends ValueParser[HttpDateTimeInstant] {
+//---------------------------------------------------------------------------------------------------------------------
 
-  private val logger = LoggerFactory.getLogger(getClass)
-
-  /** Parses a header value to extract a date value, if this is possible. */
-  def apply(value: String) = {
-    val date = ifValid(value)
-    if (date.isDefined) new DateValue(value, true, date.get)
-    else new DateValue(value, false, HttpDateTimeInstant.Zero)
-  }
-
-  /** Parses a header value to extract a date value, if this is possible. */
-  def ifValid(value: String): Option[HttpDateTimeInstant] = {
-    try {
-      Some(HttpDateTimeInstant.parse(value))
-    } catch {
-      case pe: ParseException =>
-        logger.debug("{}: failed to parse date. {}", Array(value, pe.getMessage))
-        None
-    }
-  }
+trait ValueParser[T] {
+  def ifValid(value: String): Option[T]
 }

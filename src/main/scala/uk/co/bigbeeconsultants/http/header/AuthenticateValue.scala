@@ -68,7 +68,8 @@ case class AuthenticateValue(authScheme: String, parts: ListMap[String, String])
 
 //---------------------------------------------------------------------------------------------------------------------
 
-object AuthenticateValue {
+object AuthenticateValue extends ValueParser[AuthenticateValue] {
+
   def apply(headerValue: String): AuthenticateValue = {
     val sections = divide(headerValue.replace('\n', ' '), ' ')
 
@@ -81,7 +82,7 @@ object AuthenticateValue {
     new AuthenticateValue(sections._1.trim, ListMap() ++ parts)
   }
 
-  def ifValid(value: String) = {
+  def ifValid(value: String): Option[AuthenticateValue] = {
     val v = apply(value)
     if (v.isValid) Some(v) else None
   }

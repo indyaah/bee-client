@@ -26,16 +26,6 @@ package uk.co.bigbeeconsultants.http.header
 
 import uk.co.bigbeeconsultants.http.util.HttpUtil._
 
-trait Value {
-  def value: String
-
-  def isValid: Boolean
-
-  override def toString = value
-}
-
-//---------------------------------------------------------------------------------------------------------------------
-
 /**
  * Provides an HTTP header. Bear in mind that header names are case-insensitive, but you are advised to stick to
  * the canonical capitalisation, which is as given by the HeaderName object values.

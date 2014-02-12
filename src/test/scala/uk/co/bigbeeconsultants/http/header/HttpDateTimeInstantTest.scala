@@ -42,10 +42,12 @@ class HttpDateTimeInstantTest extends FunSuite {
     val exp = new HttpDateTimeInstant(DatatypeConverter.parseDateTime("2005-11-16T08:49:37Z"))
     val dateString = "Wed, 16 Nov 2005 08:49:37 GMT"
     val t = new DiagnosticTimer
-    for (i <- 1 to 200000) {
+    var i = 0
+    while (i < 100000) {
       HttpDateTimeInstant.parse(dateString)
+      i += 1
     }
-    println(t)
+    println(t.duration)
     val d = HttpDateTimeInstant.parse(dateString)
     assert(exp === d)
     assert(dateString === d.toString)
@@ -61,6 +63,15 @@ class HttpDateTimeInstantTest extends FunSuite {
     assert("2014-02-11T00:06:54Z" === d.toIsoString)
   }
 
+  test("parse rfc1123DateTimeFormat (with spaces) and 2-digit year") {
+    val exp = new HttpDateTimeInstant(DatatypeConverter.parseDateTime("2015-02-08T01:38:48Z"))
+    val dateString = "Sun, 08 Feb 15 01:38:48 GMT"
+    val d = HttpDateTimeInstant.parse(dateString)
+    assert(exp === d)
+    assert("Sun, 08 Feb 2015 01:38:48 GMT" === d.toString)
+    assert("2015-02-08T01:38:48Z" === d.toIsoString)
+  }
+
   test("parse rfc1123DateTimeFormat-like but with dashes instead") {
     val exp = new HttpDateTimeInstant(DatatypeConverter.parseDateTime("2005-11-01T08:49:37Z"))
     val d = HttpDateTimeInstant.parse("Tue, 01-Nov-2005 08:49:37 GMT")
@@ -69,7 +80,26 @@ class HttpDateTimeInstantTest extends FunSuite {
     assert("2005-11-01T08:49:37Z" === d.toIsoString)
   }
 
-  test("parse rfc1123DateTimeFormat") {
+  test("parse rfc1123DateTimeFormat-like with dashes and two-digit year") {
+    val exp = new HttpDateTimeInstant(DatatypeConverter.parseDateTime("2015-02-08T01:38:48Z"))
+    val d = HttpDateTimeInstant.parse("Sun, 08-Feb-15 01:38:48 GMT")
+    assert(exp === d)
+    assert("Sun, 08 Feb 2015 01:38:48 GMT" === d.toString)
+    assert("2015-02-08T01:38:48Z" === d.toIsoString)
+  }
+
+  test("parse rfc1123DateTimeFormat with (non-standard) range of Zulu timezones") {
+    val exp = new HttpDateTimeInstant(DatatypeConverter.parseDateTime("2014-02-11T00:06:54Z"))
+    for (zulu <- List("GMT", "UT", "Z")) {
+      val dateString = "Tue, 11 Feb 2014 00:06:54 " + zulu
+      val d = HttpDateTimeInstant.parse(dateString)
+      assert(exp === d)
+      assert("Tue, 11 Feb 2014 00:06:54 GMT" === d.toString)
+      assert("2014-02-11T00:06:54Z" === d.toIsoString)
+    }
+  }
+
+  test("parse and format a whole year") {
     val start = 1325376000
     for (i <- 0 until 366) {
       val t = start + (86400 * i)

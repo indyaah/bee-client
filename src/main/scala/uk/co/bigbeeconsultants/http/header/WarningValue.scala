@@ -41,7 +41,8 @@ case class WarningValue(value: String, isValid: Boolean, code: Int, agent: Strin
   extends Value
 
 
-object WarningValue {
+object WarningValue extends ValueParser[WarningValue] {
+
   // http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.46
   // warning-value = warn-code SP warn-agent SP "warn-text" [SP "warn-date"]
 
@@ -100,14 +101,15 @@ case class WarningListValue(parts: List[WarningValue]) extends ListValue(parts, 
 
 //---------------------------------------------------------------------------------------------------------------------
 
-object WarningListValue {
+object WarningListValue extends ValueParser[WarningListValue] {
+
   def apply(string: String) = {
     val list = splitQuoted(string, ',')
     val parts = list map (s => WarningValue(s.trim))
     new WarningListValue(parts)
   }
 
-  def ifValid(value: String) = {
+  def ifValid(value: String): Option[WarningListValue] = {
     val v = apply(value)
     if (v.isValid) Some(v) else None
   }
