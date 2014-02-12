@@ -273,7 +273,7 @@ class ContentCacheTest extends FunSuite {
         val response = Response(request1, status, MediaType.TEXT_PLAIN, "OK", headers)
         httpStub.wantedResponse = response
         cache.execute(request1, responseBuilder, config)
-        assert(responseBuilder.response.get.headers.get(AGE) === None)
+        assert(!responseBuilder.response.get.headers.contains(AGE))
       }
     }
     for (method <- getAndHead) {
@@ -406,7 +406,7 @@ class ContentCacheTest extends FunSuite {
     httpStub.wantedResponse = response200
     cache.execute(request, responseBuilder200, config)
     assert(cache.cacheSize === 1)
-    assert(responseBuilder200.response.get.headers.get(AGE) === None)
+    assert(!responseBuilder200.response.get.headers.contains(AGE))
 
     val response304 = new Response(request, Status.S304_NotModified, emptyResponseBody, headers + (LAST_MODIFIED -> now20), None)
     val responseBuilder304 = new BufferedResponseBuilder
@@ -449,4 +449,33 @@ class ContentCacheTest extends FunSuite {
     assert(actualResponse.headers(LAST_MODIFIED).toDate.get === now10)
     assert(actualResponse.body.asString === "OK")
   }
+
+  ignore("lookup hits the cache for tiny entries with age greater than ageThreshold") {
+    val config = Config()
+    val cacheConfig = CacheConfig(enabled = true, minContentLength = 1000, ageThreshold = 60)
+    val now = new HttpDateTimeInstant
+    val etag = new EntityTag("12345", false)
+    val now120 = now + 120
+    val headers = Headers(DATE -> now, ETAG -> etag, EXPIRES -> now120)
+
+    val httpStub = new HttpExecutorStub
+    val cache = new ContentCache(httpStub, cacheConfig)
+    val request = Request.get("http://localhost/stuff")
+    val response1 = new Response(request, Status.S200_OK, okResponseBody, headers, None)
+    val responseBuilder = new BufferedResponseBuilder
+    httpStub.wantedResponse = response1
+    cache.execute(request, responseBuilder, config)
+    assert(cache.cacheSize === 1)
+    assert(!responseBuilder.response.get.headers.contains(AGE))
+
+    httpStub.wantedResponse = null
+    cache.execute(request, responseBuilder, config)
+    assert(cache.cacheSize === 1)
+    assert(httpStub.actualRequest.headers(IF_NONE_MATCH).value === "\"12345\"")
+    val actualResponse = responseBuilder.response.get
+    assert(responseBuilder.response.get.headers(AGE) === AGE -> "0")
+    assert(actualResponse.status === Status.S200_OK)
+    assert(actualResponse.body.asString === "OK")
+  }
+
 }

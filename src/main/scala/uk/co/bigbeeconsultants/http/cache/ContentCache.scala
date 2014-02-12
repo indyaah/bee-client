@@ -39,7 +39,6 @@ import uk.co.bigbeeconsultants.http.{HttpExecutor, Config}
  *
  * The cache is *not* persistent: every time the HTTP client is started, any cache will start off empty.
  */
-@deprecated("This is not yet ready for production use", "v0.25.1")
 class ContentCache(httpClient: HttpExecutor,
                    cacheConfig: CacheConfig = CacheConfig()) extends HttpExecutor {
   require(cacheConfig.enabled, "Don't use this class if the cache is disabled.")
@@ -124,10 +123,7 @@ class ContentCache(httpClient: HttpExecutor,
         Some(response)
 
       case 200 | 203 | 300 | 301 | 410 =>
-        if (isWorthCaching(response))
-          offerToCache(response)
-        else
-          Some(response)
+        offerToCacheIfWorthIt(response)
 
       case 404 if cacheConfig.assume404Age > 0 =>
         val age = AGE -> cacheConfig.assume404Age
@@ -154,15 +150,21 @@ class ContentCache(httpClient: HttpExecutor,
     }
   }
 
+  private def offerToCacheIfWorthIt(response: Response) = {
+    if (isWorthCaching(response) && isCacheable(response) && isNotPrevented(response))
+      data.put(CacheRecord(response))
+    Some(response)
+  }
+
   private def offerToCache(response: Response) = {
     if (isCacheable(response) && isNotPrevented(response))
-      data.put(response)
+      data.put(CacheRecord(response))
     Some(response)
   }
 
   private def controlledOfferToCache(response: Response) = {
     if (isCacheable(response) && isNotPrevented(response))
-      data.putIfControlled(response)
+      data.putIfControlled(CacheRecord(response))
     Some(response)
   }
 
@@ -179,6 +181,7 @@ class ContentCache(httpClient: HttpExecutor,
     (response.request.method == Request.GET || response.request.method == Request.HEAD) && response.body.isBuffered
 
   private def isWorthCaching(response: Response) = {
+//    val expiresHdr = response.headers.expiresHdr
     val contentLengthHdr = response.headers.contentLengthHdr
     if (contentLengthHdr.isDefined)
       contentLengthHdr.get >= cacheConfig.minContentLength

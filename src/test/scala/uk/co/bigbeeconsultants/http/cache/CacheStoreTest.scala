@@ -24,7 +24,7 @@ class CacheStoreTest extends FunSuite {
       val f = (i % 2) * -1
       val age: Header = HeaderName.AGE -> (100000 - f * i).toString
       val response = Response(request, Status.S200_OK, MediaType.TEXT_PLAIN, "0123456789", Headers(age))
-      store.put(response)
+      store.put(CacheRecord(response))
       assert(store.size === i)
       assert(store.currentContentSize === i*10)
       assert(store.get(request.cacheKey) != null)
@@ -40,7 +40,7 @@ class CacheStoreTest extends FunSuite {
       val f = (i % 2) * -1
       val age: Header = HeaderName.AGE -> (200000 - f * i).toString
       val response = Response(request, Status.S200_OK, MediaType.TEXT_PLAIN, "0123456789", Headers(age))
-      store.put(response)
+      store.put(CacheRecord(response))
       assert(store.size === loops)
       assert(store.currentContentSize === loops * 10)
       assert(store.get(request.cacheKey) != null)
@@ -73,7 +73,7 @@ class CacheStoreTest extends FunSuite {
       val f = (i % 2) * -1
       val age: Header = HeaderName.AGE -> (100000 - f * i).toString
       val response = Response(request, Status.S200_OK, MediaType.TEXT_PLAIN, "0123456789", Headers(age))
-      store.put(response)
+      store.put(CacheRecord(response))
       assert(store.get(request.cacheKey) != null)
       assert(store.get(request.cacheKey).response === response)
       assert(store.size === i)
@@ -88,7 +88,7 @@ class CacheStoreTest extends FunSuite {
       val f = (i % 2) * -1
       val age: Header = HeaderName.AGE -> (200000 - f * i).toString
       val response = Response(request, Status.S200_OK, MediaType.TEXT_PLAIN, "0123456789", Headers(age))
-      store.put(response)
+      store.put(CacheRecord(response))
       assert(store.get(request.cacheKey) != null)
       assert(store.get(request.cacheKey).response === response)
     }

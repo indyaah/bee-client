@@ -39,6 +39,7 @@ import uk.co.bigbeeconsultants.http.util.{Duration, DiagnosticTimer}
 import header.{HeaderName, Headers}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import uk.co.bigbeeconsultants.http.cache.CacheConfig
 
 // scala actors futures retain 2.9.1 backward compatibility
 import scala.actors._
@@ -93,7 +94,8 @@ object HttpIntegration {
     val h = new HttpIntegration
     val hc = new HttpClient(configNoRedirects)
     val bigbee = new Credential("bigbee", "HelloWorld")
-    val hb = new HttpBrowser(configNoRedirects, CookieJar.Empty, new CredentialSuite(Map("Restricted" -> bigbee)))
+    val cacheConfig = CacheConfig(enabled = true)
+    val hb = new HttpBrowser(configNoRedirects, CookieJar.Empty, new CredentialSuite(Map("Restricted" -> bigbee)), cacheConfig)
 
     var total = Duration(0L)
     for (i <- 1 to n) {

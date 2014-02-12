@@ -33,7 +33,6 @@ private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean, queue
   if (lazyCleanup) startBackgroundThread()
 
   // these fields are concurrently accessed by many threads
-  private val counter = new AtomicInteger()
   private val data = new ConcurrentHashMap[CacheKey, CacheRecord]()
 
   // these fields are only accessed by one thread at a time
@@ -46,13 +45,11 @@ private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean, queue
   def get(key: CacheKey) = data.get(key)
 
   // lock-based storing
-  def put(response: Response) = {
-    val record = CacheRecord(response, counter.incrementAndGet())
+  def put(record: CacheRecord) = {
     putRecord(record)
   }
 
-  def putIfControlled(response: Response) = {
-    val record = CacheRecord(response, counter.incrementAndGet())
+  def putIfControlled(record: CacheRecord) = {
     if (record.expires.isDefined || record.cacheControlHeader.isDefined) {
       putRecord(record)
     }

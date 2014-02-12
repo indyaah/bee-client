@@ -27,6 +27,7 @@ package uk.co.bigbeeconsultants.http.cache
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.response.Response
 import uk.co.bigbeeconsultants.http.header.{Header, HeaderName, CacheControlValue, HttpDateTimeInstant}
+import java.util.concurrent.atomic.AtomicInteger
 
 private[http] case class CacheRecord(response: Response, id: Int) extends Ordered[CacheRecord] {
 
@@ -122,3 +123,8 @@ private[http] case class CacheRecord(response: Response, id: Int) extends Ordere
   override def compare(that: CacheRecord) = that.expiresAt.compare(this.expiresAt)
 }
 
+object CacheRecord {
+  val counter = new AtomicInteger()
+
+  def apply(response: Response) = new CacheRecord(response, counter.incrementAndGet())
+}
