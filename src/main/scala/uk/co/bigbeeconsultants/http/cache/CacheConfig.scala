@@ -20,8 +20,11 @@ import uk.co.bigbeeconsultants.http.util.Bytes._
  *                         not modified. For larger messages, the benefit is clearly greater than
  *                         the cost of caching. By default, messages of 1000 bytes or more are cached.
  *                         Note that the `ageThreshold` also applies.
- * @param ageThreshold age threshold below which the `minContentLength` threshold applies. Responses with an expiry
- *                     beyond this age will always be cached, even those smaller than the `minContentLength`.
+ * @param ageThreshold age threshold (seconds) below which the `minContentLength` threshold applies. Responses with
+ *                     a freshness lifetime beyond this age will always be cached, even those smaller than
+ *                     the `minContentLength`. The freshness lifetime of a resposne is defined by rfc2616 section
+ *                     13.2.4 and is based on the Max-Age header if present, or the Expires header if present, or
+ *                     is zero.
  * @param assume404Age provides optional caching for 404 responses - these are not normally cached but can therefore
  *                     be a pain. Provide an assumed age (in seconds) and all 404 responses will be stored in the
  *                     cache as if the response had contained that age in a header. Zero disables this feature and is
@@ -44,4 +47,7 @@ case class CacheConfig(enabled: Boolean = true,
   require(minContentLength >= 0, "minContentLength must non-negative")
   require(ageThreshold >= 0, "ageThreshold must non-negative")
   require(assume404Age >= 0, "assume404Age must be non-negative")
+
+  /** The age threshold in milliseconds. */
+  lazy val ageThresholdMs = ageThreshold * 1000
 }

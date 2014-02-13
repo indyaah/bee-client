@@ -30,9 +30,11 @@ import org.scalatest.junit.JUnitRunner
 import uk.co.bigbeeconsultants.http._
 import uk.co.bigbeeconsultants.http.request.Request
 import uk.co.bigbeeconsultants.http.response._
-import uk.co.bigbeeconsultants.http.header.{EntityTag, Headers, MediaType, HttpDateTimeInstant}
+import uk.co.bigbeeconsultants.http.header._
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.util.{Duration, DiagnosticTimer}
+import uk.co.bigbeeconsultants.http.response.StringResponseBody
+import uk.co.bigbeeconsultants.http.header.HttpDateTimeInstant
 
 @RunWith(classOf[JUnitRunner])
 class ContentCacheTest extends FunSuite {
@@ -450,7 +452,7 @@ class ContentCacheTest extends FunSuite {
     assert(actualResponse.body.asString === "OK")
   }
 
-  ignore("lookup hits the cache for tiny entries with age greater than ageThreshold") {
+  test("lookup hits the cache for tiny entries with age (via expires) greater than ageThreshold") {
     val config = Config()
     val cacheConfig = CacheConfig(enabled = true, minContentLength = 1000, ageThreshold = 60)
     val now = new HttpDateTimeInstant
@@ -471,7 +473,33 @@ class ContentCacheTest extends FunSuite {
     httpStub.wantedResponse = null
     cache.execute(request, responseBuilder, config)
     assert(cache.cacheSize === 1)
-    assert(httpStub.actualRequest.headers(IF_NONE_MATCH).value === "\"12345\"")
+    val actualResponse = responseBuilder.response.get
+    assert(responseBuilder.response.get.headers(AGE) === AGE -> "0")
+    assert(actualResponse.status === Status.S200_OK)
+    assert(actualResponse.body.asString === "OK")
+  }
+
+  test("lookup hits the cache for tiny entries with age (via maxAge) greater than ageThreshold") {
+    val config = Config()
+    val cacheConfig = CacheConfig(enabled = true, minContentLength = 1000, ageThreshold = 60)
+    val now = new HttpDateTimeInstant
+    val etag = new EntityTag("12345", false)
+    val now120 = now + 120
+    val headers = Headers(DATE -> now, ETAG -> etag, CACHE_CONTROL -> CacheControlValue.maxAge(120))
+
+    val httpStub = new HttpExecutorStub
+    val cache = new ContentCache(httpStub, cacheConfig)
+    val request = Request.get("http://localhost/stuff")
+    val response1 = new Response(request, Status.S200_OK, okResponseBody, headers, None)
+    val responseBuilder = new BufferedResponseBuilder
+    httpStub.wantedResponse = response1
+    cache.execute(request, responseBuilder, config)
+    assert(cache.cacheSize === 1)
+    assert(!responseBuilder.response.get.headers.contains(AGE))
+
+    httpStub.wantedResponse = null
+    cache.execute(request, responseBuilder, config)
+    assert(cache.cacheSize === 1)
     val actualResponse = responseBuilder.response.get
     assert(responseBuilder.response.get.headers(AGE) === AGE -> "0")
     assert(actualResponse.status === Status.S200_OK)

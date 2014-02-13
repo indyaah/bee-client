@@ -94,10 +94,10 @@ class CacheRecordTest extends FunSuite {
   test("max-age header with delta") {
     for (i <- 0 until reps) {
       val request = Request(GET, "http://localhost/stuff")
-      val responseHeaders = Headers(CACHE_CONTROL -> "max-age=123")
+      val responseHeaders = Headers(CACHE_CONTROL -> "max-age=2592000")
       val response = Response(request, Status.S200_OK, MediaType.TEXT_PLAIN, "OK", responseHeaders)
       val record = CacheRecord(response, i)
-      assert(record.maxAge === Some(123000))
+      assert(record.maxAge === Some(2592000000L))
     }
   }
 

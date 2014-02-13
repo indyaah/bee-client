@@ -78,7 +78,7 @@ class ContentCache(httpClient: HttpExecutor,
   }
 
   private def cacheHit(cacheRecord: CacheRecord, responseBuilder: ResponseBuilder) {
-    val age = (cacheRecord.currentAge / 1000).toString
+    val age = (cacheRecord.currentAge / 1000L).toString
     val modResponse = cacheRecord.response.copy(headers = cacheRecord.response.headers.set(AGE -> age))
     responseBuilder.setResponse(modResponse)
     // no HTTP request is made
@@ -151,8 +151,11 @@ class ContentCache(httpClient: HttpExecutor,
   }
 
   private def offerToCacheIfWorthIt(response: Response) = {
-    if (isWorthCaching(response) && isCacheable(response) && isNotPrevented(response))
-      data.put(CacheRecord(response))
+    if (isCacheable(response) && isNotPrevented(response)) {
+      val record = CacheRecord(response)
+      if (isWorthCaching(record))
+        data.put(record)
+    }
     Some(response)
   }
 
@@ -168,24 +171,27 @@ class ContentCache(httpClient: HttpExecutor,
     Some(response)
   }
 
-  private def isNotPrevented(response: Response) = {
-    val cacheControl = response.headers.cacheControlHdr
-    if (cacheControl.isDefined)
-      cacheControl.get.label match {
-        case "no-cache" | "no-store" => false
-        case _ => true
-      } else true
-  }
-
   private def isCacheable(response: Response) =
     (response.request.method == Request.GET || response.request.method == Request.HEAD) && response.body.isBuffered
 
-  private def isWorthCaching(response: Response) = {
-//    val expiresHdr = response.headers.expiresHdr
-    val contentLengthHdr = response.headers.contentLengthHdr
-    if (contentLengthHdr.isDefined)
-      contentLengthHdr.get >= cacheConfig.minContentLength
+  private def isNotPrevented(response: Response) = {
+    val cacheControl = response.headers.cacheControlHdr
+    if (cacheControl.isEmpty) true
     else
-      response.body.contentLength >= cacheConfig.minContentLength
+      cacheControl.get.label match {
+        case "no-cache" | "no-store" => false
+        case _ => true
+      }
+  }
+
+  private def isWorthCaching(record: CacheRecord) = {
+    if (record.freshnessLifetime > cacheConfig.ageThresholdMs) true
+    else {
+      val contentLengthHdr = record.response.headers.contentLengthHdr
+      if (contentLengthHdr.isDefined)
+        contentLengthHdr.get >= cacheConfig.minContentLength
+      else
+        record.response.body.contentLength >= cacheConfig.minContentLength
+    }
   }
 }

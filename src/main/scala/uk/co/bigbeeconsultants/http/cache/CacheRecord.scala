@@ -26,7 +26,7 @@ package uk.co.bigbeeconsultants.http.cache
 
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.response.Response
-import uk.co.bigbeeconsultants.http.header.{Header, HeaderName, CacheControlValue, HttpDateTimeInstant}
+import uk.co.bigbeeconsultants.http.header.{CacheControlValue, HttpDateTimeInstant}
 import java.util.concurrent.atomic.AtomicInteger
 
 private[http] case class CacheRecord(response: Response, id: Int) extends Ordered[CacheRecord] {
@@ -54,28 +54,31 @@ private[http] case class CacheRecord(response: Response, id: Int) extends Ordere
   val isAlreadyExpired = expiresHeader.isDefined && dateHeader.isDefined && cacheControlHeader.isEmpty && expiresHeader.get <= dateHeader.get
 
   /** The 'Age' header, if present (duration in milliseconds). */
-  val age: Option[Long] = ageHeader map (_.toLong * 1000)
-  /** The 'Date' header, if present (timestamp int milliseconds). To compensate for expected truncation, 500ms is added. */
-  val date: Long = dateHeader map (_.milliseconds + 500) getOrElse responseTime
-  /** The 'Expires' header, if present (timestamp in milliseconds). To compensate for expected truncation, 500ms is added. */
-  val expires: Option[Long] = expiresHeader map (_.milliseconds + 500)
-  /** The 'Last-Modified' header, if present (timestamp in milliseconds). To compensate for expected truncation, 500ms is added. */
-  val lastModified: Option[Long] = lastModifiedHeader map (_.milliseconds + 500)
+  val age: Option[Long] = ageHeader map (_ * 1000L)
+  /** The 'Date' header, if present (timestamp int milliseconds). */
+  val date: Long = dateHeader map (_.milliseconds) getOrElse responseTime
+  /** The 'Expires' header, if present (timestamp in milliseconds). */
+  val expires: Option[Long] = expiresHeader map (_.milliseconds)
+  /** The 'Last-Modified' header, if present (timestamp in milliseconds). */
+  val lastModified: Option[Long] = lastModifiedHeader map (_.milliseconds)
 
   /** The max-age or s-maxage given by the 'Cache-Control' header, if present (duration in milliseconds). */
   val maxAge: Option[Long] =
-    cacheControlHeader match {
-      case Some(CacheControlValue(_, true, "max-age", Some(deltaSeconds), None)) => Some(deltaSeconds * 1000)
-      case Some(CacheControlValue(_, true, "s-maxage", Some(deltaSeconds), None)) => Some(deltaSeconds * 1000)
-      case _ => None
-    }
+    if (cacheControlHeader.isEmpty) None
+    else
+      cacheControlHeader.get.label match {
+        case "max-age" | "s-maxage" if cacheControlHeader.get.deltaSeconds.isDefined =>
+          Some(cacheControlHeader.get.deltaSeconds.get * 1000L)
+        case _ =>
+          None
+      }
 
-//  /** The shared s-maxage given by the 'Cache-Control' header, if present (duration in milliseconds). */
-//  val sharedMaxAge: Option[Long] =
-//    cacheControlHeader match {
-//      case Some(CacheControlValue(_, true, "s-maxage", Some(deltaSeconds), None)) => Some(deltaSeconds * 1000)
-//      case _ => None
-//    }
+  //  /** The shared s-maxage given by the 'Cache-Control' header, if present (duration in milliseconds). */
+  //  val sharedMaxAge: Option[Long] =
+  //    cacheControlHeader match {
+  //      case Some(CacheControlValue(_, true, "s-maxage", Some(deltaSeconds), None)) => Some(deltaSeconds * 1000)
+  //      case _ => None
+  //    }
 
   // see http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.2.3
   private val correctedInitialAge = {
@@ -93,7 +96,7 @@ private[http] case class CacheRecord(response: Response, id: Int) extends Ordere
     else 0L
   }
 
-  /** The timestamp after which this cache record will be stale. */
+  /** The timestamp (milliseconds) after which this cache record will be stale. */
   val expiresAt = (freshnessLifetime + responseTime) - correctedInitialAge
 
   /** The current age of the response, calculated according to RFC2616 sec13.2.3 (duration in milliseconds). */

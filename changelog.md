@@ -1,3 +1,59 @@
+#### Wed, 12 Feb 2014
+* v0.26.6 - HttpDateTimeInstant now parses timestamps with two-digit year.
+* This is a bugfix (https://bitbucket.org/rickb777/bee-client/issue/24).
+
+
+#### Wed, 12 Feb 2014
+* v0.26.6 - Further caching work: CacheStore api now uses CacheRecord instances consistently.
+
+
+#### Tue, 11 Feb 2014
+* v0.26.6 - Some minor performance tweaks.
+
+
+#### Tue, 11 Feb 2014
+* v0.26.6 - ContentCacheTest tests extended.
+
+
+#### Tue, 11 Feb 2014
+* v0.26.6 - ContentCacheTest tests extended.
+
+
+#### Tue, 11 Feb 2014
+* v0.26.6
+* - ContentCacheTest tests extended.
+
+
+#### Tue, 11 Feb 2014
+* v0.26.6
+* - ContentCacheTest tests extended.
+
+
+#### Tue, 11 Feb 2014
+* v0.26.6
+* - ContentCacheTest tests extended.
+
+
+#### Tue, 11 Feb 2014
+* v0.26.6
+* - ContentCacheTest tests re-instated.
+
+
+#### Tue, 11 Feb 2014
+* v0.26.6
+* - HttpBrowser function has been split into three separate parts - cookie caching, authentication caching and content caching.
+
+
+#### Tue, 11 Feb 2014
+* v0.26.6
+* - HttpBrowser function has been split into three separate parts - cookie caching, authentication caching and content caching.
+
+
+#### Mon, 10 Feb 2014
+* v0.26.5
+* - HttpBrowser caching arrangement has been altered. Original (pre v0.26) constructor for HttpBrowser has been re-instated, with the addition of a CacheConfig parameter. Caching will be delegated to CachingBrowser when it is enabled. This will be easier to test fully and have less impact on any existing code that uses HttpBrowser.
+
+
 #### Mon, 10 Feb 2014
 * v0.26.5
 * - HttpBrowser caching arrangement has been altered. Original (pre v0.26) constructor for HttpBrowser has been re-instated, with the addition of a CacheConfig parameter. Caching will be delegated to CachingBrowser when it is enabled. This will be easier to test fully and have less impact on any existing code that uses HttpBrowser.

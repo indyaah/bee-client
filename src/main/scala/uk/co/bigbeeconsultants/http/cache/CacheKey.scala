@@ -34,5 +34,5 @@ private[http] case class CacheKey(methodAndUrl: String) extends Ordered[CacheKey
 }
 
 private[http] object CacheKey {
-  def apply(request: Request) = new CacheKey(request.method + request.href)
+  def apply(request: Request) = new CacheKey(request.method + request.url)
 }
