@@ -1,3 +1,7 @@
+#### Thu, 13 Feb 2014
+* v0.27.0 - HTTP caching is now working
+
+
 #### Wed, 12 Feb 2014
 * v0.26.6 - HttpDateTimeInstant now parses timestamps with two-digit year.
 * This is a bugfix (https://bitbucket.org/rickb777/bee-client/issue/24).
