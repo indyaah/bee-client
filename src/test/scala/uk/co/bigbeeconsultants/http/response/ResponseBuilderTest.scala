@@ -53,7 +53,7 @@ class ResponseBuilderTest extends FunSuite with ShouldMatchers {
     val timer = new DiagnosticTimer
     builder.captureResponse(request, Status.S200_OK, Some(TEXT_PLAIN), headers, cookies, bais, timer)
 
-    (builder.networkTimeTaken - timer.duration).abs should be < Duration(2)
+    (builder.networkTimeTaken - timer.duration).abs should be < Duration(20)
     val response = builder.response.get
     response.request should be(request)
     response.status should be(Status.S200_OK)
@@ -77,7 +77,7 @@ class ResponseBuilderTest extends FunSuite with ShouldMatchers {
     val timer = new DiagnosticTimer
     builder.captureResponse(request, Status.S200_OK, Some(TEXT_PLAIN), headers, cookies, bais, timer)
 
-    (builder.networkTimeTaken - timer.duration).abs should be < Duration(2)
+    (builder.networkTimeTaken - timer.duration).abs should be < Duration(30)
     val response = builder.response.get
     response.request should be(request)
     response.status should be(Status.S200_OK)

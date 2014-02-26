@@ -89,6 +89,8 @@ class BufferedResponseBuilder extends ResponseBuilder {
 
   override def response = _response
 
+  override def networkTimeTaken: Duration = _networkTime
+
   override def timer = _timer
 
   private[response] def captureBufferedResponse(request: Request, status: Status, mediaType: Option[MediaType],

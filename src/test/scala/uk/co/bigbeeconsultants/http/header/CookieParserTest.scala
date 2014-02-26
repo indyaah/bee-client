@@ -53,7 +53,7 @@ class CookieParserTest extends FunSuite {
   }
 
   test("example 2: name, value, expires, httponly, max-age, path, secure") {
-    val str = "session=c47666897a224a93add9; expires=Wed, 19-Feb-2014 20:13:23 GMT; httponly; Max-Age=1209600; Path=/; secure"
+    val str = "session=c47666897a224a93add9; expires=Wed, 19-Feb-2034 20:13:23 GMT; httponly; Max-Age=1209600; Path=/; secure"
     val headers = HeaderName.SET_COOKIE -> str
     val cookies: List[Cookie] = CookieJar.gleanCookies(Some(CookieJar.Empty), new URL("http://a.z.com/animal/zebra.html"), Headers(headers))._1.get.cookies
     assert(cookies.size === 1)
@@ -63,7 +63,7 @@ class CookieParserTest extends FunSuite {
     assert(cookie.domain.domain === "a.z.com")
     assert(cookie.path === "/")
     assert(cookie.serverProtocol === "http")
-    assert(cookie.expires.get === HttpDateTimeInstant.parse("Wed, 19-Feb-2014 20:13:23 GMT"))
+    assert(cookie.expires.get === HttpDateTimeInstant.parse("Wed, 19-Feb-2034 20:13:23 GMT"))
     assert(cookie.maxAge === Some(1209600))
     assert(cookie.persistent)
     assert(cookie.hostOnly)
@@ -93,7 +93,7 @@ class CookieParserTest extends FunSuite {
   }
 
   test("example 4: name, value, path, expires, httponly, secure") {
-    val str = "user_session=rTIepD313gqaAEvLbBZvIWOGHMTb3CyPp3YTlxeVf0kd; path=/; expires=Wed, 19-Feb-2014 20:23:23 GMT; secure; HttpOnly"
+    val str = "user_session=rTIepD313gqaAEvLbBZvIWOGHMTb3CyPp3YTlxeVf0kd; path=/; expires=Wed, 19-Feb-2034 20:23:23 GMT; secure; HttpOnly"
     val headers = HeaderName.SET_COOKIE -> str
     val cookies: List[Cookie] = CookieJar.gleanCookies(Some(CookieJar.Empty), new URL("http://a.z.com/animal/zebra.html"), Headers(headers))._1.get.cookies
     assert(cookies.size === 1)
@@ -103,7 +103,7 @@ class CookieParserTest extends FunSuite {
     assert(cookie.domain.domain === "a.z.com")
     assert(cookie.path === "/")
     assert(cookie.serverProtocol === "http")
-    assert(cookie.expires === Some(HttpDateTimeInstant.parse("Wed, 19-Feb-2014 20:23:23 GMT")))
+    assert(cookie.expires === Some(HttpDateTimeInstant.parse("Wed, 19-Feb-2034 20:23:23 GMT")))
     assert(cookie.maxAge === None)
     assert(cookie.persistent)
     assert(cookie.hostOnly)

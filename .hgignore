@@ -28,3 +28,4 @@ xsbt/**
 TESTS-TestSuites.xml
 .scala_dependencies
 *.iws
+*.tmp

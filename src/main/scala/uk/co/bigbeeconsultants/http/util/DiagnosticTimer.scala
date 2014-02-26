@@ -48,10 +48,12 @@ final class DiagnosticTimer {
 }
 
 object DiagnosticTimer {
-  val thousand = 1000
-  val tenThousand = 10000
+  val thousand = 1000L
+  val tenThousand = 10000L
+  val hundredThousand = 100000L
   val million = thousand * thousand
   val tenMillion = 10 * million
+  val hundredMillion = 100 * million
 }
 
 /**
@@ -66,23 +68,42 @@ case class Duration(microseconds: Long) extends Ordered[Duration] {
 
   import DiagnosticTimer._
 
-  def + (microseconds: Long) = new Duration(microseconds + this.microseconds)
-  def + (duration: Duration) = new Duration(this.microseconds + duration.microseconds)
-  def - (duration: Duration) = new Duration(this.microseconds - duration.microseconds)
-  def * (factor: Int) = new Duration(this.microseconds * factor)
-  def / (divisor: Int) = new Duration(this.microseconds / divisor)
-  def abs = if (microseconds < 0) new Duration(microseconds) else this
+  def +(microseconds: Long) = new Duration(microseconds + this.microseconds)
+
+  def +(duration: Duration) = new Duration(this.microseconds + duration.microseconds)
+
+  def -(duration: Duration) = new Duration(this.microseconds - duration.microseconds)
+
+  def -(microseconds: Long) = new Duration(this.microseconds - microseconds)
+
+  def *(factor: Int) = new Duration(this.microseconds * factor)
+
+  def /(divisor: Int) = new Duration(this.microseconds / divisor)
+
+  def abs = if (microseconds < 0) new Duration(-microseconds) else this
+
   def max(other: Duration) = if (this.microseconds < other.microseconds) other else this
+
   def min(other: Duration) = if (this.microseconds < other.microseconds) this else other
 
   def compare(that: Duration) = this.microseconds.compare(that.microseconds)
 
   override def toString: String =
-    if (microseconds >= tenMillion)
+    if (microseconds >= hundredMillion) {
       (microseconds / million) + "s"
-    else if (microseconds >= tenThousand)
-      (microseconds / thousand) + "ms"
-    else
+    } else if (microseconds >= tenMillion) {
+      val m = microseconds / million
+      val f = microseconds + 50000L - (m * million)
+      m + "." + f.toString.take(1) + "s"
+    } else if (microseconds >= hundredThousand) {
+      val roundup = microseconds + 500
+      (roundup / thousand) + "ms"
+    } else if (microseconds >= tenThousand) {
+      val roundup = microseconds + 50
+      val th = roundup / thousand
+      val f = roundup - (th * thousand)
+      th + "." + f.toString.take(1) + "ms"
+    } else
       microseconds + "μs"
 }
 
