@@ -1,0 +1,10 @@
+large-file-10B.tmp average 595μs
+large-file-100B.tmp average 571μs
+large-file-1KiB.tmp average 538μs
+large-file-10KiB.tmp average 956μs
+large-file-100KiB.tmp average 6058μs
+large-file-1MiB.tmp average 31.3ms
+large-file-10MiB.tmp average 271ms
+large-file-30MiB.tmp average 808ms
+large-file-100MiB.tmp average 2725ms
+large-file-300MiB.tmp average 8336ms

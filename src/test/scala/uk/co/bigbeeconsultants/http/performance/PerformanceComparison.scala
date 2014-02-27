@@ -29,10 +29,12 @@ import uk.co.bigbeeconsultants.http.request.Request
 import uk.co.bigbeeconsultants.http.response.BufferedResponseBuilder
 import uk.co.bigbeeconsultants.http.util.Duration
 import java.io.{PrintWriter, OutputStreamWriter, FileOutputStream, File}
+import java.text.SimpleDateFormat
+import java.util.Date
 
 object PerformanceComparison {
   // Make 20 iterations then discard the worst ten. This smoothes out JVM JIT optimisation effects.
-  def sample(script: PrintWriter, iterations: Int, size: String) {
+  def sample(log: PrintWriter, script: PrintWriter, iterations: Int, size: String) {
     val name = "large-file-" + size + ".tmp"
     LargeFileGenerator.main(Array(size, "src/test/resources/" + name))
     val client = new HttpClient
@@ -46,29 +48,39 @@ object PerformanceComparison {
     }
     val sTimings = timings.sorted.take(iterations)
     val average = sTimings.fold(Duration.Zero)(_ + _) / iterations
+    log.println(name + " average " + average)
     println(name + " average " + average)
     //println("ab -n 10 " + request.url)
     script.println("curl -s -w '" + name + " %{size_download}B %{time_total}ms\\n' -o curl.tmp "  + request.url + " >> performance/curl-$D.txt")
   }
 
+  def open(name: String): PrintWriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(name)))
+
+  def now = {
+    val df = new SimpleDateFormat("yyyy-MM-dd'_'HHmmss")
+    df.format(new Date)
+  }
+
   def main(args: Array[String]) {
     new File("performance").mkdirs()
-    val script = new PrintWriter(new OutputStreamWriter(new FileOutputStream("curl-bench.sh")))
+    val script = open("curl-bench.sh")
+    val log = open("performance/beeclient-" + now + ".txt")
     script.println("D=$(date '+%F_%H%M%S')")
     script.println("mkdir -p performance")
     script.println("rm -f performance/curl-$D.txt")
-    sample(script, 300, "10B")
-    sample(script, 100, "100B")
-    sample(script, 100, "1KiB")
-    sample(script, 60, "10KiB")
-    sample(script, 30, "100KiB")
-    sample(script, 30, "1MiB")
-    sample(script, 10, "10MiB")
-    sample(script, 10, "30MiB")
-    sample(script, 10, "100MiB")
-    sample(script, 6, "300MiB")
-//    sample(script, 10, "1GiB")
+    sample(log, script, 300, "10B")
+    sample(log, script, 100, "100B")
+    sample(log, script, 100, "1KiB")
+    sample(log, script, 60, "10KiB")
+    sample(log, script, 30, "100KiB")
+    sample(log, script, 30, "1MiB")
+    sample(log, script, 10, "10MiB")
+    sample(log, script, 10, "30MiB")
+    sample(log, script, 6, "100MiB")
+    sample(log, script, 3, "300MiB")
+//    sample(script, 1, "1GiB")
     script.println("rm -f curl.tmp")
     script.close()
+    log.close()
   }
 }
