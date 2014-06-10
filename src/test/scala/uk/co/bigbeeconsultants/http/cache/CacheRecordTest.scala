@@ -4,7 +4,7 @@ import org.scalatest.FunSuite
 import uk.co.bigbeeconsultants.http._
 import uk.co.bigbeeconsultants.http.request.Request
 import uk.co.bigbeeconsultants.http.response.{Status, Response}
-import uk.co.bigbeeconsultants.http.header.{CacheControlValue, HttpDateTimeInstant, Headers, MediaType}
+import uk.co.bigbeeconsultants.http.header.{HttpDateTimeInstant, Headers, MediaType}
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.request.Request._
 import org.junit.runner.RunWith

@@ -33,11 +33,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 object PerformanceComparison {
+  val client = new HttpClient
+
   // Make 20 iterations then discard the worst ten. This smoothes out JVM JIT optimisation effects.
   def sample(log: PrintWriter, script: PrintWriter, iterations: Int, size: String) {
     val name = "large-file-" + size + ".tmp"
     LargeFileGenerator.main(Array(size, "src/test/resources/" + name))
-    val client = new HttpClient
     val request = Request.get("http://beeclient/" + name)
 
     val timings = for (i <- 1 to 2*iterations) yield {
