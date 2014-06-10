@@ -1,0 +1,13 @@
+# skip the following top-level dirs
+#- /lib/
+#- /lib_managed/
+#- /project/
+#- /src/
+#- /target/
+
+# skip the following deep dirs
+#- */cache/
+#- */files/
+
+# special exceptions anywhere
+#- *.log
