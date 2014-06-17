@@ -44,12 +44,21 @@ abstract class ListValue[T](parts: List[T], separator: String) extends IndexedSe
 
 //---------------------------------------------------------------------------------------------------------------------
 
+
+trait IgnorableCaseValue[T] {
+  def toLowerCase: ListValue[T]
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+
 /**
  * Defines an HTTP header value consisting of a comma-separated list of values.
  */
-case class CommaListValue(parts: List[String]) extends ListValue(parts, ", ") {
+case class CommaListValue(parts: List[String]) extends ListValue(parts, ", ") with IgnorableCaseValue[String] {
   def toQualifiedValue = new QualifiedValue(this)
   val isValid = true
+
+  override def toLowerCase = new CommaListValue(parts.map(_.toLowerCase))
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -68,9 +77,11 @@ object CommaListValue {
 /**
  * Defines an HTTP header value consisting of a semicolon-separated list of values.
  */
-case class SemicolonListValue(parts: List[String]) extends ListValue(parts,"; ") {
+case class SemicolonListValue(parts: List[String]) extends ListValue(parts,"; ") with IgnorableCaseValue[String] {
   def toQualifiers = Qualifiers(this)
   val isValid = true
+
+  override def toLowerCase = new SemicolonListValue(parts.map(_.toLowerCase))
 }
 //---------------------------------------------------------------------------------------------------------------------
 
@@ -88,8 +99,10 @@ object SemicolonListValue {
 /**
  * Defines an HTTP header value consisting of a list of values, each of which is a name and optional value.
  */
-case class NameValListValue(parts: List[NameVal], separator: String) extends ListValue(parts, separator) with Value {
+case class NameValListValue(parts: List[NameVal], separator: String) extends ListValue(parts, separator) with IgnorableCaseValue[NameVal] {
   def isValid = parts.forall(_.isValid)
+
+  override def toLowerCase = new NameValListValue(parts.map(_.toLowerCase), separator)
 }
 
 //---------------------------------------------------------------------------------------------------------------------
