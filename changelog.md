@@ -1,3 +1,21 @@
+#### Tue, 10 Jun 2014
+* v0.27.1 - sbt now 0.13.5. Some minor test changes.
+
+
+#### Thu, 27 Feb 2014
+* v0.27.1 - benchmark for large-file transfer speed is now working
+
+
+#### Wed, 26 Feb 2014
+* v0.27.1 - started on performance improvement works
+* -- bugfix in ResponseBuilder diagnostic timing
+* -- Duration.toString has improved rendering
+
+
+#### Wed, 26 Feb 2014
+* v0.27.1 - started on performance improvement works
+
+
 #### Thu, 13 Feb 2014
 * v0.27.0 - HTTP caching is now working
 
