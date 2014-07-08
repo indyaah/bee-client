@@ -13,7 +13,7 @@ class ProxyTest extends FunSuite with ShouldMatchers with BeforeAndAfter {
 
   val expectedBody = "Hey look some text"
 
-  val vanillaConfig = Config().allowInsecureSSL
+  val vanillaConfig = Config(followRedirects = false).allowInsecureSSL
 
   test("Http should work with a proxy without being configured") {
     System.setProperty("http.proxyHost", "localhost")

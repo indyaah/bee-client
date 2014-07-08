@@ -27,6 +27,7 @@ package uk.co.bigbeeconsultants.http.cache
 import java.io.IOException
 import uk.co.bigbeeconsultants.http.response.{ResponseBuilder, Response}
 import uk.co.bigbeeconsultants.http.header.HeaderName._
+import uk.co.bigbeeconsultants.http.header.HttpDateTimeInstant
 import uk.co.bigbeeconsultants.http.request.Request
 import uk.co.bigbeeconsultants.http.header.WarningValue
 import uk.co.bigbeeconsultants.http.util.HttpUtil._
@@ -79,7 +80,8 @@ class ContentCache(httpClient: HttpExecutor,
 
   private def cacheHit(cacheRecord: CacheRecord, responseBuilder: ResponseBuilder) {
     val age = (cacheRecord.currentAge / 1000L).toString
-    val modResponse = cacheRecord.response.copy(headers = cacheRecord.response.headers.set(AGE -> age))
+    val updatedHeaders = cacheRecord.response.headers.set(AGE -> age).set(DATE -> new HttpDateTimeInstant)
+    val modResponse = cacheRecord.response.copy(headers = updatedHeaders)
     responseBuilder.setResponse(modResponse)
     // no HTTP request is made
   }

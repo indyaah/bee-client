@@ -55,7 +55,7 @@ private[http] case class CacheRecord(response: Response, id: Int) extends Ordere
 
   /** The 'Age' header, if present (duration in milliseconds). */
   val age: Option[Long] = ageHeader map (_ * 1000L)
-  /** The 'Date' header, if present (timestamp int milliseconds). */
+  /** The 'Date' header, if present (timestamp in milliseconds). Else the response time. */
   val date: Long = dateHeader map (_.milliseconds) getOrElse responseTime
   /** The 'Expires' header, if present (timestamp in milliseconds). */
   val expires: Option[Long] = expiresHeader map (_.milliseconds)
