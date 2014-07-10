@@ -1,0 +1,84 @@
+#USERNAME=
+. metadata.info
+DEST=/home/websites/bigbeeconsultants
+DIR=$PWD
+SOURCES="docs repo"
+LATEST=$(grep '^version\b' build.sbt | sed 's/^version\s*:=\s*//' | tr -d '"')
+mkdir -p $DEST/docs/${PROJECT}
+mkdir -p $DEST/repo/${GROUPDIR}
+
+function symlink
+{
+    rm -f $2
+    ln -s $1 $2
+}
+
+function do_docs
+{
+  SCALA=$1
+  echo ............ Docs $SCALA .............
+  if [ -d $DIR/target/scala-${SCALA} ]; then
+    cd $DEST
+    rsync -av $DIR/target/scala-${SCALA}/api/ docs/${PROJECT}/${LATEST}
+    cd docs/${PROJECT}
+    symlink ${LATEST} latest
+  fi
+}
+
+function linkOneArtefact
+{
+  for h in '' '.md5' '.sha1'; do
+    symlink ${1}/${PROJECT}_${SCALA}${2}${h} ${PROJECT}_${SCALA}-${LATEST}${2}${h}
+  done
+}
+
+function do_repo
+{
+  SCALA=$1
+  echo ............ Repo $SCALA .............
+  if [ -d $DIR/target/scala-${SCALA} ]; then
+    cd $DEST
+    rsync -av $HOME/.ivy2/local/${GROUPID}/${PROJECT}_${SCALA} repo/${GROUPDIR}
+    cd repo/${GROUPDIR}
+    symlink ${PROJECT}_${SCALA} latest
+    cd ${PROJECT}_${SCALA}
+    for d in *; do
+      if [ -d $d ]; then
+        cd $d
+        linkOneArtefact poms '.pom'
+        linkOneArtefact jars '.jar'
+        linkOneArtefact docs '-javadoc.jar'
+        linkOneArtefact srcs '-sources.jar'
+        cd ..
+      fi
+    done
+    cd ..
+  else
+    echo Skipped $DIR/target/scala-${SCALA}.
+  fi
+}
+
+function writeLatest
+{
+  echo "<html><head><title>${PROJECT}</title>" >$1
+  echo "<meta http=equiv='Pragma' content='no-cache'/>" >> $1
+  echo "<meta http=equiv='Cache-Control' content='no-cache'/>" >> $1
+  echo "<meta http=equiv='Expires' content='0'/>" >> $1
+  echo "<meta http-equiv='Refresh' content='0;url=$2'/>" >> $1
+  echo "</head><body><a href='$2'>Latest</a></body></html>" >>$1
+}
+
+do_docs $SCALA_CURRENT
+
+for micro in 0 1 2 3; do
+  do_repo 2.9.$micro
+done
+do_repo 2.10
+
+cd $DIR
+cp target/scala-${SCALA_CURRENT}/maven-metadata.xml $DEST/repo/$GROUPDIR/${PROJECT}_${SCALA_CURRENT}
+
+echo ............ Latest .............
+cd $DEST
+writeLatest docs/${PROJECT}/latest.html "http://www.bigbeeconsultants.co.uk/docs/${PROJECT}/${LATEST}/"
+writeLatest repo/${GROUPDIR}/${PROJECT}-latest.html "http://www.bigbeeconsultants.co.uk/repo/${GROUPDIR}/${PROJECT}_${SCALA_CURRENT}/${LATEST}/"
