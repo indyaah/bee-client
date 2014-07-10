@@ -52,7 +52,14 @@ object Dependencies {
 
   val junit = "junit" % "junit" % "4.11" % "test"
 
-  val scalatest = "org.scalatest" %% "scalatest" % "1.9.1" % "test" withSources()
+  def scalaTest(scalaVersion: String) = {
+    CrossVersion.partialVersion(scalaVersion) match {
+      case Some((2, scalaMajor)) if scalaMajor >= 10 =>
+        "org.scalatest" %% "scalatest" % "2.1.3" % "test" withSources()
+      case _ =>
+        "org.scalatest" %% "scalatest" % "1.9.1" % "test" withSources()
+    }
+  }
 
   //val scalacheck = "org.scalacheck" %% "scalacheck" % "1.10.1" % "test" withSources()
 
