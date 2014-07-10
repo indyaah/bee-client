@@ -39,8 +39,7 @@ object Dependencies {
   val slf4jJcl = "org.slf4j" % "jcl-over-slf4j" % slf4jVersion withSources()
   val slf4jLog4j = "org.slf4j" % "log4j-over-slf4j" % slf4jVersion withSources()
 
-  //  val jodaTime         = "joda-time"          % "joda-time"         % "2.+" withJavadoc()
-  //  val jodaConvert      = "joda-time"          % "joda-convert"      % "1.+" withJavadoc()
+  val jodaTime = "joda-time" % "joda-time" % "2.+" withJavadoc()
 
 //  val jcsp = "org.codehaus.jcsp" % "jcsp" % "1.1-rc5"
 
