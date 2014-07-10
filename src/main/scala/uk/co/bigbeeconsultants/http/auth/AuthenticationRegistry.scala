@@ -36,8 +36,8 @@ final class AuthenticationRegistry(credentialSuite: CredentialSuite = Credential
   // Mutable state is required for
   // (a) automatic realm lookup to reduce network traffic by reducing 401s
   // (b) digest authentication nonce counters
-  private val knownRealms = JavaConversions.asScalaConcurrentMap(new ConcurrentHashMap[Endpoint, Set[RealmMapping]]())
-  private val nonces = JavaConversions.asScalaConcurrentMap(new ConcurrentHashMap[String, NonceVal]())
+  private val knownRealms = JavaConversions.mapAsScalaConcurrentMap(new ConcurrentHashMap[Endpoint, Set[RealmMapping]]())
+  private val nonces = JavaConversions.mapAsScalaConcurrentMap(new ConcurrentHashMap[String, NonceVal]())
 
   def findRealmMappings(endpoint: Endpoint): Set[RealmMapping] = knownRealms.get(endpoint) getOrElse Set()
 
