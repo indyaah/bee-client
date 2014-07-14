@@ -1,11 +1,11 @@
 #!/bin/bash -e
-V=0.12.2
+V=0.13.5
 
 cd $(dirname $0)
 if [ ! -f xsbt/bin/sbt-launch.jar ]; then
   mkdir t && cd t
   echo Getting sbt $V...
-  curl -Sf http://scalasbt.artifactoryonline.com/scalasbt/sbt-native-packages/org/scala-sbt/sbt/$V/sbt.tgz | tar -zx
+  curl -LSf http://dl.bintray.com/sbt/native-packages/sbt/$V/sbt-$V.tgz | tar -zx
   mv sbt ../xsbt
   cd .. && rmdir t
 fi
