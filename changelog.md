@@ -1,3 +1,30 @@
+#### Tue, 15 Jul 2014
+* Replaced netstat with lsof so that it operates faster.
+
+
+* parent:      292:e6c2d0cfe266
+#### Thu, 10 Jul 2014
+* Timing-related testing can be improved with the addition of a DI-based Clock class. This introduces JodaTime as a dependency
+
+
+#### Wed, 09 Jul 2014
+* v0.27.2 - Reverted to v0.27.2 prior to next release.
+
+
+* parent:      290:8854ed416358
+#### Tue, 08 Jul 2014
+* v0.28.0 - Support for Scala 2.11; some cache tweaks.
+
+
+#### Tue, 17 Jun 2014
+* v0.27.2 - ListValue has additional IgnorableCaseValue to make it easier to ignore the case of values (e.g. "gzip" in Accept-Encoding and Content-Encoding)
+
+
+* parent:      289:96b1ed56ecf5
+#### Tue, 10 Jun 2014
+* v0.27.1 - More test code: exploring the keep-alive vs close connection handling.
+
+
 #### Tue, 10 Jun 2014
 * v0.27.1 - sbt now 0.13.5. Some minor test changes.
 
