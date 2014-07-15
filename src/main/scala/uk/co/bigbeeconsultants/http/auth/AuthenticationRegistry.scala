@@ -24,7 +24,7 @@
 
 package uk.co.bigbeeconsultants.http.auth
 
-import collection.JavaConversions
+import scala.collection.JavaConverters._
 import java.util.concurrent.ConcurrentHashMap
 import uk.co.bigbeeconsultants.http.url.{Path, Href, Endpoint}
 import uk.co.bigbeeconsultants.http.header.{AuthenticateValue, Header}
@@ -36,8 +36,8 @@ final class AuthenticationRegistry(credentialSuite: CredentialSuite = Credential
   // Mutable state is required for
   // (a) automatic realm lookup to reduce network traffic by reducing 401s
   // (b) digest authentication nonce counters
-  private val knownRealms = JavaConversions.asScalaConcurrentMap(new ConcurrentHashMap[Endpoint, Set[RealmMapping]]())
-  private val nonces = JavaConversions.asScalaConcurrentMap(new ConcurrentHashMap[String, NonceVal]())
+  private val knownRealms = new ConcurrentHashMap[Endpoint, Set[RealmMapping]]().asScala
+  private val nonces = new ConcurrentHashMap[String, NonceVal]().asScala
 
   def findRealmMappings(endpoint: Endpoint): Set[RealmMapping] = knownRealms.get(endpoint) getOrElse Set()
 
