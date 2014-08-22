@@ -21,12 +21,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
+resolvers += "Sonatype snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
+
+resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 // sbt-idea
 // see https://github.com/mpeltonen/sbt-idea
-
-resolvers += "Sonatype snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
-//resolvers += "sbt-idea-repo" at "http://mpeltonen.github.com/maven/"
+resolvers += "sbt-idea-repo" at "http://mpeltonen.github.com/maven/"
 
 addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.6.0")
-
