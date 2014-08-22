@@ -41,6 +41,14 @@ object Dependencies {
 
   val jodaTime = "joda-time" % "joda-time" % "2.+" withJavadoc()
 
+  def scalaActors(scalaVersion: String) =
+    CrossVersion.partialVersion(scalaVersion) match {
+      case Some((2, scalaMajor)) if scalaMajor >= 10 =>
+        Seq("org.scala-lang" % "scala-actors" % "2.10.0" % "test")
+      case _ =>
+        Seq()
+    }
+
 //  val jcsp = "org.codehaus.jcsp" % "jcsp" % "1.1-rc5"
 
   val servletApi = "org.mortbay.jetty" % "servlet-api" % "2.5.20110712" withSources()
