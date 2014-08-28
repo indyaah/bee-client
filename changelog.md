@@ -1,4 +1,8 @@
 #### Tue, 15 Jul 2014
+* plugins.sbt - changed as per pull-request #4
+
+
+#### Tue, 15 Jul 2014
 * AuthenticationRegistry - changed as per pull-request #4
 
 
