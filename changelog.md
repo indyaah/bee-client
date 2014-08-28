@@ -1,3 +1,7 @@
+#### Thu, 28 Aug 2014
+* ninx test configuration tweaked (this is still fragile and needs replacing)
+
+
 #### Tue, 15 Jul 2014
 * plugins.sbt - changed as per pull-request #4
 
