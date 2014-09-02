@@ -25,7 +25,7 @@ class CacheRecordTest extends FunSuite {
       assert(record.expires === None)
       assert(record.isFirstHand)
       val currentAge = record.currentAge
-      assert(currentAge < 500, currentAge)
+      assert(currentAge < 600, currentAge)
     }
   }
 

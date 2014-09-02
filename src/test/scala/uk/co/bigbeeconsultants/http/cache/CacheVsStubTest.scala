@@ -76,7 +76,9 @@ class CacheVsStubTest extends FunSuite with BeforeAndAfter {
     server.clearExpectations()
 
     // wait a while...
-    Thread.sleep(999)
+    // (darn it! nasty temporal test needs rewriting!)
+    // FIXME - this will cause statistical test failures
+    Thread.sleep(1000 - (System.currentTimeMillis() - date1.milliseconds))
     val date2 = new HttpDateTimeInstant
 //    val stubbedMethod2 = StubMethod.get(path)
 //    server.expect(stubbedMethod2).thenReturn(200, TEXT_PLAIN, loadsOfText,
