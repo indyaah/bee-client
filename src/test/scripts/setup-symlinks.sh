@@ -16,10 +16,7 @@ else
     if [ "$1" != "" ]; then
         WEBSERVER=$1
     else
-        WEBSERVER=$(netstat -ltp | fgrep ' *:http ')
-        if [ -z "$WEBSERVER" ]; then
-            WEBSERVER=$(netstat -ltp | fgrep ' *:www ')
-        fi
+        WEBSERVER=$(lsof -i tcp:80 -s tcp:LISTEN | awk 'NR!=1 {print $1}' | uniq)
     fi
 
     # Fallback - error case
@@ -32,12 +29,12 @@ else
     [ -d /etc/apache2/sites-enabled ] && ETCDIR=/etc/apache2/sites-enabled
 
     case "$WEBSERVER" in
-        */apache2*)
+        apache2)
             SVR=apache2
             [ -d /var/www ] && WWWDIR=/var/www
             [ -d /etc/apache2/sites-enabled ] && ETCDIR=/etc/apache2/sites-enabled
             ;;
-        */nginx*)
+        nginx)
             SVR=nginx
             [ -d /usr/share/nginx ] && WWWDIR=/usr/share/nginx
             [ -d /etc/nginx/sites-enabled ] && ETCDIR=/etc/nginx/sites-enabled
