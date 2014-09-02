@@ -41,7 +41,7 @@ object BeeClient extends Build {
       resolvers := Resolvers.resolvers,
 
       libraryDependencies ++= Seq(
-        slf4jApi, servletApi, jodaTime,
+        slf4jApi, servletApi, jodaTime, jodaConvert,
         // for testing
         jettyEmbedded, scalaTest(scalaVersion.value), mockito, junit,
         logbackCore, logbackClassic, jsontools, javastubserver    

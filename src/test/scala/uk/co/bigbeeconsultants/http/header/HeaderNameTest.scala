@@ -97,7 +97,6 @@ class HeaderNameTest extends FunSuite {
   test("HeaderName,Header equals ignore case") {
     val hn1 = HeaderName("Stuff")
     val h2 = HeaderName("STUFF") -> "yay"
-    assert(hn1 != h2)
     assert(hn1 =~= h2)
   }
 }

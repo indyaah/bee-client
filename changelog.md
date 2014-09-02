@@ -1,3 +1,84 @@
+* parent:      296:8e5c9aeaf3c1
+* parent:      306:ad3d50548730
+#### Tue, 02 Sep 2014
+* Merged in codedefinition/bee-client1 (pull request #5)
+
+* Updates for Scala 2.11 build and package v3.
+
+
+#### Fri, 22 Aug 2014
+* Added scala-actors, all compile, test fails due to AllExamples 3b and 3c catching ConnectException instead of UnknownHostException, since host names on those tests are incorrect
+
+
+#### Mon, 14 Jul 2014
+* Updating sbt to the latest version 0.13.5
+
+
+#### Fri, 11 Jul 2014
+* replacing for JavaConversions by JavaConverters for crossScalaVersions compilation compatability
+
+
+#### Fri, 11 Jul 2014
+* Replacing asConcurrentMap by mapAsScalaConcurrentMap. It was deprecated on 2.10 an removed on 2.11
+
+
+* parent:      295:035199ef7e95
+#### Fri, 11 Jul 2014
+* Enabling scalatest version selection based on current scalaverion beeing used. Used for crossScalaVersions
+
+
+#### Thu, 28 Aug 2014
+* test setup script tweaked.
+
+
+#### Thu, 28 Aug 2014
+* ninx test configuration tweaked (this is still fragile and needs replacing)
+
+
+#### Tue, 15 Jul 2014
+* plugins.sbt - changed as per pull-request #4
+
+
+#### Tue, 15 Jul 2014
+* AuthenticationRegistry - changed as per pull-request #4
+
+
+* parent:      294:cbc6d3a21a00
+#### Tue, 15 Jul 2014
+* ResponseBuilderTest timeout relaxed based on experience.
+
+
+#### Tue, 15 Jul 2014
+* Replaced netstat with lsof so that it operates faster.
+
+
+* parent:      292:e6c2d0cfe266
+#### Thu, 10 Jul 2014
+* Timing-related testing can be improved with the addition of a DI-based Clock class. This introduces JodaTime as a dependency
+
+
+#### Wed, 09 Jul 2014
+* v0.27.2 - Reverted to v0.27.2 prior to next release.
+
+
+* parent:      290:8854ed416358
+#### Tue, 08 Jul 2014
+* v0.28.0 - Support for Scala 2.11; some cache tweaks.
+
+
+#### Tue, 17 Jun 2014
+* v0.27.2 - ListValue has additional IgnorableCaseValue to make it easier to ignore the case of values (e.g. "gzip" in Accept-Encoding and Content-Encoding)
+
+
+* parent:      289:96b1ed56ecf5
+#### Tue, 10 Jun 2014
+* v0.27.1 - More test code: exploring the keep-alive vs close connection handling.
+
+
+#### Tue, 10 Jun 2014
+* v0.27.1 - sbt now 0.13.5. Some minor test changes.
+
+
 #### Thu, 27 Feb 2014
 * v0.27.1 - benchmark for large-file transfer speed is now working
 
