@@ -20,7 +20,7 @@ log/**
 project/boot/**
 project/target/**
 target/**
-xsbt/**
+.sbt/**
 .gradle/**
 .history
 .idea/**

@@ -63,7 +63,7 @@ object HttpBinOrg extends App with Assertions {
   private def expectHeaderIfPresent(expected: Any)(headers: Headers, name: HeaderName) {
     val hdrs = headers filter name
     if (!hdrs.isEmpty) {
-      tester.test(hdrs(0).value === expected, hdrs(0))
+      tester.test(hdrs(0).value.toLowerCase === expected, hdrs(0))
     }
   }
 
@@ -83,10 +83,11 @@ object HttpBinOrg extends App with Assertions {
   }
 
 
-  htmlGet(httpClient, serverUrl + "/headers")
-  htmlGet(httpBrowser, serverUrl + "/headers")
+  htmlGet(httpClient, serverUrl + "/headers", "keep-alive")
+  htmlGet(httpBrowser, serverUrl + "/headers", "keep-alive")
+  htmlGet(new HttpClient(config copy (keepAlive=false)), serverUrl + "/headers", "close")
 
-  private def htmlGet(http: Http, urlStr: String) {
+  private def htmlGet(http: Http, urlStr: String, expConnection: String) {
     for (url <- httpAndHttpsUrls(urlStr)) {
       println("GET " + url)
       val response = http.get(url, gzipHeaders)
@@ -95,6 +96,8 @@ object HttpBinOrg extends App with Assertions {
       tester.test(body.contentType.mediaType === APPLICATION_JSON.mediaType, url)
       val json = JSONWrapper(response.body.asString)
       tester.test(serverUrl === json.get("headers/Host").asString, url)
+      expectHeaderIfPresent("gzip")(response.headers, CONTENT_ENCODING)
+      expectHeaderIfPresent(expConnection)(response.headers, ExpertHeaderName.CONNECTION)
     }
   }
 
@@ -219,8 +222,8 @@ object HttpBinOrg extends App with Assertions {
 
   def httpAndHttpsUrls(urlStr: String): List[URL] = {
     List(
-      new URL("http://" + urlStr)
-      //new URL("https://" + urlStr)
+      new URL("http://" + urlStr),
+      new URL("https://" + urlStr)
     )
   }
 }

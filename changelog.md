@@ -1,3 +1,36 @@
+* parent:      296:8e5c9aeaf3c1
+* parent:      306:ad3d50548730
+#### Tue, 02 Sep 2014
+* Merged in codedefinition/bee-client1 (pull request #5)
+
+* Updates for Scala 2.11 build and package v3.
+
+
+#### Fri, 22 Aug 2014
+* Added scala-actors, all compile, test fails due to AllExamples 3b and 3c catching ConnectException instead of UnknownHostException, since host names on those tests are incorrect
+
+
+#### Mon, 14 Jul 2014
+* Updating sbt to the latest version 0.13.5
+
+
+#### Fri, 11 Jul 2014
+* replacing for JavaConversions by JavaConverters for crossScalaVersions compilation compatability
+
+
+#### Fri, 11 Jul 2014
+* Replacing asConcurrentMap by mapAsScalaConcurrentMap. It was deprecated on 2.10 an removed on 2.11
+
+
+* parent:      295:035199ef7e95
+#### Fri, 11 Jul 2014
+* Enabling scalatest version selection based on current scalaverion beeing used. Used for crossScalaVersions
+
+
+#### Thu, 28 Aug 2014
+* test setup script tweaked.
+
+
 #### Thu, 28 Aug 2014
 * ninx test configuration tweaked (this is still fragile and needs replacing)
 
