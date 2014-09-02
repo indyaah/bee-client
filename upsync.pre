@@ -1,6 +1,6 @@
 #USERNAME=
 . metadata.info
-DEST=/home/websites/bigbeeconsultants
+DEST=/home/bigbee-websites/bigbeeconsultants
 DIR=$PWD
 SOURCES="docs repo"
 LATEST=$(grep '^version\b' build.sbt | sed 's/^version\s*:=\s*//' | tr -d '"')
@@ -74,6 +74,7 @@ for micro in 0 1 2 3; do
   do_repo 2.9.$micro
 done
 do_repo 2.10
+do_repo 2.11
 
 cd $DIR
 cp target/scala-${SCALA_CURRENT}/maven-metadata.xml $DEST/repo/$GROUPDIR/${PROJECT}_${SCALA_CURRENT}
