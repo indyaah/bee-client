@@ -1,9 +1,10 @@
-package uk.co.bigbeeconsultants.util;
+package uk.co.bigbeeconsultants.http.util;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.Test;
+import uk.co.bigbeeconsultants.http.util.Clock;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

@@ -1,4 +1,4 @@
-package uk.co.bigbeeconsultants.util;
+package uk.co.bigbeeconsultants.http.util;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
