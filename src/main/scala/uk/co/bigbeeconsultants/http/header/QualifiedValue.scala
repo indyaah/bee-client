@@ -41,6 +41,8 @@ case class NameVal(name: String, value: Option[String]) {
     if (value.isEmpty) None
     else Some(unquote(value.get))
   }
+
+  def toLowerCase = new NameVal(name.toLowerCase, value.map(_.toLowerCase))
 }
 
 //---------------------------------------------------------------------------------------------------------------------

@@ -32,28 +32,44 @@ import org.scalatest.junit.JUnitRunner
 class ListValueTest extends FunSuite {
 
   test("CommaListValue with three items") {
-    val v = CommaListValue.split("gzip, deflate, sdhc")
-    assert(3 === v.parts.size)
-    assert("gzip" === v(0))
-    assert("gzip" === v.parts(0))
-    assert("gzip, deflate, sdhc" === v.toString)
+    val vu = CommaListValue.split("Gzip, Deflate, Sdhc")
+    val vl = vu.toLowerCase
+    assert(3 === vu.parts.size)
+    assert(3 === vl.parts.size)
+    assert("Gzip" === vu(0))
+    assert("gzip" === vl(0))
+    assert("Gzip" === vu.parts(0))
+    assert("gzip" === vl.parts(0))
+    assert("Gzip, Deflate, Sdhc" === vu.toString)
+    assert("gzip, deflate, sdhc" === vl.toString)
   }
 
   test("SemicolonListValue with three items") {
-    val v = SemicolonListValue.split("x=1; y=2; z=3")
-    assert(3 === v.parts.size)
-    assert("x=1" === v(0))
-    assert("x=1" === v.parts(0))
-    assert("x=1; y=2; z=3" === v.toString)
+    val vu = SemicolonListValue.split("X=1; Y=2; Z=3")
+    val vl = vu.toLowerCase
+    assert(3 === vu.parts.size)
+    assert(3 === vl.parts.size)
+    assert("X=1" === vu(0))
+    assert("x=1" === vl(0))
+    assert("X=1" === vu.parts(0))
+    assert("x=1" === vl.parts(0))
+    assert("X=1; Y=2; Z=3" === vu.toString)
+    assert("x=1; y=2; z=3" === vl.toString)
   }
 
   test("NameValListValue with three items") {
-    val v = NameValListValue.split("x=1, y=2, z=3")
-    assert(v.isValid)
-    assert(v.parts.size === 3)
-    assert(v(0).name === "x")
-    assert(v(0).value === Some("1"))
-    assert(v.toString === "x=1, y=2, z=3")
+    val vu = NameValListValue.split("X=A, Y=2, Z=3")
+    val vl = vu.toLowerCase
+    assert(vu.isValid)
+    assert(vl.isValid)
+    assert(vu.parts.size === 3)
+    assert(vl.parts.size === 3)
+    assert(vu(0).name === "X")
+    assert(vl(0).name === "x")
+    assert(vu(0).value === Some("A"))
+    assert(vl(0).value === Some("a"))
+    assert(vu.toString === "X=A, Y=2, Z=3")
+    assert(vl.toString === "x=a, y=2, z=3")
   }
 
 }

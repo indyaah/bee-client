@@ -72,11 +72,4 @@ else
         echo Set up $ETCDIR ok.
         service $SVR reload
     fi
-
-    sed 's/#.*//' < /etc/hosts > /tmp/$$
-    if ! grep beeclient /tmp/$$ >/dev/null ; then
-        echo "127.0.17.19 beeclient" >> /etc/hosts
-        echo /etc/hosts updated.
-    fi
-    rm -f /tmp/$$
 fi
