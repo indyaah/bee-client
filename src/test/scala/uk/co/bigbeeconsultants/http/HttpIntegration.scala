@@ -24,22 +24,21 @@
 
 package uk.co.bigbeeconsultants.http
 
-import auth.{CredentialSuite, Credential}
-import HttpClient._
-import header._
-import header.MediaType._
-import header.HeaderName._
-import java.lang.AssertionError
-import request.RequestBody
-import org.scalatest.FunSuite
-import java.net.{UnknownHostException, ConnectException, Proxy, URL}
 import java.io.File
-import url.Domain
-import uk.co.bigbeeconsultants.http.util.{Duration, DiagnosticTimer}
-import header.{HeaderName, Headers}
+import java.net.{ConnectException, Proxy, URL, UnknownHostException}
+
 import org.junit.runner.RunWith
+import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
+import uk.co.bigbeeconsultants.http.HttpClient._
+import uk.co.bigbeeconsultants.http.auth.{Credential, CredentialSuite}
 import uk.co.bigbeeconsultants.http.cache.CacheConfig
+import uk.co.bigbeeconsultants.http.header.HeaderName._
+import uk.co.bigbeeconsultants.http.header.MediaType._
+import uk.co.bigbeeconsultants.http.header.{HeaderName, Headers, _}
+import uk.co.bigbeeconsultants.http.request.RequestBody
+import uk.co.bigbeeconsultants.http.url.Domain
+import uk.co.bigbeeconsultants.http.util.{DiagnosticTimer, Duration}
 
 // scala actors futures retain 2.9.1 backward compatibility
 import scala.actors._
@@ -150,7 +149,7 @@ object HttpIntegration {
 @RunWith(classOf[JUnitRunner])
 class HttpIntegration extends FunSuite {
 
-  import HttpIntegration._
+  import uk.co.bigbeeconsultants.http.HttpIntegration._
 
   def headTest(http: Http, url: String, size: Long) {
     try {
