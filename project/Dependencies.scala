@@ -40,6 +40,8 @@ object Dependencies {
   val slf4jLog4j = "org.slf4j" % "log4j-over-slf4j" % slf4jVersion withSources()
 
   val jodaTime = "joda-time" % "joda-time" % "2.+" withJavadoc()
+  val jodaConvert = "org.joda" % "joda-convert" % "1.7"
+
 
   def scalaActors(scalaVersion: String) =
     CrossVersion.partialVersion(scalaVersion) match {
