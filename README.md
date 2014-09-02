@@ -44,3 +44,6 @@ More examples follow in [the tutorial](http://www.bigbeeconsultants.co.uk/conten
 Several new features are under consideration for future versions.
 
 See https://bitbucket.org/rickb777/bee-client/issues?status=new&status=open
+
+[![Build Status](https://drone.io/bitbucket.org/rickb777/bee-client/status.png)](https://drone.io/bitbucket.org/rickb777/bee-client/latest)
+
