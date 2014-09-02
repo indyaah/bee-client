@@ -1,3 +1,31 @@
+#### Tue, 02 Sep 2014
+* Small housekeeping items
+
+
+#### Tue, 02 Sep 2014
+* A little loosening up of some timing-based tests.
+* These need rewriting using the predicatable Clock (or similar).
+
+
+#### Tue, 02 Sep 2014
+* Reverted the change concerning scalatest Matchers because backward compatibility is needed.
+
+
+#### Tue, 02 Sep 2014
+* v0.28.0 - Minor tweaks to tests and test support code.
+
+
+* parent:      308:9ddd0462675b
+* parent:      301:a6f62b514634
+#### Tue, 02 Sep 2014
+* v0.28.0 - Merged and revised.
+
+
+#### Tue, 02 Sep 2014
+* v0.28.0 - Upgraded to work with Scala 2.11, as well as 2.10 and 2.9.
+* With thanks to https://bitbucket.org/codedefinition.
+
+
 * parent:      296:8e5c9aeaf3c1
 * parent:      306:ad3d50548730
 #### Tue, 02 Sep 2014
