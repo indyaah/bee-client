@@ -5,8 +5,8 @@ import uk.co.bigbeeconsultants.http.request.RequestBody
 
 object Example3b {
   val requestBody = RequestBody(Map("x" -> "1", "y" -> "2"))
-  val url = "http://beeclient/test-echo-back.php"
-  val httpClient = new HttpClient
+  val url = "http://httpbin.org/post"
+  val httpClient = new HttpClient(Config(connectTimeout = 60000))
 
   def main(args: Array[String]) {
     val response = httpClient.post(url, Some(requestBody))

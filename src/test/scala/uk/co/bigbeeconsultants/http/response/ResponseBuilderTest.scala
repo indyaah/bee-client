@@ -24,7 +24,7 @@
 
 package uk.co.bigbeeconsultants.http.response
 
-import org.scalatest.FunSuite
+import org.scalatest.{Matchers, FunSuite}
 import org.scalatest.matchers.ShouldMatchers
 import uk.co.bigbeeconsultants.http.request._
 import uk.co.bigbeeconsultants.http.header.{Cookie, CookieJar, Headers}
@@ -37,7 +37,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ResponseBuilderTest extends FunSuite with ShouldMatchers {
+class ResponseBuilderTest extends FunSuite with Matchers {
 
   test("BufferedResponseBuilder should capture response data correctly") {
     val builder = new BufferedResponseBuilder

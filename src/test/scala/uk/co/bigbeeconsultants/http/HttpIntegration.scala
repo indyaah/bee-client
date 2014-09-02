@@ -44,7 +44,6 @@ import uk.co.bigbeeconsultants.http.cache.CacheConfig
 // scala actors futures retain 2.9.1 backward compatibility
 import scala.actors._
 
-
 object HttpIntegration {
   val testHtmlFile = "test-lighthttpclient.html"
   val testTxtFile = "lorem1.txt"
