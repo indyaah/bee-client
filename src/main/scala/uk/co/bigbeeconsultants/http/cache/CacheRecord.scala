@@ -24,14 +24,14 @@
 
 package uk.co.bigbeeconsultants.http.cache
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import uk.co.bigbeeconsultants.http.header.HeaderName._
 import uk.co.bigbeeconsultants.http.response.Response
-import uk.co.bigbeeconsultants.http.header.{CacheControlValue, HttpDateTimeInstant}
-import java.util.concurrent.atomic.AtomicInteger
 
 private[http] case class CacheRecord(response: Response, id: Int) extends Ordered[CacheRecord] {
 
-  import HttpDateTimeInstant._
+  import uk.co.bigbeeconsultants.http.header.HttpDateTimeInstant._
 
   // Note: all `Long` durations and timestamps are in milliseconds
 

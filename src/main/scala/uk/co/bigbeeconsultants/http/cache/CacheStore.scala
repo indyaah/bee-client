@@ -24,9 +24,7 @@
 
 package uk.co.bigbeeconsultants.http.cache
 
-import java.util.concurrent.{ArrayBlockingQueue, LinkedBlockingQueue, ConcurrentHashMap}
-import java.util.concurrent.atomic.AtomicInteger
-import uk.co.bigbeeconsultants.http.response.Response
+import java.util.concurrent.{ArrayBlockingQueue, ConcurrentHashMap, LinkedBlockingQueue}
 
 private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean, queueLimit: Int = Int.MaxValue) {
 
@@ -124,6 +122,7 @@ private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean, queue
     val thread = new Thread(runnable, "CacheStore-cleaner")
     thread.setDaemon(true)
     thread.start()
+    thread
   }
 
   private def startBackgroundThread() {
