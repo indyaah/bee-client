@@ -1,3 +1,7 @@
+#### Wed, 03 Sep 2014
+* Code tidied up (some imports were optimised).
+
+
 #### Tue, 02 Sep 2014
 * Housekeeping issues
 

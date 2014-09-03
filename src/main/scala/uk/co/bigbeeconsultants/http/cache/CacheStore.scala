@@ -24,7 +24,7 @@
 
 package uk.co.bigbeeconsultants.http.cache
 
-import java.util.concurrent.{ArrayBlockingQueue, ConcurrentHashMap, LinkedBlockingQueue}
+import java.util.concurrent.{ArrayBlockingQueue, ConcurrentHashMap, LinkedTransferQueue}
 
 private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean, queueLimit: Int = Int.MaxValue) {
 
@@ -99,7 +99,7 @@ private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean, queue
 
   private lazy val queue =
     if (queueLimit < Int.MaxValue) new ArrayBlockingQueue[Item](queueLimit)
-    else new LinkedBlockingQueue[Item]()
+    else new LinkedTransferQueue[Item]()
 
   private def submitForCleaning(oldRecord: CacheRecord, newRecord: CacheRecord) {
     queue.put(new Item(oldRecord, newRecord))
@@ -121,6 +121,7 @@ private[http] class CacheStore(maxContentSize: Long, lazyCleanup: Boolean, queue
     }
     val thread = new Thread(runnable, "CacheStore-cleaner")
     thread.setDaemon(true)
+    thread.setPriority(Thread.MIN_PRIORITY)
     thread.start()
     thread
   }
