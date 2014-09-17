@@ -31,8 +31,8 @@ object Resolvers {
 }
 
 object Dependencies {
-  val slf4jVersion = "1.7.5"
-  val logbackVersion = "1.0.12" // .13 released
+  val slf4jVersion = "1.7.7"
+  val logbackVersion = "1.1.2"
   val jettyVersion = "6.1.26"
 
   val slf4jApi = "org.slf4j" % "slf4j-api" % slf4jVersion withSources()
