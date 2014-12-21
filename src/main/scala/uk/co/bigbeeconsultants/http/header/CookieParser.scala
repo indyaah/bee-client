@@ -84,7 +84,7 @@ private[header] object CookieParser {
         maxAge = Some(v.toInt)
       }
       else if (a.equalsIgnoreCase(EXPIRES)) {
-        expires = Some(HttpDateTimeInstant.parse(v))
+        expires = if (v.nonEmpty) Some(HttpDateTimeInstant.parse(v)) else None
       }
       else if (a.equalsIgnoreCase(PATH)) {
         path = v

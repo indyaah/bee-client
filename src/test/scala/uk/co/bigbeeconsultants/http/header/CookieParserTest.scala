@@ -152,6 +152,26 @@ class CookieParserTest extends FunSuite {
 //    assert(CookieParser.asSetHeader(cookie).toLowerCase === str.toLowerCase)
   }
 
+  test("example 7: blank expires field is treated as if expires is not set") {
+    val str = "GEORAN=1; path=/; domain=.ticketmaster.com; expires="
+    val headers = HeaderName.SET_COOKIE -> str
+    val cookies: List[Cookie] = CookieJar.gleanCookies(Some(CookieJar.Empty), new URL("http://www.ticketmaster.com/"), Headers(headers))._1.get.cookies
+    assert(cookies.size === 1)
+    val cookie = cookies(0)
+    assert(cookie.name === "GEORAN")
+    assert(cookie.value === "1")
+    assert(cookie.domain.domain === "ticketmaster.com")
+    assert(cookie.path === "/")
+    assert(cookie.serverProtocol === "http")
+    assert(cookie.expires === None)
+    assert(cookie.maxAge === None)
+    assert(!cookie.persistent)
+    assert(!cookie.hostOnly)
+    assert(!cookie.secure)
+    assert(!cookie.httpOnly)
+//    assert(CookieParser.asSetHeader(cookie).toLowerCase === str.toLowerCase)
+  }
+
   test("httponly filter") {
     val str = "user=frodo123; domain=.frodo.com; path=/; expires=Sun, 05-Feb-2034 20:23:23 GMT; secure; HttpOnly"
     val headers = HeaderName.SET_COOKIE -> str

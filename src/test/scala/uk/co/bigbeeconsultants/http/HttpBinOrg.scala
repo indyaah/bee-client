@@ -24,17 +24,18 @@
 
 package uk.co.bigbeeconsultants.http
 
-import auth.{AuthenticationRegistry, CredentialSuite, Credential}
-import HttpClient._
-import header.MediaType._
-import header.HeaderName._
 import java.net.{Proxy, URL}
-import header._
+
 import org.scalatest.Assertions
-import request.RequestBody
-import url.Domain
-import util.JSONWrapper
 import org.scalatest.exceptions.TestFailedException
+import uk.co.bigbeeconsultants.http.HttpClient._
+import uk.co.bigbeeconsultants.http.auth.{AuthenticationRegistry, Credential, CredentialSuite}
+import uk.co.bigbeeconsultants.http.header.HeaderName._
+import uk.co.bigbeeconsultants.http.header.MediaType._
+import uk.co.bigbeeconsultants.http.header._
+import uk.co.bigbeeconsultants.http.request.RequestBody
+import uk.co.bigbeeconsultants.http.url.Domain
+import uk.co.bigbeeconsultants.http.util.JSONWrapper
 
 /**
  * Tests the API against httpbin.org. This is an app rather than a unit test because it would be rude to
@@ -85,7 +86,7 @@ object HttpBinOrg extends App with Assertions {
 
   htmlGet(httpClient, serverUrl + "/headers", "keep-alive")
   htmlGet(httpBrowser, serverUrl + "/headers", "keep-alive")
-  htmlGet(new HttpClient(config copy (keepAlive=false)), serverUrl + "/headers", "close")
+  htmlGet(new HttpClient(config copy (keepAlive = false)), serverUrl + "/headers", "close")
 
   private def htmlGet(http: Http, urlStr: String, expConnection: String) {
     for (url <- httpAndHttpsUrls(urlStr)) {
@@ -153,17 +154,20 @@ object HttpBinOrg extends App with Assertions {
   }
 
 
-  textPlainGetWithQueryString(httpClient, "http://" + serverUrl + "/get?A=1&B=2")
+  textPlainGetWithQueryString(httpClient, serverUrl + "/get?A=1&B=2")
 
-  private def textPlainGetWithQueryString(http: Http, url: String) {
-    val response = http.get(new URL(url), gzipHeaders)
-    tester.test(200 === response.status.code, url)
-    tester.test(APPLICATION_JSON.mediaType === response.body.contentType.mediaType, url)
-    val json = JSONWrapper(response.body.asString)
-    val args = json.get("args")
-    tester.test(2 === args.asMap.size, response.body)
-    tester.test("1" === args.get("A").asString, response.body)
-    tester.test("2" === args.get("B").asString, response.body)
+  private def textPlainGetWithQueryString(http: Http, urlStr: String) {
+    for (url <- httpAndHttpsUrls(urlStr)) {
+      println("GET " + url)
+      val response = http.get(url, gzipHeaders)
+      tester.test(200 === response.status.code, url)
+      tester.test(APPLICATION_JSON.mediaType === response.body.contentType.mediaType, url)
+      val json = JSONWrapper(response.body.asString)
+      val args = json.get("args")
+      tester.test(2 === args.asMap.size, response.body)
+      tester.test("1" === args.get("A").asString, response.body)
+      tester.test("2" === args.get("B").asString, response.body)
+    }
   }
 
 
