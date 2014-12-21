@@ -1,5 +1,5 @@
 #!/bin/bash -e
-V=0.13.5
+V=0.13.7
 
 cd $(dirname $0)
 if [ ! -f .sbt/bin/sbt-launch.jar ]; then
