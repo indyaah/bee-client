@@ -216,7 +216,6 @@ class HttpIntegration extends FunSuite {
     val http = new HttpClient(configNoRedirects)
     for (i <- 1 to 100) {
       headTest(http, "http:" + serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
-      headTest(http, "https:" + serverUrl + testHtmlFile + "?LOREM=" + i, testHtmlSize)
     }
   }
 
@@ -224,14 +223,11 @@ class HttpIntegration extends FunSuite {
     val http = new HttpClient(configNoRedirects)
     for (i <- 1 to 100) {
       htmlGet(http, "http:" + serverUrl + testHtmlFile + "?LOREM=" + i, GZIP, testHtmlSize)
-      htmlGet(http, "https:" + serverUrl + testHtmlFile + "?LOREM=" + i, GZIP, testHtmlSize)
-      //htmlGet(http, "http:" + serverUrl + testHtmlFile + "?LOREM=" + i, DEFLATE, testHtmlSize)
     }
   }
 
   test("html text/html get giving 204 x100") {
     textHtmlGet204("http:" + serverUrl + test204File)
-    //    textHtmlGet204("https:" + serverUrl + test204File)
   }
 
   private def textHtmlGet204(url: String) {
@@ -251,7 +247,6 @@ class HttpIntegration extends FunSuite {
 
   test("image/png get x1") {
     imagePngGet("http:" + serverUrl + testImageFile)
-    imagePngGet("https:" + serverUrl + testImageFile)
   }
 
   private def imagePngGet(url: String) {
@@ -273,7 +268,6 @@ class HttpIntegration extends FunSuite {
 
   test("txt text/plain get x1") {
     textPlainGet("http:" + serverUrl + testTxtFile)
-    textPlainGet("https:" + serverUrl + testTxtFile)
   }
 
   private def textPlainGet(url: String) {
@@ -292,7 +286,6 @@ class HttpIntegration extends FunSuite {
 
   test("txt text/plain get following redirect") {
     textPlainGetFollowingRedirect("http:" + serverUrl + testRedirect1File + "?TO=" + testRedirect2File)
-    //    textPlainGetFollowingRedirect("https:" + serverUrl + testRedirect1File + "?TO=" + testRedirect2File)
   }
 
   private def textPlainGetFollowingRedirect(url: String) {
@@ -337,7 +330,6 @@ class HttpIntegration extends FunSuite {
 
   test("txt text/plain get qith query string x1") {
     textPlainGetWithQueryString("http:" + serverUrl + testEchoFile + "?A=1&B=2")
-    //    textPlainGetWithQueryString("https:" + serverUrl + testEchoFile + "?A=1&B=2")
   }
 
   private def textPlainGetWithQueryString(url: String) {
@@ -359,7 +351,6 @@ class HttpIntegration extends FunSuite {
 
   test("txt text/plain get acquiring a cookie") {
     textPlainGetAcquiringCookie("http:" + serverUrl + testCookieFile)
-    //    textPlainGetAcquiringCookie("https:" + serverUrl + testCookieFile)
   }
 
   private def textPlainGetAcquiringCookie(url: String) {
@@ -380,7 +371,6 @@ class HttpIntegration extends FunSuite {
 
   test("php text/plain options x1") {
     textPlainOptions("http:" + serverUrl + testPhpFile + "?CT=text/plain")
-    //    textPlainOptions("https:" + serverUrl + testPhpFile + "?CT=text/plain")
   }
 
   private def textPlainOptions(url: String) {
@@ -398,7 +388,6 @@ class HttpIntegration extends FunSuite {
 
   test("php text/plain post x1") {
     textPlainPost("http:" + serverUrl + testEchoFile)
-    //    textPlainPost("https:" + serverUrl + testEchoFile)
   }
 
   private def textPlainPost(url: String) {
@@ -420,7 +409,6 @@ class HttpIntegration extends FunSuite {
 
   test("php text/plain put x1") {
     textPlainPut("http:" + serverUrl + testEchoFile)
-    //    textPlainPut("https:" + serverUrl + testEchoFile)
   }
 
   private def textPlainPut(url: String) {
@@ -442,7 +430,6 @@ class HttpIntegration extends FunSuite {
 
   test("php text/html delete x1") {
     textHtmlDelete("http:" + serverUrl + testEchoFile)
-    //    textHtmlDelete("https:" + serverUrl + testEchoFile)
   }
 
   private def textHtmlDelete(url: String) {
@@ -462,7 +449,6 @@ class HttpIntegration extends FunSuite {
 
   test("php text/html options x1") {
     textHtmlOptions("http:" + serverUrl + testEchoFile)
-    //    textHtmlOptions("https:" + serverUrl + testEchoFile)
   }
 
   private def textHtmlOptions(url: String) {
@@ -482,8 +468,6 @@ class HttpIntegration extends FunSuite {
 
   test("jpg image/jpg get x100") {
     imageJpegGet("http:" + serverUrl + testPhotoFile)
-    // works but VERY slow
-    //imageJpegGet("https:" + serverUrl + testPhotoFile)
   }
 
   private def imageJpegGet(url: String) {
@@ -510,7 +494,6 @@ class HttpIntegration extends FunSuite {
 
   test("php text/html get x100") {
     textHtmlGet100("http:" + serverUrl + testPhpFile)
-    //    textHtmlGet100("https:" + serverUrl + testPhpFile)
   }
 
   private def textHtmlGet100(url: String) {
@@ -558,9 +541,7 @@ class HttpIntegration extends FunSuite {
 
   test("txt text/plain get basic auth") {
     textPlainGetBasicAuth401("http:" + serverUrl + "private/lorem2.txt")
-    textPlainGetBasicAuth401("https:" + serverUrl + "private/lorem2.txt")
     textPlainGetBasicAuth("http:" + serverUrl + "private/lorem2.txt")
-    //textPlainGetBasicAuth("https:" + serverUrl + "private/lorem2.txt")
   }
 
   private def textPlainGetBasicAuth401(url: String) {

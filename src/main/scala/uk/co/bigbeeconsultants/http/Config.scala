@@ -24,15 +24,15 @@
 
 package uk.co.bigbeeconsultants.http
 
-import auth.CredentialSuite
-import header.HeaderName._
 import java.net.Proxy
-import header.Headers
-import request._
-import javax.net.ssl._
-import java.security.cert.X509Certificate
 import java.security.SecureRandom
-import scala.Some
+import java.security.cert.X509Certificate
+import javax.net.ssl._
+
+import uk.co.bigbeeconsultants.http.auth.CredentialSuite
+import uk.co.bigbeeconsultants.http.header.HeaderName._
+import uk.co.bigbeeconsultants.http.header.Headers
+import uk.co.bigbeeconsultants.http.request._
 
 /**
  * Specifies configuration options that will be used across many requests or for a particular request.
