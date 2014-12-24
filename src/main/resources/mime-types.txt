@@ -9,7 +9,11 @@ application/davmount+xml davmount
 application/dicom dcm
 application/dsptype tsp
 application/ecmascript es
+application/font-sfnt otf ttf
+application/font-tdpfr pfr
+application/font-woff woff
 application/futuresplash spl
+application/gzip gz
 application/hta hta
 application/java-archive jar
 application/java-serialized-object ser
@@ -26,6 +30,7 @@ application/msword doc dot
 application/mxf mxf
 application/octet-stream bin
 application/oda oda
+application/oebps-package+xml opf
 application/ogg ogx
 application/onenote one onetoc2 onetmp onepkg
 application/pdf pdf
@@ -38,13 +43,15 @@ application/rar rar
 application/rdf+xml rdf
 application/rtf rtf
 application/sla stl
-application/smil smi smil
+application/smil+xml smi smil
 application/xhtml+xml xhtml xht
-application/xml xml xsl xsd
+application/xml xml xsd
+application/xslt+xml xsl xslt
 application/xspf+xml xspf
 application/zip zip
 application/vnd.android.package-archive apk
 application/vnd.cinderella cdy
+application/vnd.font-fontforge-sfd sfd
 application/vnd.google-earth.kml+xml kml
 application/vnd.google-earth.kmz kmz
 application/vnd.mozilla.xul+xml xul
@@ -83,8 +90,6 @@ application/vnd.openxmlformats-officedocument.presentationml.slide sldx
 application/vnd.openxmlformats-officedocument.presentationml.slideshow ppsx
 application/vnd.openxmlformats-officedocument.presentationml.template potx
 application/vnd.openxmlformats-officedocument.spreadsheetml.sheet xlsx
-application/vnd.openxmlformats-officedocument.spreadsheetml.sheet xlsx
-application/vnd.openxmlformats-officedocument.spreadsheetml.template xltx
 application/vnd.openxmlformats-officedocument.spreadsheetml.template xltx
 application/vnd.openxmlformats-officedocument.wordprocessingml.document docx
 application/vnd.openxmlformats-officedocument.wordprocessingml.template dotx
@@ -109,7 +114,7 @@ application/vnd.sun.xml.writer.global sxg
 application/vnd.sun.xml.writer.template stw
 application/vnd.symbian.install sis
 application/vnd.tcpdump.pcap cap pcap
-application/vnd.visio vsd
+application/vnd.visio vsd vst vsw vss
 application/vnd.wap.wbxml wbxml
 application/vnd.wap.wmlc wmlc
 application/vnd.wap.wmlscriptc wmlsc
@@ -135,8 +140,8 @@ application/x-director dcr dir dxr
 application/x-dms dms
 application/x-doom wad
 application/x-dvi dvi
-application/x-font pfa pfb gsf pcf pcf.Z
-application/x-font-woff woff
+application/x-font pfa pfb gsf
+application/x-font-pcf pcf pcf.Z
 application/x-freemind mm
 application/x-futuresplash spl
 application/x-ganttproject gan
@@ -167,7 +172,6 @@ application/x-lyx lyx
 application/x-lzh lzh
 application/x-lzx lzx
 application/x-maker frm maker frame fm fb book fbdoc
-application/x-md5 md5
 application/x-mif mif
 application/x-mpegURL m3u8
 application/x-ms-wmd wmd
@@ -175,7 +179,7 @@ application/x-ms-wmz wmz
 application/x-msdos-program com exe bat dll
 application/x-msi msi
 application/x-netcdf nc
-application/x-ns-proxy-autoconfig pac dat
+application/x-ns-proxy-autoconfig pac
 application/x-nwc nwc
 application/x-object o
 application/x-oz-application oza
@@ -191,7 +195,6 @@ application/x-ruby rb
 application/x-scilab sci sce
 application/x-scilab-xcos xcos
 application/x-sh sh
-application/x-sha1 sha1
 application/x-shar shar
 application/x-shockwave-flash swf swfl
 application/x-silverlight scr
@@ -218,8 +221,6 @@ application/x-xfig fig
 application/x-xpinstall xpi
 audio/amr amr
 audio/amr-wb awb
-audio/amr amr
-audio/amr-wb awb
 audio/annodex axa
 audio/basic au snd
 audio/csound csd orc sco
@@ -227,7 +228,7 @@ audio/flac flac
 audio/midi mid midi kar
 audio/mpeg mpga mpega mp2 mp3 m4a
 audio/mpegurl m3u
-audio/ogg oga ogg spx
+audio/ogg oga ogg opus spx
 audio/prs.sid sid
 audio/x-aiff aif aiff aifc
 audio/x-gsm gsm
@@ -295,7 +296,10 @@ chemical/x-xtel xtel
 chemical/x-xyz xyz
 image/gif gif
 image/ief ief
+image/jp2 jp2 jpg2
 image/jpeg jpeg jpg jpe
+image/jpm jpm
+image/jpx jpx jpf
 image/pcx pcx
 image/png png
 image/svg+xml svg svgz
@@ -345,6 +349,8 @@ text/richtext rtx
 text/scriptlet sct wsc
 text/texmacs tm
 text/tab-separated-values tsv
+text/turtle ttl
+text/vcard vcf vcard
 text/vnd.sun.j2me.app-descriptor jad
 text/vnd.wap.wml wml
 text/vnd.wap.wmlscript wmls
@@ -374,7 +380,6 @@ text/x-sh sh
 text/x-tcl tcl tk
 text/x-tex tex ltx sty cls
 text/x-vcalendar vcs
-text/x-vcard vcf
 video/3gpp 3gp
 video/annodex axv
 video/dl dl
