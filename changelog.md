@@ -1,3 +1,25 @@
+#### Sun, 21 Dec 2014
+* v0.29.0 ; fixes bug #31
+
+
+#### Sun, 21 Dec 2014
+* Bugfix for issue #31 cookies with incomplete expires information are handled gracefully now.
+* https://bitbucket.org/rickb777/bee-client/issue/31/cookie-parser-exception
+
+
+#### Sun, 21 Dec 2014
+* SBT gen-idea plugin dropped - doesn't play nicely with IntelliJ/J 14. SBT upped to v0.13.7.
+
+
+#### Wed, 17 Sep 2014
+* CacheVsStubTest stability issue reduced. SLF4J & Logback dependencies upped to 1.7.7 and 1.1.2.
+
+
+#### Wed, 03 Sep 2014
+* CacheStore has been switched to use a LinkedTransferQueue because it operates faster than LinkedBlockingQueue.
+* CacheStoreTest now covers the case that had been missed: a limited queue length.
+
+
 #### Wed, 03 Sep 2014
 * Code tidied up (some imports were optimised).
 
