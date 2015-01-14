@@ -15,4 +15,4 @@ TESTS-TestSuites.xml
 *.iws
 *.tmp
 
-version.gradle
+gradle.properties

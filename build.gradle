@@ -1,19 +1,17 @@
 apply plugin: 'scala'
 apply plugin: 'maven'
 apply plugin: 'jacoco'
-apply from: 'version.gradle'
 apply from: 'ide-support.gradle'
-apply from: 'dependencies.gradle'
+apply from: "dependencies.gradle"
 
-version = "0.29.0"
-uploadPath = "file:local/repo"
+ext.version = "0.29.0"
 
 dependencies {
     compile scalaLibrary
     compile slf4jApi, servletApi, jodaTime, jodaConvert
 
     testCompile jettyEmbedded, mockito, junit
-    testCompile logback, jsontools, javastubserver 
+    testCompile logback, jsontools, javastubserver
 
     testCompile(scalatest) {
         exclude group: 'org.scala-lang'
@@ -41,6 +39,8 @@ tasks.withType(ScalaCompile) {
     scalaCompileOptions.useAnt = false // Zinc incremental compiler
 }
 
+ext.uploadPath = "file:local/repo"
+
 uploadArchives {
     repositories {
         mavenDeployer {
@@ -49,4 +49,8 @@ uploadArchives {
             }
         }
     }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2.1'
 }

@@ -1,0 +1,42 @@
+allprojects {
+    repositories {
+        //jcenter()
+        mavenCentral()
+    }
+}
+
+ext {
+    jodaTime = "joda-time:joda-time:2.4"
+    jodaConvert = "org.joda:joda-convert:1.7"
+
+    logbackVersion  = '1.1.2'
+    logback = [
+            "ch.qos.logback:logback-core:${logbackVersion}",
+            "ch.qos.logback:logback-classic:${logbackVersion}"
+    ]
+
+    scalaCompiler = "org.scala-lang:scala-compiler:${scalaMicroVersion}"
+    scalaLibrary = [
+            "org.scala-lang:scala-library:${scalaMicroVersion}"
+    ]
+
+    servletApi = "org.mortbay.jetty:servlet-api:2.5.20110712"
+
+    slf4jApi = "org.slf4j:slf4j-api:1.7.6"
+
+    //////////////////////////
+    //   TEST DEPENDENCIES
+    //////////////////////////
+
+    javastubserver = "com.pyruby:java-stub-server:0.12"
+
+    jettyEmbedded = "org.mortbay.jetty:jetty-embedded:6.1.26"
+
+    jsontools = "com.sdicons.jsontools:jsontools-core:1.7"
+
+    junit = "junit:junit:4.11"
+
+    mockito = "org.mockito:mockito-all:1.9.5"
+
+    scalatest = "org.scalatest:scalatest_${scalaVersion}:2.2.1"
+}
