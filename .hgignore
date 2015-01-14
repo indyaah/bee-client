@@ -1,26 +1,18 @@
-#syntax: glob
+syntax: glob
 # This line is a comment, and will be skipped.
 # Empty lines are skipped too.
 
-# Backup files left behind by the Emacs editor.
-.*~$
-
-# Temporary files used by the vim editor.
-\..*\.swp
-
 build/
 eclipsebin/
-lib_managed/
 log/
+out/
 project/boot/
 project/target/
 target/
-\.sbt/
-\.gradle/
-\.history
-\.idea/
-\.idea_modules/
+.gradle/
+.history
 TESTS-TestSuites.xml
-\.scala_dependencies
-.*\.iws
-.*\.tmp
+*.iws
+*.tmp
+
+version.gradle

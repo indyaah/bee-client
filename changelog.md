@@ -1,3 +1,7 @@
+#### Wed, 24 Dec 2014
+* v0.29.0 ; sbt choice reverted to 0.13.5 because the newer version fails.
+
+
 #### Sun, 21 Dec 2014
 * v0.29.0 ; fixes bug #31
 
