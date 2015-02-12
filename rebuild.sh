@@ -1,7 +1,7 @@
 #!/bin/sh -e
 
 rm -rf local/
-find . -type d -name target | xargs rm -rf
+find . -type d -name build | xargs rm -rf
 
 ./mime-types.sh
 
