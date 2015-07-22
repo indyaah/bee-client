@@ -1,4 +1,5 @@
 #!/bin/sh -e
+cd $(dirname $0)
 
 V=${1:-2.11.7}
 scalaVersion=$(echo $V |cut -d. -f-2)
