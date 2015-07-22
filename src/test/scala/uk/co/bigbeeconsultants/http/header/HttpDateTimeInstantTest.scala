@@ -34,8 +34,8 @@ import org.scalatest.junit.JUnitRunner
 class HttpDateTimeInstantTest extends FunSuite {
 
   test("parse silly") {
-    val d = HttpDateTimeInstant.parse("some silly rubbish", HttpDateTimeInstant.zero)
-    assert(HttpDateTimeInstant.zero === d)
+    val d = HttpDateTimeInstant.parse("some silly rubbish", HttpDateTimeInstant.Zero)
+    assert(HttpDateTimeInstant.Zero === d)
   }
 
   test("parse rfc1123DateTimeFormat (with spaces) 1") {
