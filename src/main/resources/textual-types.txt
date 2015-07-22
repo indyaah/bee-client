@@ -1,0 +1,19 @@
+# This file is edited by hand.
+# All .../...+xml are treated as textual.
+# All text/... are treated as textual.
+# The following are treated as textual.
+# Everything else is treated as binary.
+#
+application/ecmascript
+application/javascript
+application/json
+application/smil
+application/xml
+application/x-csh
+application/x-javascript
+application/x-ruby
+application/x-sh
+application/x-sql
+image/x-xbitmap
+image/x-xpixmap
+message/rfc822

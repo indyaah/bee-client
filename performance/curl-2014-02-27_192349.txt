@@ -1,0 +1,10 @@
+large-file-10B.tmp 10B 0.005ms
+large-file-100B.tmp 100B 0.005ms
+large-file-1KiB.tmp 1024B 0.006ms
+large-file-10KiB.tmp 10240B 0.006ms
+large-file-100KiB.tmp 102400B 0.006ms
+large-file-1MiB.tmp 1048576B 0.010ms
+large-file-10MiB.tmp 10485760B 0.025ms
+large-file-30MiB.tmp 31457280B 0.074ms
+large-file-100MiB.tmp 104857600B 0.246ms
+large-file-300MiB.tmp 314572800B 0.666ms
