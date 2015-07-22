@@ -1,7 +1,6 @@
 allprojects {
     repositories {
-        //jcenter()
-        mavenCentral()
+        jcenter()
     }
 }
 
@@ -39,5 +38,5 @@ ext {
 
     mockito = "org.mockito:mockito-all:1.9.5"
 
-    scalatest = "org.scalatest:scalatest_${scalaVersion}:2.2.1"
+    scalatest = "org.scalatest:scalatest_${scalaVersion}:2.2.4"
 }

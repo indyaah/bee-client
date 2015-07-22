@@ -234,11 +234,11 @@ class HttpIntegration extends FunSuite {
     val http = new HttpClient(configNoRedirects)
     try {
       val response = http.get(new URL(url), gzipHeaders)
-      assert(204 === response.status.code, url)
+      assert(response.status.code === 204, url)
       val body = response.body
-      assert(false === response.status.isBodyAllowed, response.status)
+      assert(response.status.isBodyAllowed === false, response.status)
       assert(TEXT_HTML.mediaType === body.contentType.mediaType, url)
-      assert("" === body.asString)
+      assert(body.asString === "")
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
@@ -253,13 +253,13 @@ class HttpIntegration extends FunSuite {
     val http = new HttpClient(configNoRedirects)
     try {
       val response = http.get(new URL(url), gzipHeaders)
-      assert(200 === response.status.code, url)
-      assert(IMAGE_PNG === response.body.contentType, url)
+      assert(response.status.code === 200, url)
+      assert(response.body.contentType === IMAGE_PNG, url)
       val bytes = response.body.asBytes
-      assert(testImageSize === bytes.length, url)
-      assert('P' === bytes(1))
-      assert('N' === bytes(2))
-      assert('G' === bytes(3))
+      assert(bytes.length === testImageSize, url)
+      assert(bytes(1) === 'P')
+      assert(bytes(2) === 'N')
+      assert(bytes(3) === 'G')
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
@@ -274,10 +274,10 @@ class HttpIntegration extends FunSuite {
     val http = new HttpClient(configNoRedirects)
     try {
       val response = http.get(new URL(url), gzipHeaders)
-      assert(200 === response.status.code, url)
+      assert(response.status.code === 200, url)
       val body = response.body
-      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
-      assert(true === body.toString().startsWith("Lorem "), url)
+      assert(body.contentType.mediaType === TEXT_PLAIN.mediaType, url)
+      assert(body.toString().startsWith("Lorem "), url)
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
@@ -293,13 +293,13 @@ class HttpIntegration extends FunSuite {
     val http2 = new HttpClient(configNoRedirects.copy(followRedirects = true))
     try {
       val response = http2.get(new URL(url), gzipHeaders, CookieJar(cookie))
-      assert(200 === response.status.code, url)
+      assert(response.status.code === 200, url)
       val body = response.body
-      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
-      assert(true === body.toString().startsWith("Lorem "), url)
-      assert(cookie === response.cookies.get.find(_.name == "c1").get, url)
-      assert("ok" === response.cookies.get.find(_.name == "redirect1").get.value, url)
-      assert("ok" === response.cookies.get.find(_.name == "redirect2").get.value, url)
+      assert(body.contentType.mediaType === TEXT_PLAIN.mediaType, url)
+      assert(body.toString().startsWith("Lorem "), url)
+      assert(response.cookies.get.find(_.name == "c1").get === cookie, url)
+      assert(response.cookies.get.find(_.name == "redirect1").get.value === "ok", url)
+      assert(response.cookies.get.find(_.name == "redirect2").get.value === "ok", url)
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
@@ -312,16 +312,16 @@ class HttpIntegration extends FunSuite {
     val httpBrowser = new HttpBrowser(configNoRedirects.copy(followRedirects = true), initialCookieJar = CookieJar(cookie))
     try {
       val response = httpBrowser.get(new URL(url), gzipHeaders)
-      assert(200 === response.status.code, url)
+      assert(response.status.code === 200, url)
       val body = response.body
-      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
-      assert(true === body.toString().startsWith("Lorem "), url)
-      assert(cookie === response.cookies.get.find(_.name == "c1").get, url)
-      assert("ok" === response.cookies.get.find(_.name == "redirect1").get.value, url)
-      assert("ok" === response.cookies.get.find(_.name == "redirect2").get.value, url)
-      assert(3 === httpBrowser.cookies.size, url)
-      assert("ok" === httpBrowser.cookies.find(_.name == "redirect1").get.value, url)
-      assert("ok" === httpBrowser.cookies.find(_.name == "redirect2").get.value, url)
+      assert(body.contentType.mediaType === TEXT_PLAIN.mediaType, url)
+      assert(body.toString().startsWith("Lorem "), url)
+      assert(response.cookies.get.find(_.name == "c1").get === cookie, url)
+      assert(response.cookies.get.find(_.name == "redirect1").get.value === "ok", url)
+      assert(response.cookies.get.find(_.name == "redirect2").get.value === "ok", url)
+      assert(httpBrowser.cookies.size === 3, url)
+      assert(httpBrowser.cookies.find(_.name == "redirect1").get.value === "ok", url)
+      assert(httpBrowser.cookies.find(_.name == "redirect2").get.value === "ok", url)
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
@@ -336,13 +336,13 @@ class HttpIntegration extends FunSuite {
     val http = new HttpClient(configNoRedirects)
     try {
       val response = http.get(new URL(url), gzipHeaders)
-      assert(200 === response.status.code, url)
+      assert(response.status.code === 200, url)
       val body = response.body
-      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
+      assert(body.contentType.mediaType === TEXT_PLAIN.mediaType, url)
       val bodyLines = response.body.toString().split("\n").toSeq
-      assert("" === extractLineFromResponse("CONTENT_LENGTH", bodyLines), response.body)
-      assert("" === extractLineFromResponse("CONTENT_TYPE", bodyLines), response.body)
-      assert(Set("A: 1", "B: 2") === bodyLines.filter(_.startsWith("GET:")).map(_.substring(5)).toSet, response.body)
+      assert(extractLineFromResponse("CONTENT_LENGTH", bodyLines) === "", response.body)
+      assert(extractLineFromResponse("CONTENT_TYPE", bodyLines) === "", response.body)
+      assert(bodyLines.filter(_.startsWith("GET:")).map(_.substring(5)).toSet === Set("A: 1", "B: 2"), response.body)
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
@@ -357,12 +357,12 @@ class HttpIntegration extends FunSuite {
     val http = new HttpClient(configNoRedirects)
     try {
       val response = http.get(new URL(url), gzipHeaders, CookieJar.Empty)
-      assert(200 === response.status.code, url)
+      assert(response.status.code === 200, url)
       val body = response.body
-      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
+      assert(body.contentType.mediaType === TEXT_PLAIN.mediaType, url)
       val cookies = response.cookies.get
-      assert(1 === cookies.size, url)
-      assert("v1" === cookies.get("c1").get.value, url)
+      assert(cookies.size === 1, url)
+      assert(cookies.get("c1").get.value === "v1", url)
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
@@ -377,9 +377,9 @@ class HttpIntegration extends FunSuite {
     val http = new HttpClient(configNoRedirects)
     try {
       val response = http.options(new URL(url), None)
-      assert(302 === response.status.code, url)
+      assert(response.status.code === 302, url)
       val body = response.body
-      assert(0 === body.asString.length, url)
+      assert(body.asString.length === 0, url)
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
@@ -394,13 +394,13 @@ class HttpIntegration extends FunSuite {
     val http = new HttpClient(configNoRedirects)
     try {
       val response = http.post(new URL(url), Some(jsonBody), gzipHeaders)
-      assert(200 === response.status.code, url)
+      assert(response.status.code === 200, url)
       val body = response.body
-      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
+      assert(body.contentType.mediaType === TEXT_PLAIN.mediaType, url)
       val bodyLines = response.body.asString.split("\n").toSeq
-      assert(jsonSample.length.toString === extractLineFromResponse("CONTENT_LENGTH", bodyLines))
-      assert(APPLICATION_JSON.mediaType === extractLineFromResponse("CONTENT_TYPE", bodyLines))
-      assert(jsonSample === extractLineFromResponse("PUT", bodyLines))
+      assert(extractLineFromResponse("CONTENT_LENGTH", bodyLines) === jsonSample.length.toString)
+      assert(extractLineFromResponse("CONTENT_TYPE", bodyLines) === APPLICATION_JSON.mediaType)
+      assert(extractLineFromResponse("PUT", bodyLines) === jsonSample)
     } catch {
       case e: Exception =>
         skipTestWarning("POST", url, e)
@@ -415,13 +415,13 @@ class HttpIntegration extends FunSuite {
     val http = new HttpClient(configNoRedirects)
     try {
       val response = http.put(new URL(url), jsonBody, gzipHeaders)
-      assert(200 === response.status.code, url)
+      assert(response.status.code === 200, url)
       val body = response.body
-      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
+      assert(body.contentType.mediaType === TEXT_PLAIN.mediaType, url)
       val bodyLines = response.body.asString.split("\n").toSeq
-      assert(jsonSample.length.toString === extractLineFromResponse("CONTENT_LENGTH", bodyLines))
-      assert(APPLICATION_JSON.mediaType === extractLineFromResponse("CONTENT_TYPE", bodyLines))
-      assert(jsonSample === extractLineFromResponse("PUT", bodyLines))
+      assert(extractLineFromResponse("CONTENT_LENGTH", bodyLines) === jsonSample.length.toString)
+      assert(extractLineFromResponse("CONTENT_TYPE", bodyLines) === APPLICATION_JSON.mediaType)
+      assert(extractLineFromResponse("PUT", bodyLines) === jsonSample)
     } catch {
       case e: Exception =>
         skipTestWarning("PUT", url, e)
@@ -436,11 +436,11 @@ class HttpIntegration extends FunSuite {
     val http = new HttpClient(configNoRedirects)
     try {
       val response = http.delete(new URL(url), gzipHeaders)
-      assert(200 === response.status.code, url)
+      assert(response.status.code === 200, url)
       val body = response.body
-      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
+      assert(body.contentType.mediaType === TEXT_PLAIN.mediaType, url)
       val bodyLines = response.body.asString.split("\n").toSeq
-      assert("DELETE" === extractLineFromResponse("REQUEST_METHOD", bodyLines))
+      assert(extractLineFromResponse("REQUEST_METHOD", bodyLines) === "DELETE")
     } catch {
       case e: Exception =>
         skipTestWarning("DELETE", url, e)
@@ -455,11 +455,11 @@ class HttpIntegration extends FunSuite {
     val http = new HttpClient(configNoRedirects)
     try {
       val response = http.options(new URL(url), None)
-      assert(200 === response.status.code, url)
+      assert(response.status.code === 200, url)
       val body = response.body
-      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
+      assert(body.contentType.mediaType === TEXT_PLAIN.mediaType, url)
       val bodyLines = response.body.asString.split("\n").toSeq
-      assert("OPTIONS" === extractLineFromResponse("REQUEST_METHOD", bodyLines))
+      assert(extractLineFromResponse("REQUEST_METHOD", bodyLines) === "OPTIONS")
     } catch {
       case e: Exception =>
         skipTestWarning("DELETE", url, e)
@@ -477,10 +477,10 @@ class HttpIntegration extends FunSuite {
       val timer = new DiagnosticTimer
       for (i <- 1 to loops) {
         val response = http.get(new URL(url + "?n=" + i), gzipHeaders)
-        assert(200 === response.status.code, url)
-        assert(IMAGE_JPG.mediaType === response.body.contentType.mediaType, url)
+        assert(response.status.code === 200, url)
+        assert(response.body.contentType.mediaType === IMAGE_JPG.mediaType, url)
         val bytes = response.body.asBytes
-        assert(testPhotoSize === bytes.length, url)
+        assert(bytes.length === testPhotoSize, url)
       }
       val duration = timer.duration.microseconds
       val bytes = BigDecimal(testPhotoSize * loops)
@@ -509,17 +509,17 @@ class HttpIntegration extends FunSuite {
           try {
             val is = i.toString
             val response = http.get(new URL(url + "?STUM=1"), gzipHeaders)
-            assert(200 === response.status.code, url)
+            assert(response.status.code === 200, url)
             val body = response.body
-            assert(TEXT_HTML.mediaType === body.contentType.mediaType, url)
+            assert(body.contentType.mediaType === TEXT_HTML.mediaType, url)
             val string = body.asString
             assert(string.startsWith("<html>"), url)
             if (size < 0) {
               first = string
               size = first.length
             } else {
-              assert(first === string, is)
-              assert(size === string.length, is)
+              assert(string === first, is)
+              assert(string.length === size, is)
             }
           } catch {
             case e: Exception =>
@@ -548,7 +548,7 @@ class HttpIntegration extends FunSuite {
     val http = new HttpClient(configNoRedirects)
     try {
       val response = http.get(new URL(url), gzipHeaders)
-      assert(401 === response.status.code, url)
+      assert(response.status.code === 401, url)
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
@@ -561,10 +561,10 @@ class HttpIntegration extends FunSuite {
       val bigbee = new Credential("bigbee", "HelloWorld")
       val requestHeaders = gzipHeaders + bigbee.toBasicAuthHeader
       val response = http.get(new URL(url), requestHeaders)
-      assert(200 === response.status.code, url)
+      assert(response.status.code === 200, url)
       val body = response.body
-      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
-      assert(true === body.asString.startsWith("Lorem "), url)
+      assert(body.contentType.mediaType === TEXT_PLAIN.mediaType, url)
+      assert(body.asString.startsWith("Lorem "), url)
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
@@ -582,10 +582,10 @@ class HttpIntegration extends FunSuite {
   private def textPlainGetAutomaticBasicAuth(http: Http, url: String) {
     try {
       val response = http.get(new URL(url), gzipHeaders)
-      assert(200 === response.status.code, url)
+      assert(response.status.code === 200, url)
       val body = response.body
-      assert(TEXT_PLAIN.mediaType === body.contentType.mediaType, url)
-      assert(true === body.asString.startsWith("Lorem "), url)
+      assert(body.contentType.mediaType === TEXT_PLAIN.mediaType, url)
+      assert(body.asString.startsWith("Lorem "), url)
     } catch {
       case e: Exception =>
         skipTestWarning("GET", url, e)
