@@ -33,24 +33,10 @@ task ci(type: GradleBuild) {
 archivesBaseName = 'bee-client_' + scalaVersion
 jar.enabled = true
 
-clean.delete = ["build", "logs", "out", "reports"]
-
 tasks.withType(ScalaCompile) {
     scalaCompileOptions.useAnt = false // Zinc incremental compiler
 }
 
-ext.uploadPath = "file:local/repo"
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repositories {
-                repository(url: rootProject.ext.uploadPath)
-            }
-        }
-    }
-}
-
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.2.1'
+    gradleVersion = '2.5'
 }

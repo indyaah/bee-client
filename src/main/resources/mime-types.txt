@@ -51,6 +51,7 @@ application/xspf+xml xspf
 application/zip zip
 application/vnd.android.package-archive apk
 application/vnd.cinderella cdy
+application/vnd.debian.binary-package deb ddeb udeb
 application/vnd.font-fontforge-sfd sfd
 application/vnd.google-earth.kml+xml kml
 application/vnd.google-earth.kmz kmz
@@ -219,6 +220,7 @@ application/x-x509-ca-cert crt
 application/x-xcf xcf
 application/x-xfig fig
 application/x-xpinstall xpi
+application/x-xz xz
 audio/amr amr
 audio/amr-wb awb
 audio/annodex axa
