@@ -12,6 +12,7 @@ build/
 eclipsebin/
 lib_managed/
 log/
+out/
 project/boot/
 project/target/
 target/
