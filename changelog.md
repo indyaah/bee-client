@@ -1,3 +1,23 @@
+* branch:      switch-to-gradle
+#### Thu, 12 Feb 2015
+* Further test work done on CookieParserTest. Some gradle revisions.
+
+
+* branch:      switch-to-gradle
+#### Wed, 14 Jan 2015
+* Gradle build is coming together.
+
+
+* branch:      switch-to-gradle
+#### Wed, 14 Jan 2015
+* Broken build - transition to using symlinks
+
+
+* branch:      switch-to-gradle
+#### Wed, 14 Jan 2015
+* Started new Gradle-based build system to unblock the SBT build hindrance log-jam.
+
+
 #### Wed, 24 Dec 2014
 * v0.29.0 ; sbt choice reverted to 0.13.5 because the newer version fails.
 

@@ -28,18 +28,16 @@ import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 import uk.co.bigbeeconsultants.http._
-import uk.co.bigbeeconsultants.http.request.Request
-import uk.co.bigbeeconsultants.http.response._
-import uk.co.bigbeeconsultants.http.header._
 import uk.co.bigbeeconsultants.http.header.HeaderName._
-import uk.co.bigbeeconsultants.http.util.{Duration, DiagnosticTimer}
-import uk.co.bigbeeconsultants.http.response.StringResponseBody
-import uk.co.bigbeeconsultants.http.header.HttpDateTimeInstant
+import uk.co.bigbeeconsultants.http.header.{HttpDateTimeInstant, _}
+import uk.co.bigbeeconsultants.http.request.Request
+import uk.co.bigbeeconsultants.http.response.{StringResponseBody, _}
+import uk.co.bigbeeconsultants.http.util.{DiagnosticTimer, Duration}
 
 @RunWith(classOf[JUnitRunner])
 class ContentCacheTest extends FunSuite {
 
-  import Request._
+  import uk.co.bigbeeconsultants.http.request.Request._
 
   val getAndHead = List(GET, HEAD)
   val supportedCodes = List(Status.S200_OK, Status.S203_NotAuthoritative, Status.S300_MultipleChoice, Status.S301_MovedPermanently, Status.S410_Gone)
@@ -169,6 +167,28 @@ class ContentCacheTest extends FunSuite {
       cache.execute(request, responseBuilder, config)
       assert(cache.cacheSize === 1)
     }
+  }
+
+  test("store independently caches records where one has vary set and the other does not") {
+    val config = Config()
+    val httpStub = new HttpExecutorStub
+    val cacheConfig = CacheConfig(enabled = true, minContentLength = text1000.length)
+    val cache = new ContentCache(httpStub, cacheConfig)
+    val request = Request.get("http://localhost/stuff")
+    val status = Status.S200_OK
+
+    val fatResponse = Response(request, status, MediaType.TEXT_PLAIN, text1000)
+    val fatResponseBuilder = new BufferedResponseBuilder
+    httpStub.wantedResponse = fatResponse
+    cache.execute(request, fatResponseBuilder, config)
+    assert(cache.cacheSize === 1)
+
+    val gzipHeaders = Headers(HeaderName.VARY -> "Accept-Encoding")
+    val thinResponse = Response(request, status, MediaType.TEXT_PLAIN, text1000, gzipHeaders)
+    val thinResponseBuilder = new BufferedResponseBuilder
+    httpStub.wantedResponse = thinResponse
+    cache.execute(request, thinResponseBuilder, config)
+    //TODO assert(cache.cacheSize === 2)
   }
 
   test("store ignores other methods") {
