@@ -28,14 +28,15 @@ import java.net.URL
 import org.scalatest.FunSuite
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import uk.co.bigbeeconsultants.http.url.Domain
 
 @RunWith(classOf[JUnitRunner])
 class CookieParserTest extends FunSuite {
 
   test("example 1: name, value") {
     val str = "SID=31d4d96e407aad42"
-    val headers = HeaderName.SET_COOKIE -> str
-    val cookies: List[Cookie] = CookieJar.gleanCookies(Some(CookieJar.Empty), new URL("http://a.z.com/animal/zebra.html"), Headers(headers))._1.get.cookies
+    val h1 = HeaderName.SET_COOKIE -> str
+    val cookies: List[Cookie] = CookieParser.updateCookies(CookieJar.Empty, new URL("http://a.z.com/animal/zebra.html"), List(h1)).cookies
     assert(cookies.size === 1)
     val cookie = cookies(0)
     assert(CookieParser.asSetHeader(cookie).startsWith(str))
@@ -54,8 +55,8 @@ class CookieParserTest extends FunSuite {
 
   test("example 2: name, value, expires, httponly, max-age, path, secure") {
     val str = "session=c47666897a224a93add9; expires=Wed, 19-Feb-2034 20:13:23 GMT; httponly; Max-Age=1209600; Path=/; secure"
-    val headers = HeaderName.SET_COOKIE -> str
-    val cookies: List[Cookie] = CookieJar.gleanCookies(Some(CookieJar.Empty), new URL("http://a.z.com/animal/zebra.html"), Headers(headers))._1.get.cookies
+    val h1 = HeaderName.SET_COOKIE -> str
+    val cookies: List[Cookie] = CookieParser.updateCookies(CookieJar.Empty, new URL("http://a.z.com/animal/zebra.html"), List(h1)).cookies
     assert(cookies.size === 1)
     val cookie = cookies(0)
     assert(cookie.name === "session")
@@ -74,8 +75,8 @@ class CookieParserTest extends FunSuite {
 
   test("example 3: name, value, domain, expires, httponly, secure") {
     val str = "logged_in=yes; domain=.frodo.com; path=/; expires=Sun, 05-Feb-2034 20:23:23 GMT; secure; HttpOnly"
-    val headers = HeaderName.SET_COOKIE -> str
-    val cookies: List[Cookie] = CookieJar.gleanCookies(Some(CookieJar.Empty), new URL("http://a.frodo.com/animal/zebra.html"), Headers(headers))._1.get.cookies
+    val h1 = HeaderName.SET_COOKIE -> str
+    val cookies: List[Cookie] = CookieParser.updateCookies(CookieJar.Empty, new URL("http://a.frodo.com/animal/zebra.html"), List(h1)).cookies
     assert(cookies.size === 1)
     val cookie = cookies(0)
     assert(cookie.name === "logged_in")
@@ -94,8 +95,8 @@ class CookieParserTest extends FunSuite {
 
   test("example 4: name, value, path, expires, httponly, secure") {
     val str = "user_session=rTIepD313gqaAEvLbBZvIWOGHMTb3CyPp3YTlxeVf0kd; path=/; expires=Wed, 19-Feb-2034 20:23:23 GMT; secure; HttpOnly"
-    val headers = HeaderName.SET_COOKIE -> str
-    val cookies: List[Cookie] = CookieJar.gleanCookies(Some(CookieJar.Empty), new URL("http://a.z.com/animal/zebra.html"), Headers(headers))._1.get.cookies
+    val h1 = HeaderName.SET_COOKIE -> str
+    val cookies: List[Cookie] = CookieParser.updateCookies(CookieJar.Empty, new URL("http://a.z.com/animal/zebra.html"), List(h1)).cookies
     assert(cookies.size === 1)
     val cookie = cookies(0)
     assert(cookie.name === "user_session")
@@ -114,8 +115,8 @@ class CookieParserTest extends FunSuite {
 
   test("example 5: name, value, path, httponly, secure") {
     val str = "_gh_sess=BAh7BjoPc2Vzc2lvbl9pZEkiJWIwODQ2YTFhMThmY2YzYjU3MDVlOGJjY2RmMWJmYjlkBjoGRUY%3D--afafe028ab4b30196967becb2c7e13666b149219; path=/; secure; HttpOnly"
-    val headers = HeaderName.SET_COOKIE -> str
-    val cookies: List[Cookie] = CookieJar.gleanCookies(Some(CookieJar.Empty), new URL("http://a.z.com/animal/zebra.html"), Headers(headers))._1.get.cookies
+    val h1 = HeaderName.SET_COOKIE -> str
+    val cookies: List[Cookie] = CookieParser.updateCookies(CookieJar.Empty, new URL("http://a.z.com/animal/zebra.html"), List(h1)).cookies
     assert(cookies.size === 1)
     val cookie = cookies(0)
     assert(cookie.name === "_gh_sess")
@@ -134,8 +135,8 @@ class CookieParserTest extends FunSuite {
 
   test("example 6: name, value, domain, path, expires, httponly, secure") {
     val str = "dotcom_user=frodo123; domain=.frodo.com; path=/chat; expires=Sun, 05-Feb-2034 20:23:23 GMT; secure; HttpOnly"
-    val headers = HeaderName.SET_COOKIE -> str
-    val cookies: List[Cookie] = CookieJar.gleanCookies(Some(CookieJar.Empty), new URL("http://www.frodo.com/animal/zebra.html"), Headers(headers))._1.get.cookies
+    val h1 = HeaderName.SET_COOKIE -> str
+    val cookies: List[Cookie] = CookieParser.updateCookies(CookieJar.Empty, new URL("http://www.frodo.com/animal/zebra.html"), List(h1)).cookies
     assert(cookies.size === 1)
     val cookie = cookies(0)
     assert(cookie.name === "dotcom_user")
@@ -154,8 +155,8 @@ class CookieParserTest extends FunSuite {
 
   test("example 7: blank expires field is treated as if expires is not set") {
     val str = "GEORAN=1; path=/; domain=.ticketmaster.com; expires="
-    val headers = HeaderName.SET_COOKIE -> str
-    val cookies: List[Cookie] = CookieJar.gleanCookies(Some(CookieJar.Empty), new URL("http://www.ticketmaster.com/"), Headers(headers))._1.get.cookies
+    val h1 = HeaderName.SET_COOKIE -> str
+    val cookies: List[Cookie] = CookieParser.updateCookies(CookieJar.Empty, new URL("http://www.ticketmaster.com/"), List(h1)).cookies
     assert(cookies.size === 1)
     val cookie = cookies(0)
     assert(cookie.name === "GEORAN")
@@ -172,10 +173,20 @@ class CookieParserTest extends FunSuite {
 //    assert(CookieParser.asSetHeader(cookie).toLowerCase === str.toLowerCase)
   }
 
+  test("example 8: cookie deletion") {
+    val existing1 = Cookie("session", "foo", Domain.localhost, "/")
+    val existing2 = Cookie("bar", "baz", Domain.localhost, "/")
+    val str = "session=;Version=1;Expires=Thu, 01-Jan-1970 00:00:00 GMT;Max-Age=0"
+    val h1 = HeaderName.SET_COOKIE -> str
+    val cookies: List[Cookie] = CookieParser.updateCookies(CookieJar(existing1, existing2), new URL("http://localhost:8080/"), List(h1)).cookies
+    assert(cookies.size === 1)
+    assert(cookies.head.name === "bar")
+  }
+
   test("httponly filter") {
     val str = "user=frodo123; domain=.frodo.com; path=/; expires=Sun, 05-Feb-2034 20:23:23 GMT; secure; HttpOnly"
-    val headers = HeaderName.SET_COOKIE -> str
-    val cookies: List[Cookie] = CookieJar.gleanCookies(Some(CookieJar.Empty), new URL("ftp://www.frodo.com/animal/zebra.html"), Headers(headers))._1.get.cookies
+    val h1 = HeaderName.SET_COOKIE -> str
+    val cookies: List[Cookie] = CookieParser.updateCookies(CookieJar.Empty, new URL("ftp://www.frodo.com/animal/zebra.html"), List(h1)).cookies
     assert(cookies.isEmpty)
   }
 
@@ -185,7 +196,7 @@ class CookieParserTest extends FunSuite {
     val c3Str = "ccc3=f1=5; Path=/; Domain=z.com; Expires=Mon, 12 Sep 2022 11:21:33 GMT"
     val h1 = HeaderName.SET_COOKIE -> (c1Str + "\n" + c2Str + "\n" + c3Str)
 
-    val cookies: List[Cookie] = CookieJar.gleanCookies(Some(CookieJar.Empty), new URL("http://a.z.com/animal/zebra.html"), Headers(h1))._1.get.cookies
+    val cookies: List[Cookie] = CookieParser.updateCookies(CookieJar.Empty, new URL("http://a.z.com/animal/zebra.html"), List(h1)).cookies
     val c1 = cookies(2)
     val c2 = cookies(1)
     val c3 = cookies(0)

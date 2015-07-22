@@ -1,9 +1,17 @@
 #!/bin/bash -e
 scalabin=$(type -p scala)
-[ -f "$scalabin" ] || exit 1
+if [ -z "$scalabin" ]; then
+  echo Scala not found.
+  exit 1
+fi
+
 export SCALA_HOME=$(dirname $(dirname $scalabin))
-[ -d "$SCALA_HOME" ] || exit 2
-PATH=$SCALA_HOME/bin:$PATH
+if [ ! -d "$SCALA_HOME" ]; then
+  echo Scala home dir missing.
+  exit 2
+fi
+
+#PATH=$SCALA_HOME/bin:$PATH
 exec scala -cp $SCALA_HOME/lib/scala-library.jar "$0" "$@"
 !#
 val filteredLines = io.Source.stdin.getLines.
