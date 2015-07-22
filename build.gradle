@@ -1,10 +1,29 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+        classpath 'eu.appsatori:gradle-fatjar-plugin:0.2'
+    }
+}
+
 apply plugin: 'scala'
 apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply plugin: 'jacoco'
+apply plugin: 'com.jfrog.bintray'
 apply from: 'ide-support.gradle'
 apply from: "dependencies.gradle"
 
-ext.version = "0.29.0"
+project.ext {
+    releaseVersion = "0.29.1"
+    groupId = 'uk.co.bigbeeconsultants'
+
+    // http://jira.codehaus.org/browse/GRADLE-1329
+    sourceCompatibility = JavaVersion.VERSION_1_7
+    targetCompatibility = JavaVersion.VERSION_1_7
+}
 
 dependencies {
     compile scalaLibrary
@@ -18,16 +37,10 @@ dependencies {
     }
 }
 
-subprojects {
-    group = 'uk.co.bigbeeconsultants'
-    sourceCompatibility = "1.7"
-    targetCompatibility = "1.7"
-}
-
 task ci(type: GradleBuild) {
     description = 'Everything you need to run for continuous integration'
     group = "CI"
-    tasks = ['clean', 'build', 'uploadArchives', 'jacocoTestReport']
+    tasks = ['clean', 'build', 'jacocoTestReport']
 }
 
 archivesBaseName = 'bee-client_' + scalaVersion
@@ -39,4 +52,80 @@ tasks.withType(ScalaCompile) {
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.5'
+}
+
+archivesBaseName = 'bee-client_' + scalaVersion
+//version = rootProject.version
+jar.enabled = true
+
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.useAnt = false // Zinc incremental compiler
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task scaladocJar(type: Jar, dependsOn: 'scaladoc') {
+    classifier = 'javadoc'
+    from scaladoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar, scaladocJar
+}
+
+publishing {
+    publications {
+        mavenScala(MavenPublication) {
+            from components.java
+            groupId project.groupId
+            artifactId archivesBaseName
+            version project.releaseVersion
+            artifact sourcesJar
+            artifact scaladocJar
+        }
+    }
+}
+
+//task createPom << {
+//    pom {
+//        artifactId = project.archivesBaseName
+//        project {
+//            licenses {
+//                license {
+//                    name 'MIT Licence'
+//                    url 'http://opensource.org/licenses/MIT'
+//                    distribution 'repo'
+//                }
+//            }
+//        }
+//    }.writeTo("$buildDir/pom.xml")
+//}
+//
+//bintrayUpload.dependsOn createPom
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_KEY')
+    //dryRun = true
+    publish = false
+    publications = ['mavenScala']
+    pkg {
+        repo = 'maven'
+        name = archivesBaseName
+        version {
+            name = project.releaseVersion
+            desc = 'HTTP Client for Scala'
+            //vcsTag = '1.6.3'
+            //attributes = ['gradle-plugin': 'com.use.less:com.use.less.gradle:gradle-useless-plugin']
+            gpg {
+                sign = true
+            }
+        }
+        userOrg = System.getenv('BINTRAY_USER')
+        licenses = ['MIT']
+        vcsUrl = 'https://bitbucket.org/rickb777/bee-client'
+    }
 }

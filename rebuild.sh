@@ -9,6 +9,10 @@ function doBuild
   [ -x /usr/bin/figlet ] && figlet Scala $1
   ./switch.sh $1
   ./gradlew clean build jacocoTestReport -i
+
+  if [ -n "$BINTRAY_USER" -a -n "$BINTRAY_KEY" ]; then
+    ./gradlew bintrayUpload
+  fi
 }
 
 case "$1" in
