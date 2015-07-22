@@ -37,13 +37,18 @@ More examples follow in [the tutorial](http://www.bigbeeconsultants.co.uk/conten
 
 ## Known Bugs ##
 
-*   See the [issue tracker](https://bitbucket.org/rickb777/bee-client/issues?status=new&status=open "BitBucket IssueTracker for Bee-Client")
+* See the [issue tracker](https://bitbucket.org/rickb777/bee-client/issues?status=new&status=open "BitBucket IssueTracker for Bee-Client")
 
 ## Future Plans ##
 
 Several new features are under consideration for future versions.
 
 See https://bitbucket.org/rickb777/bee-client/issues?status=new&status=open
+
+### More Info ###
+* [Latest Javadoc](http://www.bigbeeconsultants.co.uk/docs/bee-client/latest/)
+* [Latest binaries](http://dl.bintray.com/rick-beton/maven)
+* [Older binaries](http://repo.bigbeeconsultants.co.uk/repo)
 
 [![Build Status](https://drone.io/bitbucket.org/rickb777/bee-client/status.png)](https://drone.io/bitbucket.org/rickb777/bee-client/latest)
 
